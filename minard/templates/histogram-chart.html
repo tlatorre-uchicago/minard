@@ -1,0 +1,11 @@
+{% macro histogram_chart(container, data=None, name=None, url=None, title='') -%}
+    <script>
+      var selection = d3.select(container);
+      {% if data %}
+          selection.datum(data)
+      {% else %}
+          selection.datum([])
+      {% endif %}
+      selection.call(histogramChart())
+    </script>
+{%- endmacro %}

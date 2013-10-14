@@ -8,6 +8,8 @@ function histogramChart() {
       y = d3.scale.linear(),
       xAxis = d3.svg.axis().scale(x).orient("bottom").tickSize(6, 0);
 
+  var interval = 1000;
+
   function chart(selection) {
     selection.each(function(data) {
 
@@ -52,6 +54,23 @@ function histogramChart() {
       g.select(".x.axis")
           .attr("transform", "translate(0," + y.range()[0] + ")")
           .call(xAxis);
+
+      if !(typeof update === 'undefined') {
+	      setInterval(function() {
+		      data = update();
+		      redraw();
+		  },interval);
+	  }
+
+      function redraw() {
+	  // Update the bars.
+	  var bar = svg.select(".bars").selectAll(".bar").data(data);
+	  bar .transition()
+	      .duration(1000)
+	      .attr("y", function(d) { return y(d.y); })
+	      .attr("height", function(d) { return y.range()[0] - y(d.y); });
+      }
+
     });
   }
 
@@ -71,6 +90,12 @@ function histogramChart() {
     if (!arguments.length) return height;
     height = _;
     return chart;
+  };
+
+  chart.interval = function(_) {
+      if (!arguments.length) return interval;
+      interval = _;
+      return chart;
   };
 
   // Expose the histogram's value, range and bins method.
