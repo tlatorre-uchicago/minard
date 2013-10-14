@@ -1,12 +1,21 @@
 from minard import app
 from flask import render_template
 
+PROJECT_NAME = 'Minard'
+
+@app.context_processor
+def project_name():
+    return {'project_name': PROJECT_NAME}
+
 @app.route('/')
 def index():
     return render_template('layout.html',message='Hello World!')
 
-links=[{'href':'/', 'name': 'test', 'group': 'Hello'}]
+sidebar=[{'href': '/', 'name': 'test', 'group': 'Hello'}]
+nav = [{'href': '/', 'name': 'test'}]
+containers = [{'name': 'test'}]*4
+
 
 @app.route('/fluid')
 def fluid():
-    return render_template('fluid.html',links=links)
+    return render_template('fluid.html',sidebar=sidebar,nav=nav,containers=containers)
