@@ -107,7 +107,7 @@
 		  <div class="span4" id="{{ divid }}">
 		    <h2>{{ item.name }}</h2>
 		    {% if item.type == 'histogram' %}
-		      {{ histogram.histogram_chart(divid,title='test',data=[1,2,3]) }}
+		      {{ histogram.histogram_chart(divid,url='get',name='test',interval=5000,bins=10) }}
 		    {% else %}
 		      <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
 		      <p><a class="btn" href="#">View details &raquo;</a></p>

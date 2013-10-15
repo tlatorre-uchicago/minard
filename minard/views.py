@@ -1,5 +1,5 @@
 from minard import app
-from flask import render_template
+from flask import render_template, jsonify
 
 PROJECT_NAME = 'Minard'
 
@@ -7,13 +7,19 @@ PROJECT_NAME = 'Minard'
 def project_name():
     return {'project_name': PROJECT_NAME}
 
+import random
+
+@app.route('/get')
+def get():
+    return jsonify(values=[random.gauss(5,1) for i in range(100)])
+
 @app.route('/')
 def index():
     return render_template('layout.html',message='Hello World!')
 
 sidebar=[{'href': '/', 'name': 'test', 'group': 'Hello'}]
 nav = [{'href': '/', 'name': 'test'}]
-containers = [{'name': 'test'}]*4 + [{'name': 'histogram', 'type': 'histogram'}]
+containers = [{'name': 'Histogram %i' % i, 'type': 'histogram'} for i in range(2)]
 
 
 @app.route('/fluid')

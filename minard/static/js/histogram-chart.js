@@ -1,4 +1,4 @@
-function histogramChart() {
+function histogramChart(update) {
   var margin = {top: 0, right: 0, bottom: 20, left: 0},
       width = 960,
       height = 500;
@@ -11,10 +11,10 @@ function histogramChart() {
   var interval = 1000;
 
   function chart(selection) {
-    selection.each(function(data) {
+    selection.each(function(values) {
 
       // Compute the histogram.
-      data = histogram(data);
+      data = histogram(values);
 
       // Update the x-scale.
       x   .domain(data.map(function(d) { return d.x; }))
@@ -55,20 +55,18 @@ function histogramChart() {
           .attr("transform", "translate(0," + y.range()[0] + ")")
           .call(xAxis);
 
-      if (!(typeof update === 'undefined')) {
-	      setInterval(function() {
-		      data = update();
-		      redraw();
-		  },interval);
-	  }
+      setInterval(function() {
+	          update().done(redraw);
+	          },interval);
 
-      function redraw() {
+      function redraw(result) {
 	  // Update the bars.
-	  var bar = svg.select(".bars").selectAll(".bar").data(data);
-	  bar .transition()
-	      .duration(1000)
-	      .attr("y", function(d) { return y(d.y); })
-	      .attr("height", function(d) { return y.range()[0] - y(d.y); });
+	  data = histogram(result.values);
+	  bar.data(data)
+	     .transition()
+	     .duration(1000)
+	     .attr("y", function(d) { return y(d.y); })
+	     .attr("height", function(d) { return y.range()[0] - y(d.y); });
       }
 
     });

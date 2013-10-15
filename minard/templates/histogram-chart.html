@@ -1,28 +1,39 @@
-{% macro histogram_chart(container, bins=None, data=None, name=None, url=None, title='') -%}
+{% macro histogram_chart(container, url, name, interval=None, bins=None) -%}
     <script>
-      var element = $('#{{ container }}')
+      (function(){
+      var element = $('#{{ container }}'),
+          width = element.width();
+      var height = width/2.0;
+
       var selection = d3.select(element[0]);
-      {% if data %}
-          selection.datum({{ data|safe }});
-      {% else %}
-          selection.datum([]);
-      {% endif %}
 
-      var width = element.width();
+      function update() {
+      return $.getJSON($SCRIPT_ROOT + '{{ url }}',
+                       { name: '{{ name }}' });
+      }
 
-      var chart = histogramChart()
-                     .width(width)
-                     .height(width/2.0)
-                     .tickFormat(d3.format(".02f"));
+      function on_done(result) {
+      values = result.values;
 
-      {% if bins %}
-        chart.bins(bins);
-      {% else %}
-        {% if not data %}
-          alert('histogram has no bins or data');
-        {% endif %}
-      {% endif %}
+      selection.datum(values);
 
-      selection.call(chart);
+	  var chart = histogramChart(update)
+                      .width(width)
+                      .height(height)
+                      .tickFormat(d3.format(".2f"));
+
+	  {% if bins %}
+	    chart.bins({{ bins }});
+          {% endif %}
+
+          {% if interval %}
+            chart.interval({{ interval }})
+          {% endif %}
+
+          selection.call(chart);
+      }
+
+      update().done(on_done);
+      }());
     </script>
 {%- endmacro %}
