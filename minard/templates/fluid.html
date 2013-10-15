@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% import 'histogram-chart.html' as histogram with context %}
 
 {% block title %}Bootstrap, from Twitter{% endblock %}
 
@@ -22,6 +23,30 @@
         }
       }
     </style>
+
+    <style>
+
+    .bars rect {
+      fill: steelblue;
+    }
+
+    .axis text {
+      font: 10px sans-serif;
+    }
+
+    .axis path, .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+
+    </style>
+
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/histogram-chart.js') }}"></script>
+    <script type="text/javascript">
+      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    </script>
   {% endblock %}
 
   {% block body %}
@@ -75,12 +100,18 @@
 	  {% endif %}
 	  {% if containers %}
 	    {% for row in containers|batch(3) %}
+	    {% set row_loop = loop %}
               <div class="row-fluid">
 		{% for item in row %}
-		  <div class="span4">
+		{% set divid = 'div' ~ row_loop.index ~ loop.index %}
+		  <div class="span4" id="{{ divid }}">
 		    <h2>{{ item.name }}</h2>
-		    <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-		    <p><a class="btn" href="#">View details &raquo;</a></p>
+		    {% if item.type == 'histogram' %}
+		      {{ histogram.histogram_chart(divid,title='test',data=[1,2,3]) }}
+		    {% else %}
+		      <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+		      <p><a class="btn" href="#">View details &raquo;</a></p>
+		    {% endif %}
 		  </div><!--/span-->
 		{% endfor %}
               </div><!--/row-->

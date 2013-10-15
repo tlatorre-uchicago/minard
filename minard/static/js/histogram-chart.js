@@ -55,7 +55,7 @@ function histogramChart() {
           .attr("transform", "translate(0," + y.range()[0] + ")")
           .call(xAxis);
 
-      if !(typeof update === 'undefined') {
+      if (!(typeof update === 'undefined')) {
 	      setInterval(function() {
 		      data = update();
 		      redraw();

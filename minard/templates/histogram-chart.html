@@ -1,11 +1,28 @@
-{% macro histogram_chart(container, data=None, name=None, url=None, title='') -%}
+{% macro histogram_chart(container, bins=None, data=None, name=None, url=None, title='') -%}
     <script>
-      var selection = d3.select(container);
+      var element = $('#{{ container }}')
+      var selection = d3.select(element[0]);
       {% if data %}
-          selection.datum(data)
+          selection.datum({{ data|safe }});
       {% else %}
-          selection.datum([])
+          selection.datum([]);
       {% endif %}
-      selection.call(histogramChart())
+
+      var width = element.width();
+
+      var chart = histogramChart()
+                     .width(width)
+                     .height(width/2.0)
+                     .tickFormat(d3.format(".02f"));
+
+      {% if bins %}
+        chart.bins(bins);
+      {% else %}
+        {% if not data %}
+          alert('histogram has no bins or data');
+        {% endif %}
+      {% endif %}
+
+      selection.call(chart);
     </script>
 {%- endmacro %}

@@ -13,7 +13,7 @@ def index():
 
 sidebar=[{'href': '/', 'name': 'test', 'group': 'Hello'}]
 nav = [{'href': '/', 'name': 'test'}]
-containers = [{'name': 'test'}]*4
+containers = [{'name': 'test'}]*4 + [{'name': 'histogram', 'type': 'histogram'}]
 
 
 @app.route('/fluid')
