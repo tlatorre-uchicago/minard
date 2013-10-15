@@ -1,12 +1,13 @@
 function histogramChart(update) {
-  var margin = {top: 0, right: 0, bottom: 20, left: 0},
+  var margin = {top: 10, right: 30, bottom: 30, left: 30},
       width = 960,
       height = 500;
 
   var histogram = d3.layout.histogram(),
       x = d3.scale.ordinal(),
       y = d3.scale.linear(),
-      xAxis = d3.svg.axis().scale(x).orient("bottom").tickSize(6, 0);
+      xAxis = d3.svg.axis().scale(x).orient("bottom").tickSize(6, 0),
+      yAxis = d3.svg.axis().scale(y).orient("left").ticks(5).tickSize(6,0);
 
   var interval = 1000;
 
@@ -31,6 +32,7 @@ function histogramChart(update) {
       var gEnter = svg.enter().append("svg").append("g");
       gEnter.append("g").attr("class", "bars");
       gEnter.append("g").attr("class", "x axis");
+      gEnter.append("g").attr("class", "y axis");
 
       // Update the outer dimensions.
       svg .attr("width", width)
@@ -54,6 +56,9 @@ function histogramChart(update) {
       g.select(".x.axis")
           .attr("transform", "translate(0," + y.range()[0] + ")")
           .call(xAxis);
+
+      g.select(".y.axis")
+          .call(yAxis);
 
       setInterval(function() {
 	          update().done(redraw);

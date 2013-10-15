@@ -20,7 +20,7 @@
 	  var chart = histogramChart(update)
                       .width(width)
                       .height(height)
-                      .tickFormat(d3.format(".2f"));
+                      .tickFormat(d3.format(".1f"));
 
 	  {% if bins %}
 	    chart.bins({{ bins }});
