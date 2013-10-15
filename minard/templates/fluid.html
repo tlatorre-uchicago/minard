@@ -1,30 +1,9 @@
 {% extends "layout.html" %}
 {% import 'histogram-chart.html' as histogram with context %}
-{% import 'sphere-projection.html' as sphere_projection with context %}
 
-{% block title %}Bootstrap, from Twitter{% endblock %}
-
-  {% block head %}
-    <!-- Le styles -->
-    <style type="text/css">
-      body {
-        padding-top: 60px;
-        padding-bottom: 40px;
-      }
-      .sidebar-nav {
-        padding: 9px 0;
-      }
-
-      @media (max-width: 980px) {
-        /* Enable use of floated navbar text */
-        .navbar-text.pull-right {
-          float: none;
-          padding-left: 5px;
-          padding-right: 5px;
-        }
-      }
-    </style>
-
+{% block title %}Home{% endblock %}
+{% block head %}
+    {{ super() }}
     <style>
 
     .bars rect {
@@ -40,23 +19,6 @@
       stroke: #000;
       shape-rendering: crispEdges;
     }
-
-    .graticule {
-	fill: none;
-	stroke: #777;
-	stroke-opacity: .5;
-	stroke-width: .5px;
-    }
-
-    .land {
-	fill: #222;
-    }
-
-    .boundary {
-	fill: none;
-	stroke: #fff;
-	stroke-width: .5px;
-    }
     </style>
 
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
@@ -64,90 +26,35 @@
     <script type="text/javascript">
       $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
     </script>
-  {% endblock %}
-
-  {% block body %}
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container-fluid">
-          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="brand" href="#">{{ project_name }}</a>
-          <div class="nav-collapse collapse">
-            <p class="navbar-text pull-right">
-              Logged in as <a href="#" class="navbar-link">Username</a>
-            </p>
-	    {% if nav %}
-            <ul class="nav">
-              <li class="active"><a href="/">Home</a></li>
-	      {% for item in nav %}
-	        <li><a href="{{ nav.href }}">{{ nav.name }}</a></li>
-	      {% endfor %}
-            </ul>
-	    {% endif %}
-          </div><!--/.nav-collapse -->
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span12">
+                {% if containers %}
+                {% for row in containers|batch(3) %}
+                {% set row_loop = loop %}
+                <div class="row-fluid">
+                    {% for item in row %}
+                    {% set divid = 'div' ~ row_loop.index ~ loop.index %}
+                    <div class="span4" id="{{ divid }}">
+                        <h2>{{ item.name }}</h2>
+                        {% if item.type == 'histogram' %}
+                        {{ histogram.histogram_chart(divid,url='get',name='test',interval=5000,bins=10) }}
+                        {% else %}
+                        <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+                        <p><a class="btn" href="#">View details &raquo;</a></p>
+                        {% endif %}
+                    </div><!--/span-->
+                    {% endfor %}
+                </div><!--/row-->
+                {% endfor %}
+                {% endif %} <!-- containers -->
+            </div><!--/.fluid-container-->
         </div>
-      </div>
     </div>
 
-    <div class="container-fluid">
-      <div class="row-fluid">
-	{% if sidebar %}
-        <div class="span3">
-          <div class="well sidebar-nav">
-            <ul class="nav nav-list">
-	      {% for group in sidebar|groupby('group') %}
-	        <li class="nav-header">{{ group.grouper }}</li>
-		  {% for item in group.list %}
-	            <li><a href={{ item.href }}>{{ item.name }}</a></li>
-		  {% endfor %}
-	      {% endfor %}
-            </ul>
-          </div><!--/.well -->
-        </div><!--/span-->
-	{% endif %}
-        <div class="span9">
-	  {% if hero_unit %}
-          <div class="hero-unit" id="hero">
-	    {% set divid = "hero" %}
-		    {% if hero_unit.type == 'histogram' %}
-		      {{ histogram.histogram_chart(divid,url='get',name='test',interval=5000,bins=10) }}
-		    {% elif hero_unit.type == 'sphere-projection' %}
-		      {% set coords = hero_unit.coords|safe %}
-		      {{ sphere_projection.sphere_projection(divid,url='get',name='sphere', coords=coords, interval=5000) }}
-		    {% else %}
-		      <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-		      <p><a class="btn" href="#">View details &raquo;</a></p>
-		    {% endif %}
-
-          </div>
-	  {% endif %}
-	  {% if containers %}
-	    {% for row in containers|batch(3) %}
-	    {% set row_loop = loop %}
-              <div class="row-fluid">
-		{% for item in row %}
-		{% set divid = 'div' ~ row_loop.index ~ loop.index %}
-		  <div class="span4" id="{{ divid }}">
-		    <h2>{{ item.name }}</h2>
-		    {% if item.type == 'histogram' %}
-		      {{ histogram.histogram_chart(divid,url='get',name='test',interval=5000,bins=10) }}
-		    {% elif item.type == 'sphere-projection' %}
-		      {% set coords = item.coords|safe %}
-		      {{ sphere_projection.sphere_projection(divid,url='get',name='sphere', coords=coords, interval=5000) }}
-		    {% else %}
-		      <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-		      <p><a class="btn" href="#">View details &raquo;</a></p>
-		    {% endif %}
-		  </div><!--/span-->
-		{% endfor %}
-              </div><!--/row-->
-	    {% endfor %}
-      {% endif %} <!-- containers -->
-    </div><!--/.fluid-container-->
-  {% endblock %}
-
+    <script>$('#nav-home').attr('class','active');</script>
+{% endblock %}
 </html>

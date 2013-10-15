@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Test{% endblock %}
+{% block title %}Detector{% endblock %}
 {% block head %}
     {{ super() }}
 
@@ -108,4 +108,7 @@
         setInterval(function() { update().done(on_done);},5000);
         }());
     </script>
+
+    <script>$('#nav-detector').attr('class','active');</script>
+
 {% endblock %}
