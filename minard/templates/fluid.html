@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% import 'histogram-chart.html' as histogram with context %}
+{% import 'sphere-projection.html' as sphere_projection with context %}
 
 {% block title %}Bootstrap, from Twitter{% endblock %}
 
@@ -40,6 +41,22 @@
       shape-rendering: crispEdges;
     }
 
+    .graticule {
+	fill: none;
+	stroke: #777;
+	stroke-opacity: .5;
+	stroke-width: .5px;
+    }
+
+    .land {
+	fill: #222;
+    }
+
+    .boundary {
+	fill: none;
+	stroke: #fff;
+	stroke-width: .5px;
+    }
     </style>
 
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
@@ -94,8 +111,18 @@
 	{% endif %}
         <div class="span9">
 	  {% if hero_unit %}
-          <div class="hero-unit">
-	    {% set filename = hero_unit %}{% include filename %}
+          <div class="hero-unit" id="hero">
+	    {% set divid = "hero" %}
+		    {% if hero_unit.type == 'histogram' %}
+		      {{ histogram.histogram_chart(divid,url='get',name='test',interval=5000,bins=10) }}
+		    {% elif hero_unit.type == 'sphere-projection' %}
+		      {% set coords = hero_unit.coords|safe %}
+		      {{ sphere_projection.sphere_projection(divid,url='get',name='sphere', coords=coords, interval=5000) }}
+		    {% else %}
+		      <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+		      <p><a class="btn" href="#">View details &raquo;</a></p>
+		    {% endif %}
+
           </div>
 	  {% endif %}
 	  {% if containers %}
@@ -108,6 +135,9 @@
 		    <h2>{{ item.name }}</h2>
 		    {% if item.type == 'histogram' %}
 		      {{ histogram.histogram_chart(divid,url='get',name='test',interval=5000,bins=10) }}
+		    {% elif item.type == 'sphere-projection' %}
+		      {% set coords = item.coords|safe %}
+		      {{ sphere_projection.sphere_projection(divid,url='get',name='sphere', coords=coords, interval=5000) }}
 		    {% else %}
 		      <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
 		      <p><a class="btn" href="#">View details &raquo;</a></p>
