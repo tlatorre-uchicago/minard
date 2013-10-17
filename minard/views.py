@@ -10,6 +10,20 @@ def project_name():
 import random
 import json
 
+@app.route('/timeseries')
+def timeseries():
+    name = request.args.get('name','',type=str)
+    last = request.args.get('last','',type=int)
+    if last:
+        npoints = request.args.get('npoints','',type=int)
+        print 'returning %i points' % npoints
+        data = jsonify(data=[random.gauss(5,1) for i in range(npoints)])
+        print data
+        return data
+    else:
+        print 'returning latest'
+        return jsonify(value=random.gauss(5,1))
+
 @app.route('/get')
 def get():
     name = request.args.get('name','',type=str)
@@ -18,9 +32,9 @@ def get():
         print 'returning id and values'
         id = []
         values = []
-        for i in range(9000):
-            id.append(i)#random.randint(0,9000))
-            values.append(1)
+        for i in range(100):
+            id.append(random.randint(0,9000))
+            values.append(random.randint(0,10))
         return jsonify(id=id,values2=values)
     return jsonify(values=[random.gauss(5,1) for i in range(100)])
 
@@ -50,9 +64,13 @@ print 'count = ', count
 
 sidebar=[{'href': '/', 'name': 'test', 'group': 'Hello'}]
 nav = [{'href': '/', 'name': 'test'}]
-containers = [{'name': 'Histogram %i' % i, 'type': 'histogram'} for i in range(2)] + []
+containers = [{'name': 'Histogram %i' % i, 'type': 'histogram', 'bins': random.choice([10,20,30])} for i in range(1)]
 
 
 @app.route('/fluid')
 def fluid():
     return render_template('fluid.html',sidebar=sidebar,nav=nav,containers=containers,hero_unit={'name': 'test', 'type': 'sphere-projection', 'coords':json.dumps(coords)})
+
+@app.route('/hero')
+def hero():
+    return render_template('hero.html')

@@ -19,10 +19,23 @@
       stroke: #000;
       shape-rendering: crispEdges;
     }
+
+.x.axis line {
+  shape-rendering: auto;
+}
+
+.line {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+
     </style>
 
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
     <script src="{{ url_for('static', filename='js/histogram-chart.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/time-series.js') }}"></script>
     <script type="text/javascript">
       $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
     </script>
@@ -54,6 +67,15 @@
             </div><!--/.fluid-container-->
         </div>
     </div>
+
+    <div id='test_timeseries'>
+      <p> hello!
+        </div>
+      <script>
+        alert($SCRIPT_ROOT);
+        var ts = timeSeries('timeseries');
+        d3.select('#test_timeseries').datum('test').call(ts);
+        </script>
 
     <script>$('#nav-home').attr('class','active');</script>
 {% endblock %}
