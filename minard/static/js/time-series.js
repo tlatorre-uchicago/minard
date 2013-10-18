@@ -26,8 +26,8 @@ function timeSeries(url) {
                 var data = response.data;
 
                 var x = d3.time.scale()
-                        .domain([now - (n - 2) * duration, now - duration])
-                        .range([0, width]);
+                    .domain([now - (n - 2) * duration, now - duration])
+                    .range([0, width]);
 
                 var y = d3.scale.linear()
                     .domain([d3.min(data),d3.max(data)])
@@ -64,12 +64,12 @@ function timeSeries(url) {
                     .text(String(data))
                     .attr("class", "line");
 
-                var update = function(){
+                var update = function() {
                     return $.getJSON(url,{'name': name + 'world',
                                           'last': null});
                 }
 
-                setInterval(function(){
+                setInterval(function() {
                         update()
                             .done(tick)
                             .fail(function(_, __, err) { alert(err);});
@@ -86,26 +86,26 @@ function timeSeries(url) {
                     // push the accumulated count onto the back, and reset the count
                     data.push(value);
 
-                      // redraw the line
-                      svg.selectAll(".line")
-                          .attr("d", line)
-                          .attr("transform", null);
+                    // redraw the line
+                    svg.selectAll(".line")
+                        .attr("d", line)
+                        .attr("transform", null);
 
-                      // slide the x-axis left
-                      axis.transition()
-                          .duration(duration)
-                          .ease("linear")
-                          .call(x.axis);
+                    // slide the x-axis left
+                    axis.transition()
+                        .duration(duration)
+                        .ease("linear")
+                        .call(x.axis);
 
-                      // slide the line left
-                      path.transition()
-                          .duration(duration)
-                          .ease("linear")
-                          .attr("transform", "translate(" + x(now - (n - 1) * duration) + ")")
-                            //.each("end", tick);
+                    // slide the line left
+                    path.transition()
+                        .duration(duration)
+                        .ease("linear")
+                        .attr("transform", "translate(" + x(now - (n - 1) * duration) + ")");
+                        //.each("end", tick);
 
-                      // pop the old data point off the front
-                      data.shift();
+                    // pop the old data point off the front
+                    data.shift();
                 }
             }
         });
