@@ -132,5 +132,41 @@ function timeSeries(url) {
             }
         });
     }
+    chart.margin = function(_) {
+        if (!arguments.length) return margin;
+        margin = _;
+        return chart;
+    };
+
+    chart.width = function(_) {
+        if (!arguments.length) return width;
+        width = _;
+        return chart;
+    };
+
+    chart.height = function(_) {
+        if (!arguments.length) return height;
+        height = _;
+        return chart;
+    };
+
+    chart.interval = function(_) {
+        if (!arguments.length) return interval;
+        interval = _;
+        return chart;
+    };
+
+    chart.duration = function(_) {
+        if (!arguments.length) return duration;
+        duration = _;
+        return chart;
+    };
+
+    chart.n = function(_) {
+        if (!arguments.length) return n;
+        n = _;
+        return chart;
+    };
+
     return chart;
 }
