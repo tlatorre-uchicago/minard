@@ -8,14 +8,8 @@
         <meta name="author" content="">
 
         <title>{% block title %}{% endblock %}</title>
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.css') }}" media="screen">
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-responsive.css') }}" media="screen">
-
-        <style>
-            body {
-            padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-            }
-        </style>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" media="screen">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" media="screen">
 
         <!-- jquery for $() pattern -->
         <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
@@ -23,25 +17,28 @@
     </head>
     <body>
     {% block body %}
-        <div class="navbar navbar-inverse navbar-fixed-top">
-          <div class="navbar-inner">
-            <div class="container">
-              <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+        <div class="navbar navbar-default navbar-static-top">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="brand" href="#">SNO+ Monitoring</a>
-              <div class="nav-collapse collapse">
-                <ul class="nav">
-                  <li id='nav-home'><a href="/fluid">Home</a></li>
-                  <li id='nav-detector'><a href="/hero">Detector</a></li>
-                </ul>
-              </div><!--/.nav-collapse -->
+              <a class="navbar-brand" href="#">SNO+ Monitoring</a>
             </div>
+            <div class="navbar-collapse collapse">
+              <ul class="nav navbar-nav">
+                <li id='nav-home'><a href="/fluid">Home</a></li>
+                <li id='nav-detector'><a href="/hero">Detector</a></li>
+              </ul>
+              <ul class="nav navbar-nav navbar-right">
+                <li><a href="#warnings">Warnings</span>&nbsp;<span class="badge pull-right">42</span></a></li>
+              </ul>
+            </div><!--/.navbar-collapse -->
           </div>
         </div>
     {% endblock %}
-        <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
     </body>
 </html>
