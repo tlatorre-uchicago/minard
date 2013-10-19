@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+
+{% block title %}Detector{% endblock %}
+{% block head %}
+    {{ super() }}
+
+<style>
+    .line {
+      fill: none;
+      stroke: #000;
+      stroke-width: 1.5px;
+    }
+
+    .axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+    }
+
+    .area {
+    fill: #31a354;
+    stroke: #000;
+    stroke-width: 0;
+    opacity: 0.25;
+    }
+
+    .title {
+    line-height: 30px;
+    }
+</style>
+
+{% endblock %}
+
+{% block body %}
+    {{ super() }}
+
+<div class="container" id="main"></div>
+
+<script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+<script src="{{ url_for('static', filename='js/time-series.js') }}"></script>
+
+<script>
+var n = 4;
+for (var i=0; i < n; i++) {
+    $('#main').append($('<center />').append($('<div class="col-md-12" />')));
+}
+d3.selectAll('.col-md-12').call(timeSeries('timeseries'));
+</script>
+
+{% endblock %}
