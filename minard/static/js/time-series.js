@@ -14,7 +14,7 @@ function timeSeries(url) {
 
             var element = this;
 
-            $.getJSON(url, {'name': name + 'hello',
+            $.getJSON(url, {'name': name,
                             'first': now - (n - 2) * duration,
                             'last': now - duration,
                             'npoints': n})
@@ -39,12 +39,24 @@ function timeSeries(url) {
                         return x(now - (n - 1 - i) * duration); })
                     .y(function(d, i) { return y(d); });
 
+                var area = d3.svg.area()
+                    .interpolate("basis")
+                    .x(function(d, i) {
+                        return x(now - (n - 1 - i) * duration); })
+                    .y0(height)
+                    .y1(function(d, i) { return y(d); });
+
                 var svg = d3.select(element).append("svg")
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
                     .style("margin-left", -margin.left + "px")
                   .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+
+                svg.append('text').text(name).attr('x',10)
+                    .attr('y',height - margin.top).attr('class','title');
 
                 svg.append("defs").append("clipPath")
                     .attr("id", "clip")
@@ -61,11 +73,16 @@ function timeSeries(url) {
                     .attr("clip-path", "url(#clip)")
                   .append("path")
                     .data([data])
-                    .text(String(data))
                     .attr("class", "line");
 
+                var area_path = svg.append("g")
+                    .attr("clip-path", "url(#clip)")
+                  .append("path")
+                    .data([data])
+                    .attr("class", "area");
+
                 var update = function() {
-                    return $.getJSON(url,{'name': name + 'world',
+                    return $.getJSON(url,{'name': name,
                                           'last': null});
                 }
 
@@ -87,19 +104,24 @@ function timeSeries(url) {
                     data.push(value);
 
                     // redraw the line
-                    svg.selectAll(".line")
-                        .attr("d", line)
+                    svg.selectAll(".area")
+                        .attr("d", area)
                         .attr("transform", null);
+
+                    // redraw the line
+                    // svg.selectAll(".line")
+                    //     .attr("d", line)
+                    //     .attr("transform", null);
 
                     // slide the x-axis left
                     axis.transition()
-                        .duration(duration)
+                        .duration(duration/2)
                         .ease("linear")
                         .call(x.axis);
 
                     // slide the line left
-                    path.transition()
-                        .duration(duration)
+                    svg.selectAll('.line, .area').transition()
+                        .duration(duration/2)
                         .ease("linear")
                         .attr("transform", "translate(" + x(now - (n - 1) * duration) + ")");
                         //.each("end", tick);
