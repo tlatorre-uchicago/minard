@@ -30,6 +30,22 @@
   stroke-width: 1.5px;
 }
 
+.axis path, .axis line {
+fill: none;
+stroke: #000;
+shape-rendering: crispEdges;
+}
+
+.area {
+fill: #31a354;
+stroke: #000;
+stroke-width: 0;
+opacity: 0.25;
+}
+
+.title {
+line-height: 30px;
+}
 
     </style>
 
@@ -42,16 +58,16 @@
 {% endblock %}
 {% block body %}
     {{ super() }}
-    <div class="container-fluid">
-        <div class="row-fluid">
-            <div class="span12">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
                 {% if containers %}
                 {% for row in containers|batch(3) %}
                 {% set row_loop = loop %}
-                <div class="row-fluid">
+                <div class="row">
                     {% for item in row %}
                     {% set divid = 'div' ~ row_loop.index ~ loop.index %}
-                    <div class="span4" id="{{ divid }}">
+                    <div class="col-md-4" id="{{ divid }}">
                         <h2>{{ item.name }}</h2>
                         {% if item.type == 'histogram' %}
                         {{ histogram.histogram_chart(divid,url='get',name='test',interval=5000,bins=item.bins) }}
@@ -68,14 +84,13 @@
         </div>
     </div>
 
-    <div id='test_timeseries'>
-      <p> hello!
-        </div>
+    <center><div class='col-md-12' id='test_timeseries'></div></center>
+    <center><div class='col-md-12' id='test_timeseries'></div></center>
+
       <script>
-        alert($SCRIPT_ROOT);
-        var ts = timeSeries('timeseries');
-        d3.select('#test_timeseries').datum('test').call(ts);
-        </script>
+        $(function(){var ts = timeSeries('timeseries').n(500);
+        d3.selectAll('#test_timeseries').data(['test!','test2']).call(ts);});
+      </script>
 
     <script>$('#nav-home').attr('class','active');</script>
 {% endblock %}
