@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block body %}
+{{ super() }}
+    <div class="col-lg-3"></div>
+    <div class="col-lg-6" id="main"></div>
+    
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+
+    <script>
+        var levels = {'success': 'alert alert-success',
+                      'info'   : 'alert alert-info',
+                      'warning': 'alert alert-warning',
+                      'danger' : 'alert alert-danger'};
+
+        function update() {
+            return $.getJSON('/stream', {'last': null});
+        }
+
+        function json_error(_, __, e) { error(e); }
+
+        update().done(parse).fail(json_error);
+
+        setInterval(function () { update().done(parse).fail(json_error);},1000);
+
+        function error(e) {
+            var div = $("<div class='alert alert-danger' />");
+            $('#main').prepend(div);
+            div.text(e);
+        }
+
+        function parse(obj) {
+            var msglist = obj.messages;
+
+            var id = msglist.map(function(d) { return Date.parse(d.time); });
+            var level = msglist.map(function(d) { return levels[d.level]; });
+            var msg = msglist.map(function(d) { return d.msg; });
+            var date = msglist.map(function(d) { return new Date(d.time); });
+
+            var div1 = d3.select('#main').selectAll('div');
+            var div = div1.data(id, String).sort(String);
+
+            div.exit().remove();
+        }
+    </script>
+{% endblock %}
