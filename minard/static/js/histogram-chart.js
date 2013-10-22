@@ -15,7 +15,7 @@ function histogramChart(update) {
         selection.each(function(values) {
 
             // Compute the histogram.
-            data = histogram(values);
+            var data = histogram(values);
 
             function attrgetter(a){
                 return function(x) { return x[a]; };
