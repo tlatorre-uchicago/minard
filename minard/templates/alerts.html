@@ -4,8 +4,14 @@
 {% endblock %}
 {% block body %}
 {{ super() }}
-    <div class="col-lg-3"></div>
-    <div class="col-lg-6" id="main"></div>
+
+    <div class="col-md-6 col-md-offset-3">
+        <div class="container">
+            <ul class="nav nav-pills" id="filter-nav"></ul>
+        </div>
+        <div class="container" id="main"></div>
+        </div>
+    </div>
     
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
 
@@ -23,7 +29,20 @@
 
         update().done(parse).fail(json_error);
 
-        setInterval(function () { update().done(parse).fail(json_error);},1000);
+        setInterval(function () { update().done(ondone).fail(json_error);},1000);
+
+        var names = ['default'].concat(Object.keys(levels));
+
+        for (var i=0; i < names.length; i++) {
+            var level = names[i];
+            var li = $('<li />');
+            var label = $("<button type='button' class='btn btn-" + level + "'/>");
+            label.text(level.charAt(0).toUpperCase() + level.slice(1));
+            label.attr('name', level);
+            label.click(function() { filter_level = $(this).attr('name');parse(); });
+            li.append(label);
+            $('#filter-nav').append(li);
+        }
 
         function error(e) {
             var div = $("<div class='alert alert-danger' />");
@@ -31,16 +50,43 @@
             div.text(e);
         }
 
-        function parse(obj) {
-            var msglist = obj.messages;
+        var filter_level = 'default';
 
-            var id = msglist.map(function(d) { return Date.parse(d.time); });
+var msglist = []
+    function ondone(obj) {
+    msglist = obj.messages;
+    parse();
+}
+
+        function parse() {
+            if (filter_level != 'default') {
+                msglist = msglist.filter(function(d) {
+                        return d.level == filter_level;});
+            }
+
+            var id = msglist.map(function(d) { return d.time; });
             var level = msglist.map(function(d) { return levels[d.level]; });
             var msg = msglist.map(function(d) { return d.msg; });
             var date = msglist.map(function(d) { return new Date(d.time); });
 
             var div1 = d3.select('#main').selectAll('div');
             var div = div1.data(id, String).sort(String);
+
+            div.enter()
+              .append('div')
+                .attr('class', function(d, i) {
+                        return level[i] + ' alert-dismissable';})
+                .text(function(d, i) {
+                        return date[i].toUTCString() + ' - ' + msg[i];})
+              .append('button')
+                .attr('type', 'button')
+                .attr('class', 'close')
+                .attr('data-dismiss', 'alert')
+                .attr('aria-hidden', 'true')
+                .html('&times;')
+                .attr('onclick', function(d, i) {
+                        return "$.post('/dismiss',{'dismiss': '" + id[i] + "'});";
+                    })
 
             div.exit().remove();
         }
