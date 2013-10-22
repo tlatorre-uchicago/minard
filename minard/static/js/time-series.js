@@ -84,7 +84,7 @@ function timeSeries(url) {
                 var update = function() {
                     return $.getJSON(url,{'name': name,
                                           'last': null});
-                }
+                };
 
                 setInterval(function() {
                         update()
