@@ -12,7 +12,7 @@
         <div class="container" id="main"></div>
         </div>
     </div>
-    
+
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
 
     <script>
@@ -25,11 +25,15 @@
             return $.getJSON('/stream', {'last': null});
         }
 
-        function json_error(_, __, e) { error(e); }
+        function json_error(_, __, e) {
+            error(e);
+        }
 
         update().done(parse).fail(json_error);
 
-        setInterval(function () { update().done(ondone).fail(json_error);},1000);
+        setInterval(function () {
+                update().done(ondone).fail(json_error);
+        },1000);
 
         var names = ['default'].concat(Object.keys(levels));
 
@@ -52,16 +56,18 @@
 
         var filter_level = 'default';
 
-var msglist = []
-    function ondone(obj) {
-    msglist = obj.messages;
-    parse();
-}
+        var msglist = [];
+
+        function ondone(obj) {
+            msglist = obj.messages;
+            parse();
+        }
 
         function parse() {
             if (filter_level != 'default') {
                 msglist = msglist.filter(function(d) {
-                        return d.level == filter_level;});
+                        return d.level == filter_level;
+                });
             }
 
             var id = msglist.map(function(d) { return d.time; });
@@ -86,7 +92,7 @@ var msglist = []
                 .html('&times;')
                 .attr('onclick', function(d, i) {
                         return "$.post('/dismiss',{'dismiss': '" + id[i] + "'});";
-                    })
+                });
 
             div.exit().remove();
         }
