@@ -1,13 +1,18 @@
 {% extends "layout.html" %}
 {% block head %}
 {{ super() }}
+<style>
+.btn {
+margin: 5px 5px;
+}
+</style>
 {% endblock %}
 {% block body %}
 {{ super() }}
 
     <div class="col-md-8 col-md-offset-2">
         <div class="container">
-            <p><ul class="nav nav-pills" id="filter-nav"></ul></p>
+            <center><p id="filter-nav"></p></center>
         </div>
         <div class="container" id="main"></div>
         </div>
@@ -44,8 +49,8 @@
             label.text(level.charAt(0).toUpperCase() + level.slice(1));
             label.attr('name', level);
             label.click(function() { filter_level = $(this).attr('name');parse(); });
-            li.append(label);
-            $('#filter-nav').append(li);
+            //li.append(label);
+            $('#filter-nav').append(label);
         }
 
         function error(e) {
@@ -64,16 +69,16 @@
         }
 
         function parse() {
+            var msgdisp;
             if (filter_level != 'default') {
-                msglist = msglist.filter(function(d) {
+                msgdisp = msglist.filter(function(d) {
                         return d.level == filter_level;
                 });
+            } else {
+                msgdisp = msglist;
             }
 
-            var id = msglist.map(function(d) { return d.time; });
-            var level = msglist.map(function(d) { return levels[d.level]; });
-            var msg = msglist.map(function(d) { return d.msg; });
-            var date = msglist.map(function(d) { return new Date(d.time); });
+            var id = msgdisp.map(function(d) { return d.time; });
 
             var div1 = d3.select('#main').selectAll('div');
             var div = div1.data(id, String).sort(String);
@@ -81,9 +86,11 @@
             div.enter()
               .append('div')
                 .attr('class', function(d, i) {
-                        return level[i] + ' alert-dismissable';})
+                        return [levels[msgdisp[i].level], 
+				' alert-dismissable'].join(' ');})
                 .text(function(d, i) {
-                        return date[i].toUTCString() + ' - ' + msg[i];})
+                        return ['[',(new Date(msgdisp[i].time)).toUTCString(),
+                                '] ', msgdisp[i].msg].join('');})
               .append('button')
                 .attr('type', 'button')
                 .attr('class', 'close')
@@ -91,7 +98,7 @@
                 .attr('aria-hidden', 'true')
                 .html('&times;')
                 .attr('onclick', function(d, i) {
-                        return "$.post('/dismiss',{'dismiss': '" + id[i] + "'});";
+                        return "$.post('/dismiss',{'dismiss': '" + d + "'});";
                 });
 
             div.exit().remove();
