@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
     <head>
-    {% block head %}
+        {% block head %}
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="">
@@ -13,31 +13,39 @@
 
         <!-- jquery for $() pattern -->
         <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
-    {% endblock %}
+        {% endblock %}
     </head>
     <body>
-    {% block body %}
+        {% block body %}
         <div class="navbar navbar-default navbar-static-top">
-          <div class="container">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-              <a class="navbar-brand" href="#">SNO+ Monitoring</a>
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">SNO+ Monitoring</a>
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li id='nav-home'><a href="/">Histogram</a></li>
+                        <li id='nav-time'><a href="/time">Time Series</a></li>
+                        <li id='nav-detector'><a href="/hero">Detector</a></li>
+                        <li id='nav-alarms'><a href="/alerts">Alarms</a></li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        {% if userid %}
+                        <li><span class="navbar-text">Logged in as {{ userid }}</span></li>
+                        <li><a href="/logout">Logout</a></li>
+                        {% else %}
+                        <li><a href="/login">Login</a></li>
+                        {% endif %}
+                    </ul>
+                </div><!--/.navbar-collapse -->
             </div>
-            <div class="navbar-collapse collapse">
-              <ul class="nav navbar-nav">
-                <li id='nav-home'><a href="/fluid">Histogram</a></li>
-                <li id='nav-time'><a href="/time">Time Series</a></li>
-                <li id='nav-detector'><a href="/hero">Detector</a></li>
-                <li id='nav-alarms'><a href="/alerts">Alarms</a></li>
-              </ul>
-            </div><!--/.navbar-collapse -->
-          </div>
         </div>
-    {% endblock %}
+        {% endblock %}
         <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
     </body>
 </html>
