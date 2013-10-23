@@ -1,15 +1,14 @@
 {% extends "layout.html" %}
 {% block head %}
 {{ super() }}
-<style>
-.btn {
-margin: 5px 5px;
-}
-</style>
+    <style>
+        .btn {
+        margin: 5px 5px;
+        }
+    </style>
 {% endblock %}
 {% block body %}
 {{ super() }}
-
     <div class="col-md-8 col-md-offset-2">
         <div class="container">
             <center><p id="filter-nav"></p></center>
@@ -44,12 +43,12 @@ margin: 5px 5px;
 
         for (var i=0; i < names.length; i++) {
             var level = names[i];
-            var li = $('<li />');
             var label = $("<button type='button' class='btn btn-" + level + "'/>");
             label.text(level.charAt(0).toUpperCase() + level.slice(1));
             label.attr('name', level);
-            label.click(function() { filter_level = $(this).attr('name');parse(); });
-            //li.append(label);
+            label.click(function() {
+                filter_level = $(this).attr('name');parse();
+            });
             $('#filter-nav').append(label);
         }
 
