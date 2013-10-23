@@ -1,109 +1,102 @@
 {% extends "layout.html" %}
 {% block head %}
 {{ super() }}
-    <style>
-        .btn {
+<style>
+    .btn {
         margin: 5px 5px;
-        }
-    </style>
+    }
+</style>
 {% endblock %}
 {% block body %}
 {{ super() }}
-    <div class="col-md-8 col-md-offset-2">
-        <div class="container">
-            <center><p id="filter-nav"></p></center>
-        </div>
-        <div class="container" id="main"></div>
-        </div>
+<div class="col-md-8 col-md-offset-2">
+    <div class="container">
+        <center><p id="filter-nav"></p></center>
     </div>
+    <div class="container" id="main"></div>
+</div>
 
-    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+<script src="{{ url_for('static', filename='js/d3.js') }}"></script>
 
-    <script>
-        var levels = {'success': 'alert alert-success',
-                      'info'   : 'alert alert-info',
-                      'warning': 'alert alert-warning',
-                      'danger' : 'alert alert-danger'};
+<script>
+var levels = {'success': 'alert alert-success',
+              'info'   : 'alert alert-info',
+              'warning': 'alert alert-warning',
+              'danger' : 'alert alert-danger'};
 
-        function update() {
-            return $.getJSON('/stream', {'last': null});
-        }
+var msglist = [],
+    filter_level = 'default';
 
-        function json_error(_, __, e) {
-            error(e);
-        }
+function get_poll() {
+    return $.getJSON('/stream', {'last': null});
+}
 
-        update().done(parse).fail(json_error);
-
-        setInterval(function () {
-                update().done(ondone).fail(json_error);
-        },1000);
-
-        var names = ['default'].concat(Object.keys(levels));
-
-        for (var i=0; i < names.length; i++) {
-            var level = names[i];
-            var label = $("<button type='button' class='btn btn-" + level + "'/>");
-            label.text(level.charAt(0).toUpperCase() + level.slice(1));
-            label.attr('name', level);
-            label.click(function() {
-                filter_level = $(this).attr('name');parse();
-            });
-            $('#filter-nav').append(label);
-        }
-
-        function error(e) {
-            var div = $("<div class='alert alert-danger' />");
-            $('#main').prepend(div);
-            div.text(e);
-        }
-
-        var filter_level = 'default';
-
-        var msglist = [];
-
-        function ondone(obj) {
+function update() {
+    get_poll().done(function (obj) {
             msglist = obj.messages;
             parse();
-        }
+            });
+}
 
-        function parse() {
-            var msgdisp;
-            if (filter_level != 'default') {
-                msgdisp = msglist.filter(function(d) {
-                        return d.level == filter_level;
+var names = ['default'].concat(Object.keys(levels));
+
+for (var i=0; i < names.length; i++) {
+    var level = names[i];
+    var label = $("<button />");
+    label.attr('type', 'button');
+    label.attr('class', 'btn btn-' + level);
+    label.text(level.charAt(0).toUpperCase() + level.slice(1));
+    label.attr('name', level);
+    label.click(function() {
+            filter_level = $(this).attr('name');parse();
+            });
+    $('#filter-nav').append(label);
+}
+
+update();
+setInterval(update,1000);
+
+function parse() {
+    var msgdisp;
+    if (filter_level != 'default') {
+        msgdisp = msglist.filter(function(d) {
+                return d.level == filter_level;
                 });
-            } else {
-                msgdisp = msglist;
-            }
+    } else {
+        msgdisp = msglist;
+    }
 
-            var id = msgdisp.map(function(d) { return d.time; });
+    var id = msgdisp.map(function(d) { return d.time; });
 
-            var div1 = d3.select('#main').selectAll('div');
-            var div = div1.data(id, String).sort(String);
+    var div1 = d3.select('#main').selectAll('div');
+    var div = div1.data(id, String).sort(String);
 
-            div.enter()
-              .append('div')
-                .attr('class', function(d, i) {
-                        return [levels[msgdisp[i].level], 
-				' alert-dismissable'].join(' ');})
-                .text(function(d, i) {
-                        return ['[',(new Date(msgdisp[i].time)).toUTCString(),
-                                '] ', msgdisp[i].msg].join('');})
-              .append('button')
-                .attr('type', 'button')
-                .attr('class', 'close')
-                .attr('data-dismiss', 'alert')
-                .attr('aria-hidden', 'true')
-                .html('&times;')
-                .attr('onclick', function(d, i) {
-                        return "$.post('/dismiss',{'dismiss': '" + d + "'});";
-                });
+    div.enter()
+        .append('div')
+        .attr('class', function(d, i) {
+                return [levels[msgdisp[i].level], 
+                ' alert-dismissable'].join(' ');})
+        .text(function(d, i) {
+                return ['[',(new Date(msgdisp[i].time)).toUTCString(),
+                '] ', msgdisp[i].msg].join('');})
+        .append('button')
+        .attr('type', 'button')
+        .attr('class', 'close')
+        .attr('aria-hidden', 'true')
+        .html('&times;')
+        {% if edit %}
+        .attr('data-dismiss', 'alert')
+        .attr('onclick', function(d, i) {
+                return "$.post('/dismiss',{'dismiss': '" + d + "'});";});
+        {% else %}
+        .attr('onclick', function(d, i) {
+                return "alert('You must have edit priveleges!');";});
+        {% endif %}
 
-            div.exit().remove();
-        }
-    </script>
+    div.exit().remove();
+}
+</script>
 
-    <script>$('#nav-alarms').attr('class','active');</script>
+<script>$('#nav-alarms').attr('class','active');</script>
 
 {% endblock %}
