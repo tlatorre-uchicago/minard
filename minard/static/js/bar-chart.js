@@ -1,7 +1,7 @@
 function bar_chart() {
     var margin = {top: 20, right: 20, bottom: 30, left: 40},
         width = 960 - margin.left - margin.right,
-        height = 120 - margin.top - margin.bottom;
+        height = 220 - margin.top - margin.bottom;
 
     var svg;
 
@@ -29,6 +29,9 @@ function bar_chart() {
             svg.append('g').attr('class', 'y axis').call(y_axis);
         }
 
+        svg.select('.x.axis').transition().call(x_axis);
+        svg.select('.y.axis').transition().call(y_axis);
+
         var bars = svg.selectAll('.bar')
             .data(data.y);
 
@@ -45,7 +48,7 @@ function bar_chart() {
             .attr('y', function(d) { return y(d); })
             .attr('height', function(d) { return height - y(d); });
 
-        bars.exit().transition().remove();
+        bars.exit().transition().style({opacity: 0}).remove();
 
        });}
 
