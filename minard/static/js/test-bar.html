@@ -1,0 +1,68 @@
+<html>
+    <head>
+        <style>
+            body {
+                font: 10px sans-serif;
+            }
+
+            .axis path,
+            .axis line {
+                fill: none;
+                stroke: #000;
+                shape-rendering: crispEdges;
+            }
+
+            .bar {
+                fill: steelblue;
+            }
+
+            .x.axis path {
+                display: none;
+            }
+        </style>
+        <meta charset="UTF-8">
+        <script src="d3.js"></script>
+        <script src="jquery.js"></script>
+        <script src="bar-chart.js"></script>
+    </head>
+    <body>
+        <div id="test"></div>
+        <script>
+            var a = {0: {0: 1, 1: 2, 2: 3}, 1: {0:1, 1:10, 2: 20}};
+            var level = [a];
+            var rand = d3.random.normal(5.0,1.0);
+            var chart = bar_chart();
+            chart.click(function(d, i) {
+                if ($.type(level[0][d]) != 'number') {
+                    level.unshift(level[0][d]);
+                    update(sum_root(level[0]));
+                }
+            });
+            chart.click_bg(function() {
+                if (level.length > 1) {
+                    level.shift();
+                    update(sum_root(level[0]));
+                }
+            });
+            function sum_root(root) {
+                function sum_node(node) {
+                    var sum = 0;
+                    if ($.type(node) == 'number')
+                        return node
+                    for (var key in node)
+                        sum += node[key];
+                    return sum;
+                }
+                var values = Object();
+                for (var key in root)
+                    values[key] = sum_node(root[key]);
+                return values;
+            }
+            update(sum_root(level[0]));
+
+            function update(node) {
+                d3.select('body').datum(node).call(chart);
+            }
+        </script>
+    </body>
+</html>
