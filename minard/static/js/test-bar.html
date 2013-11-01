@@ -28,9 +28,22 @@
     <body>
         <div id="test"></div>
         <script>
-            var a = {0: {0: 1, 1: 2, 2: 3}, 1: {0:1, 1:10, 2: 20}};
+            var rand = d3.random.normal(5.0,5.0);
+            var rand_int = function(start, stop) {
+                return start + Math.floor(Math.random()*(stop-start)+1);
+            }
+            var a = Object();
+            for (var i=0; i < rand_int(5,10); i++) {
+                a[i] = Object();
+                for (var j=0; j < rand_int(15,20); j++) {
+                    a[i][j] = Object();
+                    for (var k=0; k < rand_int(20,25); k++) {
+                        a[i][j][k] = rand();
+                    }
+                }
+            }
+
             var level = [a];
-            var rand = d3.random.normal(5.0,1.0);
             var chart = bar_chart();
             chart.click(function(d, i) {
                 if ($.type(level[0][d]) != 'number') {
@@ -50,7 +63,7 @@
                     if ($.type(node) == 'number')
                         return node
                     for (var key in node)
-                        sum += node[key];
+                        sum += sum_node(node[key]);
                     return sum;
                 }
                 var values = Object();

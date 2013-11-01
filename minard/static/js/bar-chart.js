@@ -52,7 +52,7 @@ function bar_chart() {
 
         bars.enter().append('rect')
             .attr('class', 'bar')
-            .attr('x', function(d, i) { return x(data_x[i]); })
+            .attr('x', width)
             .attr('width', x.rangeBand())
             .attr('y', function(d, i) { return y(data_y[i]); })
 	    .attr('height', function(d, i) { return height - y(data_y[i]); })
