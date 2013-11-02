@@ -8,21 +8,43 @@ function bar_chart() {
     var click = function(d, i) { return; };
     var click_bg = function() { return; };
 
+    var layout = function(data) {
+        var bins = [];
+        for (var key in data) {
+            var i = bins.push(Object());
+            bins[i-1].x = key;
+            bins[i-1].y = data[key];
+        }
+        return bins;
+    }
+
     function chart(selection) {
         selection.each(function(data) {
-        var data_x = [],
-            data_y = [];
-        for (var key in data) {
-            data_x.push(key);
-            data_y.push(data[key]);
-        }
-        var x = d3.scale.ordinal().rangeRoundBands([0,width],0.1)
+        data = layout(data);
+
+        var data_x = data.map(function(d) { return d.x; }),
+            data_y = data.map(function(d) { return d.y; });
+
+        var x = d3.scale.ordinal()
+            .rangeRoundBands([0,width],0.1)
             .domain(data_x);
-        var y = d3.scale.linear().range([height,0])
+
+        var y = d3.scale.linear()
+            .range([height,0])
             .domain([0,d3.max(data_y)]);
 
         var x_axis = d3.svg.axis().scale(x).orient('bottom');
         var y_axis = d3.svg.axis().scale(y).orient('left');
+
+        if (data[0].hasOwnProperty('dx')) {
+            // histogram
+            //x = d3.scale.linear()
+            //    .range([0,width])
+            //    .domain([d3.min(data_x), d3.max(data_x)]);
+            //var bin_edges = data_x.slice(0);
+            //bin_edges.push(data[data.length-1].x + data[data.length-1].dx);
+            //x_axis.tickValues(bin_edges);
+        }
 
         if (!svg) {
             svg = d3.select(this).append('svg')
@@ -79,5 +101,17 @@ function bar_chart() {
            click_bg = value;
            return chart;
        }
+
+       chart.layout = function(value) {
+           if (!arguments.length) return layout;
+           layout = value;
+           return chart;
+       }
+
+    return chart;
+}
+
+function histogram_chart() {
+    var chart = bar_chart().layout(d3.layout.histogram());
     return chart;
 }

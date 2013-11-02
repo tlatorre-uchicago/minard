@@ -26,37 +26,57 @@
         <script src="bar-chart.js"></script>
     </head>
     <body>
-        <div id="test"></div>
+        <div id="test1"></div>
+        <div id="test2"></div>
         <script>
             var rand = d3.random.normal(5.0,5.0);
             var rand_int = function(start, stop) {
                 return start + Math.floor(Math.random()*(stop-start)+1);
             }
-            var a = Object();
-            for (var i=0; i < rand_int(5,10); i++) {
-                a[i] = Object();
-                for (var j=0; j < rand_int(15,20); j++) {
-                    a[i][j] = Object();
-                    for (var k=0; k < rand_int(20,25); k++) {
-                        a[i][j][k] = rand();
+            var a;
+            function update_data() {
+                a = Object();
+                for (var i=0; i < rand_int(5,10); i++) {
+                    a[i] = Object();
+                    for (var j=0; j < rand_int(15,20); j++) {
+                        a[i][j] = Object();
+                        for (var k=0; k < rand_int(20,25); k++) {
+                            a[i][j][k] = rand();
+                        }
                     }
                 }
             }
 
-            var level = [a];
+            update_data();
+
+            var level = [[]];
+            function nav(root, level) {
+                for (var i in level)
+                    root = root[i]
+                return root;
+            }
+
+            setInterval(function() {
+                update_data();
+                update(sum_root(nav(a,level[0])));
+            },1000);
+
             var chart = bar_chart();
+
             chart.click(function(d, i) {
-                if ($.type(level[0][d]) != 'number') {
-                    level.unshift(level[0][d]);
-                    update(sum_root(level[0]));
+                if ($.type(nav(a,level[0])[d]) != 'number') {
+                    level.unshift(level[0].concat([d]));
+                    update(sum_root(nav(a,level[0])));
                 }
             });
+
             chart.click_bg(function() {
                 if (level.length > 1) {
                     level.shift();
-                    update(sum_root(level[0]));
+                    update(sum_root(nav(a,level[0])));
                 }
             });
+
             function sum_root(root) {
                 function sum_node(node) {
                     var sum = 0;
@@ -71,11 +91,15 @@
                     values[key] = sum_node(root[key]);
                 return values;
             }
-            update(sum_root(level[0]));
+
+            update(sum_root(nav(a,level[0])));
 
             function update(node) {
-                d3.select('body').datum(node).call(chart);
+                d3.select('#test1').datum(node).call(chart);
             }
+
+            var chart2 = histogram_chart();
+            d3.select('#test2').datum([1.5,2,3,4,5]).call(chart2);
         </script>
     </body>
 </html>
