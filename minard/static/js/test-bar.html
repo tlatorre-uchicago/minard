@@ -36,7 +36,8 @@
             var a;
             function update_data() {
                 a = Object();
-                for (var i=0; i < rand_int(5,10); i++) {
+                var N = 10;//rand_int(5,10);
+                for (var i=0; i < N; i++) {
                     a[i] = Object();
                     for (var j=0; j < rand_int(15,20); j++) {
                         a[i][j] = Object();
@@ -59,13 +60,16 @@
             setInterval(function() {
                 update_data();
                 update(sum_root(nav(a,level[0])));
-            },1000);
+            },10000);
 
-            var chart = bar_chart();
+            var chart = bar_chart().xlabel('Crate');
+
+            labels = ['Crate', 'Card', 'Channel'];
 
             chart.click(function(d, i) {
                 if ($.type(nav(a,level[0])[d]) != 'number') {
                     level.unshift(level[0].concat([d]));
+                    chart.xlabel(labels[level.length-1]);
                     update(sum_root(nav(a,level[0])));
                 }
             });
@@ -73,6 +77,7 @@
             chart.click_bg(function() {
                 if (level.length > 1) {
                     level.shift();
+                    chart.xlabel(labels[level.length-1]);
                     update(sum_root(nav(a,level[0])));
                 }
             });

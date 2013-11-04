@@ -5,6 +5,9 @@ function bar_chart() {
 
     var svg;
 
+    var xlabel = '',
+        ylabel = '';
+
     var click = function(d, i) { return; };
     var click_bg = function() { return; };
 
@@ -53,21 +56,39 @@ function bar_chart() {
               .append('g')
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+            svg.append('rect')
+                .attr('fill', 'white')
+                .attr('width', width)
+                .attr('height', height)
+                .on('click', click_bg);
+
             svg.append('g').attr('class', 'x axis')
                 .attr('transform', 'translate(0,' + height + ')')
                 .call(x_axis);
 
             svg.append('g').attr('class', 'y axis').call(y_axis);
 
-            svg.append('rect')
-                .attr('fill', 'white')
-                .attr('width', width)
-                .attr('height', height)
-                .on('click', click_bg);
+            svg.append('text')
+                .attr('class', 'x label')
+                .attr('text-anchor', 'middle')
+                .attr('x', width/2)
+                .attr('y', height + margin.bottom)
+                .text(xlabel);
+
+            svg.append('text')
+                .attr('class', 'y label')
+                .attr('text-anchor', 'end')
+                .attr('y', 6)
+                .attr('dy', '.75em')
+                .attr('transform', 'rotate(-90)')
+                .text(ylabel);
         }
 
         svg.select('.x.axis').transition().call(x_axis);
         svg.select('.y.axis').transition().call(y_axis);
+
+        svg.select('.x.label').transition().text(xlabel);
+        svg.select('.y.label').transition().text(ylabel);
 
         var bars = svg.selectAll('.bar')
             .data(data_x);
@@ -78,6 +99,7 @@ function bar_chart() {
             .attr('width', x.rangeBand())
             .attr('y', function(d, i) { return y(data_y[i]); })
 	    .attr('height', function(d, i) { return height - y(data_y[i]); })
+	    .style({opacity: 1})
 	    .on('click', click);
 
         bars.transition()
@@ -105,6 +127,18 @@ function bar_chart() {
        chart.layout = function(value) {
            if (!arguments.length) return layout;
            layout = value;
+           return chart;
+       }
+
+       chart.xlabel = function(value) {
+           if (!arguments.length) return xlabel;
+           xlabel = value;
+           return chart;
+       }
+
+       chart.ylabel = function(value) {
+           if (!arguments.length) return ylabel;
+           ylabel = value;
            return chart;
        }
 
