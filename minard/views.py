@@ -95,6 +95,10 @@ containers = [{'name': 'Histogram %i' % i, 'type': 'histogram', 'bins': random.c
 def hero():
     return render_template('hero.html')
 
+@app.route('/channels')
+def channels():
+    return render_template('channels.html')
+
 @app.route('/time')
 def time():
     return render_template('time.html')

@@ -1,5 +1,5 @@
 function bar_chart() {
-    var margin = {top: 20, right: 20, bottom: 30, left: 40},
+    var margin = {top: 20, right: 20, bottom: 50, left: 50},
         width = 960 - margin.left - margin.right,
         height = 220 - margin.top - margin.bottom;
 
@@ -111,6 +111,18 @@ function bar_chart() {
         bars.exit().transition().style({opacity: 0}).remove();
 
        });}
+
+       chart.height = function(value) {
+           if (!arguments.length) return height;
+           height = value;
+           return chart;
+       }
+
+       chart.width = function(value) {
+           if (!arguments.length) return width;
+           width = value;
+           return chart;
+       }
 
        chart.click = function(value) {
            if (!arguments.length) return click;
