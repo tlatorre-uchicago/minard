@@ -16,6 +16,14 @@ tables = meta.tables
 class Events(Base):
     __table__ = sa.Table('Events', meta, autoload=True)
 
+class PMT(Base):
+    __table__ = sa.Table('PMT', meta, autoload=True)
+
 Session = sessionmaker()
 Session.configure(bind=engine)
 session = Session()
+
+def get_charge_occupancy():
+    latest_time = session.query(PMT).order_by(PMT.time.desc()).first().time
+    result = session.query(PMT.id, PMT.chargeocc).filter(PMT.time == latest_time).all()
+    return zip(*result)

@@ -6,6 +6,7 @@ from flask.ext.login import (LoginManager, UserMixin, login_user,
     
 import datetime, random, json
 from functools import wraps
+from database import get_charge_occupancy
 
 PROJECT_NAME = 'Minard'
 DEBUG = True
@@ -81,8 +82,10 @@ def timeseries():
 def get():
     name = request.args.get('name','',type=str)
     if name == 'sphere':
-        N = 9728
-        return jsonify(id=range(N),values2=[2]*9728)
+        #N = 9728
+        #return jsonify(id=range(N),values2=[2]*9728)
+        id, charge_occupancy = get_charge_occupancy()
+        return jsonify(id=id, values2=charge_occupancy)
     return jsonify(values=[random.gauss(5,1) for i in range(100)])
 
 @app.route('/')
