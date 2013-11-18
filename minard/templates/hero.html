@@ -213,8 +213,9 @@ function on_done(result){
     values = result.values2;
 
     for (var i=0; i < id.length; i++) {
-        if (typeof(pos[id[i]]) === 'undefined')
+        if (typeof(pos[id[i]]) === 'undefined') {
             //alert('undefined for i = ' + i + '!');
+        }
     }
 
     var circle = svg.selectAll('circle').data(id,String);
