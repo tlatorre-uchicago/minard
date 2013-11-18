@@ -214,9 +214,7 @@ function on_done(result){
 
     for (var i=0; i < id.length; i++) {
         if (typeof(pos[id[i]]) === 'undefined')
-            id.splice(i,1);
-            values.splice(i,1);
-            alert('undefined for i = ' + i + '!');
+            //alert('undefined for i = ' + i + '!');
     }
 
     var circle = svg.selectAll('circle').data(id,String);
@@ -225,8 +223,8 @@ function on_done(result){
 
     circle.enter().append('circle')
         .style('fill',function(d, i) { return z(values[i]);})
-        .attr('cx',function(d, i) { return pos[d][0]; })
-        .attr('cy',function(d, i) { return pos[d][1]; })
+        .attr('cx',function(d, i) { return pos[d]?pos[d][0]:null; })
+        .attr('cy',function(d, i) { return pos[d]?pos[d][1]:null; })
         .attr('r', function(d, i) { return 2;});//values[i]; });
 }
 
