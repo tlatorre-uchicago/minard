@@ -7,16 +7,18 @@ function timeSeries() {
 
     var duration = 75000;
 
+    now = new Date();
+
+    var x = d3.time.scale()
+        .domain([now - duration, +now])
+        .range([0, width]);
+
     function chart(selection) {
         selection.each(function(data) {
-            now = new Date();
 
             var data_x = data.map(function(d) { return d.t; }),
                 data_y = data.map(function(d) { return d.y; });
 
-            var x = d3.time.scale()
-                .domain([now - duration, +now])
-                .range([0, width]);
 
             var y = d3.scale.linear()
                 .domain([d3.min(data_y),d3.max(data_y)])
@@ -74,36 +76,20 @@ function timeSeries() {
             // redraw the line
             g.selectAll(".area").data([data])
                 .attr("d", area)
-                .attr("transform", null)
                 .transition()
                 .duration(1000)
-                .ease('linear');
+                .ease('linear')
+                .attr('transform','translate(' + -x(Date.now()-duration) + ')');
 
             g.select('.x.axis').transition().call(x.axis = d3.svg.axis().scale(x).orient("bottom"));
 
             // redraw the line
             g.selectAll(".line").data([data])
                 .attr("d", line)
-                .attr("transform", null)
                 .transition()
                 .duration(1000)
-                .ease('linear');
-
-            // slide the x-axis left
-            //axis.transition()
-            //    .duration(duration/2)
-            //    .ease("linear")
-            //    .call(x.axis);
-
-            // slide the line left
-            //svg.selectAll('.line, .area').transition()
-            //    .duration(duration/2)
-            //    .ease("linear")
-            //    .attr("transform", "translate(" + x(now - (n - 1) * duration) + ")");
-
-            // pop the old data point off the front
-            //data.shift();
-            //}
+                .ease('linear')
+                .attr('transform','translate(' + -x(Date.now()-duration) + ')');
         });
     }
     chart.margin = function(_) {
