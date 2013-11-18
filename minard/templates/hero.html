@@ -214,6 +214,8 @@ function on_done(result){
 
     for (var i=0; i < id.length; i++) {
         if (typeof(pos[id[i]]) === 'undefined')
+            id.splice(i,1);
+            values.splice(i,1);
             alert('undefined for i = ' + i + '!');
     }
 
