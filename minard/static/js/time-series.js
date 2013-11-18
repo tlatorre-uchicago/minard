@@ -1,17 +1,23 @@
 function timeSeries() {
-    var margin = {top: 6, right: 0, bottom: 20, left: 40},
+    var margin = {top: 6, right: 10, bottom: 20, left: 40},
         width = 960 - margin.right,
         height = 120 - margin.top - margin.bottom;
 
     var title = '';
 
-    var duration = 75000;
+    var duration = 60000;
 
     now = new Date();
 
+    var buffer = 1000;
+
     var x = d3.time.scale()
-        .domain([now - duration, +now])
+        .domain([now - duration, +now-buffer])
         .range([0, width]);
+
+    var x_tick = d3.scale.linear()
+        .domain([duration/1000,buffer/1000])
+        .range([0,width]);
 
     function chart(selection) {
         selection.each(function(data) {
@@ -57,7 +63,8 @@ function timeSeries() {
 
             genter.append("g")
                 .attr("class", "x axis")
-                .attr("transform", "translate(0," + height + ")");
+                .attr("transform", "translate(0," + height + ")")
+                .call(x.axis = d3.svg.axis().scale(x_tick).orient("bottom"));
 
             genter.append("g")
                 .attr("clip-path", "url(#clip)")
@@ -81,7 +88,7 @@ function timeSeries() {
                 .ease('linear')
                 .attr('transform','translate(' + -x(Date.now()-duration) + ')');
 
-            g.select('.x.axis').transition().call(x.axis = d3.svg.axis().scale(x).orient("bottom"));
+            //g.select('.x.axis').transition()
 
             // redraw the line
             g.selectAll(".line").data([data])
@@ -110,9 +117,9 @@ function timeSeries() {
         return chart;
     };
 
-    chart.interval = function(_) {
-        if (!arguments.length) return interval;
-        interval = _;
+    chart.duration = function(_) {
+        if (!arguments.length) return duration;
+        duration = _;
         return chart;
     };
 
@@ -122,9 +129,9 @@ function timeSeries() {
         return chart;
     };
 
-    chart.n = function(_) {
-        if (!arguments.length) return n;
-        n = _;
+    chart.title = function(_) {
+        if (!arguments.length) return title;
+        title = _;
         return chart;
     };
 
