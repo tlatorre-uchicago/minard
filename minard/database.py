@@ -19,11 +19,34 @@ class Events(Base):
 class PMT(Base):
     __table__ = sa.Table('PMT', meta, autoload=True)
 
+class Nhit(Base):
+    __table__ = sa.Table('Nhit', meta, autoload=True)
+
+class Position(Base):
+    __table__ = sa.Table('Position', meta, autoload=True)
+
 Session = sessionmaker()
 Session.configure(bind=engine)
 session = Session()
 
-def get_charge_occupancy():
-    latest_time = session.query(PMT).order_by(PMT.time.desc()).first().time
-    result = session.query(PMT.id, PMT.chargeocc).filter(PMT.time == latest_time).all()
+def get_latest_key(table):
+    return session.query(table).order_by(table.time.desc()).first().time
+
+def get_charge_occupancy(key=None):
+    if key is None:
+        key = get_latest_key(PMT)
+    result = session.query(PMT.id, PMT.chargeocc).filter(PMT.time == key).all()
     return zip(*result)
+
+def get_number_of_events(key=None):
+    if key is None:
+        key = get_latest_key(Events)
+    result = session.query(Events.events).filter(Events.time == key).one()[0]
+    return result
+
+def get_number_of_passed_events(key=None):
+    if key is None:
+        key = get_latest_key(Events)
+    result = session.query(Events.passed_events).filter(Events.time == key).one()[0]
+    return result
+

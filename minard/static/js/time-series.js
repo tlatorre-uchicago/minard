@@ -1,11 +1,11 @@
 function timeSeries() {
-    var margin = {top: 6, right: 10, bottom: 20, left: 40},
+    var margin = {top: 16, right: 10, bottom: 20, left: 40},
         width = 960 - margin.right,
         height = 120 - margin.top - margin.bottom;
 
     var title = '';
 
-    var duration = 60000;
+    var duration = 600000;
 
     now = new Date();
 
@@ -67,6 +67,11 @@ function timeSeries() {
                 .call(x.axis = d3.svg.axis().scale(x_tick).orient("bottom"));
 
             genter.append("g")
+                .attr("class", "y axis")
+                //.attr("transform", "translate(0," + height + ")")
+                .call(y.axis = d3.svg.axis().scale(y).orient("left"));
+
+            genter.append("g")
                 .attr("clip-path", "url(#clip)")
               .append("path")
                 .data([data])
@@ -88,6 +93,7 @@ function timeSeries() {
                 .ease('linear')
                 .attr('transform','translate(' + -x(Date.now()-duration) + ')');
 
+            g.select('.y.axis').transition().call(y.axis = d3.svg.axis().scale(y).ticks(5).orient("left"));
             //g.select('.x.axis').transition()
 
             // redraw the line

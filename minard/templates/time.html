@@ -42,34 +42,34 @@
 <script>
 var n = 4;
 for (var i=0; i < n; i++) {
-    $('#main').append($('<center />').append($('<div class="col-md-12" />')));
+    $('#main').append($('<center />').append($('<div class="col-md-12" id="t' + i + '" />')));
 }
 
-var rand = d3.random.normal();
+function update_chart(selector, url, name, chart) {
+    var data = [];
 
-var data = [];
-for (var i=0; i < 10; i++) {
-    var j = data.push(Object());
-    data[j-1].t = Date.now() - (10-i)*1000;
-    data[j-1].y = rand();
-}
+    function update(value) {
+        var j = data.push(Object());
+        data[j-1].t = Date.now();
+        data[j-1].y = value;//rand();
 
-var chart = timeSeries();
+        if (data.length > 100) {
+            data.shift()
+        }
 
-function update() {
-    var j = data.push(Object());
-    data[j-1].t = Date.now();
-    data[j-1].y = rand();
-
-    if (data.length > 100) {
-        data.shift()
+        d3.selectAll(selector).data([data]).call(chart);
     }
 
-    d3.selectAll('.col-md-12').data([data,data,data,data]).call(chart);
+    function request() {
+        $.getJSON(url, {'name': name}, function(reply) { update(reply.value); });
+    }
+
+    request();
+    setInterval(request,2000);
 }
 
-update();
-setInterval(update,1000);
+update_chart('#t1', '/timeseries', 'events', timeSeries().title('Total # Events'));
+update_chart('#t2', '/timeseries', 'events_passed', timeSeries().title('Passed # Events'));
 </script>
 
 <script>$('#nav-time').attr('class','active');</script>

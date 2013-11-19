@@ -6,7 +6,7 @@ from flask.ext.login import (LoginManager, UserMixin, login_user,
     
 import datetime, random, json
 from functools import wraps
-from database import get_charge_occupancy
+from database import get_charge_occupancy, session, PMT, get_number_of_events, get_number_of_passed_events
 
 PROJECT_NAME = 'Minard'
 DEBUG = True
@@ -71,20 +71,22 @@ def login():
 @app.route('/timeseries')
 def timeseries():
     name = request.args.get('name','',type=str)
-    last = request.args.get('last','',type=int)
-    if last:
-        N = request.args.get('npoints','',type=int)
-        return jsonify(data=[random.gauss(0,1) for i in range(N)])
-    else:
-        return jsonify(value=random.gauss(5,1))
+
+    if name == 'events':
+        print get_number_of_events()
+        return jsonify(value=get_number_of_events())
+
+    if name == 'events_passed':
+        return jsonify(value=get_number_of_passed_events())
+
 
 @app.route('/get')
 def get():
     name = request.args.get('name','',type=str)
     if name == 'sphere':
-        #N = 9728
-        #return jsonify(id=range(N),values2=[2]*9728)
         id, charge_occupancy = get_charge_occupancy()
+        id, charge_occupancy = \
+            zip(*[(i, x) for i, x in zip(id, charge_occupancy) if x > 0])
         return jsonify(id=id, values2=charge_occupancy)
     return jsonify(values=[random.gauss(5,1) for i in range(100)])
 
