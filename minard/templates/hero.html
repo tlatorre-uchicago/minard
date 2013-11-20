@@ -154,6 +154,8 @@ menu.selectAll("option")
   .enter().append("option")
     .text(function(d) { return d.name; });
 
+menu.property("selectedIndex", 16);
+
 function loop() {
     var j = Math.floor(Math.random() * n);
     menu.property("selectedIndex", i = j + (j >= i));
@@ -225,6 +227,7 @@ function on_done(result){
         .attr('r', function(d, i) { return Math.log(values[i]); });
  
     circle.enter().append('circle')
+	.attr('r',0)
         .transition()
         .style('fill',function(d, i) { return z(values[i]);})
         .attr('cx',function(d, i) { return pos[d]?pos[d][0]:null; })
