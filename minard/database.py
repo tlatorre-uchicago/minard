@@ -50,3 +50,19 @@ def get_number_of_passed_events(key=None):
     result = session.query(Events.passed_events).filter(Events.time == key).one()[0]
     return result
 
+def get_nhit(key=None):
+    if key is None:
+        key = get_latest_key(Nhit)
+    result = session.query(Nhit).filter(Nhit.time == key).one()
+    hist = [getattr(result,'nhit%i' % i) for i in range(30)]
+    bins = range(5,300,10)
+    return dict(zip(bins,hist))
+
+def get_pos_hist(key=None):
+    if key is None:
+        key = get_latest_key(Position)
+    result = session.query(Position).filter(Position.time == key).one()
+    hist = [getattr(result,'pos%i' % i) for i in range(13)]
+    bins = range(25,650,50)
+    return dict(zip(bins,hist))
+

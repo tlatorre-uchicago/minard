@@ -6,54 +6,58 @@
     {{ super() }}
     <style>
 
-    .bars rect {
-      fill: steelblue;
+    .bar {
+        fill: steelblue;
     }
 
     .axis text {
-      font: 10px sans-serif;
+        font: 10px sans-serif;
     }
 
     .axis path, .axis line {
-      fill: none;
-      stroke: #000;
-      shape-rendering: crispEdges;
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
     }
 
-.x.axis line {
-  shape-rendering: auto;
-}
+    .x.label {
+        font: 14px sans-serif;
+    }
 
-.line {
-  fill: none;
-  stroke: #000;
-  stroke-width: 1.5px;
-}
+    .x.axis line {
+        shape-rendering: auto;
+    }
 
-.axis path, .axis line {
-fill: none;
-stroke: #000;
-shape-rendering: crispEdges;
-}
+    .line {
+      fill: none;
+      stroke: #000;
+      stroke-width: 1.5px;
+    }
 
-.area {
-fill: #31a354;
-stroke: #000;
-stroke-width: 0;
-opacity: 0.25;
-}
+    .axis path, .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+    }
 
-.title {
-line-height: 30px;
-}
+    .area {
+        fill: #31a354;
+        stroke: #000;
+        stroke-width: 0;
+        opacity: 0.25;
+    }
+
+    .title {
+        line-height: 30px;
+    }
 
     </style>
 
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/histogram-chart.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bar-chart.js') }}"></script>
     <script src="{{ url_for('static', filename='js/time-series.js') }}"></script>
     <script type="text/javascript">
-      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
     </script>
 {% endblock %}
 {% block body %}
@@ -61,29 +65,41 @@ line-height: 30px;
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                {% if containers %}
-                {% for row in containers|batch(3) %}
-                {% set row_loop = loop %}
                 <div class="row">
-                    {% for item in row %}
-                    {% set divid = 'div' ~ row_loop.index ~ loop.index %}
-                    <div class="col-md-4" id="{{ divid }}">
-                        <h2>{{ item.name }}</h2>
-                        {% if item.type == 'histogram' %}
-                        {{ histogram.histogram_chart(divid,url='get',name='test',interval=5000,bins=item.bins) }}
-                        {% else %}
-                        <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-                        <p><a class="btn" href="#">View details &raquo;</a></p>
-                        {% endif %}
+                    <div class="col-md-10" id="nhit">
+                        <h2>NHit</h2>
                     </div><!--/span-->
-                    {% endfor %}
+                </div>
+                <div class="row">
+                    <div class="col-md-10" id="pos">
+                        <h2>Radial Position</h2>
+                    </div><!--/span-->
                 </div><!--/row-->
-                {% endfor %}
-                {% endif %} <!-- containers -->
             </div><!--/.fluid-container-->
         </div>
     </div>
 
     <script>$('#nav-home').attr('class','active');</script>
+
+    <script>
+    function update_chart(selector, url, name, chart) {
+        function update(value) {
+            d3.selectAll(selector).data([value]).call(chart);
+        }
+
+        function request() {
+            $.getJSON(url, {'name': name}, function(reply) { update(reply.value); });
+        }
+
+        request();
+        setInterval(request,1000);
+    }
+
+    var chart1 = bar_chart().width($('#nhit').width());
+    var chart2 = bar_chart().width($('#nhit').width()).xlabel('Position (cm)');
+
+    update_chart('#nhit', '/get', 'nhit', chart1);
+    update_chart('#pos', '/get', 'pos', chart2);
+    </script>
 {% endblock %}
 </html>

@@ -6,7 +6,7 @@ from flask.ext.login import (LoginManager, UserMixin, login_user,
     
 import datetime, random, json
 from functools import wraps
-from database import get_charge_occupancy, session, PMT, get_number_of_events, get_number_of_passed_events
+from database import get_charge_occupancy, session, PMT, get_number_of_events, get_number_of_passed_events, get_nhit, get_pos_hist
 
 PROJECT_NAME = 'Minard'
 DEBUG = True
@@ -88,6 +88,13 @@ def get():
         id, charge_occupancy = \
             zip(*[(i, x) for i, x in zip(id, charge_occupancy) if x > 0])
         return jsonify(id=id, values2=charge_occupancy)
+
+    if name == 'nhit':
+        return jsonify(value=get_nhit())
+
+    if name == 'pos':
+        return jsonify(value=get_pos_hist())
+
     return jsonify(values=[random.gauss(5,1) for i in range(100)])
 
 @app.route('/')
