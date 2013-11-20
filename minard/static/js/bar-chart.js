@@ -1,7 +1,7 @@
 function bar_chart() {
     var margin = {top: 20, right: 25, bottom: 50, left: 25},
-        width = 960 - margin.left - margin.right,
-        height = 220 - margin.top - margin.bottom;
+        width = null,
+        height = null;
 
     var svg;
 
@@ -24,6 +24,12 @@ function bar_chart() {
     function chart(selection) {
         selection.each(function(data) {
         data = layout(data);
+
+        if (width === null)
+            width = $(this).width() - margin.left - margin.right;
+
+        if (height === null)
+            height = Math.round(width/1.6) - margin.top - margin.bottom;
 
         var data_x = data.map(function(d) { return d.x; }),
             data_y = data.map(function(d) { return d.y; });

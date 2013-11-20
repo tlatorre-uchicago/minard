@@ -75,6 +75,14 @@
                         <h2>Radial Position</h2>
                     </div><!--/span-->
                 </div><!--/row-->
+                <div class="row">
+                    <div class="col-md-5" id="test1">
+                        <h2>Test</h2>
+                    </div><!--/span-->
+                    <div class="col-md-5" id="test2">
+                        <h2>Test</h2>
+                    </div><!--/span-->
+                </div><!--/row-->
             </div><!--/.fluid-container-->
         </div>
     </div>
@@ -82,7 +90,9 @@
     <script>$('#nav-home').attr('class','active');</script>
 
     <script>
-    function update_chart(selector, url, name, chart) {
+    function update_chart(selector, url, name, chart, time) {
+        time = (typeof time === 'undefined') ? 10 : time;
+
         function update(value) {
             d3.selectAll(selector).data([value]).call(chart);
         }
@@ -92,14 +102,18 @@
         }
 
         request();
-        setInterval(request,1000);
+        setInterval(request,time*1000);
     }
 
-    var chart1 = bar_chart().width($('#nhit').width());
-    var chart2 = bar_chart().width($('#nhit').width()).xlabel('Position (cm)');
+    var chart1 = bar_chart().height(100);
+    var chart2 = bar_chart().height(100).xlabel('Position (cm)');
+    var hist = d3.layout.histogram().bins(d3.range(10));
+    var chart3 = bar_chart().layout(hist);
 
     update_chart('#nhit', '/get', 'nhit', chart1);
     update_chart('#pos', '/get', 'pos', chart2);
+    update_chart('#test1','/get', '', chart3, 1);
+    update_chart('#test2','/get', '', chart3, 1);
     </script>
 {% endblock %}
 </html>
