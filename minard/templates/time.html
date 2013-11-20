@@ -53,7 +53,7 @@ function update_chart(selector, url, name, chart) {
         data[j-1].t = Date.now();
         data[j-1].y = value;//rand();
 
-        if (data.length > 100) {
+        if (data.length > 10000) {
             data.shift()
         }
 
