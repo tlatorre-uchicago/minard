@@ -95,7 +95,7 @@ def get():
     if name == 'pos':
         return jsonify(value=get_pos_hist())
 
-    return jsonify(values=[random.gauss(5,1) for i in range(100)])
+    return jsonify(value=[random.gauss(5,1) for i in range(100)])
 
 @app.route('/')
 def index():
