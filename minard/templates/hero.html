@@ -136,7 +136,7 @@ d3.select(self.frameElement).style("height", height + "px");
 $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
 function update() {
-    return $.getJSON($SCRIPT_ROOT + '/get', { name: 'sphere' });
+    return $.getJSON($SCRIPT_ROOT + '/query', { name: 'sphere' });
 }
 
 pos = []

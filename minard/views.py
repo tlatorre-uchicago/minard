@@ -68,20 +68,8 @@ def login():
 		error = 'Invalid password'
     return render_template('login.html', error=error)
 
-@app.route('/timeseries')
-def timeseries():
-    name = request.args.get('name','',type=str)
-
-    if name == 'events':
-        print get_number_of_events()
-        return jsonify(value=get_number_of_events())
-
-    if name == 'events_passed':
-        return jsonify(value=get_number_of_passed_events())
-
-
-@app.route('/get')
-def get():
+@app.route('/query')
+def query():
     name = request.args.get('name','',type=str)
     if name == 'sphere':
         id, charge_occupancy = get_charge_occupancy()
@@ -95,13 +83,17 @@ def get():
     if name == 'pos':
         return jsonify(value=get_pos_hist())
 
+    if name == 'events':
+        return jsonify(value=get_number_of_events())
+
+    if name == 'events_passed':
+        return jsonify(value=get_number_of_passed_events())
+
     return jsonify(value=[random.gauss(5,1) for i in range(100)])
 
 @app.route('/')
 def index():
-    return render_template('fluid.html',containers=containers)
-
-containers = [{'name': 'Histogram %i' % i, 'type': 'histogram', 'bins': random.choice([10,20,30])} for i in range(6)]
+    return render_template('fluid.html')
 
 @app.route('/hero')
 def hero():

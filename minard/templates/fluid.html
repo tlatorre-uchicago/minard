@@ -110,10 +110,10 @@
     var hist = d3.layout.histogram().bins(d3.range(10));
     var chart3 = bar_chart().layout(hist);
 
-    update_chart('#nhit', '/get', 'nhit', chart1);
-    update_chart('#pos', '/get', 'pos', chart2);
-    update_chart('#test1','/get', '', chart3, 1);
-    update_chart('#test2','/get', '', chart3, 1);
+    update_chart('#nhit', '/query', 'nhit', chart1);
+    update_chart('#pos', '/query', 'pos', chart2);
+    update_chart('#test1','/query', '', chart3, 1);
+    update_chart('#test2','/query', '', chart3, 1);
     </script>
 {% endblock %}
 </html>

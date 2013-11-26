@@ -68,8 +68,8 @@ function update_chart(selector, url, name, chart) {
     setInterval(request,2000);
 }
 
-update_chart('#t1', '/timeseries', 'events', timeSeries().title('Total # Events'));
-update_chart('#t2', '/timeseries', 'events_passed', timeSeries().title('Passed # Events'));
+update_chart('#t1', '/query', 'events', timeSeries().title('Total # Events'));
+update_chart('#t2', '/query', 'events_passed', timeSeries().title('Passed # Events'));
 </script>
 
 <script>$('#nav-time').attr('class','active');</script>
