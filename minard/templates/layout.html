@@ -13,6 +13,10 @@
 
         <!-- jquery for $() pattern -->
         <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+        <!-- $SCRIPT_ROOT for app location -->
+        <script type="text/javascript">
+            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        </script>
         {% endblock %}
     </head>
     <body>
@@ -29,18 +33,18 @@
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
-                        <li id='nav-home'><a href="/">Histogram</a></li>
-                        <li id='nav-time'><a href="/time">Time Series</a></li>
-                        <li id='nav-detector'><a href="/hero">Detector</a></li>
-                        <li id='nav-channels'><a href="/channels">Channels</a></li>
-                        <li id='nav-alarms'><a href="/alarms">Alarms</a></li>
+                        <li id='nav-home'><a href="{{ url_for('index', _external=True) }}">Histogram</a></li>
+                        <li id='nav-time'><a href="/test">Time Series</a></li>
+                        <li id='nav-detector'><a href="{{ url_for('hero') }}">Detector</a></li>
+                        <li id='nav-channels'><a href="{{ url_for('channels') }}">Channels</a></li>
+                        <li id='nav-alarms'><a href="{{ url_for('alarms') }}">Alarms</a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
                         {% if userid %}
                         <li><span class="navbar-text">Logged in as {{ userid }}</span></li>
-                        <li><a href="/logout">Logout</a></li>
+                        <li><a href="{{ url_for('logout') }}">Logout</a></li>
                         {% else %}
-                        <li><a href="/login">Login</a></li>
+                        <li><a href="{{ url_for('login') }}">Login</a></li>
                         {% endif %}
                     </ul>
                 </div><!--/.navbar-collapse -->

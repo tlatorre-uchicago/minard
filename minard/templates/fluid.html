@@ -56,9 +56,6 @@
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bar-chart.js') }}"></script>
     <script src="{{ url_for('static', filename='js/time-series.js') }}"></script>
-    <script type="text/javascript">
-        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-    </script>
 {% endblock %}
 {% block body %}
     {{ super() }}
@@ -110,10 +107,10 @@
     var hist = d3.layout.histogram().bins(d3.range(10));
     var chart3 = bar_chart().layout(hist);
 
-    update_chart('#nhit', '/query', 'nhit', chart1);
-    update_chart('#pos', '/query', 'pos', chart2);
-    update_chart('#test1','/query', '', chart3, 1);
-    update_chart('#test2','/query', '', chart3, 1);
+    update_chart('#nhit', $SCRIPT_ROOT + '/query', 'nhit', chart1);
+    update_chart('#pos', $SCRIPT_ROOT + '/query', 'pos', chart2);
+    update_chart('#test1',$SCRIPT_ROOT + '/query', '', chart3, 1);
+    update_chart('#test2', $SCRIPT_ROOT + '/query', '', chart3, 1);
     </script>
 {% endblock %}
 </html>
