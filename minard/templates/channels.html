@@ -33,6 +33,12 @@
     <h2> CMOS Rates </h2>
 </div>
 <script>
+    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
+    function get_json() {
+        return $.getJSON($SCRIPT_ROOT + '/query', { name: 'cmos' });
+    }
+
     var rand = d3.random.normal(5.0,5.0);
     var rand_int = function(start, stop) {
         return start + Math.floor(Math.random()*(stop-start)+1);
@@ -62,8 +68,9 @@
     }
 
     setInterval(function() {
-        update_data();
-        update(sum_root(nav(a,level[0])));
+        //update_data();
+        //update(sum_root(nav(a,level[0])));
+        get_json().done(update);
     },10000);
 
     var chart = bar_chart().xlabel('Crate');
@@ -103,7 +110,11 @@
 
     update(sum_root(nav(a,level[0])));
 
-    function update(node) {
+    function update(result) {
+        a = result.value;
+
+        node = sum_root(nav(a,level[0]));
+
         d3.select('#hero').datum(node).call(chart);
     }
 
