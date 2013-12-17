@@ -108,7 +108,7 @@ def time():
     return render_template('time.html')
 
 @app.route('/alarms')
-def alerts():
+def alarms():
     try:
         edit = current_user.edit
     except AttributeError:
