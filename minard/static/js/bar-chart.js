@@ -8,6 +8,11 @@ function bar_chart() {
     var xlabel = '',
         ylabel = '';
 
+    var xscale = null;
+
+    var xdown = null,
+        xdownscale = null;
+
     var click = function(d, i) { return; };
     var click_bg = function() { return; };
 
@@ -34,8 +39,11 @@ function bar_chart() {
         var data_x = data.map(function(d) { return d.x; }),
             data_y = data.map(function(d) { return d.y; });
 
+        if (xscale == null)
+            xscale = width;
+
         var x = d3.scale.ordinal()
-            .rangeRoundBands([0,width],0.1)
+            .rangeRoundBands([0,xscale],0.1)
             .domain(data_x);
 
         var y = d3.scale.linear()
@@ -50,10 +58,13 @@ function bar_chart() {
 	var genter = svg.enter().append('svg')
                 .attr('width', width + margin.left + margin.right)
                 .attr('height', height + margin.top + margin.bottom)
+                .attr('pointer-events','all')
               .append('g')
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-        genter.append('rect')
+        var element = this;
+
+        var bg = genter.append('rect')
             .attr('fill', 'white')
             .attr('width', width)
             .attr('height', height)
@@ -61,7 +72,31 @@ function bar_chart() {
 
         genter.append('g').attr('class', 'x axis')
             .attr('transform', 'translate(0,' + height + ')')
-            .call(x_axis);
+            .call(x_axis)
+            .on('mousedown', function(d) { 
+                xdown = d3.mouse(element)[0];
+                xdownscale = xscale;
+                d3.event.preventDefault();
+
+                d3.select(window).on('mousemove', function(d) {
+                    if (xdown !== null) {
+                        var xmouse = d3.mouse(element)[0];
+                        xscale = xdownscale + (xmouse - xdown);
+                        draw();
+                        }
+                    d3.event.preventDefault();
+                    })
+                    .on('mouseup', function(d) {
+                        if (xdown !== null) {
+                            var xmouse = d3.mouse(element)[0];
+                            xscale = xdownscale + (xmouse - xdown);
+                            draw();
+                        }
+                            xdown = null;
+                            d3.select(window).on('mouseup',null);
+                            d3.select(window).on('mousemove',null);
+                    });
+            });
 
         genter.append('g').attr('class', 'y axis').call(y_axis);
 
@@ -80,33 +115,38 @@ function bar_chart() {
             .attr('transform', 'rotate(-90)')
             .text(ylabel);
 
-	var g = svg.select('g')
+        function draw() {
+            x.rangeRoundBands([0,xscale],0.1);
 
-        g.select('.x.axis').transition().call(x_axis);
-        g.select('.y.axis').transition().call(y_axis);
+            var g = svg.select('g')
 
-        g.select('.x.label').transition().text(xlabel);
-        g.select('.y.label').transition().text(ylabel);
+            g.select('.x.axis').transition().call(x_axis);
+            g.select('.y.axis').transition().call(y_axis);
 
-        var bars = g.selectAll('.bar')
-            .data(data_x);
+            g.select('.x.label').transition().text(xlabel);
+            g.select('.y.label').transition().text(ylabel);
 
-        bars.enter().append('rect')
-            .attr('class', 'bar')
-            .attr('x', width)
-            .attr('width', x.rangeBand())
-            .attr('y', function(d, i) { return y(data_y[i]); })
-	    .attr('height', function(d, i) { return height - y(data_y[i]); })
-	    .style({opacity: 1})
-	    .on('click', click);
+            var bars = g.selectAll('.bar')
+                .data(data_x);
 
-        bars.transition()
-            .attr('x', function(d, i) { return x(data_x[i]); })
-            .attr('width', x.rangeBand())
-            .attr('y', function(d, i) { return y(data_y[i]); })
-            .attr('height', function(d, i) { return height - y(data_y[i]); });
+            bars.enter().append('rect')
+                .attr('class', 'bar')
+                .attr('x', width)
+                .attr('width', x.rangeBand())
+                .attr('y', function(d, i) { return y(data_y[i]); })
+                .attr('height', function(d, i) { return height - y(data_y[i]); })
+                .style({opacity: 1})
+                .on('click', click);
 
-        bars.exit().transition().style({opacity: 0}).remove();
+            bars.transition()
+                .attr('x', function(d, i) { return x(data_x[i]); })
+                .attr('width', x.rangeBand())
+                .attr('y', function(d, i) { return y(data_y[i]); })
+                .attr('height', function(d, i) { return height - y(data_y[i]); });
+
+                bars.exit().transition().style({opacity: 0}).remove();
+            }
+            draw();
 
        });}
 
