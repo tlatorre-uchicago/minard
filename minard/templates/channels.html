@@ -62,16 +62,14 @@
 
     var level = [[]];
     function nav(root, level) {
-        for (var i in level)
-            root = root[i]
+        for (var i=0; i < level.length; i++)
+            root = root[level[i]]
         return root;
     }
 
     setInterval(function() {
-        //update_data();
-        //update(sum_root(nav(a,level[0])));
-        get_json().done(update);
-    },10000);
+        get_json().done(update_json);
+    },2000);
 
     var chart = bar_chart().xlabel('Crate');
 
@@ -110,16 +108,16 @@
 
     update(sum_root(nav(a,level[0])));
 
-    function update(result) {
+    function update_json(result) {
         a = result.value;
 
-        node = sum_root(nav(a,level[0]));
+        update(sum_root(nav(a,level[0])));
+    }
 
+    function update(node) {
         d3.select('#hero').datum(node).call(chart);
     }
 
-    //var chart2 = histogram_chart();
-    //d3.select('#test2').datum([1.5,2,3,4,5]).call(chart2);
 </script>
 <script>$('#nav-channels').attr('class','active');</script>
 {% endblock %}
