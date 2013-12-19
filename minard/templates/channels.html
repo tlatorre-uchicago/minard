@@ -47,6 +47,14 @@
             <button class='btn btn-default' type='button' id='threshold-btn'>Set</button>
             </span>
         </div>
+        <div class='input-group input-group-sm'>
+            <span class='input-group-addon'>Stats:</span>
+            <select class='form-control' id='stats'>
+                <option>now</option>
+                <option>avg</option>
+                <option>max</option>
+            </select>
+        </div>
     </div>
 </div>
 <div class="row">
@@ -66,7 +74,7 @@
     });
 
     setInterval(function() {
-        $.getJSON($SCRIPT_ROOT + '/query', {name: 'cmos'}).done(function(result) {
+        $.getJSON($SCRIPT_ROOT + '/query', {name: 'cmos', stats: $('#stats').val()}).done(function(result) {
             d3.selectAll('#crate').data([result.value]).call(crate);
         });
     }, 2000);
@@ -74,7 +82,7 @@
     var a = Object();
 
     setInterval(function() {
-        $.getJSON($SCRIPT_ROOT + '/query', { name: 'cmos', format: 'nested' }).done(function(result) {
+        $.getJSON($SCRIPT_ROOT + '/query', {name: 'cmos', format: 'nested', stats: $('#stats').val()}).done(function(result) {
             a = result.value;
             update(sum_root(nav(result.value,level[0])));
         });
