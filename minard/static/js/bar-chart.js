@@ -23,7 +23,7 @@ function bar_chart() {
             bins[i-1].x = key;
             bins[i-1].y = data[key];
         }
-	if ((bins.length > 0) && (typeof bins[0].x == 'number'))
+	if ((bins.length > 0) && (typeof +bins[0].x == 'number'))
             return bins.sort(function(a, b) { return a.x - b.x; });
 
 	return bins;
@@ -55,6 +55,8 @@ function bar_chart() {
 
         var x_axis = d3.svg.axis().scale(x).orient('bottom');
         var y_axis = d3.svg.axis().scale(y).orient('left');
+
+        y_axis.tickFormat(d3.format('.1s'));
 
 	svg = d3.select(this).selectAll('svg').data([data]);
 	
@@ -151,49 +153,57 @@ function bar_chart() {
             }
             draw();
 
-       });}
+        });}
 
-       chart.height = function(value) {
-           if (!arguments.length) return height;
-           height = value;
-           return chart;
-       }
+        chart.height = function(value) {
+            if (!arguments.length) return height;
+            height = value;
+            return chart;
+        }
 
-       chart.width = function(value) {
-           if (!arguments.length) return width;
-           width = value;
-           return chart;
-       }
+        chart.width = function(value) {
+            if (!arguments.length) return width;
+            width = value;
+            return chart;
+        }
 
-       chart.click = function(value) {
-           if (!arguments.length) return click;
-           click = value;
-           return chart;
-       }
+        chart.margin = function(value) {
+            if (!arguments.length) return margin;
+            for (var k in value)
+                margin[k] = value[k];
+            return chart;
+        }
+             
 
-       chart.click_bg = function(value) {
-           if (!arguments.length) return click_bg;
-           click_bg = value;
-           return chart;
-       }
+        chart.click = function(value) {
+            if (!arguments.length) return click;
+            click = value;
+            return chart;
+        }
 
-       chart.layout = function(value) {
-           if (!arguments.length) return layout;
-           layout = value;
-           return chart;
-       }
+        chart.click_bg = function(value) {
+            if (!arguments.length) return click_bg;
+            click_bg = value;
+            return chart;
+        }
 
-       chart.xlabel = function(value) {
-           if (!arguments.length) return xlabel;
-           xlabel = value;
-           return chart;
-       }
+        chart.layout = function(value) {
+            if (!arguments.length) return layout;
+            layout = value;
+            return chart;
+        }
 
-       chart.ylabel = function(value) {
-           if (!arguments.length) return ylabel;
-           ylabel = value;
-           return chart;
-       }
+        chart.xlabel = function(value) {
+            if (!arguments.length) return xlabel;
+            xlabel = value;
+            return chart;
+        }
+
+        chart.ylabel = function(value) {
+            if (!arguments.length) return ylabel;
+            ylabel = value;
+            return chart;
+        }
 
     return chart;
 }
