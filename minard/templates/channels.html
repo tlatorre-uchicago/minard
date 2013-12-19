@@ -88,17 +88,18 @@
         });
     }, 2000);
 
-    var a = Object();
-
     setInterval(function() {
         $.getJSON($SCRIPT_ROOT + '/query', {name: 'cmos', format: 'nested', stats: $('#stats').val()}).done(function(result) {
-            a = result.value;
-            update(sum_root(nav(result.value,level[0])));
+            update(result.value);
         });
-    }, 2000);
+    }, 20000);
 
     function update(data) {
-        d3.select('#hero').datum(data).call(chart);
+        if (!arguments.length) {
+            d3.select('#hero').datum(d3.select('#hero').datum()).call(chart);
+        } else {
+            d3.select('#hero').datum(data).call(chart);
+        }
     }
 
     var level = [[]];
@@ -110,22 +111,24 @@
 
     var chart = bar_chart().xlabel('Crate').margin({left:35});
 
-    labels = ['Crate', 'Card', 'Channel'];
-
     chart.click(function(d, i) {
-        if ($.type(nav(a,level[0])[d]) != 'number') {
+        if (level.length < 3) {
             level.unshift(level[0].concat([d]));
-            chart.xlabel(labels[level.length-1]);
-            update(sum_root(nav(a,level[0])));
+            update();
         }
     });
 
     chart.click_bg(function() {
         if (level.length > 1) {
             level.shift();
-            chart.xlabel(labels[level.length-1]);
-            update(sum_root(nav(a,level[0])));
+            update();
         }
+    });
+
+    chart.layout(function(data) {
+        labels = ['Crate', 'Card', 'Channel'];
+        chart.xlabel(labels[level.length-1]);
+        return d3.entries(sum_root(nav(data,level[0])));
     });
 
     function sum_root(root) {
