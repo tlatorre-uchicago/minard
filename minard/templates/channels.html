@@ -120,9 +120,19 @@
                 sum += sum_node(node[key]);
             return sum;
         }
+        function max_node(node) {
+            var max = 0;
+            if ($.type(node) == 'number')
+                return node;
+            for (var key in node) {
+                var a = max_node(node[key]);
+                max = (a > max) ? a : max;
+            }
+            return max;
+        }
         var values = Object();
         for (var key in root)
-            values[key] = sum_node(root[key]);
+            values[key] = max_node(root[key]);
         return values;
     }
 </script>
