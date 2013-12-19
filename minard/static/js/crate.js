@@ -40,15 +40,16 @@ function crate_view() {
         if (height === null)
             height = Math.round(width/1.6) - margin.top - margin.bottom;
 
-        var root = d3.select(this).selectAll('table').data([1]);
+        var root = d3.select(this).selectAll('div').data([1]);
 
-        var table = root.enter().append('table')
-            .attr('style','font-size:4pt;border-collapse:separate;border-spacing:1px')
-          .append('tr');
+        var table = root.enter().append('div').attr('id','crate-view');
 
-        var tr1 = table.selectAll('td')
+        var tr1 = table.selectAll('div')
             .data(crate_setup)
-            .enter().append('td').append('table')
+            .enter()
+          .append('div')
+            .attr('style','float:left')
+          .append('table')
             .attr('style','padding:2px;border-collapse:separate;border-spacing:1px');
 
         var tr2 = tr1.selectAll('tr')
@@ -68,7 +69,7 @@ function crate_view() {
             v.push(data[key]);
         }
 
-        var select = d3.select(this).selectAll('table tr td table tr td')
+        var select = d3.select(this).selectAll('#crate-view div table tr td')
             .data(k, function(d) { return d; });
 
         select.attr('style', function(d, i) {
