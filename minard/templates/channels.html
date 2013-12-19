@@ -62,7 +62,7 @@
             a = result.value;
             update(sum_root(nav(result.value,level[0])));
         });
-    });
+    }, 2000);
 
     function update(data) {
         d3.select('#hero').datum(data).call(chart);
