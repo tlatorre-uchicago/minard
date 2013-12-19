@@ -10,12 +10,12 @@ function createArray(length) {
     return arr;
 }
 
-var crate_setup = createArray(19,16,32);
+var crate_setup = createArray(19,32,16);
 
 for (var i=0; i < 19; i++) {
-    for (var j=0; j < 16; j++) {
-        for (var k=0; k < 32; k++) {
-            crate_setup[i][j][k] = (i << 16) | (j << 8) | k;
+    for (var j=0; j < 32; j++) {
+        for (var k=0; k < 16; k++) {
+            crate_setup[i][j][k] = (i << 16) | (k << 8) | j;
         }
     }
 }
@@ -45,7 +45,7 @@ function crate_view() {
         var tr1 = table.selectAll('td')
             .data(crate_setup)
             .enter().append('td').append('table')
-            .attr('style','background:rgba(0,0,0,0.75);padding:2px;border-collapse:separate;border-spacing:1px');
+            .attr('style','padding:2px;border-collapse:separate;border-spacing:1px');
 
         var tr2 = tr1.selectAll('tr')
             .data(function(d) { return d; })
@@ -54,7 +54,7 @@ function crate_view() {
         var td = tr2.selectAll('td')
             .data(function(d) { return d; }, function(d) { return d; })
             .enter().append('td')
-            .attr('style','background-color:red');
+            .attr('style','background-color:gray');
 
         table.selectAll('td').data(data, function(d) { return d; }).attr('style','background-color:black');
        });}
