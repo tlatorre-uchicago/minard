@@ -105,10 +105,19 @@ def query():
         return jsonify(value=get_number_of_passed_events())
 
     if name == 'cmos':
-        if request.args.get('format','',type=str):
-            value = cmos_to_nested(cmos.now)
+        stats = request.args.get('stats','',type=str)
+
+        if stats == 'avg':
+            obj = cmos.avg
+        elif stats == 'max':
+            obj = cmos.max
         else:
-            value = cmos.now
+            obj = cmos.now
+
+        if request.args.get('format','',type=str):
+            value = cmos_to_nested(obj)
+        else:
+            value = obj
 
         return jsonify(value=value)
 
