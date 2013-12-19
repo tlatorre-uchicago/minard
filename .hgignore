@@ -3,3 +3,5 @@ syntax: glob
 *~
 *.zip
 *.swp
+minard/dbinfo.py
+
