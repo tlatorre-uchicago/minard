@@ -38,6 +38,16 @@
     <div class="col-md-5 col-md-offset-1" id="hero" style="position:relative">
         <h2>CMOS Rates</h2>
     </div>
+    <div class="col-md-3">
+        <h2>Options</h2>
+        <div class='input-group input-group-sm'>
+            <span class='input-group-addon'>Threshold (kHz):</span>
+            <input type='text' class='form-control' id='threshold'>
+            <span class='input-group-btn'>
+            <button class='btn btn-default' type='button' id='threshold-btn'>Set</button>
+            </span>
+        </div>
+    </div>
 </div>
 <div class="row">
     <div class="container" id="crate">
@@ -48,6 +58,12 @@
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
     var crate = crate_view().threshold(10e3);
+
+    $('#threshold').val(crate.threshold()/1e3);
+
+    $('#threshold-btn').click(function() {
+        crate.threshold($('#threshold').val()*1e3);
+    });
 
     setInterval(function() {
         $.getJSON($SCRIPT_ROOT + '/query', {name: 'cmos'}).done(function(result) {
