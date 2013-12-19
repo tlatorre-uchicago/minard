@@ -5,7 +5,7 @@ from dbinfo import user, passwd, host, name
 
 Base = declarative_base()
 
-engine = sa.create_engine('mysql://%s:%s@%s/%s' % (user,passwd,host,name), pool_recycle=3600)
+engine = sa.create_engine('mysql://%s:%s@%s/%s' % (user,passwd,host,name), pool_recycle=60)
 engine.connect()
 
 meta = sa.MetaData()
