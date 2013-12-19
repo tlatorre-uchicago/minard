@@ -7,6 +7,7 @@ from flask.ext.login import (LoginManager, UserMixin, login_user,
 import datetime, random, json
 from functools import wraps
 from database import get_charge_occupancy, session, PMT, get_number_of_events, get_number_of_passed_events, get_nhit, get_pos_hist
+from orca import cmos
 
 PROJECT_NAME = 'Minard'
 DEBUG = True
@@ -68,6 +69,20 @@ def login():
 		error = 'Invalid password'
     return render_template('login.html', error=error)
 
+def cmos_to_nested(rates):
+    new_rates = {}
+    for k, v in rates.iteritems():
+        i, j, z = (k >> 16) & 0xff, (k >> 8) & 0xff, k & 0xff
+
+        if i not in new_rates:
+            new_rates[i] = {}
+        if j not in new_rates[i]:
+            new_rates[i][j] = {}
+
+        new_rates[i][j][z] = v
+
+    return new_rates
+
 @app.route('/query')
 def query():
     name = request.args.get('name','',type=str)
@@ -88,6 +103,12 @@ def query():
 
     if name == 'events_passed':
         return jsonify(value=get_number_of_passed_events())
+
+    if name == 'cmos':
+        print 'cmos.now = ', cmos.now
+        value = cmos_to_nested(cmos.now) 
+        print value
+        return jsonify(value=value)
 
     return jsonify(value=[random.gauss(5,1) for i in range(100)])
 
