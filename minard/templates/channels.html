@@ -31,7 +31,7 @@
 {% block body %}
 {{ super() }}
 <div class="row">
-    <div class="col-md-4" id="hero" style="position:relative">
+    <div class="col-md-4 col-md-offset-1" id="hero" style="position:relative">
         <h2>CMOS Rates</h2>
     </div>
 </div>
@@ -51,30 +51,15 @@
         });
     }, 2000);
 
-    function get_json() {
-        return $.getJSON($SCRIPT_ROOT + '/query', { name: 'cmos', format: 'nested' });
-    }
+    setInterval(function() {
+        $.getJSON($SCRIPT_ROOT + '/query', { name: 'cmos', format: 'nested' }).done(function(result) {
+            update(sum_root(nav(result.value,level[0])));
+        });
+    });
 
-    var rand = d3.random.normal(5.0,5.0);
-    var rand_int = function(start, stop) {
-        return start + Math.floor(Math.random()*(stop-start)+1);
+    function update(data) {
+        d3.select('#hero').datum(data).call(chart);
     }
-    var a;
-    function update_data() {
-        a = Object();
-        var N = 10;//rand_int(5,10);
-        for (var i=0; i < N; i++) {
-            a[i] = Object();
-            for (var j=0; j < rand_int(15,20); j++) {
-                a[i][j] = Object();
-                for (var k=0; k < rand_int(20,25); k++) {
-                    a[i][j][k] = rand();
-                }
-            }
-        }
-    }
-
-    update_data();
 
     var level = [[]];
     function nav(root, level) {
@@ -82,10 +67,6 @@
             root = root[level[i]]
         return root;
     }
-
-    setInterval(function() {
-        get_json().done(update_json);
-    },2000);
 
     var chart = bar_chart().xlabel('Crate');
 
@@ -121,19 +102,6 @@
             values[key] = sum_node(root[key]);
         return values;
     }
-
-    update(sum_root(nav(a,level[0])));
-
-    function update_json(result) {
-        a = result.value;
-
-        update(sum_root(nav(a,level[0])));
-    }
-
-    function update(node) {
-        d3.select('#hero').datum(node).call(chart);
-    }
-
 </script>
 <script>$('#nav-channels').attr('class','active');</script>
 {% endblock %}
