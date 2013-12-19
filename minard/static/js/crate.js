@@ -59,7 +59,7 @@ function crate_view() {
         var td = tr2.selectAll('td')
             .data(function(d) { return d; }, function(d) { return d; })
             .enter().append('td')
-            .attr('style','background-color:gray');
+            .attr('style','background-color:#e0e0e0');
 
         var k = [],
             v = [];
@@ -73,10 +73,10 @@ function crate_view() {
             .data(k, function(d) { return d; });
 
         select.attr('style', function(d, i) {
-            return (v[i] > threshold) ? 'background-color:red' : 'background-color:black';
+            return (v[i] > threshold) ? 'background-color:#ca0020' : 'background-color:#bababa';
             });
 
-        select.exit().attr('style','background-color:gray');
+        select.exit().attr('style','background-color:#e0e0e0');
        });}
 
        chart.height = function(value) {
