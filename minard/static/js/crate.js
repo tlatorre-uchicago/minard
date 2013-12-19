@@ -26,6 +26,8 @@ function crate_view() {
         width = null,
         height = null;
 
+    var threshold = null;
+
     var svg;
 
     var click = function(d, i) { return; };
@@ -38,7 +40,9 @@ function crate_view() {
         if (height === null)
             height = Math.round(width/1.6) - margin.top - margin.bottom;
 
-        var table = d3.select(this).append('table')
+        var root = d3.select(this).selectAll('table').data([1]);
+
+        var table = root.enter().append('table')
             .attr('style','font-size:4pt;border-collapse:separate;border-spacing:1px')
           .append('tr');
 
@@ -56,7 +60,22 @@ function crate_view() {
             .enter().append('td')
             .attr('style','background-color:gray');
 
-        table.selectAll('td').data(data, function(d) { return d; }).attr('style','background-color:black');
+        var k = [],
+            v = [];
+
+        for (var key in data) {
+            k.push(key);
+            v.push(data[key]);
+        }
+
+        var select = d3.select(this).selectAll('table tr td table tr td')
+            .data(k, function(d) { return d; });
+
+        select.attr('style', function(d, i) {
+            return (v[i] > threshold) ? 'background-color:red' : 'background-color:black';
+            });
+
+        select.exit().attr('style','background-color:gray');
        });}
 
        chart.height = function(value) {
@@ -74,6 +93,12 @@ function crate_view() {
        chart.click = function(value) {
            if (!arguments.length) return click;
            click = value;
+           return chart;
+       }
+
+       chart.threshold = function(value) {
+           if (!arguments.length) return threshold;
+           threshold = value;
            return chart;
        }
 

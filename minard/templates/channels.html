@@ -26,17 +26,33 @@
 <meta charset="UTF-8">
 <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
 <script src="{{ url_for('static', filename='js/bar-chart.js') }}"></script>
+<script src="{{ url_for('static', filename='js/crate.js') }}"></script>
 {% endblock %}
 {% block body %}
 {{ super() }}
-<div class="container" id="hero" style="position:relative">
-    <h2> CMOS Rates </h2>
+<div class="row">
+    <div class="col-md-4" id="hero" style="position:relative">
+        <h2>CMOS Rates</h2>
+    </div>
+</div>
+<div class="row">
+    <div class="container" id="crate">
+        <h2>Crate View</h2>
+    </div>
 </div>
 <script>
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
+    var crate = crate_view().threshold(10e3);
+
+    setInterval(function() {
+        $.getJSON($SCRIPT_ROOT + '/query', {name: 'cmos'}).done(function(result) {
+            d3.selectAll('#crate').data([result.value]).call(crate);
+        });
+    }, 2000);
+
     function get_json() {
-        return $.getJSON($SCRIPT_ROOT + '/query', { name: 'cmos' });
+        return $.getJSON($SCRIPT_ROOT + '/query', { name: 'cmos', format: 'nested' });
     }
 
     var rand = d3.random.normal(5.0,5.0);

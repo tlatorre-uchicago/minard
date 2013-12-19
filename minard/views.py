@@ -105,9 +105,11 @@ def query():
         return jsonify(value=get_number_of_passed_events())
 
     if name == 'cmos':
-        print 'cmos.now = ', cmos.now
-        value = cmos_to_nested(cmos.now) 
-        print value
+        if request.args.get('format','',type=str):
+            value = cmos_to_nested(cmos.now)
+        else:
+            value = cmos.now
+
         return jsonify(value=value)
 
     return jsonify(value=[random.gauss(5,1) for i in range(100)])
