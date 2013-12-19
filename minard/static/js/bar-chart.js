@@ -23,7 +23,10 @@ function bar_chart() {
             bins[i-1].x = key;
             bins[i-1].y = data[key];
         }
-        return bins;
+	if ((bins.length > 0) && (typeof bins[0].x == 'number'))
+            return bins.sort(function(a, b) { return a.x - b.x; });
+
+	return bins;
     }
 
     function chart(selection) {
