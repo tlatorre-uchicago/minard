@@ -169,7 +169,7 @@
     }, interval);
 
     function update(node, data) {
-        if (data === 'undefined') {
+        if (typeof data === 'undefined') {
             d3.select(node).datum(d3.select(node).datum()).call(chart);
         } else {
             d3.select(node).datum(data).call(chart);
