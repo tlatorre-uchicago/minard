@@ -16,18 +16,7 @@ function bar_chart() {
     var click = function(d, i) { return; };
     var click_bg = function() { return; };
 
-    var layout = d3.entries;//function(data) {
-    //    var bins = [];
-    //    for (var key in data) {
-    //        var i = bins.push(Object());
-    //        bins[i-1].x = key;
-    //        bins[i-1].y = data[key];
-    //    }
-    //    if ((bins.length > 0) && (typeof +bins[0].x == 'number'))
-    //        return bins.sort(function(a, b) { return a.x - b.x; });
-
-    //    return bins;
-    //}
+    var layout = d3.entries;
 
     function chart(selection) {
         selection.each(function(data) {
@@ -40,8 +29,8 @@ function bar_chart() {
         if (height === null)
             height = Math.round(width/1.6) - margin.top - margin.bottom;
 
-        var data_x = data.map(function(d) { return d.key; }),
-            data_y = data.map(function(d) { return d.value; });
+        var data_x = data.map(function(d) { return d.key || d.x; }),
+            data_y = data.map(function(d) { return d.value || d.y; });
 
         if (xscale == null)
             xscale = width;
