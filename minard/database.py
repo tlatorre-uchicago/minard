@@ -1,33 +1,30 @@
-import sqlalchemy as sa
+from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 from dbinfo import user, passwd, host, name
 
-Base = declarative_base()
+engine = create_engine('mysql://%s:%s@%s/%s' % (user,passwd,host,name), pool_recycle=60)
 
-engine = sa.create_engine('mysql://%s:%s@%s/%s' % (user,passwd,host,name), pool_recycle=60)
-engine.connect()
+session = scoped_session(sessionmaker(autocommit=False,autoflush=False,bind=engine))
 
-meta = sa.MetaData()
+meta = MetaData()
 meta.reflect(bind=engine)
 
 tables = meta.tables
 
+Base = declarative_base()
+
 class Events(Base):
-    __table__ = sa.Table('Events', meta, autoload=True)
+    __table__ = Table('Events', meta, autoload=True)
 
 class PMT(Base):
-    __table__ = sa.Table('PMT', meta, autoload=True)
+    __table__ = Table('PMT', meta, autoload=True)
 
 class Nhit(Base):
-    __table__ = sa.Table('Nhit', meta, autoload=True)
+    __table__ = Table('Nhit', meta, autoload=True)
 
 class Position(Base):
-    __table__ = sa.Table('Position', meta, autoload=True)
-
-Session = sessionmaker()
-Session.configure(bind=engine)
-session = Session()
+    __table__ = Table('Position', meta, autoload=True)
 
 def get_latest_key(table):
     return session.query(table).order_by(table.time.desc()).first().time
