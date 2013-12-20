@@ -48,6 +48,13 @@
                         <span class='input-group-btn'>
                         <button class='btn btn-default' type='button' id='threshold-btn'>Set</button>
                         </span>
+                        <script>
+                            // Set threshold when <Enter> key is pressed
+                            $('#threshold').keyup(function(event) {
+                                if (event.keyCode == 13)
+                                    $('#threshold-btn').click();
+                            });
+                        </script>
                     </div></div>
                     <div class="form-group">
                     <div class='input-group input-group-sm'>
