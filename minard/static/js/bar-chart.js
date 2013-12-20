@@ -46,7 +46,8 @@ function bar_chart() {
         var x_axis = d3.svg.axis().scale(x).orient('bottom');
         var y_axis = d3.svg.axis().scale(y).orient('left');
 
-        y_axis.tickFormat(d3.format('.1s'));
+        if (y.domain()[1] > 100)
+            y_axis.tickFormat(d3.format('.2s'));
 
 	svg = d3.select(this).selectAll('svg').data([data]);
 	

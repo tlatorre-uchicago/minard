@@ -146,7 +146,7 @@
 
     setInterval(function() {
         $.getJSON($SCRIPT_ROOT + '/query', {name: 'cmos', stats: $('#cmos-stats').val()}).done(function(result) {
-            d3.selectAll('#cmos-crate').data([result.value]).call(cmos_crate);
+            d3.select('#cmos-crate').datum(result.value).call(cmos_crate);
         });
     }, interval);
 
@@ -158,7 +158,7 @@
 
     setInterval(function() {
         $.getJSON($SCRIPT_ROOT + '/query', {name: 'base', stats: $('#base-stats').val()}).done(function(result) {
-            d3.selectAll('#base-crate').data([result.value]).call(base_crate);
+            d3.select('#base-crate').datum(result.value).call(base_crate);
         });
     }, interval);
 
