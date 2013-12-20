@@ -21,7 +21,7 @@ function bar_chart() {
     function chart(selection) {
         selection.each(function(data) {
         d3.select(this).datum(data);
-        data = layout(data);
+        data = layout(data, this);
 
         if (width === null)
             width = $(this).width() - margin.left - margin.right;

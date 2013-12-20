@@ -68,7 +68,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-12" id="hero" style="position:relative">
+                <div class="col-md-12" id="cmos-hero" style="position:relative">
                     <h4>Chart View</h4>
                 </div>
             </div>
@@ -81,13 +81,13 @@
 
         <!-- Base Currents -->
         <div class="col-md-6">
-            <h2>CMOS Rates</h2>
+            <h2>Base Currents</h2>
             <div class="row">
                 <div class="col-md-6">
                     <h4>Options</h4>
                     <div class="form-group">
                     <div class='input-group input-group-sm'>
-                        <span class='input-group-addon'>Threshold (kHz):</span>
+                        <span class='input-group-addon'>Threshold (ADC):</span>
                         <input type='text' class='form-control' id='base-threshold'>
                         <span class='input-group-btn'>
                         <button class='btn btn-default' type='button' id='base-threshold-btn'>Set</button>
@@ -112,12 +112,12 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-12" id="hero" style="position:relative">
+                <div class="col-md-12" id="base-hero" style="position:relative">
                     <h4>Chart View</h4>
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-12" id="crate">
+                <div class="col-md-12" id="base-crate">
                     <h4>Crate View</h4>
                 </div>
             </div>
@@ -128,7 +128,7 @@
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
     var cmos_crate = crate_view().threshold(10e3);
-    var base_crate = crate_view().threshold(10e3);
+    var base_crate = crate_view().threshold(50);
 
     $('#cmos-threshold').val(cmos_crate.threshold()/1e3);
 
@@ -136,33 +136,48 @@
         cmos_crate.threshold($('#cmos-threshold').val()*1e3);
     });
 
-    $('#base-threshold').val(cmos_crate.threshold()/1e3);
+    $('#base-threshold').val(base_crate.threshold());
 
     $('#base-threshold-btn').click(function() {
-        cmos_crate.threshold($('#base-threshold').val()*1e3);
+        base_crate.threshold($('#base-threshold').val());
     });
+
+    var interval = 2000;
 
     setInterval(function() {
         $.getJSON($SCRIPT_ROOT + '/query', {name: 'cmos', stats: $('#cmos-stats').val()}).done(function(result) {
             d3.selectAll('#cmos-crate').data([result.value]).call(cmos_crate);
         });
-    }, 2000);
+    }, interval);
 
     setInterval(function() {
         $.getJSON($SCRIPT_ROOT + '/query', {name: 'cmos', format: 'nested', stats: $('#cmos-stats').val()}).done(function(result) {
-            update(result.value);
+            update('#cmos-hero',result.value);
         });
-    }, 2000);
+    }, interval);
 
-    function update(data) {
-        if (!arguments.length) {
-            d3.select('#hero').datum(d3.select('#hero').datum()).call(chart);
+    setInterval(function() {
+        $.getJSON($SCRIPT_ROOT + '/query', {name: 'base', stats: $('#base-stats').val()}).done(function(result) {
+            d3.selectAll('#base-crate').data([result.value]).call(base_crate);
+        });
+    }, interval);
+
+    setInterval(function() {
+        $.getJSON($SCRIPT_ROOT + '/query', {name: 'base', format: 'nested', stats: $('#base-stats').val()}).done(function(result) {
+            update('#base-hero',result.value);
+        });
+    }, interval);
+
+    function update(node, data) {
+        if (data === 'undefined') {
+            d3.select(node).datum(d3.select(node).datum()).call(chart);
         } else {
-            d3.select('#hero').datum(data).call(chart);
+            d3.select(node).datum(data).call(chart);
         }
     }
 
-    var level = [[]];
+    d3.select('#cmos-hero').node().level = [[]];
+    d3.select('#base-hero').node().level = [[]];
     function nav(root, level) {
         for (var i=0; i < level.length; i++)
             root = root[level[i]]
@@ -172,21 +187,26 @@
     var chart = bar_chart().xlabel('Crate').margin({left:35});
 
     chart.click(function(d, i) {
+        var node = this.parentNode.parentNode.parentNode;
+        var level = node.level;
         if (level.length < 3) {
             level.unshift(level[0].concat([d]));
-            update();
+            update(node);
         }
     });
 
     chart.click_bg(function() {
+        var node = this.parentNode.parentNode.parentNode;
+        var level = node.level;
         if (level.length > 1) {
             level.shift();
-            update();
+            update(node);
         }
     });
 
-    chart.layout(function(data) {
+    chart.layout(function(data, node) {
         labels = ['Crate', 'Card', 'Channel'];
+        var level = node.level;
         chart.xlabel(labels[level.length-1]);
         return d3.entries(sum_root(nav(data,level[0]))).sort(function(a,b) { return +a.key - +b.key; });
     });
