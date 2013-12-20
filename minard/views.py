@@ -7,7 +7,7 @@ from flask.ext.login import (LoginManager, UserMixin, login_user,
 import datetime, random, json
 from functools import wraps
 from database import get_charge_occupancy, session, PMT, get_number_of_events, get_number_of_passed_events, get_nhit, get_pos_hist
-from orca import cmos
+from orca import cmos, base
 
 PROJECT_NAME = 'Minard'
 DEBUG = True
@@ -113,6 +113,23 @@ def query():
             obj = cmos.max
         else:
             obj = cmos.now
+
+        if request.args.get('format','',type=str):
+            value = cmos_to_nested(obj)
+        else:
+            value = obj
+
+        return jsonify(value=value)
+
+    if name == 'base':
+        stats = request.args.get('stats','',type=str)
+
+        if stats == 'avg':
+            obj = base.avg
+        elif stats == 'max':
+            obj = base.max
+        else:
+            obj = base.now
 
         if request.args.get('format','',type=str):
             value = cmos_to_nested(obj)

@@ -10,6 +10,10 @@ cmos = lambda: None # just a mock object
 cmos.lock = Lock()
 cmos.items = []
 
+base = lambda: None # just a mock object
+base.lock = Lock()
+base.items = []
+
 def update(obj):
     with obj.lock:
         now = time.time()
@@ -37,8 +41,17 @@ def callback(output):
                     j = (crate << 16) | (card << 8) | i
                     cmos.items.append((j,rate[i],time.time()))
 
+        if 'key' in item and item['key'] == 'pmt_base_current':
+            crate, card = item['crate_num'], item['slot_num']
+            rate = item['v']['adc']
+
+            with base.lock:
+                for i in range(len(rate)):
+                    j = (crate << 16) | (card << 8) | i
+                    base.items.append((j,rate[i],time.time()))
+
 orca_stream = OrcaJSONStream('tcp://localhost:5028',callback)
 orca_stream.start()
 
-print 'update(cmos)'
 update(cmos)
+update(base)

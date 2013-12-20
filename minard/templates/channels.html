@@ -44,22 +44,22 @@
                     <div class="form-group">
                     <div class='input-group input-group-sm'>
                         <span class='input-group-addon'>Threshold (kHz):</span>
-                        <input type='text' class='form-control' id='threshold'>
+                        <input type='text' class='form-control' id='cmos-threshold'>
                         <span class='input-group-btn'>
-                        <button class='btn btn-default' type='button' id='threshold-btn'>Set</button>
+                        <button class='btn btn-default' type='button' id='cmos-threshold-btn'>Set</button>
                         </span>
                         <script>
                             // Set threshold when <Enter> key is pressed
-                            $('#threshold').keyup(function(event) {
+                            $('#cmos-threshold').keyup(function(event) {
                                 if (event.keyCode == 13)
-                                    $('#threshold-btn').click();
+                                    $('#cmos-threshold-btn').click();
                             });
                         </script>
                     </div></div>
                     <div class="form-group">
                     <div class='input-group input-group-sm'>
                         <span class='input-group-addon'>Stats:</span>
-                        <select class='form-control' id='stats'>
+                        <select class='form-control' id='cmos-stats'>
                             <option>now</option>
                             <option>avg</option>
                             <option>max</option>
@@ -68,7 +68,53 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-12" id="hero" style="position:relative"></div>
+                <div class="col-md-12" id="hero" style="position:relative">
+                    <h4>Chart View</h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12" id="cmos-crate">
+                    <h4>Crate View</h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- Base Currents -->
+        <div class="col-md-6">
+            <h2>CMOS Rates</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Options</h4>
+                    <div class="form-group">
+                    <div class='input-group input-group-sm'>
+                        <span class='input-group-addon'>Threshold (kHz):</span>
+                        <input type='text' class='form-control' id='base-threshold'>
+                        <span class='input-group-btn'>
+                        <button class='btn btn-default' type='button' id='base-threshold-btn'>Set</button>
+                        </span>
+                        <script>
+                            // Set threshold when <Enter> key is pressed
+                            $('#base-threshold').keyup(function(event) {
+                                if (event.keyCode == 13)
+                                    $('#base-threshold-btn').click();
+                            });
+                        </script>
+                    </div></div>
+                    <div class="form-group">
+                    <div class='input-group input-group-sm'>
+                        <span class='input-group-addon'>Stats:</span>
+                        <select class='form-control' id='base-stats'>
+                            <option>now</option>
+                            <option>avg</option>
+                            <option>max</option>
+                        </select>
+                    </div></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12" id="hero" style="position:relative">
+                    <h4>Chart View</h4>
+                </div>
             </div>
             <div class="row">
                 <div class="col-md-12" id="crate">
@@ -81,22 +127,29 @@
 <script>
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
-    var crate = crate_view().threshold(10e3);
+    var cmos_crate = crate_view().threshold(10e3);
+    var base_crate = crate_view().threshold(10e3);
 
-    $('#threshold').val(crate.threshold()/1e3);
+    $('#cmos-threshold').val(cmos_crate.threshold()/1e3);
 
-    $('#threshold-btn').click(function() {
-        crate.threshold($('#threshold').val()*1e3);
+    $('#cmos-threshold-btn').click(function() {
+        cmos_crate.threshold($('#cmos-threshold').val()*1e3);
+    });
+
+    $('#base-threshold').val(cmos_crate.threshold()/1e3);
+
+    $('#base-threshold-btn').click(function() {
+        cmos_crate.threshold($('#base-threshold').val()*1e3);
     });
 
     setInterval(function() {
-        $.getJSON($SCRIPT_ROOT + '/query', {name: 'cmos', stats: $('#stats').val()}).done(function(result) {
-            d3.selectAll('#crate').data([result.value]).call(crate);
+        $.getJSON($SCRIPT_ROOT + '/query', {name: 'cmos', stats: $('#cmos-stats').val()}).done(function(result) {
+            d3.selectAll('#cmos-crate').data([result.value]).call(cmos_crate);
         });
     }, 2000);
 
     setInterval(function() {
-        $.getJSON($SCRIPT_ROOT + '/query', {name: 'cmos', format: 'nested', stats: $('#stats').val()}).done(function(result) {
+        $.getJSON($SCRIPT_ROOT + '/query', {name: 'cmos', format: 'nested', stats: $('#cmos-stats').val()}).done(function(result) {
             update(result.value);
         });
     }, 2000);
