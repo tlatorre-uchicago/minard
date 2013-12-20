@@ -23,7 +23,7 @@
         font-weight: normal;
     }
 
-    #hero .tick text {
+    .tick text {
         font-size: 10px;
     }
 </style>
@@ -180,7 +180,7 @@
     d3.select('#base-hero').node().level = [[]];
     function nav(root, level) {
         for (var i=0; i < level.length; i++)
-            root = root[level[i]]
+            root = root[level[i]];
         return root;
     }
 
