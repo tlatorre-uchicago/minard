@@ -71,15 +71,20 @@ function bar_chart() {
             .attr('height', height)
             .on('click', click_bg);
 
-        genter.append('g').attr('class', 'x axis').attr('id','test')
+        genter.append('g').attr('class', 'x axis').attr('id','x-axis')
             .attr('transform', 'translate(0,' + height + ')')
             .call(x_axis);
 
-        genter.selectAll('rect,g')
+        genter.append('g').attr('class', 'y axis').attr('id','y-axis')
+            .call(y_axis);
+
+        genter.selectAll('rect,#x-axis,#y-axis')
             .on('mousedown', function(d) { 
                 down_mouse = d3.mouse(element);
                 xdownrange = xrange;
                 ydownrange = yrange;
+
+                var id = this.id;
 
                 d3.event.preventDefault();
 
@@ -88,10 +93,16 @@ function bar_chart() {
                         var mouse = d3.mouse(element);
                         var dx = mouse[0] - down_mouse[0];
                         var dy = mouse[1] - down_mouse[1];
-                        xrange = [xdownrange[0] + dx, xdownrange[1] + dx];
-                        yrange = [ydownrange[0] + dy, ydownrange[1] + dy];
-                        draw();
+                        if (id == 'x-axis') {
+                            xrange[1] = xdownrange[1] + dx;
+                        } else if (id == 'y-axis') {
+                            yrange[1] = ydownrange[1] + dy;
+                        } else {
+                            xrange = [xdownrange[0] + dx, xdownrange[1] + dx];
+                            yrange = [ydownrange[0] + dy, ydownrange[1] + dy];
                         }
+                        draw();
+                    }
                     d3.event.preventDefault();
                     })
                     .on('mouseup', function(d) {
@@ -99,17 +110,21 @@ function bar_chart() {
                             var mouse = d3.mouse(element);
                             var dx = mouse[0] - down_mouse[0];
                             var dy = mouse[1] - down_mouse[1];
-                            xrange = [xdownrange[0] + dx, xdownrange[1] + dx];
-                            yrange = [ydownrange[0] + dy, ydownrange[1] + dy];
-                            draw();
+                            if (id == 'x-axis') {
+                                xrange[1] = xdownrange[1] + dx;
+                            } else if (id == 'y-axis') {
+                                yrange[1] = ydownrange[1] + dy;
+                            } else {
+                                xrange = [xdownrange[0] + dx, xdownrange[1] + dx];
+                                yrange = [ydownrange[0] + dy, ydownrange[1] + dy];
                             }
-                            xdownrange = null;
-                            d3.select(window).on('mouseup',null);
-                            d3.select(window).on('mousemove',null);
+                            draw();
+                        }
+                        xdownrange = null;
+                        d3.select(window).on('mouseup',null);
+                        d3.select(window).on('mousemove',null);
                     });
             });
-
-        genter.append('g').attr('class', 'y axis').call(y_axis);
 
         genter.append('text')
             .attr('class', 'x label')
