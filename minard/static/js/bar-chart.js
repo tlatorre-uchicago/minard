@@ -8,10 +8,12 @@ function bar_chart() {
     var xlabel = '',
         ylabel = '';
 
-    var xscale = null;
+    var xrange = null,
+        yrange = null;
 
-    var xdown = null,
-        xdownscale = null;
+    var mouse_down = null,
+        xdownrange = null,
+        ydownrange = null;
 
     var click = function(d, i) { return; };
     var click_bg = function() { return; };
@@ -32,15 +34,18 @@ function bar_chart() {
         var data_x = data.map(function(d) { return d.key || d.x; }),
             data_y = data.map(function(d) { return d.value || d.y; });
 
-        if (xscale == null)
-            xscale = width;
+        if (xrange == null)
+            xrange = [0,width];
+
+        if (yrange == null)
+            yrange = [height,0];
 
         var x = d3.scale.ordinal()
-            .rangeRoundBands([0,xscale],0.1)
+            .rangeRoundBands(xrange,0.1)
             .domain(data_x);
 
         var y = d3.scale.linear()
-            .range([height,0])
+            .range(yrange)
             .domain([0,d3.max(data_y)]);
 
         var x_axis = d3.svg.axis().scale(x).orient('bottom');
@@ -66,29 +71,39 @@ function bar_chart() {
             .attr('height', height)
             .on('click', click_bg);
 
-        genter.append('g').attr('class', 'x axis')
+        genter.append('g').attr('class', 'x axis').attr('id','test')
             .attr('transform', 'translate(0,' + height + ')')
-            .call(x_axis)
+            .call(x_axis);
+
+        genter.selectAll('rect,g')
             .on('mousedown', function(d) { 
-                xdown = d3.mouse(element)[0];
-                xdownscale = xscale;
+                down_mouse = d3.mouse(element);
+                xdownrange = xrange;
+                ydownrange = yrange;
+
                 d3.event.preventDefault();
 
                 d3.select(window).on('mousemove', function(d) {
-                    if (xdown !== null) {
-                        var xmouse = d3.mouse(element)[0];
-                        xscale = xdownscale + (xmouse - xdown);
+                    if (xdownrange !== null) {
+                        var mouse = d3.mouse(element);
+                        var dx = mouse[0] - down_mouse[0];
+                        var dy = mouse[1] - down_mouse[1];
+                        xrange = [xdownrange[0] + dx, xdownrange[1] + dx];
+                        yrange = [ydownrange[0] + dy, ydownrange[1] + dy];
                         draw();
                         }
                     d3.event.preventDefault();
                     })
                     .on('mouseup', function(d) {
-                        if (xdown !== null) {
-                            var xmouse = d3.mouse(element)[0];
-                            xscale = xdownscale + (xmouse - xdown);
+                        if (xdownrange !== null) {
+                            var mouse = d3.mouse(element);
+                            var dx = mouse[0] - down_mouse[0];
+                            var dy = mouse[1] - down_mouse[1];
+                            xrange = [xdownrange[0] + dx, xdownrange[1] + dx];
+                            yrange = [ydownrange[0] + dy, ydownrange[1] + dy];
                             draw();
-                        }
-                            xdown = null;
+                            }
+                            xdownrange = null;
                             d3.select(window).on('mouseup',null);
                             d3.select(window).on('mousemove',null);
                     });
@@ -112,7 +127,8 @@ function bar_chart() {
             .text(ylabel);
 
         function draw() {
-            x.rangeRoundBands([0,xscale],0.1);
+            x.rangeRoundBands(xrange,0.1);
+            y.range(yrange);
 
             var g = svg.select('g')
 
