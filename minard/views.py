@@ -1,12 +1,12 @@
 from minard import app
-from flask import (render_template, jsonify, request, session, redirect,
+from flask import (render_template, jsonify, request, redirect,
     url_for, flash)
 from flask.ext.login import (LoginManager, UserMixin, login_user,
     login_required, logout_user, current_user)
     
 import datetime, random, json
 from functools import wraps
-from database import get_charge_occupancy, session, PMT, get_number_of_events, get_number_of_passed_events, get_nhit, get_pos_hist
+from database import get_charge_occupancy, PMT, get_number_of_events, get_number_of_passed_events, get_nhit, get_pos_hist
 from orca import cmos, base
 
 PROJECT_NAME = 'Minard'
