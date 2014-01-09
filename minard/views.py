@@ -151,9 +151,10 @@ def index():
 def hero():
     return render_template('hero.html')
 
-@app.route('/channels')
-def channels():
-    return render_template('channels.html')
+@app.route('/daq/<name>')
+def channels(name):
+    print 'name = ', name
+    return render_template('channels.html',name=name)
 
 @app.route('/time')
 def time():
