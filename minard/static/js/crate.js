@@ -20,6 +20,60 @@ for (var i=0; i < 19; i++) {
     }
 }
 
+function card_view() {
+    var svg;
+    var crate = 12;
+    var threshold = null;
+
+    function chart(selection) {
+        selection.each(function(data) {
+            var root = d3.select(this).selectAll('table').data([crate]);
+            var table = root.enter().append('div').attr('id','card-view').append('table')
+                .attr('style','padding:2px;border-collapse:separate;border-spacing:1px');
+
+            var setup = crate_setup[crate];
+
+            var tr2 = table.selectAll('tr')
+                .data(setup)
+                .enter().append('tr');
+
+            var td = tr2.selectAll('td')
+                .data(function(d) { return d; }, function(d) { return d; })
+                .enter().append('td')
+                .attr('style','background-color:#e0e0e0');
+
+            var k = [],
+                v = [];
+
+            for (var key in data) {
+                k.push(key);
+                v.push(data[key]);
+            }
+
+            var select = d3.select(this).selectAll('td')
+                .data(k, function(d) { return d; });
+
+            select.attr('style', function(d, i) {
+                return (v[i] > threshold) ? 'background-color:#ca0020' : 'background-color:#bababa';
+                });
+
+            select.exit().attr('style','background-color:#e0e0e0');
+           });}
+
+   chart.crate = function(value) {
+       if (!arguments.length) return crate;
+       crate = value;
+       return chart;
+   }
+   
+   chart.threshold = function(value) {
+       if (!arguments.length) return threshold;
+       threshold = value;
+       return chart;
+   }
+
+   return chart;
+}
 
 function crate_view() {
     var margin = {top: 20, right: 25, bottom: 50, left: 25},
