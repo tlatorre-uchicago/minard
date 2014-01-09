@@ -30,6 +30,9 @@ Base = declarative_base()
 class Events(Base):
     __table__ = Table('Events', meta, autoload=True)
 
+class L2(Base):
+    __table__ = Table('L2', meta, autoload=True)
+
 class PMT(Base):
     __table__ = Table('PMT', meta, autoload=True)
 
@@ -41,6 +44,17 @@ class Position(Base):
 
 def get_latest_key(session, table):
     return session.query(table).order_by(table.time.desc()).first().time
+
+def row_to_dict(row):
+    return {c.name: getattr(row, c.name) for c in row.__table__.columns}
+
+def get_l2_info(id=None):
+    with session_scope() as session:
+        if id is None:
+            id = session.query(L2).order_by(L2.id.desc()).first().id
+        result = row_to_dict(session.query(L2).filter(L2.id == id).one())
+    result['entry_time'] = result['entry_time'].isoformat()
+    return result
 
 def get_charge_occupancy(key=None):
     with session_scope() as session:

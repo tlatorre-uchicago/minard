@@ -63,8 +63,41 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="row">
-                    <div class="col-md-10" id="nhit">
+                    <div class="col-md-7" id="nhit">
                         <h2>NHit</h2>
+                    </div><!--/span-->
+                    <div class="col-md-3" id="info">
+                        <h2>Info</h2>
+                        <button type='button' class='btn btn-default' id='btn-start'>Start</button>
+                        <button type='button' class='btn btn-default' id='btn-stop'>Stop</button>
+                        <p>
+                        <table class="table table-bordered">
+                            <tr>
+                                <td>Run #</td>
+                                <td id='run'></td>
+                            </tr>
+                            <tr>
+                                <td>First GTID</td>
+                                <td id='gtid_first'></td>
+                            </tr>
+                            <tr>
+                                <td>Last GTID</td>
+                                <td id='gtid_last'></td>
+                            </tr>
+                            <tr>
+                                <td>History</td>
+                                <td>
+                                    <button type='button' class='btn btn-default btn-xs'>-1</button>
+                                    <button type='button' class='btn btn-default btn-xs'>+1</button>
+                                    <button type='button' class='btn btn-default btn-xs'>+10</button>
+                                    <button type='button' class='btn btn-default btn-xs'>+10</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Time</td>
+                                <td id='entry_time'></td>
+                            </tr>
+                        </table>
                     </div><!--/span-->
                 </div>
                 <div class="row">
@@ -87,6 +120,40 @@
     <script>$('#nav-home').attr('class','active');</script>
 
     <script>
+
+    function alert(jqxhr, text_status, error) {
+        var err = text_status + ', ' + error;
+
+        var select = $('#info .alert');
+        if (select.length == 0) {
+            $('#info').prepend('<div class="alert alert-warning"></div>');
+        }
+        select = $('#info .alert');
+        select.text(err);
+    }
+
+    function update_l2() {
+        $.getJSON($SCRIPT_ROOT + '/query', {'name': 'l2_info'}, function(reply) {
+            info = reply.value;
+            $('#run').text(info.run);
+            $('#gtid_first').text(info.gtid_first);
+            $('#gtid_last').text(info.gtid_last);
+            $('#entry_time').text(info.entry_time);
+        }).fail(alert);
+    }
+
+    var intervalid = setInterval(update_l2,1000);
+
+    $('#btn-stop').click(function() {
+        clearInterval(intervalid);
+        intervalid = null;
+    });
+
+    $('#btn-start').click(function() {
+        if (intervalid == null)
+            intervalid = setInterval(update_l2,1000);
+    });
+
     function update_chart(selector, url, name, chart, time) {
         time = (typeof time === 'undefined') ? 10 : time;
 

@@ -6,7 +6,7 @@ from flask.ext.login import (LoginManager, UserMixin, login_user,
     
 import datetime, random, json
 from functools import wraps
-from database import get_charge_occupancy, PMT, get_number_of_events, get_number_of_passed_events, get_nhit, get_pos_hist
+from database import get_charge_occupancy, PMT, get_number_of_events, get_number_of_passed_events, get_nhit, get_pos_hist, get_l2_info
 from orca import cmos, base
 
 PROJECT_NAME = 'Minard'
@@ -89,8 +89,11 @@ def query():
     if name == 'sphere':
         id, charge_occupancy = get_charge_occupancy()
         id, charge_occupancy = \
-            zip(*[(i, x) for i, x in zip(id, charge_occupancy) if x > 0])
+            zip(*[(i, x) for i, x in zip(id, charge_occupancy)])# if x > 0])
         return jsonify(id=id, values2=charge_occupancy)
+
+    if name == 'l2_info':
+        return jsonify(value=get_l2_info())
 
     if name == 'nhit':
         return jsonify(value=get_nhit())
