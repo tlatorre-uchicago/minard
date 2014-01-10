@@ -1,7 +1,7 @@
 function timeSeries() {
-    var margin = {top: 16, right: 10, bottom: 20, left: 40},
-        width = 960 - margin.right,
-        height = 120 - margin.top - margin.bottom;
+    var margin = {top: 20, right: 25, bottom: 50, left: 25},
+        width = null,
+        height = 100;
 
     var title = '';
 
@@ -11,20 +11,22 @@ function timeSeries() {
 
     var buffer = 1000;
 
-    var x = d3.time.scale()
-        .domain([now - duration, +now-buffer])
-        .range([0, width]);
-
-    var x_tick = d3.scale.linear()
-        .domain([duration/1000,buffer/1000])
-        .range([0,width]);
-
     function chart(selection) {
         selection.each(function(data) {
 
+            if (width === null)
+                width = $(this).width() - margin.left - margin.right;
+
+            var x = d3.time.scale()
+                .domain([now - duration, +now-buffer])
+                .range([0, width]);
+
+            var x_tick = d3.scale.linear()
+                .domain([duration/1000,buffer/1000])
+                .range([0,width]);
+
             var data_x = data.map(function(d) { return d.t; }),
                 data_y = data.map(function(d) { return d.y; });
-
 
             var y = d3.scale.linear()
                 .domain([d3.min(data_y),d3.max(data_y)])
@@ -48,7 +50,7 @@ function timeSeries() {
             var genter = svg.enter().append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
-                .style("margin-left", -margin.left + "px")
+                //.style("margin-left", -margin.left + "px")
               .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 

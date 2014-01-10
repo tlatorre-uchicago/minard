@@ -69,6 +69,10 @@
                     <div class="col-md-12" id="pos">
                         <h2>Radial Position</h2>
                     </div>
+                    <div class="col-md-12" id="t1">
+                    </div>
+                    <div class="col-md-12" id="t2">
+                    </div>
                 </div>
             </div>
             <div class="col-md-3" id="info">
@@ -198,6 +202,32 @@
 
     update_chart('#nhit', $SCRIPT_ROOT + '/query', 'nhit', chart1);
     update_chart('#pos', $SCRIPT_ROOT + '/query', 'pos', chart2);
+
+    function update_time_series(selector, url, name, chart) {
+        var data = [];
+
+        function update(value) {
+            var j = data.push(Object());
+            data[j-1].t = Date.now();
+            data[j-1].y = value;//rand();
+
+            if (data.length > 10000) {
+                data.shift()
+            }
+
+            d3.selectAll(selector).data([data]).call(chart);
+        }
+
+        function request() {
+            $.getJSON(url, {'name': name}, function(reply) { update(reply.value); });
+        }
+
+        request();
+        setInterval(request,1000);
+    }
+
+    update_time_series('#t1', $SCRIPT_ROOT + '/query', 'events', timeSeries().title('Total # Events'));
+    update_time_series('#t2', $SCRIPT_ROOT + '/query', 'events_passed', timeSeries().title('Passed # Events'));
     </script>
 {% endblock %}
 </html>
