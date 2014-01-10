@@ -25,9 +25,12 @@ function card_view() {
     var crate = 12;
     var threshold = null;
 
+    var format = d3.format('.2s');
+
     function chart(selection) {
         selection.each(function(data) {
-            var root = d3.select(this).selectAll('table').data([crate]);
+            var root = d3.select(this).selectAll('table').data([crate], function(d) { return d; });
+            root.exit().remove();
             var table = root.enter().append('div').attr('id','card-view').append('table')
                 .attr('style','padding:2px;border-collapse:separate;border-spacing:1px');
 
@@ -55,9 +58,11 @@ function card_view() {
 
             select.attr('style', function(d, i) {
                 return (v[i] > threshold) ? 'background-color:#ca0020' : 'background-color:#bababa';
-                });
+                })
+                .text(function(d, i) { return format(v[i]); });
 
-            select.exit().attr('style','background-color:#e0e0e0');
+            select.exit().attr('style','background-color:#e0e0e0')
+                .text(function() { return '';});
            });}
 
    chart.crate = function(value) {
@@ -102,6 +107,7 @@ function crate_view() {
             .data(crate_setup)
             .enter()
           .append('div')
+            .on('click', click)
             .attr('style','float:left')
           .append('table')
             .attr('style','padding:2px;border-collapse:separate;border-spacing:1px');
