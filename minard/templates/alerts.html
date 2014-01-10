@@ -29,7 +29,7 @@ var msglist = [],
     filter_level = 'default';
 
 function get_poll() {
-    return $.getJSON($SCRIPT_ROOT + '/stream', {'last': null});
+    return $.getJSON($SCRIPT_ROOT + '/query', {name: 'alerts'});
 }
 
 function update() {

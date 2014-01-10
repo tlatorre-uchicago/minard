@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Time Series{% endblock %}
+{% block title %}Stream{% endblock %}
 {% block head %}
     {{ super() }}
 
@@ -33,25 +33,24 @@
 
 {% block body %}
     {{ super() }}
-
-<div class="container" id="main"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12" id='t1'></div>
+            <div class="col-md-12" id='t2'></div>
+        </div>
+    </div>
 
 <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
 <script src="{{ url_for('static', filename='js/time-series.js') }}"></script>
 
 <script>
-var n = 4;
-for (var i=0; i < n; i++) {
-    $('#main').append($('<center />').append($('<div class="col-md-12" id="t' + i + '" />')));
-}
-
 function update_chart(selector, url, name, chart) {
     var data = [];
 
     function update(value) {
         var j = data.push(Object());
         data[j-1].t = Date.now();
-        data[j-1].y = value;//rand();
+        data[j-1].y = value;
 
         if (data.length > 10000) {
             data.shift()
@@ -65,7 +64,7 @@ function update_chart(selector, url, name, chart) {
     }
 
     request();
-    setInterval(request,2000);
+    setInterval(request,1000);
 }
 
 update_chart('#t1', $SCRIPT_ROOT + '/query', 'events', timeSeries().title('Total # Events'));

@@ -69,10 +69,6 @@
                     <div class="col-md-12" id="pos">
                         <h2>Radial Position</h2>
                     </div>
-                    <div class="col-md-12" id="t1">
-                    </div>
-                    <div class="col-md-12" id="t2">
-                    </div>
                 </div>
             </div>
             <div class="col-md-3" id="info">
@@ -156,6 +152,9 @@
         $('#status').attr('class', 'alert alert-success').text('Connected');
     }
 
+    var chart1 = bar_chart().height(100);
+    var chart2 = bar_chart().height(100).xlabel('Position (cm)');
+
     function update_l2(id) {
         $.getJSON($SCRIPT_ROOT + '/query', {'name': 'l2_info', 'id': id}, function(reply) {
             info = reply.value;
@@ -167,10 +166,21 @@
             $('#entry_time').text(info.entry_time);
             $('#events').text(info.events);
             $('#passed_events').text(info.passed_events);
+
+            $.getJSON($SCRIPT_ROOT + '/query', {'name': 'nhit', 'id': id}, function(reply) {
+                result = reply.value;
+                d3.select('#nhit').datum(result).call(chart1);
+            });
+
+            $.getJSON($SCRIPT_ROOT + '/query', {'name': 'pos', 'id': id}, function(reply) {
+                result = reply.value;
+                d3.select('#pos').datum(result).call(chart2);
+            });
         }).done(success).fail(warn);
     }
 
-    var intervalid = setInterval(update_l2,1000);
+    update_l2();
+    var intervalid = setInterval(update_l2,10000);
 
     $('#btn-stop').click(function() {
         clearInterval(intervalid);
@@ -181,53 +191,6 @@
         if (intervalid == null)
             intervalid = setInterval(update_l2,1000);
     });
-
-    function update_chart(selector, url, name, chart, time) {
-        time = (typeof time === 'undefined') ? 10 : time;
-
-        function update(value) {
-            d3.selectAll(selector).data([value]).call(chart);
-        }
-
-        function request() {
-            $.getJSON(url, {'name': name}, function(reply) { update(reply.value); });
-        }
-
-        request();
-        setInterval(request,time*1000);
-    }
-
-    var chart1 = bar_chart().height(100);
-    var chart2 = bar_chart().height(100).xlabel('Position (cm)');
-
-    update_chart('#nhit', $SCRIPT_ROOT + '/query', 'nhit', chart1);
-    update_chart('#pos', $SCRIPT_ROOT + '/query', 'pos', chart2);
-
-    function update_time_series(selector, url, name, chart) {
-        var data = [];
-
-        function update(value) {
-            var j = data.push(Object());
-            data[j-1].t = Date.now();
-            data[j-1].y = value;//rand();
-
-            if (data.length > 10000) {
-                data.shift()
-            }
-
-            d3.selectAll(selector).data([data]).call(chart);
-        }
-
-        function request() {
-            $.getJSON(url, {'name': name}, function(reply) { update(reply.value); });
-        }
-
-        request();
-        setInterval(request,1000);
-    }
-
-    update_time_series('#t1', $SCRIPT_ROOT + '/query', 'events', timeSeries().title('Total # Events'));
-    update_time_series('#t2', $SCRIPT_ROOT + '/query', 'events_passed', timeSeries().title('Passed # Events'));
     </script>
 {% endblock %}
 </html>

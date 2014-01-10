@@ -33,7 +33,15 @@
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
-                        <li id='nav-home'><a href="{{ url_for('index') }}">Home</a></li>
+                        <!-- L2 Dropdown -->
+                        <li class='dropdown'>
+                            <a href='#' class='dropdown-toggle' data-toggle='dropdown'>L2 Filter <b class='caret'></b></a>
+                            <ul class='dropdown-menu'>
+                                <li id='nav-l2-home'><a href="{{ url_for('index') }}">Home</a></li>
+                                <li id='nav-l2-stream'><a href="{{ url_for('stream') }}">Stream</a></li>
+                            </ul>
+                        </li>
+
                         <li id='nav-detector'><a href="{{ url_for('hero') }}">Detector</a></li>
 
                         <!-- Dropdown DAQ -->

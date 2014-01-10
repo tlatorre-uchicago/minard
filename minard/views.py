@@ -86,6 +86,8 @@ def cmos_to_nested(rates):
 @app.route('/query')
 def query():
     name = request.args.get('name','',type=str)
+    id = request.args.get('id',None,type=str)
+
     if name == 'sphere':
         id, charge_occupancy = get_charge_occupancy()
         id, charge_occupancy = \
@@ -93,14 +95,13 @@ def query():
         return jsonify(id=id, values2=charge_occupancy)
 
     if name == 'l2_info':
-    	id = request.args.get('id',None,type=str)
         return jsonify(value=get_l2_info(id=id))
 
     if name == 'nhit':
-        return jsonify(value=get_nhit())
+        return jsonify(value=get_nhit(id=id))
 
     if name == 'pos':
-        return jsonify(value=get_pos_hist())
+        return jsonify(value=get_pos_hist(id=id))
 
     if name == 'events':
         return jsonify(value=get_number_of_events())
@@ -142,6 +143,9 @@ def query():
 
         return jsonify(value=value)
 
+    if name == 'alerts':
+        return jsonify(messages=alerts)
+
     return jsonify(value=[random.gauss(5,1) for i in range(100)])
 
 @app.route('/')
@@ -157,9 +161,9 @@ def channels(name):
     print 'name = ', name
     return render_template('channels.html',name=name)
 
-@app.route('/time')
-def time():
-    return render_template('time.html')
+@app.route('/stream')
+def stream():
+    return render_template('stream.html')
 
 @app.route('/alarms')
 def alarms():
@@ -183,13 +187,3 @@ def dismiss():
         if alerts[i]['time'] == dismiss:
             del alerts[i]
             return jsonify(test='test')
-
-@app.route('/stream')
-def stream():
-    last = request.args.get('last','',type=int)
-    if last:
-        N = request.args.get('npoints','',type=int)
-        data = jsonify(data=[random.gauss(0,1) for i in range(N)])
-        return data
-    else:
-        return jsonify(messages=alerts)
