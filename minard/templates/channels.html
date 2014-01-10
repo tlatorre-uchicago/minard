@@ -78,6 +78,8 @@
                             <option>max</option>
                         </select>
                     </div></div>
+                    <h4>Status</h4>
+                    <div id="status"></div>
                 </div>
             </div>
         </div>
@@ -101,6 +103,15 @@
         card.threshold($('#threshold').val());
     });
 
+    function warn(jqxhr, text_status, error) {
+        var err = text_status + ', ' + error;
+        $('#status').text(err).attr('class', 'alert alert-warning');
+    }
+
+    function success() {
+        $('#status').attr('class', 'alert alert-success').text('Connected');
+    }
+
     var interval = 1000;
 
     function update() {
@@ -108,7 +119,8 @@
             .done(function(result) {
                 d3.select('#crate').datum(result.value).call(crate);
                 d3.select('#card').datum(result.value).call(card);
-            });
+                success()
+            }).fail(warn);
     }
 
     update();
