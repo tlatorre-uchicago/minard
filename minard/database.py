@@ -53,7 +53,10 @@ def get_l2_info(id=None):
         if id is None:
             id = session.query(L2).order_by(L2.id.desc()).first().id
         result = row_to_dict(session.query(L2).filter(L2.id == id).one())
-    result['entry_time'] = result['entry_time'].isoformat()
+    if result['entry_time'] is None:
+        result['entry_time'] = '???'
+    else:
+        result['entry_time'] = result['entry_time'].isoformat()
     return result
 
 def get_charge_occupancy(key=None):
