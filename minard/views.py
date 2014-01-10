@@ -93,7 +93,8 @@ def query():
         return jsonify(id=id, values2=charge_occupancy)
 
     if name == 'l2_info':
-        return jsonify(value=get_l2_info())
+    	id = request.args.get('id',None,type=str)
+        return jsonify(value=get_l2_info(id=id))
 
     if name == 'nhit':
         return jsonify(value=get_nhit())
