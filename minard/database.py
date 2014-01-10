@@ -42,11 +42,19 @@ class Nhit(Base):
 class Position(Base):
     __table__ = Table('Position', meta, autoload=True)
 
+class Alarms(Base):
+    __table__ = Table('alarms', meta, autoload=True)
+
 def get_latest_key(session, table):
     return session.query(table).order_by(table.time.desc()).first().time
 
 def row_to_dict(row):
     return {c.name: getattr(row, c.name) for c in row.__table__.columns}
+
+def get_alarms():
+    with session_scope() as session:
+        result = map(row_to_dict,session.query(Alarms).all())
+    return result
 
 def get_l2_info(id=None):
     with session_scope() as session:

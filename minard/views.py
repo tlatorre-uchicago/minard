@@ -6,7 +6,7 @@ from flask.ext.login import (LoginManager, UserMixin, login_user,
     
 import datetime, random, json
 from functools import wraps
-from database import get_charge_occupancy, PMT, get_number_of_events, get_number_of_passed_events, get_nhit, get_pos_hist, get_l2_info
+from database import get_charge_occupancy, PMT, get_number_of_events, get_number_of_passed_events, get_nhit, get_pos_hist, get_l2_info, get_alarms
 from orca import cmos, base
 
 PROJECT_NAME = 'Minard'
@@ -69,20 +69,6 @@ def login():
 		error = 'Invalid password'
     return render_template('login.html', error=error)
 
-def cmos_to_nested(rates):
-    new_rates = {}
-    for k, v in rates.iteritems():
-        i, j, z = (k >> 16) & 0xff, (k >> 8) & 0xff, k & 0xff
-
-        if i not in new_rates:
-            new_rates[i] = {}
-        if j not in new_rates[i]:
-            new_rates[i][j] = {}
-
-        new_rates[i][j][z] = v
-
-    return new_rates
-
 @app.route('/query')
 def query():
     name = request.args.get('name','',type=str)
@@ -119,12 +105,7 @@ def query():
         else:
             obj = cmos.now
 
-        if request.args.get('format','',type=str):
-            value = cmos_to_nested(obj)
-        else:
-            value = obj
-
-        return jsonify(value=value)
+        return jsonify(value=obj)
 
     if name == 'base':
         stats = request.args.get('stats','',type=str)
@@ -136,15 +117,10 @@ def query():
         else:
             obj = base.now
 
-        if request.args.get('format','',type=str):
-            value = cmos_to_nested(obj)
-        else:
-            value = obj
-
-        return jsonify(value=value)
+        return jsonify(value=obj)
 
     if name == 'alerts':
-        return jsonify(messages=alerts)
+        return jsonify(messages=get_alarms())
 
     return jsonify(value=[random.gauss(5,1) for i in range(100)])
 
@@ -172,18 +148,3 @@ def alarms():
     except AttributeError:
         edit = False
     return render_template('alerts.html', edit=edit)
-
-alerts = []
-for i in range(10):
-    level = random.choice(['info','danger','warning','success'])
-    alerts.append({'time':datetime.datetime.now().isoformat(),'level':level,'msg':'hello world %i ' % i})
-
-@app.route('/dismiss', methods=['POST'])
-@edit_required
-def dismiss():
-    dismiss = request.form['dismiss']
-
-    for i in range(len(alerts)):
-        if alerts[i]['time'] == dismiss:
-            del alerts[i]
-            return jsonify(test='test')

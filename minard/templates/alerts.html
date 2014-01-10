@@ -25,6 +25,8 @@ var levels = {'success': 'alert alert-success',
               'warning': 'alert alert-warning',
               'danger' : 'alert alert-danger'};
 
+var level_map = {0: 'success', 1: 'info', 2: 'warning', 3: 'danger'};
+
 var msglist = [],
     filter_level = 'default';
 
@@ -61,7 +63,7 @@ function parse() {
     var msgdisp;
     if (filter_level != 'default') {
         msgdisp = msglist.filter(function(d) {
-                return d.level == filter_level;
+                return level_map[d.level] == filter_level;
                 });
     } else {
         msgdisp = msglist;
@@ -75,11 +77,11 @@ function parse() {
     div.enter()
         .append('div')
         .attr('class', function(d, i) {
-                return [levels[msgdisp[i].level], 
+                return [levels[level_map[msgdisp[i].level]], 
                 ' alert-dismissable'].join(' ');})
         .text(function(d, i) {
                 return ['[',(new Date(msgdisp[i].time)).toUTCString(),
-                '] ', msgdisp[i].msg].join('');})
+                '] ', msgdisp[i].message].join('');})
         .append('button')
         .attr('type', 'button')
         .attr('class', 'close')
@@ -95,6 +97,10 @@ function parse() {
         {% endif %}
 
     div.exit().remove();
+
+    if (msglist.length == 0) {
+        $('#main').append('<div><center><h2>No alerts to display!</h2></center></div>');
+    }
 }
 </script>
 
