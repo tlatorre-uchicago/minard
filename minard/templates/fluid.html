@@ -61,85 +61,109 @@
     {{ super() }}
     <div class="container">
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-9">
                 <div class="row">
-                    <div class="col-md-7" id="nhit">
+                    <div class="col-md-12" id="nhit">
                         <h2>NHit</h2>
-                    </div><!--/span-->
-                    <div class="col-md-3" id="info">
-                        <h2>Info</h2>
-                        <button type='button' class='btn btn-default' id='btn-start'>Start</button>
-                        <button type='button' class='btn btn-default' id='btn-stop'>Stop</button>
-                        <p>
-                        <table class="table table-bordered">
-                            <tr>
-                                <td>Run #</td>
-                                <td id='run'></td>
-                            </tr>
-                            <tr>
-                                <td>First GTID</td>
-                                <td id='gtid_first'></td>
-                            </tr>
-                            <tr>
-                                <td>Last GTID</td>
-                                <td id='gtid_last'></td>
-                            </tr>
-                            <tr>
-                                <td>History</td>
-                                <td>
-                                    <button type='button' class='btn btn-default btn-xs'>-1</button>
-                                    <button type='button' class='btn btn-default btn-xs'>+1</button>
-                                    <button type='button' class='btn btn-default btn-xs'>+10</button>
-                                    <button type='button' class='btn btn-default btn-xs'>+10</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Time</td>
-                                <td id='entry_time'></td>
-                            </tr>
-                        </table>
-                    </div><!--/span-->
-                </div>
-                <div class="row">
-                    <div class="col-md-10" id="pos">
+                    </div>
+                    <div class="col-md-12" id="pos">
                         <h2>Radial Position</h2>
-                    </div><!--/span-->
-                </div><!--/row-->
-                <div class="row">
-                    <div class="col-md-5" id="test1">
-                        <h2>Test</h2>
-                    </div><!--/span-->
-                    <div class="col-md-5" id="test2">
-                        <h2>Test</h2>
-                    </div><!--/span-->
-                </div><!--/row-->
-            </div><!--/.fluid-container-->
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3" id="info">
+                <h2>Info</h2>
+                <button type='button' class='btn btn-default' id='btn-start'>Start</button>
+                <button type='button' class='btn btn-default' id='btn-stop'>Stop</button>
+                <p>
+                <table class="table table-bordered">
+                    <tr>
+                        <td>ID</td>
+                        <td id='id'></td>
+                    </tr>
+                    <tr>
+                        <td>Run #</td>
+                        <td id='run'></td>
+                    </tr>
+                    <tr>
+                        <td>First GTID</td>
+                        <td id='gtid_first'></td>
+                    </tr>
+                    <tr>
+                        <td>Last GTID</td>
+                        <td id='gtid_last'></td>
+                    </tr>
+                    <tr>
+                        <td>Events</td>
+                        <td id='events'></td>
+                    </tr>
+                    <tr>
+                        <td>Passed Events</td>
+                        <td id='passed_events'></td>
+                    </tr>
+                    <tr>
+                        <td>History</td>
+                        <td>
+                <button type='button' class='btn btn-default btn-xs' id='ctrlm1'>-1</button>
+                <button type='button' class='btn btn-default btn-xs' id='ctrlp1'>+1</button>
+                <button type='button' class='btn btn-default btn-xs' id='ctrlmt'>-10</button>
+                <button type='button' class='btn btn-default btn-xs' id='ctrlpt'>+10</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Time</td>
+                        <td id='entry_time'></td>
+                    </tr>
+                </table>
+                <h3>Status</h3>
+                <div id='status'></div>
+            </div><!--/span-->
         </div>
     </div>
 
     <script>$('#nav-home').attr('class','active');</script>
 
     <script>
+    var current_id = null;
 
-    function alert(jqxhr, text_status, error) {
+    $('#ctrlm1').click(function() {
+        $('#btn-stop').trigger('click');
+        update_l2(current_id-1);
+    });
+    $('#ctrlp1').click(function() {
+        $('#btn-stop').trigger('click');
+        update_l2(current_id+1);
+    });
+    $('#ctrlmt').click(function() {
+        $('#btn-stop').trigger('click');
+        update_l2(current_id-10);
+    });
+    $('#ctrlpt').click(function() {
+        $('#btn-stop').trigger('click');
+        update_l2(current_id+10);
+    });
+
+    function warn(jqxhr, text_status, error) {
         var err = text_status + ', ' + error;
-
-        var select = $('#info .alert');
-        if (select.length == 0) {
-            $('#info').prepend('<div class="alert alert-warning"></div>');
-        }
-        select = $('#info .alert');
-        select.text(err);
+        $('#status').text(err).attr('class', 'alert alert-warning');
     }
 
-    function update_l2() {
-        $.getJSON($SCRIPT_ROOT + '/query', {'name': 'l2_info'}, function(reply) {
+    function success() {
+        $('#status').attr('class', 'alert alert-success').text('Connected');
+    }
+
+    function update_l2(id) {
+        $.getJSON($SCRIPT_ROOT + '/query', {'name': 'l2_info', 'id': id}, function(reply) {
             info = reply.value;
+            current_id = info.id;
+            $('#id').text(info.id);
             $('#run').text(info.run);
             $('#gtid_first').text(info.gtid_first);
             $('#gtid_last').text(info.gtid_last);
             $('#entry_time').text(info.entry_time);
-        }).fail(alert);
+            $('#events').text(info.events);
+            $('#passed_events').text(info.passed_events);
+        }).done(success).fail(warn);
     }
 
     var intervalid = setInterval(update_l2,1000);
@@ -171,13 +195,9 @@
 
     var chart1 = bar_chart().height(100);
     var chart2 = bar_chart().height(100).xlabel('Position (cm)');
-    var hist = d3.layout.histogram().bins(d3.range(10));
-    var chart3 = bar_chart().layout(hist);
 
     update_chart('#nhit', $SCRIPT_ROOT + '/query', 'nhit', chart1);
     update_chart('#pos', $SCRIPT_ROOT + '/query', 'pos', chart2);
-    update_chart('#test1',$SCRIPT_ROOT + '/query', '', chart3, 1);
-    update_chart('#test2', $SCRIPT_ROOT + '/query', '', chart3, 1);
     </script>
 {% endblock %}
 </html>
