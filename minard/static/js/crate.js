@@ -25,7 +25,7 @@ function card_view() {
     var crate = 12;
     var threshold = null;
 
-    var format = d3.format('.2s');
+    var format = d3.format('.1s');
 
     function chart(selection) {
         selection.each(function(data) {
@@ -43,7 +43,9 @@ function card_view() {
             var td = tr2.selectAll('td')
                 .data(function(d) { return d; }, function(d) { return d; })
                 .enter().append('td')
-                .attr('style','background-color:#e0e0e0');
+                .attr('style','background-color:#e0e0e0')
+                .attr('title', function(d) {
+                    return 'Card ' + ((d >> 8) & 0xff) + ', Channel ' + (d & 0xff);});
 
             var k = [],
                 v = [];
