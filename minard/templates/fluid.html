@@ -114,6 +114,10 @@
                         <td>Time</td>
                         <td id='entry_time'></td>
                     </tr>
+                    <tr>
+                        <td>Clock</td>
+                        <td id='clock'></td>
+                    </tr>
                 </table>
                 <h3>Status</h3>
                 <div id='status'></div>
@@ -164,6 +168,7 @@
             $('#gtid_first').text(info.gtid_first);
             $('#gtid_last').text(info.gtid_last);
             $('#entry_time').text(info.entry_time);
+            $('#clock').text(info.clock);
             $('#events').text(info.events);
             $('#passed_events').text(info.passed_events);
 

@@ -3,10 +3,13 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from dbinfo import user, passwd, host, name
 from contextlib import contextmanager
+import datetime
 
 engine = create_engine('mysql://%s:%s@%s/%s' % (user,passwd,host,name), pool_recycle=60)
 
 Session = scoped_session(sessionmaker(autocommit=False,autoflush=False,bind=engine))
+
+T_ZERO = datetime.datetime(1995,12,31,17,11,50,156730)
 
 @contextmanager
 def session_scope():
@@ -30,8 +33,17 @@ Base = declarative_base()
 class Events(Base):
     __table__ = Table('Events', meta, autoload=True)
 
+class Clock(Base):
+    __table__ = Table('clock', meta, autoload=True)
+
 class L2(Base):
     __table__ = Table('L2', meta, autoload=True)
+
+    def get_clock(self):
+        with session_scope() as session:
+            clock = session.query(Clock).filter(Clock.id == self.id).one()
+            dt = datetime.timedelta(microseconds=clock.time10/10.0)
+            return T_ZERO + dt
 
 class PMT(Base):
     __table__ = Table('PMT', meta, autoload=True)
@@ -60,11 +72,15 @@ def get_l2_info(id=None):
     with session_scope() as session:
         if id is None:
             id = session.query(L2).order_by(L2.id.desc()).first().id
-        result = row_to_dict(session.query(L2).filter(L2.id == id).one())
+        l2_info = session.query(L2).filter(L2.id == id).one()
+        result = row_to_dict(l2_info)
+        result['clock'] = l2_info.get_clock().strftime('%Y-%m-%dT%H-%M-%S')
+
     if result['entry_time'] is None:
         result['entry_time'] = '???'
     else:
-        result['entry_time'] = result['entry_time'].isoformat()
+        result['entry_time'] = result['entry_time'].strftime('%Y-%m-%dT%H-%M-%S')
+
     return result
 
 def get_charge_occupancy(key=None):
