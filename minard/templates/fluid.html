@@ -73,8 +73,8 @@
             </div>
             <div class="col-md-3" id="info">
                 <h2>Info</h2>
-                <button type='button' class='btn btn-default' id='btn-start'>Start</button>
-                <button type='button' class='btn btn-default' id='btn-stop'>Stop</button>
+                <button type='button' class='btn btn-default disabled' id='btn-start'>Keep it Current</button>
+                <button type='button' class='btn btn-default' id='btn-stop'>Pause</button>
                 <p>
                 <table class="table table-bordered">
                     <tr>
@@ -188,13 +188,20 @@
     var intervalid = setInterval(update_l2,10000);
 
     $('#btn-stop').click(function() {
-        clearInterval(intervalid);
-        intervalid = null;
+        if (intervalid != null) {
+            clearInterval(intervalid);
+            $('#btn-stop').toggleClass('disabled');
+            $('#btn-start').toggleClass('disabled');
+            intervalid = null;
+        }
     });
 
     $('#btn-start').click(function() {
-        if (intervalid == null)
+        if (intervalid == null) {
             intervalid = setInterval(update_l2,1000);
+            $('#btn-stop').toggleClass('disabled');
+            $('#btn-start').toggleClass('disabled');
+        }
     });
     </script>
 {% endblock %}
