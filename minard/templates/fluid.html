@@ -132,18 +132,26 @@
 
     $('#ctrlm1').click(function() {
         $('#btn-stop').trigger('click');
-        update_l2(current_id-1);
+	current_id -= 1;
+	$('#id').text(current_id);
+        update_l2(current_id);
     });
     $('#ctrlp1').click(function() {
         $('#btn-stop').trigger('click');
+	current_id += 1;
+	$('#id').text(current_id);
         update_l2(current_id+1);
     });
     $('#ctrlmt').click(function() {
         $('#btn-stop').trigger('click');
+	current_id -= 10;
+	$('#id').text(current_id);
         update_l2(current_id-10);
     });
     $('#ctrlpt').click(function() {
         $('#btn-stop').trigger('click');
+	current_id += 10;
+	$('#id').text(current_id);
         update_l2(current_id+10);
     });
 
