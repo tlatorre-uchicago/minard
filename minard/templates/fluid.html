@@ -107,7 +107,7 @@
                     </tr>
                     <tr>
                         <td>Avg NHit</td>
-                        <td id='avg_nhit'></td>
+                        <td id='avgnhit'></td>
                     </tr>
                     <tr>
                         <td>History</td>
@@ -179,16 +179,9 @@
         $.getJSON($SCRIPT_ROOT + '/query', {'name': 'l2_info', 'id': id}, function(reply) {
             info = reply.value;
             current_id = info.id;
-            $('#id').text(info.id);
-            $('#run').text(info.run);
-            $('#orphans').text(info.orphans);
-            $('#avg_nhit').text(info.avgnhit);
-            $('#gtid_first').text(info.gtid_first);
-            $('#gtid_last').text(info.gtid_last);
-            $('#entry_time').text(info.entry_time);
-            $('#clock').text(info.clock);
-            $('#events').text(info.events);
-            $('#passed_events').text(info.passed_events);
+
+	    for (key in info)
+	    	$('#' + key).text(info[key]);
 
             $.getJSON($SCRIPT_ROOT + '/query', {'name': 'nhit', 'id': id}, function(reply) {
                 result = reply.value;
@@ -208,8 +201,7 @@
     $('#btn-stop').click(function() {
         if (intervalid != null) {
             clearInterval(intervalid);
-            $('#btn-stop').toggleClass('disabled');
-            $('#btn-start').toggleClass('disabled');
+            $('#btn-stop, #btn-start').toggleClass('disabled');
             intervalid = null;
         }
     });
@@ -217,8 +209,7 @@
     $('#btn-start').click(function() {
         if (intervalid == null) {
             intervalid = setInterval(update_l2,1000);
-            $('#btn-stop').toggleClass('disabled');
-            $('#btn-start').toggleClass('disabled');
+            $('#btn-stop, #btn-start').toggleClass('disabled');
         }
     });
     </script>
