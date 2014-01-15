@@ -30,9 +30,6 @@ tables = meta.tables
 
 Base = declarative_base()
 
-class Events(Base):
-    __table__ = Table('Events', meta, autoload=True)
-
 class Clock(Base):
     __table__ = Table('clock', meta, autoload=True)
 
@@ -93,15 +90,15 @@ def get_charge_occupancy(key=None):
 def get_number_of_events(key=None):
     with session_scope() as session:
         if key is None:
-            key = get_latest_key(session, Events)
-        result = session.query(Events.events).filter(Events.time == key).one()[0]
+            key = session.query(L2).order_by(L2.id.desc()).first().id
+        result = session.query(L2.events).filter(L2.id == key).one()[0]
     return result
 
 def get_number_of_passed_events(key=None):
     with session_scope() as session:
         if key is None:
-            key = get_latest_key(session, Events)
-        result = session.query(Events.passed_events).filter(Events.time == key).one()[0]
+            key = session.query(L2).order_by(L2.id.desc()).first().id
+        result = session.query(L2.passed_events).filter(L2.id == key).one()[0]
     return result
 
 def get_nhit(id=None):

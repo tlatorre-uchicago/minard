@@ -102,6 +102,14 @@
                         <td id='passed_events'></td>
                     </tr>
                     <tr>
+                        <td>Orphans</td>
+                        <td id='orphans'></td>
+                    </tr>
+                    <tr>
+                        <td>Avg NHit</td>
+                        <td id='avg_nhit'></td>
+                    </tr>
+                    <tr>
                         <td>History</td>
                         <td>
                 <button type='button' class='btn btn-default btn-xs' id='ctrlm1'>-1</button>
@@ -173,6 +181,8 @@
             current_id = info.id;
             $('#id').text(info.id);
             $('#run').text(info.run);
+            $('#orphans').text(info.orphans);
+            $('#avg_nhit').text(info.avgnhit);
             $('#gtid_first').text(info.gtid_first);
             $('#gtid_last').text(info.gtid_last);
             $('#entry_time').text(info.entry_time);
