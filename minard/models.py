@@ -32,32 +32,6 @@ class Position(Base):
 class Alarms(Base, MyBase):
     __table__ = Table('alarms', meta, autoload=True)
 
-def get_latest_key(session, table):
-    return session.query(table).order_by(table.time.desc()).first().time
-
-def row_to_dict(row):
-    return {c.name: getattr(row, c.name) for c in row.__table__.columns}
-
-def get_alarms():
-    with session_scope() as session:
-        result = map(row_to_dict,session.query(Alarms).all())
-    return result
-
-def get_l2_info(id=None):
-    with session_scope() as session:
-        if id is None:
-            id = session.query(L2).order_by(L2.id.desc()).first().id
-        l2_info = session.query(L2).filter(L2.id == id).one()
-        result = l2_info.dict()#row_to_dict(l2_info)
-        result['clock'] = l2_info.get_clock().strftime('%Y-%m-%dT%H-%M-%S')
-
-    if result['entry_time'] is None:
-        result['entry_time'] = '???'
-    else:
-        result['entry_time'] = result['entry_time'].strftime('%Y-%m-%dT%H-%M-%S')
-
-    return result
-
 def get_charge_occupancy(key=None):
     with session_scope() as session:
         if key is None:
