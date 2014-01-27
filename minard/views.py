@@ -79,9 +79,9 @@ def query():
     id = request.args.get('id',None,type=str)
 
     if name == 'sphere':
-        id, charge_occupancy = get_charge_occupancy()
-        id, charge_occupancy = \
-            zip(*[(i, x) for i, x in zip(id, charge_occupancy)])# if x > 0])
+    	latest = PMT.latest()
+	id, charge_occupancy = zip(*db_session.query(PMT.id, PMT.chargeocc)\
+	    .filter(PMT.time == latest.time).all())
         return jsonify(id=id, values2=charge_occupancy)
 
     if name == 'l2_info':
