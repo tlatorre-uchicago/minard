@@ -24,9 +24,9 @@ def update(obj):
     for k, v, t in obj.items:
         group[k].append(v)
 
-    obj.max = {k: max(v) for k, v in group.iteritems()}
-    obj.avg = {k: sum(v)/len(v) for k, v in group.iteritems()}
-    obj.now = {k: v[-1] for k, v in group.iteritems()}
+    obj.max = dict((k, max(v)) for k, v in group.iteritems())
+    obj.avg = dict((k: sum(v)/len(v) for k, v in group.iteritems())
+    obj.now = dict((k: v[-1] for k, v in group.iteritems())
 
     Timer(5,update,args=(obj,)).start()
 
