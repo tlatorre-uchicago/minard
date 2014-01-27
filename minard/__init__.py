@@ -35,7 +35,7 @@ class ReverseProxied(object):
         return self.app(environ, start_response)
 
 app = Flask(__name__)
-#app.wsgi_app = ReverseProxied(app.wsgi_app)
+app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
