@@ -6,8 +6,12 @@ from flask.ext.login import (LoginManager, UserMixin, login_user,
     
 import datetime, random, json
 from functools import wraps
-from database import get_charge_occupancy, PMT, get_number_of_events, get_number_of_passed_events, get_nhit, get_pos_hist, get_l2_info, get_alarms
+#from database import get_charge_occupancy, PMT, get_number_of_events, get_number_of_passed_events, get_nhit, get_pos_hist, get_l2_info, get_alarms
 from orca import cmos, base
+from minard.database import init_db, db_session
+from minard.models import *
+
+init_db()
 
 PROJECT_NAME = 'Minard'
 DEBUG = True
@@ -81,13 +85,26 @@ def query():
         return jsonify(id=id, values2=charge_occupancy)
 
     if name == 'l2_info':
-        return jsonify(value=get_l2_info(id=id))
+        if id is not None:
+            info = db_session.query(L2).filter(L2.id == id).one()
+        else:
+            info = db_session.query(L2).order_by(L2.id.desc()).first()
+
+        return jsonify(value=dict(info))
 
     if name == 'nhit':
-        return jsonify(value=get_nhit(id=id))
+        latest = Nhit.latest()
+        hist = [getattr(latest,'nhit%i' % i) for i in range(30)]
+        bins = range(5,300,10)
+        result = dict(zip(bins,hist))
+        return jsonify(value=result)
 
     if name == 'pos':
-        return jsonify(value=get_pos_hist(id=id))
+        latest = Position.latest()
+        hist = [getattr(latest,'pos%i' % i) for i in range(13)]
+        bins = range(25,650,50)
+        result = dict(zip(bins,hist))
+        return jsonify(value=result)
 
     if name == 'events':
         return jsonify(value=get_number_of_events())
@@ -120,7 +137,8 @@ def query():
         return jsonify(value=obj)
 
     if name == 'alerts':
-        return jsonify(messages=get_alarms())
+        alarms = db_session.query(Alarms)
+        return jsonify(messages=[dict(x) for x in alarms])
 
     return jsonify(value=[random.gauss(5,1) for i in range(100)])
 
