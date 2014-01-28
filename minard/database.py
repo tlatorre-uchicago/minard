@@ -13,7 +13,7 @@ Base.query = db_session.query_property()
 class MyBase(object):
     @classmethod
     def latest(cls):
-        return db_session.query(cls).order_by(cls.time.desc()).first()
+        return db_session.query(cls).order_by(cls.id.desc()).first()
 
     def __iter__(self):
         for column in self.__table__.columns:

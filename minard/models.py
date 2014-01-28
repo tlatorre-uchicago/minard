@@ -27,13 +27,13 @@ class L2(Base, MyBase):
             yield 'clock', '???'
 
 class PMT(Base, MyBase):
-    __table__ = Table('PMT', meta, autoload=True)
+    __table__ = Table('pmt', meta, autoload=True)
 
 class Nhit(Base, MyBase):
-    __table__ = Table('Nhit', meta, autoload=True)
+    __table__ = Table('nhit', meta, autoload=True)
 
 class Position(Base, MyBase):
-    __table__ = Table('Position', meta, autoload=True)
+    __table__ = Table('position', meta, autoload=True)
 
 class Alarms(Base, MyBase):
     __table__ = Table('alarms', meta, autoload=True)
