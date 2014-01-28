@@ -61,14 +61,6 @@
 
                         <li id='nav-alarms'><a href="{{ url_for('alarms') }}">Alarms</a></li>
                     </ul>
-                    <ul class="nav navbar-nav navbar-right">
-                        {% if userid %}
-                        <li><span class="navbar-text">Logged in as {{ userid }}</span></li>
-                        <li><a href="{{ url_for('logout') }}">Logout</a></li>
-                        {% else %}
-                        <li><a href="{{ url_for('login') }}">Login</a></li>
-                        {% endif %}
-                    </ul>
                 </div><!--/.navbar-collapse -->
             </div>
         </div>

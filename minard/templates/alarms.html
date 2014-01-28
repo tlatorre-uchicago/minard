@@ -31,7 +31,7 @@ var msglist = [],
     filter_level = 'default';
 
 function get_poll() {
-    return $.getJSON($SCRIPT_ROOT + '/query', {name: 'alerts'});
+    return $.getJSON($SCRIPT_ROOT + '/query', {name: 'alarms'});
 }
 
 function update() {

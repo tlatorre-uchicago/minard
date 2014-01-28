@@ -16,11 +16,11 @@ app.config.from_object(__name__)
 
 @app.route('/')
 def index():
-    return render_template('fluid.html')
+    return render_template('index.html')
 
-@app.route('/hero')
+@app.route('/detector')
 def hero():
-    return render_template('hero.html')
+    return render_template('detector.html')
 
 @app.route('/daq/<name>')
 def channels(name):
@@ -32,7 +32,7 @@ def stream():
 
 @app.route('/alarms')
 def alarms():
-    return render_template('alerts.html', edit=edit)
+    return render_template('alarms.html')
 
 @app.route('/query')
 def query():
@@ -110,6 +110,6 @@ def query():
 
         return jsonify(value=obj)
 
-    if name == 'alerts':
+    if name == 'alarms':
         alarms = db_session.query(Alarms)
         return jsonify(messages=[dict(x) for x in alarms])
