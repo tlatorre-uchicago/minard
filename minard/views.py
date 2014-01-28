@@ -1,8 +1,6 @@
 from minard import app
-import datetime, random, json
-from flask import render_template, jsonify, request, redirect, url_for 
-from functools import wraps
-from orca import cmos, base
+from flask import render_template, jsonify, request 
+from minard.orca import cmos, base
 from minard.database import init_db, db_session
 from minard.models import *
 
