@@ -20,7 +20,7 @@ class MyBase(object):
             value = getattr(self,column.name)
 
             if isinstance(value,datetime.datetime):
-                value = value.strftime('%Y-%m-%dT%H-%M-%S')
+                value = value.strftime('%Y-%m-%dT%H:%M:%S')
 
             yield column.name, value
 
