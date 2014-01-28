@@ -118,6 +118,12 @@ def query():
         result = {'t': [x.isoformat() for x in t], 'y': y}
         return jsonify(value=result)
 
+    if name == 'delta_t':
+        value = db_session.query(L2).order_by(L2.entry_time.desc())[:100]
+        result = {'t': [x.entry_time.isoformat() for x in value],
+                  'y': [(x.entry_time - x.get_clock()).total_seconds() for x in value]}
+        return jsonify(value=result)
+
     if name == 'cmos':
         stats = request.args.get('stats','',type=str)
 

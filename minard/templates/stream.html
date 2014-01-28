@@ -37,6 +37,7 @@
         <div class="row">
             <div class="col-md-12" id='t1'></div>
             <div class="col-md-12" id='t2'></div>
+            <div class="col-md-12" id='t3'></div>
         </div>
     </div>
 
@@ -59,6 +60,7 @@ function update_chart(selector, url, name, chart) {
 
 update_chart('#t1', $SCRIPT_ROOT + '/query', 'events', timeSeries().title('Total # Events'));
 update_chart('#t2', $SCRIPT_ROOT + '/query', 'events_passed', timeSeries().title('Passed # Events'));
+update_chart('#t3', $SCRIPT_ROOT + '/query', 'delta_t', timeSeries().title('Time Lag'));
 </script>
 
 <script>$('#nav-time').attr('class','active');</script>

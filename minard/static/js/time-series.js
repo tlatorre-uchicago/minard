@@ -33,12 +33,12 @@ function timeSeries() {
                 .range([height, 0]);
 
             var line = d3.svg.line()
-                .interpolate("basis")
+                //.interpolate("basis")
                 .x(function(d, i) { return x(data_x[i]); })
                 .y(function(d, i) { return y(d); });
 
             var area = d3.svg.area()
-                .interpolate("basis")
+                //.interpolate("basis")
                 .x(function(d, i) { return x(data_x[i]); })
                 .y0(height)
                 .y1(function(d, i) { return y(d); });
@@ -53,7 +53,7 @@ function timeSeries() {
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
             genter.append('text').text(title).attr('x',10)
-                .attr('y',height - margin.top).attr('class','title');
+                .attr('y',height - 10).attr('class','title');
 
             genter.append("defs").append("clipPath")
                 .attr("id", "clip")

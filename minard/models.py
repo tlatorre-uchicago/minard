@@ -15,14 +15,17 @@ class Clock(Base):
 class L2(Base, MyBase):
     __table__ = Table('L2', meta, autoload=True)
 
+    def get_clock(self):
+        clock = db_session.query(Clock).filter(Clock.id == self.id).one()
+        dt = datetime.timedelta(microseconds=clock.time10/10.0)
+        return T_ZERO + dt
+
     def __iter__(self):
     	for key, value in MyBase.__iter__(self):
             yield key, value
 
         try:
-            clock = db_session.query(Clock).filter(Clock.id == self.id).one()
-            dt = datetime.timedelta(microseconds=clock.time10/10.0)
-            yield 'clock', (T_ZERO + dt).strftime('%Y-%m-%dT%H-%M-%S')
+            yield 'clock', self.get_clock().strftime('%Y-%m-%dT%H-%M-%S')
         except NoResultFound:
             yield 'clock', '???'
 
@@ -37,17 +40,3 @@ class Position(Base, MyBase):
 
 class Alarms(Base, MyBase):
     __table__ = Table('alarms', meta, autoload=True)
-
-def get_number_of_events(key=None):
-    with session_scope() as session:
-        if key is None:
-            key = session.query(L2).order_by(L2.id.desc()).first().id
-        result = session.query(L2.events).filter(L2.id == key).one()[0]
-    return result
-
-def get_number_of_passed_events(key=None):
-    with session_scope() as session:
-        if key is None:
-            key = session.query(L2).order_by(L2.id.desc()).first().id
-        result = session.query(L2.passed_events).filter(L2.id == key).one()[0]
-    return result
