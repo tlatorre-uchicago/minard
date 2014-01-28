@@ -45,18 +45,8 @@
 
 <script>
 function update_chart(selector, url, name, chart) {
-    var data = [];
-
     function update(value) {
-        var j = data.push(Object());
-        data[j-1].t = Date.now();
-        data[j-1].y = value;
-
-        if (data.length > 10000) {
-            data.shift()
-        }
-
-        d3.selectAll(selector).data([data]).call(chart);
+        d3.selectAll(selector).data([value]).call(chart);
     }
 
     function request() {

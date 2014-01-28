@@ -107,10 +107,16 @@ def query():
         return jsonify(value=result)
 
     if name == 'events':
-        return jsonify(value=get_number_of_events())
+        value = db_session.query(L2.entry_time, L2.events).order_by(L2.entry_time.desc())[:100]
+        t, y = zip(*value)
+        result = {'t': [x.isoformat() for x in t], 'y': y}
+        return jsonify(value=result)
 
     if name == 'events_passed':
-        return jsonify(value=get_number_of_passed_events())
+        value = db_session.query(L2.entry_time, L2.passed_events).order_by(L2.entry_time.desc())[:100]
+        t, y = zip(*value)
+        result = {'t': [x.isoformat() for x in t], 'y': y}
+        return jsonify(value=result)
 
     if name == 'cmos':
         stats = request.args.get('stats','',type=str)
