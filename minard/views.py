@@ -78,10 +78,14 @@ def query():
         result = {'t': [x.isoformat() for x in t], 'y': y}
         return jsonify(value=result)
 
+    def total_seconds(td):
+        """Returns the total number of seconds in the duration."""
+        return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
     if name == 'delta_t':
         value = db_session.query(L2).order_by(L2.entry_time.desc())[:100]
         result = {'t': [x.entry_time.isoformat() for x in value],
-                  'y': [(x.entry_time - x.get_clock()).total_seconds() for x in value]}
+                  'y': [total_seconds(x.entry_time - x.get_clock()) for x in value]}
         return jsonify(value=result)
 
     if name == 'cmos':
