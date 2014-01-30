@@ -1,9 +1,11 @@
 #!/usr/bin/env python
-from minard import app
-import gevent
-from gevent.wsgi import WSGIServer
-import gevent.monkey
-gevent.monkey.patch_all()
+import sys
+from subprocess import call
 
-server = WSGIServer(('',5000),app)
-server.serve_forever()
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        port = int(sys.argv[1])
+    else:
+        port = 5000
+
+    call(['gunicorn','-b','0.0.0.0:%i' % port,'minard:app','-D'])
