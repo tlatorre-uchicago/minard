@@ -112,7 +112,8 @@ function crate_view() {
             .on('click', click)
             .attr('style','float:left')
           .append('table')
-            .attr('style','padding:2px;border-collapse:separate;border-spacing:1px');
+            .attr('style','padding:2px;border-collapse:separate;border-spacing:1px')
+            .attr('title', function(d, i) { return 'Crate ' + i; });
 
         var tr2 = tr1.selectAll('tr')
             .data(function(d) { return d; })
