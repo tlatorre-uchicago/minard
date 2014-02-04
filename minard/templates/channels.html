@@ -71,6 +71,7 @@
     crate.click(function(d, i) {
         card.crate(i);
         d3.select('#card').call(card);
+        $('#card h4').text('Crate ' + i);
     })
 
     $('#threshold').val(crate.threshold());
