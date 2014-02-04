@@ -7,6 +7,8 @@ import socket
 from xml.etree.ElementTree import XML
 from itertools import izip_longest
 import struct
+import numpy as np
+from datetime import datetime
 
 # cmos format - (crate, slotmask, channelmask*16, delay, errorflags, cmos*16*32, timestamp)
 cmos_struct = struct.Struct('LL')
@@ -16,6 +18,15 @@ def grouper(iterable, n, fillvalue=None):
     # grouper('ABCDEFG', 3, 'x') -> ABC DEF Gxx
     args = [iter(iterable)]*n
     return izip_longest(fillvalue=fillvalue, *args)
+
+def parse_cmos(rec):
+    crate, slot_mask = struct.unpack('II', rec[:8])
+    channel_mask = np.frombuffer(rec[8:8+8*16], dtype=np.int)
+    delay, error_flags = struct.unpack('II',rec[136:136+2*4])
+    counts = np.frombuffer(rec[144:144+8*32*4], dtype=np.int)
+    date_string = rec[21*4+8*32*4-4:].strip('\x00')
+    timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
+    return crate, slot_mask, channel_mask, delay, error_flags, counts, timestamp
 
 def parse_header(header):
     root = XML(header)
