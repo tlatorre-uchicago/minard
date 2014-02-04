@@ -1,6 +1,6 @@
 from __future__ import division
 from websno.stream import OrcaJSONStream
-from threading import Timer, Lock
+from threading import Timer, Lock, Thread
 import time
 from collections import defaultdict
 import socket
@@ -51,6 +51,51 @@ def parse_header(header):
             raise Exception("can't parse %s" % item.tag)
 
     return [parse_item(x) for x in root]
+
+def total_seconds(td):
+    """Returns the total number of seconds contained in the duration."""
+    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
+class CMOSThread(Thread):
+    def __init__(self, hostname='snoplusdaq1', port=44666):
+        self.socket = Socket()
+        self.hostname = hostname
+        self.port = port
+
+        self.cmos = {}
+        self.tzero = datetime.now()
+
+    def run(self):
+        self.socket.connect(self.hostname, self.port)
+
+        id, rec = self.socket.recv_record()
+
+        assert id == 0
+        header = parse_header(rec[4:-1])
+
+        datadesc = header[0]['dataDescription']
+
+        cmos_id = datadesc['ORXL3Model']['Xl3CmosRate']['dataId']
+
+        while True:
+            id, rec = self.socket.recv_record()
+
+            if id == cmos_id:
+                crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
+                    parse_cmos(rec)
+
+                if crate not in self.cmos:
+                    self.cmos[crate] = {}
+
+                for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
+                    if slot not in self.cmos[crate]:
+                        self.cmos[crate] = {}
+
+                    for j in range(32):
+                        if channelmask[i] & (1 << j):
+                            self.cmos[crate][j] = counts[i*32 + j], \
+                                total_seconds(timestamp-now)
+
 
 class Socket(object):
     def __init__(self, sock=None):
