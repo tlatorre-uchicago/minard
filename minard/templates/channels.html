@@ -27,7 +27,7 @@
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-6" id="card">
-                    <h4>Card View</h4>
+                    <h4>Card View <small></small></h4>
                 </div>
                 <div class="col-md-3">
                     <h4>Options</h4>
@@ -71,7 +71,7 @@
     crate.click(function(d, i) {
         card.crate(i);
         d3.select('#card').call(card);
-        $('#card h4').text('Crate ' + i);
+        $('#card h4 small').text('Crate ' + i);
     })
 
     $('#threshold').val(crate.threshold());
