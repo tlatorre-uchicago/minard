@@ -8,6 +8,9 @@ from xml.etree.ElementTree import XML
 from itertools import izip_longest
 import struct
 
+# cmos format - (crate, slotmask, channelmask*16, delay, errorflags, cmos*16*32, timestamp)
+cmos_struct = struct.Struct('LL')
+
 def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
     # grouper('ABCDEFG', 3, 'x') -> ABC DEF Gxx
@@ -34,6 +37,8 @@ def parse_header(header):
             return False
         elif item.tag == 'true':
             return True
+        elif item.tag == 'real':
+            return float(item.text)
         else:
             raise Exception("can't parse %s" % item.tag)
 
@@ -83,12 +88,13 @@ class Socket(object):
         return msg
 
     def recv_record(self):
-        rec = struct.unpack('L',self.recv(4))
+        rec, = struct.unpack('I',self.recv(4))
 
         if self.is_short(rec):
             return self.get_dataid(rec), rec & 0x3ffffff
         else:
-            size = self.get_length(rec)
+            # -1 because data record counts
+            size = self.get_length(rec)*4 - 4
 
             return self.get_dataid(rec), self.recv(size)
 
