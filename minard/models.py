@@ -25,7 +25,7 @@ class L2(Base, MyBase):
             yield key, value
 
         try:
-            yield 'clock', self.get_clock().strftime('%Y-%m-%dT%H-%M-%S')
+            yield 'clock', self.get_clock().strftime('%Y-%m-%dT%H:%M:%S')
         except NoResultFound:
             yield 'clock', '???'
 

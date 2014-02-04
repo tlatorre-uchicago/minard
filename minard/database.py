@@ -4,6 +4,8 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from dbinfo import user, passwd, host, name
 import datetime
 
+# see http://flask.pocoo.org/docs/patterns/sqlalchemy/
+
 engine = create_engine('mysql://%s:%s@%s/%s' % (user,passwd,host,name), pool_recycle=60)
 db_session = scoped_session(sessionmaker(autocommit=False,autoflush=False,bind=engine))
 
@@ -16,10 +18,16 @@ class MyBase(object):
         return db_session.query(cls).order_by(cls.id.desc()).first()
 
     def __iter__(self):
+        """
+        Used so that you can call dict(object) and get a dictionary
+        of the column name and value.
+        """
         for column in self.__table__.columns:
             value = getattr(self,column.name)
 
             if isinstance(value,datetime.datetime):
+                # strftime datetime objects otherwise flask
+                # jsonify will assume they are in Greenwich Mean Time
                 value = value.strftime('%Y-%m-%dT%H:%M:%S')
 
             yield column.name, value
