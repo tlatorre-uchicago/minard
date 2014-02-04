@@ -82,11 +82,11 @@ class CMOSThread(Thread):
         while True:
             id, rec = self.socket.recv_record()
 
-            rate = {}
-
             if id == cmos_id:
                 crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
                     parse_cmos(rec)
+
+                rate = {}
 
                 if crate not in self.cmos:
                     self.cmos[crate] = {}
@@ -98,12 +98,22 @@ class CMOSThread(Thread):
                     rate[i] = {}
 
                     for j in range(32):
-                        if channelmask[i] & (1 << j):
-                            if j in self.cmos[crate][slot]:
-                                prev_count, prev_time = self.cmos[crate][slot][j]
-                                rate[i][j] = (counts[i*32 + j]-prev_count)/total_seconds(timestamp-prev_time)
+                        if not channelmask[slot] & (1 << j):
+                            continue
 
-                            self.cmos[crate][slot][j] = counts[i*32 + j], timestamp
+                        count = counts[i*32 + j]
+
+                        if count >> 31:
+                            # busy flag
+                            continue
+
+                        if j in self.cmos[crate][slot]:
+                            prev_count, prev_time = self.cmos[crate][slot][j]
+                            dt = total_seconds(timestamp-prev_time)
+                            if dt < 10.0:
+                                rate[slot][j] = (counts[i*32 + j]-prev_count)/dt
+
+                        self.cmos[crate][slot][j] = counts[i*32 + j], timestamp
 
                 self.callback({'crate': crate, 'rate': rate})
 
