@@ -4,6 +4,39 @@ from threading import Timer, Lock
 import time
 from collections import defaultdict
 import socket
+from xml.etree.ElementTree import XML
+from itertools import izip_longest
+
+def grouper(iterable, n, fillvalue=None):
+    "Collect data into fixed-length chunks or blocks"
+    # grouper('ABCDEFG', 3, 'x') -> ABC DEF Gxx
+    args = [iter(iterable)]*n
+    return izip_longest(fillvalue=fillvalue, *args)
+
+def parse_header(header):
+    root = XML(header)
+    assert root.tag == 'plist'
+
+    def parse_item(item):
+        if item.tag == 'integer':
+            return int(item.text)
+        elif item.tag == 'string':
+            return item.text
+        elif item.tag == 'dict':
+            d = {}
+            for key, value in grouper(item,2):
+                d[key.text] = parse_item(value)
+            return d
+        elif item.tag == 'array':
+            return [parse_item(x) for x in item]
+        elif item.tag == 'false':
+            return False
+        elif item.tag == 'true':
+            return True
+        else:
+            raise Exception("can't parse %s" % item.tag)
+
+    return [parse_item(x) for x in root]
 
 class Socket(object):
     def __init__(self, sock=None):
