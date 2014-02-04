@@ -57,7 +57,9 @@ def total_seconds(td):
     return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
 class CMOSThread(Thread):
-    def __init__(self, hostname='snoplusdaq1', port=44666):
+    def __init__(self, callback, hostname='snoplusdaq1', port=44666):
+        Thread.__init__(self)
+        self.callback = callback
         self.socket = Socket()
         self.hostname = hostname
         self.port = port
@@ -80,6 +82,8 @@ class CMOSThread(Thread):
         while True:
             id, rec = self.socket.recv_record()
 
+            rate = {}
+
             if id == cmos_id:
                 crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
                     parse_cmos(rec)
@@ -89,13 +93,22 @@ class CMOSThread(Thread):
 
                 for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
                     if slot not in self.cmos[crate]:
-                        self.cmos[crate] = {}
+                        self.cmos[crate][slot] = {}
+
+                    rate[i] = {}
 
                     for j in range(32):
                         if channelmask[i] & (1 << j):
-                            self.cmos[crate][j] = counts[i*32 + j], \
-                                total_seconds(timestamp-now)
+                            if j in self.cmos[crate][slot]:
+                                prev_count, prev_time = self.cmos[crate][slot][j]
+                                rate[i][j] = (counts[i*32 + j]-prev_count)/total_seconds(timestamp-prev_time)
+                                print 'prev count = ', prev_count
+                                print 'count = ', counts[i*32 + j]
+                                print total_seconds(timestamp-prev_time)
 
+                            self.cmos[crate][slot][j] = counts[i*32 + j], timestamp
+
+                self.callback({'crate': crate, 'rate': rate})
 
 class Socket(object):
     def __init__(self, sock=None):
@@ -197,8 +210,8 @@ def callback(output):
                     j = (crate << 16) | (card << 8) | i
                     base.items.append((j,rate[i],time.time()))
 
-orca_stream = OrcaJSONStream('tcp://localhost:5028',callback)
-orca_stream.start()
+#orca_stream = OrcaJSONStream('tcp://localhost:5028',callback)
+#orca_stream.start()
 
-update(cmos)
-update(base)
+#update(cmos)
+#update(base)
