@@ -1,5 +1,4 @@
 from __future__ import division
-from websno.stream import OrcaJSONStream
 from threading import Timer, Lock, Thread
 import time
 from collections import defaultdict
@@ -24,6 +23,15 @@ def parse_cmos(rec):
     date_string = rec[21*4+8*32*4-4:].strip('\x00')
     timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
     return crate, slot_mask, channel_mask, delay, error_flags, counts, timestamp
+
+def parse_base(rec):
+    crate, slot_mask = struct.unpack('II', rec[:8])
+    channel_mask = np.frombuffer(rec[8:8+4*16], dtype=np.uint32)
+    error_flags = struct.unpack('I',rec[72:72+4])
+    counts = np.frombuffer(rec[76:76+8*32*4], dtype=np.uint32)
+    date_string = rec[20*4+8*32*4-4:].strip('\x00')
+    timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
+    return crate, slot_mask, channel_mask, error_flags, counts, timestamp
 
 def parse_header(header):
     root = XML(header)
@@ -78,9 +86,27 @@ class CMOSThread(Thread):
         datadesc = header[0]['dataDescription']
 
         cmos_id = datadesc['ORXL3Model']['Xl3CmosRate']['dataId']
+        base_id = datadesc['ORXL3Model']['Xl3PmtBaseCurrent']['dataId']
 
         while True:
             id, rec = self.socket.recv_record()
+
+            if id == base_id:
+                crate, slotmask, channelmask, error_flags, counts, timestamp = \
+                    parse_base(rec)
+
+                adc = {}
+
+                for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
+                    adc[i] = {}
+                    for j in range(32):
+                        current = counts[i*32 + j]
+                        if not channelmask[slot] & (1 << j) or current >> 31:
+                            continue
+
+                        adc[slot][j] = current
+
+                self.callback({'key': 'base', 'crate': crate, 'adc': adc})
 
             if id == cmos_id:
                 crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
@@ -115,7 +141,7 @@ class CMOSThread(Thread):
 
                         self.cmos[crate][slot][j] = counts[i*32 + j], timestamp
 
-                self.callback({'crate': crate, 'rate': rate})
+                self.callback({'key': 'cmos', 'crate': crate, 'rate': rate})
 
 class Socket(object):
     def __init__(self, sock=None):
@@ -198,25 +224,21 @@ def update(obj):
     Timer(5,update,args=(obj,)).start()
 
 def callback(item):
+    key = item['key']
     crate = item['crate']
 
-    with cmos.lock:
-        for j, card in item['rate'].iteritems():
-            for k, rate in card.iteritems():
-                index = (crate << 16) | (j << 8) | k
-                cmos.items.append((index,rate,time.time()))
-
-    # if 'key' in item and item['key'] == 'pmt_base_current':
-    #     crate, card = item['crate_num'], item['slot_num']
-    #     rate = item['v']['adc']
-
-    #     with base.lock:
-    #         for i in range(len(rate)):
-    #             j = (crate << 16) | (card << 8) | i
-    #             base.items.append((j,rate[i],time.time()))
-
-#orca_stream = OrcaJSONStream('tcp://localhost:5028',callback)
-#orca_stream.start()
+    if key == 'cmos':
+        with cmos.lock:
+            for j, card in item['rate'].iteritems():
+                for k, rate in card.iteritems():
+                    index = (crate << 16) | (j << 8) | k
+                    cmos.items.append((index,rate,time.time()))
+    elif key == 'base':
+        with base.lock:
+            for j, card in item['adc'].iteritems():
+                for k, adc in card.iteritems():
+                    index = (crate << 16) | (j << 8) | k
+                    base.items.append((j,adc,time.time()))
 
 update(cmos)
 update(base)
