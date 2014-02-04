@@ -102,9 +102,6 @@ class CMOSThread(Thread):
                             if j in self.cmos[crate][slot]:
                                 prev_count, prev_time = self.cmos[crate][slot][j]
                                 rate[i][j] = (counts[i*32 + j]-prev_count)/total_seconds(timestamp-prev_time)
-                                print 'prev count = ', prev_count
-                                print 'count = ', counts[i*32 + j]
-                                print total_seconds(timestamp-prev_time)
 
                             self.cmos[crate][slot][j] = counts[i*32 + j], timestamp
 
@@ -190,28 +187,29 @@ def update(obj):
 
     Timer(5,update,args=(obj,)).start()
 
-def callback(output):
-    for item in output:
-        if 'key' in item and item['key'] == 'cmos_rate':
-            crate, card = item['crate_num'], item['slot_num']
-            rate = item['v']['rate']
+def callback(item):
+    crate = item['crate']
 
-            with cmos.lock:
-                for i in range(len(rate)):
-                    j = (crate << 16) | (card << 8) | i
-                    cmos.items.append((j,rate[i],time.time()))
+    with cmos.lock:
+        for j, card in item['rate'].iteritems():
+            for k, rate in card.iteritems():
+                index = (crate << 16) | (j << 8) | k
+                cmos.items.append((index,rate,time.time()))
 
-        if 'key' in item and item['key'] == 'pmt_base_current':
-            crate, card = item['crate_num'], item['slot_num']
-            rate = item['v']['adc']
+    # if 'key' in item and item['key'] == 'pmt_base_current':
+    #     crate, card = item['crate_num'], item['slot_num']
+    #     rate = item['v']['adc']
 
-            with base.lock:
-                for i in range(len(rate)):
-                    j = (crate << 16) | (card << 8) | i
-                    base.items.append((j,rate[i],time.time()))
+    #     with base.lock:
+    #         for i in range(len(rate)):
+    #             j = (crate << 16) | (card << 8) | i
+    #             base.items.append((j,rate[i],time.time()))
 
 #orca_stream = OrcaJSONStream('tcp://localhost:5028',callback)
 #orca_stream.start()
 
-#update(cmos)
-#update(base)
+update(cmos)
+update(base)
+
+c = CMOSThread(callback)
+c.start()
