@@ -6,6 +6,7 @@ from collections import defaultdict
 import socket
 from xml.etree.ElementTree import XML
 from itertools import izip_longest
+import struct
 
 def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
@@ -48,6 +49,21 @@ class Socket(object):
     def connect(self, host, port):
         self.sock.connect((host,port))
 
+    def is_short(self, datarecord):
+        return (datarecord & 0x80000000) == 0x80000000
+
+    def get_dataid(self, datarecord):
+        if self.is_short(datarecord):
+            return datarecord & 0xfc000000
+        else:
+            return datarecord & 0xfffc0000
+
+    def get_length(self, datarecord):
+        if self.is_short(datarecord):
+            return 1
+        else:
+            return datarecord & 0x3ffff
+
     def send(self, msg):
         totalsent = 0
         while totalsent < len(msg):
@@ -65,6 +81,16 @@ class Socket(object):
                 raise RuntimeError('socket connection broken')
             msg += chunk
         return msg
+
+    def recv_record(self):
+        rec = struct.unpack('L',self.recv(4))
+
+        if self.is_short(rec):
+            return self.get_dataid(rec), rec & 0x3ffffff
+        else:
+            size = self.get_length(rec)
+
+            return self.get_dataid(rec), self.recv(size)
 
 expire = 60
 
