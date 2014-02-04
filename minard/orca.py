@@ -19,7 +19,7 @@ def parse_cmos(rec):
     crate, slot_mask = struct.unpack('II', rec[:8])
     channel_mask = np.frombuffer(rec[8:8+4*16], dtype=np.uint32)
     delay, error_flags = struct.unpack('II',rec[72:72+2*4])
-    counts = np.frombuffer(rec[80:80+8*32*4], dtype=np.uint32)
+    counts = np.frombuffer(rec[80:80+8*32*4], dtype=np.uint32).reshape((16,-1))
     date_string = rec[21*4+8*32*4-4:].strip('\x00')
     timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
     return crate, slot_mask, channel_mask, delay, error_flags, counts, timestamp
@@ -28,7 +28,7 @@ def parse_base(rec):
     crate, slot_mask = struct.unpack('II', rec[:8])
     channel_mask = np.frombuffer(rec[8:8+4*16], dtype=np.uint32)
     error_flags = struct.unpack('I',rec[72:72+4])
-    counts = np.frombuffer(rec[76:76+8*32*4], dtype=np.uint32)
+    counts = np.frombuffer(rec[76:76+8*32*4], dtype=np.uint32).reshape((16,-1))
     date_string = rec[20*4+8*32*4-4:].strip('\x00')
     timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
     return crate, slot_mask, channel_mask, error_flags, counts, timestamp
@@ -78,6 +78,7 @@ class CMOSThread(Thread):
     def run(self):
         self.socket.connect(self.hostname, self.port)
 
+        # receive header
         id, rec = self.socket.recv_record()
 
         assert id == 0
@@ -99,12 +100,11 @@ class CMOSThread(Thread):
 
                 for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
                     adc[i] = {}
-                    for j in range(32):
-                        current = counts[i*32 + j]
-                        if not channelmask[slot] & (1 << j) or current >> 31:
+                    for j, count in enumerate(counts[i]):
+                        if not channelmask[slot] & (1 << j) or count >> 31:
                             continue
 
-                        adc[slot][j] = current
+                        adc[slot][j] = count
 
                 self.callback({'key': 'base', 'crate': crate, 'adc': adc})
 
@@ -123,23 +123,17 @@ class CMOSThread(Thread):
 
                     rate[i] = {}
 
-                    for j in range(32):
-                        if not channelmask[slot] & (1 << j):
-                            continue
-
-                        count = counts[i*32 + j]
-
-                        if count >> 31:
-                            # busy flag
+                    for j, count in enumerate(counts[i]):
+                        if not channelmask[slot] & (1 << j) or count >> 31:
                             continue
 
                         if j in self.cmos[crate][slot]:
                             prev_count, prev_time = self.cmos[crate][slot][j]
                             dt = total_seconds(timestamp-prev_time)
                             if dt < 10.0:
-                                rate[slot][j] = (counts[i*32 + j]-prev_count)/dt
+                                rate[slot][j] = (count-prev_count)/dt
 
-                        self.cmos[crate][slot][j] = counts[i*32 + j], timestamp
+                        self.cmos[crate][slot][j] = count, timestamp
 
                 self.callback({'key': 'cmos', 'crate': crate, 'rate': rate})
 
