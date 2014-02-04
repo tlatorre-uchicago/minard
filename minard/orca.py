@@ -3,6 +3,35 @@ from websno.stream import OrcaJSONStream
 from threading import Timer, Lock
 import time
 from collections import defaultdict
+import socket
+
+class Socket(object):
+    def __init__(self, sock=None):
+        if sock is None:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        else:
+            self.sock = sock
+
+    def connect(self, host, port):
+        self.sock.connect((host,port))
+
+    def send(self, msg):
+        totalsent = 0
+        while totalsent < len(msg):
+            sent = self.sock.send(msg[totalsent:])
+            if sent == 0:
+                raise RuntimeError('socket connection broken')
+
+            totalsent += sent
+
+    def recv(self, size):
+        msg = ''
+        while len(msg) < size:
+            chunk = self.sock.recv(size-len(msg))
+            if chunk == '':
+                raise RuntimeError('socket connection broken')
+            msg += chunk
+        return msg
 
 expire = 60
 
