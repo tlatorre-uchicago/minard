@@ -10,9 +10,6 @@ import struct
 import numpy as np
 from datetime import datetime
 
-# cmos format - (crate, slotmask, channelmask*16, delay, errorflags, cmos*16*32, timestamp)
-cmos_struct = struct.Struct('LL')
-
 def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
     # grouper('ABCDEFG', 3, 'x') -> ABC DEF Gxx
@@ -21,9 +18,9 @@ def grouper(iterable, n, fillvalue=None):
 
 def parse_cmos(rec):
     crate, slot_mask = struct.unpack('II', rec[:8])
-    channel_mask = np.frombuffer(rec[8:8+8*16], dtype=np.int)
-    delay, error_flags = struct.unpack('II',rec[136:136+2*4])
-    counts = np.frombuffer(rec[144:144+8*32*4], dtype=np.int)
+    channel_mask = np.frombuffer(rec[8:8+4*16], dtype=np.uint32)
+    delay, error_flags = struct.unpack('II',rec[72:72+2*4])
+    counts = np.frombuffer(rec[80:80+8*32*4], dtype=np.uint32)
     date_string = rec[21*4+8*32*4-4:].strip('\x00')
     timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
     return crate, slot_mask, channel_mask, delay, error_flags, counts, timestamp
