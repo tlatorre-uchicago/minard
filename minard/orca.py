@@ -28,10 +28,11 @@ def parse_base(rec):
     crate, slot_mask = struct.unpack('II', rec[:8])
     channel_mask = np.frombuffer(rec[8:8+4*16], dtype=np.uint32)
     error_flags = struct.unpack('I',rec[72:72+4])
-    counts = np.frombuffer(rec[76:76+8*32*4], dtype=np.uint32).reshape((8,-1))
-    date_string = rec[20*4+8*32*4-4:].strip('\x00')
+    counts = np.frombuffer(rec[76:76+16*32], dtype=np.uint8).reshape((16,-1))
+    busy = np.frombuffer(rec[76+16*32:76+16*32+16*32], dtype=np.uint8).reshape((16,-1))
+    date_string = rec[76+2*16*32:].strip('\x00')
     timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
-    return crate, slot_mask, channel_mask, error_flags, counts, timestamp
+    return crate, slot_mask, channel_mask, error_flags, counts, busy, timestamp
 
 def parse_header(header):
     root = XML(header)
@@ -93,19 +94,18 @@ class CMOSThread(Thread):
             id, rec = self.socket.recv_record()
 
             if id == base_id:
-                continue
-                crate, slotmask, channelmask, error_flags, counts, timestamp = \
+                crate, slotmask, channelmask, error_flags, counts, busy, timestamp = \
                     parse_base(rec)
 
                 adc = {}
 
                 for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
-                    adc[i] = {}
+                    adc[slot] = {}
                     for j, count in enumerate(counts[i]):
                         if not channelmask[slot] & (1 << j) or count >> 31:
                             continue
 
-                        adc[slot][j] = count
+                        adc[slot][j] = count - 127
 
                 self.callback({'key': 'base', 'crate': crate, 'adc': adc})
 
@@ -232,7 +232,7 @@ def callback(item):
             for j, card in item['adc'].iteritems():
                 for k, adc in card.iteritems():
                     index = (crate << 16) | (j << 8) | k
-                    base.items.append((j,adc,time.time()))
+                    base.items.append((index,adc,time.time()))
         update(base)
 
 c = CMOSThread(callback)
