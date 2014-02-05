@@ -19,7 +19,7 @@ def parse_cmos(rec):
     crate, slot_mask = struct.unpack('II', rec[:8])
     channel_mask = np.frombuffer(rec[8:8+4*16], dtype=np.uint32)
     delay, error_flags = struct.unpack('II',rec[72:72+2*4])
-    counts = np.frombuffer(rec[80:80+8*32*4], dtype=np.uint32).reshape((16,-1))
+    counts = np.frombuffer(rec[80:80+8*32*4], dtype=np.uint32).reshape((8,-1))
     date_string = rec[21*4+8*32*4-4:].strip('\x00')
     timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
     return crate, slot_mask, channel_mask, delay, error_flags, counts, timestamp
@@ -28,7 +28,7 @@ def parse_base(rec):
     crate, slot_mask = struct.unpack('II', rec[:8])
     channel_mask = np.frombuffer(rec[8:8+4*16], dtype=np.uint32)
     error_flags = struct.unpack('I',rec[72:72+4])
-    counts = np.frombuffer(rec[76:76+8*32*4], dtype=np.uint32).reshape((16,-1))
+    counts = np.frombuffer(rec[76:76+8*32*4], dtype=np.uint32).reshape((8,-1))
     date_string = rec[20*4+8*32*4-4:].strip('\x00')
     timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
     return crate, slot_mask, channel_mask, error_flags, counts, timestamp
@@ -93,6 +93,7 @@ class CMOSThread(Thread):
             id, rec = self.socket.recv_record()
 
             if id == base_id:
+                continue
                 crate, slotmask, channelmask, error_flags, counts, timestamp = \
                     parse_base(rec)
 
@@ -121,7 +122,7 @@ class CMOSThread(Thread):
                     if slot not in self.cmos[crate]:
                         self.cmos[crate][slot] = {}
 
-                    rate[i] = {}
+                    rate[slot] = {}
 
                     for j, count in enumerate(counts[i]):
                         if not channelmask[slot] & (1 << j) or count >> 31:
@@ -215,8 +216,6 @@ def update(obj):
     obj.avg = dict((k, sum(v)/len(v)) for k, v in group.iteritems())
     obj.now = dict((k, v[-1]) for k, v in group.iteritems())
 
-    Timer(5,update,args=(obj,)).start()
-
 def callback(item):
     key = item['key']
     crate = item['crate']
@@ -227,15 +226,14 @@ def callback(item):
                 for k, rate in card.iteritems():
                     index = (crate << 16) | (j << 8) | k
                     cmos.items.append((index,rate,time.time()))
+        update(cmos)
     elif key == 'base':
         with base.lock:
             for j, card in item['adc'].iteritems():
                 for k, adc in card.iteritems():
                     index = (crate << 16) | (j << 8) | k
                     base.items.append((j,adc,time.time()))
-
-update(cmos)
-update(base)
+        update(base)
 
 c = CMOSThread(callback)
 c.start()
