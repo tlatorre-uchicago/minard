@@ -4,26 +4,21 @@
 {{ super() }}
 <style>
 #main p {
-font-size: 8pt;
+font-size: 10pt;
 }
 </style>
 {% endblock %}
 {% block body %}
 {{ super() }}
-<div class="col-md-10 col-md-offset-1">
-    <div class="container">
-        <center><p id="filter-nav"></p></center>
-    </div>
-    <div class="container" id="main"></div>
+<div class="col-md-12">
+  <div class="container" id="main"></div>
 </div>
-
-<script src="{{ url_for('static', filename='js/d3.js') }}"></script>
 
 <script>
 var id = 0;
 
 function get_poll() {
-    return $.getJSON($SCRIPT_ROOT + '/query', {name: 'tail_log', 'id': id});
+  return $.getJSON($SCRIPT_ROOT + '/query', {name: 'tail_log', 'id': id});
 }
 
 function update() {
