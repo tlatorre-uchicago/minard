@@ -3,6 +3,26 @@ from flask import render_template, jsonify, request
 from minard.orca import cmos, base
 from minard.database import init_db, db_session
 from minard.models import *
+from threading import Thread
+import os, shlex
+from collections import deque
+from subprocess import Popen, PIPE
+
+home = os.environ['HOME']
+tail = deque(maxlen=1000)
+
+def tail_worker(q):
+    p = Popen(shlex.split('ssh -i %s/.ssh/id_rsa_builder -t snotdaq@snoplusbuilder1 tail_log data_temp' % home), stdout=PIPE)
+    i = 0
+    while True:
+        line = p.stdout.readline()
+        tail.appendleft((i,line))
+        i += 1
+        if not line:
+            break
+
+tail_thread = Thread(target=tail_worker,args=(tail,))
+tail_thread.start() 
 
 init_db()
 
@@ -32,9 +52,17 @@ def stream():
 def alarms():
     return render_template('alarms.html')
 
+@app.route('/builder')
+def builder():
+    return render_template('builder.html')
+
 @app.route('/query')
 def query():
     name = request.args.get('name','',type=str)
+
+    if name == 'tail_log':
+        id = request.args.get('id',0,type=int)
+        return jsonify(value=[line for i, line in tail if i > id],id=max(zip(*tail)[0]))
 
     if name == 'sphere':
     	latest = PMT.latest()
