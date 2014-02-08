@@ -3,7 +3,7 @@ from sqlalchemy import MetaData, Table
 from sqlalchemy.orm.exc import NoResultFound
 import datetime
 
-T_ZERO = datetime.datetime(1995,12,31,17,11,50,156730)
+T_ZERO = datetime.datetime(1996,1,1,0,0,0,0)
 
 meta = MetaData()
 meta.reflect(bind=engine)
