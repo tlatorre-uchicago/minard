@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block title %}Alarms{% endblock %}
+{% block head %}
+{{ super() }}
+<style>
+#main p {
+font-size: 8pt;
+}
+</style>
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="col-md-10 col-md-offset-1">
+    <div class="container">
+        <center><p id="filter-nav"></p></center>
+    </div>
+    <div class="container" id="main"></div>
+</div>
+
+<script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+
+<script>
+var id = 0;
+
+function get_poll() {
+    return $.getJSON($SCRIPT_ROOT + '/query', {name: 'tail_log', 'id': id});
+}
+
+function update() {
+  get_poll().done(function (obj) {
+    for (var i=0; i < obj.value.length; i++) {
+      $('#main').prepend('<p>' + obj.value[i]);
+      id = obj.id;
+    }
+  });
+}
+
+update();
+setInterval(update,1000);
+</script>
+
+<script>$('#nav-builder').attr('class','active');</script>
+
+{% endblock %}

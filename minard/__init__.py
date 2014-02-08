@@ -1,5 +1,5 @@
 from flask import Flask
-from minard.database import db_session
+#from minard.database import db_session
 
 class ReverseProxied(object):
     '''Wrap the application in this middleware and configure the 
@@ -37,8 +37,8 @@ class ReverseProxied(object):
 app = Flask(__name__)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
-@app.teardown_appcontext
-def shutdown_session(exception=None):
-    db_session.remove()
+# @app.teardown_appcontext
+# def shutdown_session(exception=None):
+#     db_session.remove()
 
 import minard.views

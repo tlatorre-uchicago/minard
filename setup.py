@@ -7,5 +7,5 @@ setup(name='Minard',
       author='Anthony LaTorre',
       author_email='tlatorre@uchicago.edu',
       url='',
-      install_requires=['flask','flask-login','gunicorn','sqlalchemy','MySQL-python']
+      install_requires=['flask','flask-login','gunicorn','sqlalchemy','numpy']
       )
