@@ -177,6 +177,12 @@ class CMOSThread(Thread):
         self.cmos = {}
         self.tzero = datetime.now()
 
+    def reconnect(self):
+        import time
+        self.socket.close()
+        time.sleep(1.0)
+        self.socket.connect(self.hostname, self.port)
+
     def run(self):
         self.socket.connect(self.hostname, self.port)
 
@@ -192,7 +198,17 @@ class CMOSThread(Thread):
         base_id = datadesc['ORXL3Model']['Xl3PmtBaseCurrent']['dataId']
 
         while True:
-            id, rec = self.socket.recv_record()
+            try:
+                id, rec = self.socket.recv_record()
+            except Exception as e:
+                print e
+                print 'reconnecting'
+                try:
+                    self.reconnect()
+                except Exception as e2:
+                    print e2
+                    pass
+                continue
 
             if id == base_id:
                 crate, slotmask, channelmask, error_flags, counts, busy, timestamp = \
@@ -206,7 +222,7 @@ class CMOSThread(Thread):
                         if not channelmask[slot] & (1 << j) or count >> 31:
                             continue
 
-                        adc[slot][j] = count - 127
+                        adc[slot][j] = int(count) - 127
 
                 self.callback({'key': 'base', 'crate': crate, 'adc': adc})
 
@@ -298,10 +314,16 @@ expire = 60
 cmos = lambda: None # just a mock object
 cmos.lock = Lock()
 cmos.items = []
+cmos.now = {}
+cmos.max = {}
+cmos.avg = {}
 
 base = lambda: None # just a mock object
 base.lock = Lock()
 base.items = []
+base.now = {}
+base.avg = {}
+base.max = {}
 
 def update(obj):
     with obj.lock:

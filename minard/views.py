@@ -16,7 +16,7 @@ def tail_worker(q):
     i = 0
     while True:
         line = p.stdout.readline()
-        tail.appendleft((i,line))
+        tail.append((i,line))
         i += 1
         if not line:
             break
@@ -42,7 +42,10 @@ def hero():
 
 @app.route('/daq/<name>')
 def channels(name):
-    return render_template('channels.html',name=name)
+    if name == 'cmos':
+        return render_template('channels.html',name=name, threshold=5000)
+    elif name == 'base':
+        return render_template('channels.html',name=name, threshold=80)
 
 @app.route('/stream')
 def stream():
@@ -66,7 +69,7 @@ def query():
 
     if name == 'sphere':
     	latest = PMT.latest()
-	id, charge_occupancy = zip(*db_session.query(PMT.id, PMT.chargeocc)\
+	id, charge_occupancy = zip(*db_session.query(PMT.pmtid, PMT.chargeocc)\
             .filter(PMT.id == latest.id).all())
         return jsonify(id=id, values2=charge_occupancy)
 
@@ -95,13 +98,13 @@ def query():
         return jsonify(value=result)
 
     if name == 'events':
-        value = db_session.query(L2.entry_time, L2.events).order_by(L2.entry_time.desc())[:100]
+        value = db_session.query(L2.entry_time, L2.events).order_by(L2.entry_time.desc())[:600]
         t, y = zip(*value)
         result = {'t': [x.isoformat() for x in t], 'y': y}
         return jsonify(value=result)
 
     if name == 'events_passed':
-        value = db_session.query(L2.entry_time, L2.passed_events).order_by(L2.entry_time.desc())[:100]
+        value = db_session.query(L2.entry_time, L2.passed_events).order_by(L2.entry_time.desc())[:600]
         t, y = zip(*value)
         result = {'t': [x.isoformat() for x in t], 'y': y}
         return jsonify(value=result)
@@ -111,7 +114,7 @@ def query():
         return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
     if name == 'delta_t':
-        value = db_session.query(L2).order_by(L2.entry_time.desc())[:100]
+        value = db_session.query(L2).order_by(L2.entry_time.desc())[:600]
         result = {'t': [x.entry_time.isoformat() for x in value],
                   'y': [total_seconds(x.entry_time - x.get_clock()) for x in value]}
         return jsonify(value=result)
