@@ -42,7 +42,10 @@ def hero():
 
 @app.route('/daq/<name>')
 def channels(name):
-    return render_template('channels.html',name=name)
+    if name == 'cmos':
+        return render_template('channels.html',name=name, threshold=5000)
+    elif name == 'base':
+        return render_template('channels.html',name=name, threshold=80)
 
 @app.route('/stream')
 def stream():

@@ -65,9 +65,9 @@
 <script>
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
-    var card = card_view().threshold(10e3);
+    var card = card_view().threshold({{ threshold }});
 
-    var crate = crate_view().threshold(10e3);
+    var crate = crate_view().threshold({{ threshold }});
     crate.click(function(d, i) {
         card.crate(i);
         d3.select('#card').call(card);
