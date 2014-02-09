@@ -16,7 +16,7 @@ def tail_worker(q):
     i = 0
     while True:
         line = p.stdout.readline()
-        tail.appendleft((i,line))
+        tail.append((i,line))
         i += 1
         if not line:
             break
@@ -66,7 +66,7 @@ def query():
 
     if name == 'sphere':
     	latest = PMT.latest()
-	id, charge_occupancy = zip(*db_session.query(PMT.id, PMT.chargeocc)\
+	id, charge_occupancy = zip(*db_session.query(PMT.pmtid, PMT.chargeocc)\
             .filter(PMT.id == latest.id).all())
         return jsonify(id=id, values2=charge_occupancy)
 

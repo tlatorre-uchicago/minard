@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Alarms{% endblock %}
+{% block title %}Builder Log{% endblock %}
 {% block head %}
 {{ super() }}
 <style>
@@ -24,7 +24,12 @@ function get_poll() {
 function update() {
   get_poll().done(function (obj) {
     for (var i=0; i < obj.value.length; i++) {
-      $('#main').prepend('<p>' + obj.value[i]);
+      line = obj.value[i];
+
+      if (obj.value[i].indexOf('Orphan') != -1) {
+        line = '<b>' + line + '</b>';
+      }
+      $('#main').prepend('<p>' + line);
       id = obj.id;
     }
   });
