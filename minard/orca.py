@@ -9,6 +9,54 @@ import struct
 import numpy as np
 from datetime import datetime
 
+from sqlalchemy import create_engine
+from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.exc import *
+from sqlalchemy.orm.exc import *
+import struct, random
+import zmq
+from multiprocessing import Process
+
+CMOS_ID = 1310720
+BASE_ID = 1048576
+
+TZERO = datetime.today()
+
+Base = declarative_base()
+
+class CMOSCount(Base):
+    __tablename__ = 'cmos_count'
+
+    index = Column(Integer, primary_key=True)
+    value = Column(Integer)
+    timestamp = Column(Float)
+
+    def __init__(self, index, value, timestamp):
+        self.index = index
+        self.value = value
+        self.timestamp = timestamp
+
+    def __repr__(self):
+        return "<CMOSCount(index=%i,value=%i)>" % (self.index, self.value) 
+
+class CMOSRate(Base):
+    __tablename__ = 'cmos_rate'
+
+    index = Column(Integer, primary_key=True)
+    value = Column(Integer)
+    timestamp = Column(Float)
+
+    def __init__(self, index, value, timestamp):
+        self.index = index
+        self.value = value
+        self.timestamp = timestamp
+
+    def __repr__(self):
+        return "<CMOSRate(index=%i,value=%i)>" % (self.index, self.value) 
+
+
 def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
     # grouper('ABCDEFG', 3, 'x') -> ABC DEF Gxx
@@ -64,6 +112,59 @@ def parse_header(header):
 def total_seconds(td):
     """Returns the total number of seconds contained in the duration."""
     return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
+def orca_producer(hostname='snoplusdaq1', port=44666):
+    socket = Socket()
+    socket.connect(hostname, port)
+
+    push_context = zmq.Context()
+    push = push_context.socket(zmq.PUSH)
+    push.bind('tcp://127.0.0.1:5557')
+
+    while True:
+        push.send_pyobj(socket.recv_record())
+
+def orca_consumer():
+    pull_context = zmq.Context()
+    pull = pull_context.socket(zmq.PULL)
+    pull.connect('tcp://127.0.0.1:5557')
+
+    engine = create_engine('sqlite:///:memory:', echo=False)
+    Base.metadata.create_all(engine)
+    Session = scoped_session(sessionmaker(bind=engine,autoflush=False,autocommit=False))
+
+    while True:
+        session = Session()
+
+        id, rec = pull.recv_pyobj()
+
+        if id == CMOS_ID:
+            crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
+                parse_cmos(rec)
+
+            for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
+                for j, value in enumerate(map(int,counts[i])):
+                    if not channelmask[slot] & (1 << j) or value >> 31:
+                        continue
+
+                    index = crate << 16 | slot << 8 | j
+
+                    t = total_seconds(timestamp-TZERO)
+
+                    try:
+                        count = session.query(CMOSCount).filter(CMOSCount.index == index).one()
+
+                        rate = (value-count.value)/(t-count.timestamp)
+                        cmos_rate = CMOSRate(index,rate,t)
+                        session.add(cmos_rate)
+                    except NoResultFound:
+                        count = CMOSCount(index,value,t)
+                        session.add(count)
+                    else:
+                        count.value = value
+                        count.timestamp = t
+
+                    session.commit()
 
 class CMOSThread(Thread):
     def __init__(self, callback, hostname='snoplusdaq1', port=44666):
@@ -234,6 +335,12 @@ def callback(item):
                     index = (crate << 16) | (j << 8) | k
                     base.items.append((index,adc,time.time()))
         update(base)
+
+# p = Process(target=orca_producer)
+# p.start()
+# 
+# p2 = Process(target=orca_consumer)
+# p2.start()
 
 c = CMOSThread(callback)
 c.start()
