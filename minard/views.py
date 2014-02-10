@@ -1,12 +1,13 @@
 from minard import app
 from flask import render_template, jsonify, request 
-from minard.orca import cmos, base
-from minard.database import init_db, db_session
-from minard.models import *
+from minard.orca import cmos, base, start, session, CMOSRate
+#from minard.database import init_db, db_session
+#from minard.models import *
 from threading import Thread
 import os, shlex
 from collections import deque
 from subprocess import Popen, PIPE
+from itertools import groupby
 
 home = os.environ['HOME']
 tail = deque(maxlen=1000)
@@ -24,7 +25,9 @@ def tail_worker(q):
 tail_thread = Thread(target=tail_worker,args=(tail,))
 tail_thread.start() 
 
-init_db()
+start()
+
+#init_db()
 
 PROJECT_NAME = 'Minard'
 DEBUG = True
@@ -120,16 +123,27 @@ def query():
         return jsonify(value=result)
 
     if name == 'cmos':
-        stats = request.args.get('stats','',type=str)
+        stats = request.args.get('stats','now',type=str)
 
-        if stats == 'avg':
-            obj = cmos.avg
-        elif stats == 'max':
-            obj = cmos.max
-        else:
-            obj = cmos.now
+        # if stats == 'avg':
+        #     obj = cmos.avg
+        # elif stats == 'max':
+        #     obj = cmos.max
+        # else:
+        #     obj = cmos.now
 
-        return jsonify(value=obj)
+        cmos_rates = session.query(CMOSRate).order_by(CMOSRate.timestamp.desc())
+
+        cmos = {}
+        for index, rates in groupby(cmos_rates, lambda x: x.index):
+            if stats == 'now':
+                cmos[index] = rates.next().value
+            elif stats == 'avg':
+                cmos[index] = sum(map(lambda x: x.value,rates))/len(rates)
+            elif stats == 'max':
+                cmos[index] = max(map(lambda x: x.value,rates))
+
+        return jsonify(value=cmos)
 
     if name == 'base':
         stats = request.args.get('stats','',type=str)

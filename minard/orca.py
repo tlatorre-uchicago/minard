@@ -44,7 +44,8 @@ class CMOSCount(Base):
 class CMOSRate(Base):
     __tablename__ = 'cmos_rate'
 
-    index = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    index = Column(Integer)
     value = Column(Integer)
     timestamp = Column(Float)
 
@@ -124,13 +125,14 @@ def orca_producer(hostname='snoplusdaq1', port=44666):
     while True:
         push.send_pyobj(socket.recv_record())
 
+engine = create_engine('sqlite:////tmp/test.db', echo=False)
+Base.metadata.create_all(engine)
+
 def orca_consumer():
     pull_context = zmq.Context()
     pull = pull_context.socket(zmq.PULL)
     pull.connect('tcp://127.0.0.1:5557')
 
-    engine = create_engine('sqlite:///:memory:', echo=False)
-    Base.metadata.create_all(engine)
     Session = scoped_session(sessionmaker(bind=engine,autoflush=False,autocommit=False))
 
     while True:
@@ -164,7 +166,7 @@ def orca_consumer():
                         count.value = value
                         count.timestamp = t
 
-                    session.commit()
+        session.commit()
 
 class CMOSThread(Thread):
     def __init__(self, callback, hostname='snoplusdaq1', port=44666):
@@ -358,11 +360,13 @@ def callback(item):
                     base.items.append((index,adc,time.time()))
         update(base)
 
-# p = Process(target=orca_producer)
-# p.start()
-# 
-# p2 = Process(target=orca_consumer)
-# p2.start()
+def start(nworkers=2):
+    processes = []
+    processes.append(Process(target=orca_producer))
+    for i in range(nworkers):
+        processes.append(Process(target=orca_consumer).start())
+    for process in processes:
+        process.start()
 
-c = CMOSThread(callback)
-c.start()
+Session = scoped_session(sessionmaker(bind=engine,autoflush=False,autocommit=False))
+session = Session()
