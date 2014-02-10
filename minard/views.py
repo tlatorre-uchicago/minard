@@ -1,6 +1,7 @@
 from minard import app
 from flask import render_template, jsonify, request 
-from minard.orca import session, CMOSRate
+from minard.orca import cmos_table, conn
+from sqlalchemy.sql import select
 from minard.database import init_db, db_session
 from minard.models import *
 from threading import Thread, Event
@@ -19,37 +20,43 @@ home = os.environ['HOME']
 tail = deque(maxlen=1000)
 
 def enqueue_output(out, queue):
+    """Put output in a queue for non-blocking reads."""
     for line in iter(out.readline, b''):
         queue.put(line)
     out.close()
 
 def tail_worker(stop):
     p = Popen(shlex.split('ssh -i %s/.ssh/id_rsa_builder snotdaq@snoplusbuilder1 tail_log data_temp' % home), stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
+
     q = Queue()
     t = Thread(target=enqueue_output, args=(p.stdout,q))
     t.daemon = True
     t.start()
+
     i = 0
     while not stop.is_set():
         try:
-            line = q.get_nowait()#p.stdout.readline()
+            line = q.get_nowait()
         except Empty:
             continue
-        tail.append((i,line))
-        i += 1
-        if not line:
-            break
+        else:
+            tail.append((i,line))
+            i += 1
+            if not line:
+                break
 
     p.kill()
     p.wait()
 
 stop = Event()
 tail_thread = Thread(target=tail_worker,args=(stop,))
+# thread dies with the server
 tail_thread.daemon = True
 tail_thread.start() 
 
 @atexit.register
 def stop_worker():
+    # try to gracefully exit
     stop.set()
     tail_thread.join()
 
@@ -151,23 +158,17 @@ def query():
     if name == 'cmos':
         stats = request.args.get('stats','now',type=str)
 
-        # if stats == 'avg':
-        #     obj = cmos.avg
-        # elif stats == 'max':
-        #     obj = cmos.max
-        # else:
-        #     obj = cmos.now
-
-        cmos_rates = session.query(CMOSRate).order_by(CMOSRate.timestamp.desc())
+        #session.query(CMOSRate).order_by(CMOSRate.timestamp.desc())
+        cmos_rates = conn.execute(select([cmos_table]))
 
         cmos = {}
-        for index, rates in groupby(cmos_rates, lambda x: x.index):
+        for index, rates in groupby(cmos_rates, lambda x: x[0]):
             if stats == 'now':
-                cmos[index] = rates.next().value
+                cmos[index] = rates.next()[1]
             elif stats == 'avg':
-                cmos[index] = sum(map(lambda x: x.value,rates))/len(rates)
+                cmos[index] = sum(map(lambda x: x[1],rates))/len(rates)
             elif stats == 'max':
-                cmos[index] = max(map(lambda x: x.value,rates))
+                cmos[index] = max(map(lambda x: x[1],rates))
 
         return jsonify(value=cmos)
 

@@ -44,8 +44,8 @@ class CMOSCount(Base):
 class CMOSRate(Base):
     __tablename__ = 'cmos_rate'
 
-    id = Column(Integer, primary_key=True)
-    index = Column(Integer)
+    #id = Column(Integer, primary_key=True)
+    index = Column(Integer, primary_key=True)
     value = Column(Integer)
     timestamp = Column(Float)
 
@@ -135,8 +135,8 @@ def orca_consumer():
 
     Session = scoped_session(sessionmaker(bind=engine,autoflush=False,autocommit=False))
 
+    session = Session()
     while True:
-        session = Session()
 
         id, rec = pull.recv_pyobj()
 
@@ -158,7 +158,7 @@ def orca_consumer():
 
                         rate = (value-count.value)/(t-count.timestamp)
                         cmos_rate = CMOSRate(index,rate,t)
-                        session.add(cmos_rate)
+                        session.merge(cmos_rate)
                     except NoResultFound:
                         count = CMOSCount(index,value,t)
                         session.add(count)
@@ -360,13 +360,19 @@ def callback(item):
                     base.items.append((index,adc,time.time()))
         update(base)
 
-def start(nworkers=2):
-    processes = []
-    processes.append(Process(target=orca_producer))
-    for i in range(nworkers):
-        processes.append(Process(target=orca_consumer).start())
+processes = []
+processes.append(Process(target=orca_producer))
+for i in range(1):
+    processes.append(Process(target=orca_consumer))
+
+def start():
     for process in processes:
         process.start()
 
-Session = scoped_session(sessionmaker(bind=engine,autoflush=False,autocommit=False))
-session = Session()
+def stop():
+    for process in processes:
+        process.terminate()
+
+cmos_table = CMOSRate.__table__
+
+conn = engine.connect()
