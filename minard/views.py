@@ -1,33 +1,59 @@
 from minard import app
 from flask import render_template, jsonify, request 
-from minard.orca import cmos, base, start, session, CMOSRate
-#from minard.database import init_db, db_session
-#from minard.models import *
-from threading import Thread
-import os, shlex
+from minard.orca import session, CMOSRate
+from minard.database import init_db, db_session
+from minard.models import *
+from threading import Thread, Event
+import os
+import shlex
 from collections import deque
 from subprocess import Popen, PIPE
 from itertools import groupby
+import atexit
+from Queue import Queue, Empty
+import sys
+
+ON_POSIX = 'posix' in sys.builtin_module_names
 
 home = os.environ['HOME']
 tail = deque(maxlen=1000)
 
-def tail_worker(q):
-    p = Popen(shlex.split('ssh -i %s/.ssh/id_rsa_builder -t snotdaq@snoplusbuilder1 tail_log data_temp' % home), stdout=PIPE)
+def enqueue_output(out, queue):
+    for line in iter(out.readline, b''):
+        queue.put(line)
+    out.close()
+
+def tail_worker(stop):
+    p = Popen(shlex.split('ssh -i %s/.ssh/id_rsa_builder snotdaq@snoplusbuilder1 tail_log data_temp' % home), stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
+    q = Queue()
+    t = Thread(target=enqueue_output, args=(p.stdout,q))
+    t.daemon = True
+    t.start()
     i = 0
-    while True:
-        line = p.stdout.readline()
+    while not stop.is_set():
+        try:
+            line = q.get_nowait()#p.stdout.readline()
+        except Empty:
+            continue
         tail.append((i,line))
         i += 1
         if not line:
             break
 
-tail_thread = Thread(target=tail_worker,args=(tail,))
+    p.kill()
+    p.wait()
+
+stop = Event()
+tail_thread = Thread(target=tail_worker,args=(stop,))
+tail_thread.daemon = True
 tail_thread.start() 
 
-start()
+@atexit.register
+def stop_worker():
+    stop.set()
+    tail_thread.join()
 
-#init_db()
+init_db()
 
 PROJECT_NAME = 'Minard'
 DEBUG = True
