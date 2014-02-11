@@ -1,6 +1,6 @@
 from minard import app
 from flask import render_template, jsonify, request 
-from minard.orca import cmos_table, conn, Session, CMOSRate, BaseCurrent, total_seconds
+from minard.orca import Session, CMOSRate, BaseCurrent, total_seconds
 from sqlalchemy.sql import select
 from minard.database import init_db, db_session
 from minard.models import *
@@ -61,11 +61,7 @@ def stop_worker():
     stop.set()
     tail_thread.join()
 
-def foo():
-    print 'flush!'
-
 session = Session()
-session.flush = foo
 
 init_db()
 
