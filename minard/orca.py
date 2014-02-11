@@ -28,12 +28,13 @@ TZERO = datetime(2013,1,1)#.today()
 
 Base = declarative_base()
 
-class CMOSCount(Base):
-    __tablename__ = 'cmos_count'
+class BaseCurrent(Base):
+    __tablename__ = 'base_current'
 
-    index = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    index = Column(Integer)
     value = Column(Integer)
-    timestamp = Column(Float)
+    timestamp = Column(DateTime)
 
     def __init__(self, index, value, timestamp):
         self.index = index
@@ -41,10 +42,10 @@ class CMOSCount(Base):
         self.timestamp = timestamp
 
     def __getitem__(self, i):
-        return [self.index, self.value, self.timestamp][i]
+        return [self.id, self.index, self.value, self.timestamp][i]
 
     def __repr__(self):
-        return "<CMOSCount(index=%i,value=%i)>" % (self.index, self.value) 
+        return "<BaseCurrent(index=%i,value=%i)>" % (self.index, self.value) 
 
 class CMOSRate(Base):
     __tablename__ = 'cmos_rate'
@@ -96,6 +97,7 @@ def parse_base(rec):
     busy = np.frombuffer(rec[76+16*32:76+16*32+16*32], dtype=np.uint8).reshape((16,-1))
     date_string = rec[76+2*16*32:].strip('\x00')
     timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
+    print timestamp
     return crate, slot_mask, channel_mask, error_flags, counts, busy, timestamp
 
 def parse_header(header):
@@ -141,15 +143,14 @@ def orca_producer(hostname='snoplusdaq1', port=44666):
 
     while True:
         id, rec = socket.recv_record()
-        if id == CMOS_ID:
+        if id == CMOS_ID or id == BASE_ID:
             print 'sent'
             sys.stdout.flush()
-            push.send(rec)
-        #push.send_pyobj((id,rec))
-        #push.send_pyobj(socket.recv_record())
+
+            push.send_pyobj((id,rec))
 
 def _fk_pragma_on_connect(dbapi_con, con_record):
-    dbapi_con.execute('PRAGMA journal_mode = OFF')
+    dbapi_con.execute('PRAGMA journal_mode = MEMORY')
     #dbapi_con.execute('PRAGMA synchronous = OFF')
 
 from sqlalchemy import event
@@ -166,18 +167,11 @@ def orca_consumer():
 
     Session = scoped_session(sessionmaker(bind=engine,autoflush=False,autocommit=False))
 
-    cctable = CMOSCount.__table__
-    crtable = CMOSRate.__table__
-
     cmos = {}
 
-    #conn = engine.connect()
     session = Session()
     while True:
-
-        id = CMOS_ID
-        rec = pull.recv()
-        #id, rec = pull.recv_pyobj()
+        id, rec = pull.recv_pyobj()
 
         if id == CMOS_ID:
             crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
@@ -190,32 +184,35 @@ def orca_consumer():
 
                     index = crate << 16 | slot << 8 | j
 
-                    t = total_seconds(timestamp-TZERO)
-
                     if index in cmos:
-                        #count = conn.execute(select([cctable]).where(cctable.c.index == index)).fetchone()
                         count = cmos[index]
-                        #count = session.query(CMOSCount).filter(CMOSCount.index == index).one()
+                        rate = (value-count[0])/total_seconds(timestamp-count[1])
 
-                        rate = (value-count[0])/(t-count[1])
-                        #stmt = crtable.update().where(crtable.c.index == index).values(value=rate,timestamp=timestamp)
-                        #conn.execute(stmt)
-                        cmos_rate = CMOSRate(index,rate,timestamp)
-                        session.add(cmos_rate)
-                    #except NoResultFound:
-                    cmos[index] = value, t
-                        #count = CMOSCount(index,value,t)
-                        #session.add(count)
-                        
-                        #pass
-                        #stmt = cctable.update().where(cctable.c.index == index).values(value=value,timestamp=t)
-                        #conn.execute(stmt)
-                        #count.value = value
-                        #count.timestamp = t
+                        session.add(CMOSRate(index,rate,timestamp))
 
+                    cmos[index] = value, timestamp
+        elif id == BASE_ID:
+            crate, slotmask, channelmask, error_flags, counts, busy, timestamp = \
+                parse_base(rec)
+
+            for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
+                for j, value in enumerate(map(int,counts[i])):
+                    if not channelmask[slot] & (1 << j) or value >> 31:
+                        continue
+
+                    index = crate << 16 | slot << 8 | j
+
+                    session.add(BaseCurrent(index,value-127,timestamp))
+
+        try:
+            session.commit()
+        except Exception as e:
+            print e
+            session.rollback()
         expire = datetime.now() - timedelta(minutes=10) + timedelta(hours=5)
         # delete rows that are more than 2 minutes old
         session.query(CMOSRate).filter(CMOSRate.timestamp < expire).delete()
+        session.query(BaseCurrent).filter(BaseCurrent.timestamp < expire).delete()
         try:
             session.commit()
         except Exception as e:
