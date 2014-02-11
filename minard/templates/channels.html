@@ -70,6 +70,10 @@
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
     var card = card_view().threshold({{ threshold }});
+    {% if threshold > 1000 %}
+        card = card.format(d3.format('.2s'));
+    {% endif %}
+        
 
     var crate = crate_view().threshold({{ threshold }});
     crate.click(function(d, i) {

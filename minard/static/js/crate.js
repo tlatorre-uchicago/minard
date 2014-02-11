@@ -25,7 +25,7 @@ function card_view() {
     var crate = 12;
     var threshold = null;
 
-    var format = d3.format('.1s');
+    var format = d3.format('.0f');
 
     function chart(selection) {
         selection.each(function(data) {
@@ -79,6 +79,11 @@ function card_view() {
        return chart;
    }
 
+   chart.format = function(value) {
+       if (!arguments.length) return format;
+       format = value;
+       return chart;
+   }
    return chart;
 }
 
