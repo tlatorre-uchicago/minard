@@ -109,6 +109,8 @@
             }).fail(warn);
     }
 
+    d3.select('#crate').datum([]).call(crate);
+    d3.select('#card').datum([]).call(card);
     update();
     setInterval(update,interval);
 
