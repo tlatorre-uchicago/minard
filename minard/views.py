@@ -165,7 +165,7 @@ def query():
     if name == 'cmos':
         stats = request.args.get('stats','now',type=str)
 
-        cmos_rates = session.query(CMOSRate).filter(CMOSRate.timestamp > datetime.now() - timedelta(minutes=5) + timedelta(hours=5)).order_by(CMOSRate.timestamp.desc())
+        cmos_rates = session.query(CMOSRate).filter(CMOSRate.timestamp > datetime.now() - timedelta(minutes=1) + timedelta(hours=5)).order_by(CMOSRate.timestamp.desc())
 
         cmos = {}
         for index, rates in groupby(cmos_rates, lambda x: x[1]):
@@ -181,7 +181,7 @@ def query():
     if name == 'base':
         stats = request.args.get('stats','',type=str)
 
-        base_currents = session.query(BaseCurrent).filter(BaseCurrent.timestamp > datetime.now() - timedelta(minutes=5) + timedelta(hours=5)).order_by(BaseCurrent.timestamp.desc())
+        base_currents = session.query(BaseCurrent).filter(BaseCurrent.timestamp > datetime.now() - timedelta(minutes=1) + timedelta(hours=5)).order_by(BaseCurrent.timestamp.desc())
 
         base = {}
         for index, currents in groupby(base_currents, lambda x: x[1]):

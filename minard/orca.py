@@ -25,7 +25,7 @@ from dbinfo import user, passwd, host, name
 CMOS_ID = 1310720
 BASE_ID = 1048576
 
-TZERO = datetime(2013,1,1)#.today()
+TZERO = datetime(2013,1,1)
 
 Base = declarative_base()
 
@@ -206,13 +206,8 @@ def orca_consumer():
 
                     session.add(BaseCurrent(index,value-127,timestamp))
 
-        try:
-            session.commit()
-        except Exception as e:
-            print e
-            session.rollback()
-        expire = datetime.now() - timedelta(minutes=10) + timedelta(hours=5)
-        # delete rows that are more than 2 minutes old
+        expire = datetime.now() - timedelta(minutes=5) + timedelta(hours=5)
+        # delete rows that are more than 5 minutes old
         session.query(CMOSRate).filter(CMOSRate.timestamp < expire).delete()
         session.query(BaseCurrent).filter(BaseCurrent.timestamp < expire).delete()
         try:
@@ -364,58 +359,9 @@ class Socket(object):
 
             return self.get_dataid(rec), self.recv(size)
 
-expire = 60
-
-cmos = lambda: None # just a mock object
-cmos.lock = Lock()
-cmos.items = []
-cmos.now = {}
-cmos.max = {}
-cmos.avg = {}
-
-base = lambda: None # just a mock object
-base.lock = Lock()
-base.items = []
-base.now = {}
-base.avg = {}
-base.max = {}
-
-def update(obj):
-    with obj.lock:
-        now = time.time()
-        obj.items = filter(lambda x: x[2] > now - expire, obj.items)
-
-    group = defaultdict(list)
-
-    for k, v, t in obj.items:
-        group[k].append(v)
-
-    obj.max = dict((k, max(v)) for k, v in group.iteritems())
-    obj.avg = dict((k, sum(v)/len(v)) for k, v in group.iteritems())
-    obj.now = dict((k, v[-1]) for k, v in group.iteritems())
-
-def callback(item):
-    key = item['key']
-    crate = item['crate']
-
-    if key == 'cmos':
-        with cmos.lock:
-            for j, card in item['rate'].iteritems():
-                for k, rate in card.iteritems():
-                    index = (crate << 16) | (j << 8) | k
-                    cmos.items.append((index,rate,time.time()))
-        update(cmos)
-    elif key == 'base':
-        with base.lock:
-            for j, card in item['adc'].iteritems():
-                for k, adc in card.iteritems():
-                    index = (crate << 16) | (j << 8) | k
-                    base.items.append((index,adc,time.time()))
-        update(base)
-
 processes = []
 processes.append(Process(target=orca_producer))
-for i in range(1):
+for i in range(4):
     processes.append(Process(target=orca_consumer))
 
 def start():
