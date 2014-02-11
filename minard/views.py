@@ -1,6 +1,6 @@
 from minard import app
 from flask import render_template, jsonify, request 
-from minard.orca import cmos_table, conn, Session, CMOSRate, BaseCurrent
+from minard.orca import cmos_table, conn, Session, CMOSRate, BaseCurrent, total_seconds
 from sqlalchemy.sql import select
 from minard.database import init_db, db_session
 from minard.models import *
@@ -152,10 +152,6 @@ def query():
         result = {'t': [x.isoformat() for x in t], 'y': y}
         return jsonify(value=result)
 
-    def total_seconds(td):
-        """Returns the total number of seconds in the duration."""
-        return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
-
     if name == 'delta_t':
         value = db_session.query(L2).order_by(L2.entry_time.desc())[:600]
         result = {'t': [x.entry_time.isoformat() for x in value],
@@ -165,10 +161,16 @@ def query():
     if name == 'cmos' or name == 'base':
         stats = request.args.get('stats','now',type=str)
 
+        expire = datetime.now() - timedelta(minutes=1) + timedelta(hours=5)
+
         if name == 'cmos':
-            sql_result = session.query(CMOSRate.index,CMOSRate.value).filter(CMOSRate.timestamp > datetime.now() - timedelta(minutes=1) + timedelta(hours=5)).order_by(CMOSRate.timestamp.desc())
+            sql_result = session.query(CMOSRate.index,CMOSRate.value)\
+                .filter(CMOSRate.timestamp > expire)\
+                .order_by(CMOSRate.timestamp.desc())
         else:
-            sql_result = session.query(BaseCurrent.index,BaseCurrent.value).filter(BaseCurrent.timestamp > datetime.now() - timedelta(minutes=1) + timedelta(hours=5)).order_by(BaseCurrent.timestamp.desc())
+            sql_result = session.query(BaseCurrent.index,BaseCurrent.value)\
+                .filter(BaseCurrent.timestamp > expire)\
+                .order_by(BaseCurrent.timestamp.desc())
 
         result = {}
         for index, values in groupby(sql_result, lambda x: x[0]):

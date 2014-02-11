@@ -1,33 +1,36 @@
 from __future__ import division
 from threading import Timer, Lock, Thread
-import time
-from collections import defaultdict
-import socket
 from xml.etree.ElementTree import XML
 from itertools import izip_longest
-import struct
-import numpy as np
 from datetime import datetime, timedelta
-
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.exc import *
-from sqlalchemy.orm.exc import *
 from sqlalchemy.sql import select
-import struct, random
+from sqlalchemy import event
+import sys
+import socket
+import struct
+import atexit
 import zmq
 from multiprocessing import Process
-import atexit
+import numpy as np
 from dbinfo import user, passwd, host, name
 
 CMOS_ID = 1310720
 BASE_ID = 1048576
 
-TZERO = datetime(2013,1,1)
+def _fk_pragma_on_connect(dbapi_con, con_record):
+    pass
+    #dbapi_con.execute('PRAGMA journal_mode = MEMORY')
+    #dbapi_con.execute('PRAGMA synchronous = OFF')
 
 Base = declarative_base()
+engine = create_engine('mysql://snoplus:%s@%s/test' % (passwd,host), echo=False)
+Base.metadata.create_all(engine)
+
+event.listen(engine,'connect',_fk_pragma_on_connect)
 
 class BaseCurrent(Base):
     __tablename__ = 'base_current'
@@ -71,7 +74,6 @@ class CMOSRate(Base):
 
     def __repr__(self):
         return "<CMOSRate(index=%i,value=%i)>" % (self.index, self.value) 
-
 
 def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
@@ -132,8 +134,6 @@ def total_seconds(td):
     """Returns the total number of seconds contained in the duration."""
     return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
-import sys
-
 def orca_producer(hostname='snoplusdaq1', port=44666):
     socket = Socket()
     socket.connect(hostname, port)
@@ -149,18 +149,6 @@ def orca_producer(hostname='snoplusdaq1', port=44666):
             sys.stdout.flush()
 
             push.send_pyobj((id,rec))
-
-def _fk_pragma_on_connect(dbapi_con, con_record):
-    pass
-    #dbapi_con.execute('PRAGMA journal_mode = MEMORY')
-    #dbapi_con.execute('PRAGMA synchronous = OFF')
-
-from sqlalchemy import event
-
-engine = create_engine('mysql://snoplus:%s@%s/test' % (passwd,host), echo=False)
-Base.metadata.create_all(engine)
-
-event.listen(engine,'connect',_fk_pragma_on_connect)
 
 def orca_consumer():
     pull_context = zmq.Context()
@@ -215,95 +203,6 @@ def orca_consumer():
         except Exception as e:
             print e
             session.rollback()
-
-class CMOSThread(Thread):
-    def __init__(self, callback, hostname='snoplusdaq1', port=44666):
-        Thread.__init__(self)
-        self.callback = callback
-        self.socket = Socket()
-        self.hostname = hostname
-        self.port = port
-
-        self.cmos = {}
-        self.tzero = datetime.now()
-
-    def reconnect(self):
-        import time
-        self.socket.close()
-        time.sleep(1.0)
-        self.socket.connect(self.hostname, self.port)
-
-    def run(self):
-        self.socket.connect(self.hostname, self.port)
-
-        # receive header
-        id, rec = self.socket.recv_record()
-
-        assert id == 0
-        header = parse_header(rec[4:-1])
-
-        datadesc = header[0]['dataDescription']
-
-        cmos_id = datadesc['ORXL3Model']['Xl3CmosRate']['dataId']
-        base_id = datadesc['ORXL3Model']['Xl3PmtBaseCurrent']['dataId']
-
-        while True:
-            try:
-                id, rec = self.socket.recv_record()
-            except Exception as e:
-                print e
-                print 'reconnecting'
-                try:
-                    self.reconnect()
-                except Exception as e2:
-                    print e2
-                    pass
-                continue
-
-            if id == base_id:
-                crate, slotmask, channelmask, error_flags, counts, busy, timestamp = \
-                    parse_base(rec)
-
-                adc = {}
-
-                for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
-                    adc[slot] = {}
-                    for j, count in enumerate(counts[i]):
-                        if not channelmask[slot] & (1 << j) or count >> 31:
-                            continue
-
-                        adc[slot][j] = int(count) - 127
-
-                self.callback({'key': 'base', 'crate': crate, 'adc': adc})
-
-            if id == cmos_id:
-                crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
-                    parse_cmos(rec)
-
-                rate = {}
-
-                if crate not in self.cmos:
-                    self.cmos[crate] = {}
-
-                for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
-                    if slot not in self.cmos[crate]:
-                        self.cmos[crate][slot] = {}
-
-                    rate[slot] = {}
-
-                    for j, count in enumerate(counts[i]):
-                        if not channelmask[slot] & (1 << j) or count >> 31:
-                            continue
-
-                        if j in self.cmos[crate][slot]:
-                            prev_count, prev_time = self.cmos[crate][slot][j]
-                            dt = total_seconds(timestamp-prev_time)
-                            if dt < 10.0:
-                                rate[slot][j] = (count-prev_count)/dt
-
-                        self.cmos[crate][slot][j] = count, timestamp
-
-                self.callback({'key': 'cmos', 'crate': crate, 'rate': rate})
 
 class Socket(object):
     def __init__(self, sock=None):
@@ -373,9 +272,6 @@ def stop():
     for process in processes:
         process.terminate()
 
-cmos_table = CMOSRate.__table__
-
-conn = engine.connect()
 Session = sessionmaker(bind=engine)
 
 if __name__ == '__main__':
