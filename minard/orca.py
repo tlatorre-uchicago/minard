@@ -7,22 +7,24 @@ from xml.etree.ElementTree import XML
 from itertools import izip_longest
 import struct
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.exc import *
 from sqlalchemy.orm.exc import *
+from sqlalchemy.sql import select
 import struct, random
 import zmq
 from multiprocessing import Process
+import atexit
 
 CMOS_ID = 1310720
 BASE_ID = 1048576
 
-TZERO = datetime.today()
+TZERO = datetime(2013,1,1)#.today()
 
 Base = declarative_base()
 
@@ -38,21 +40,32 @@ class CMOSCount(Base):
         self.value = value
         self.timestamp = timestamp
 
+    def __getitem__(self, i):
+        return [self.index, self.value, self.timestamp][i]
+
     def __repr__(self):
         return "<CMOSCount(index=%i,value=%i)>" % (self.index, self.value) 
 
 class CMOSRate(Base):
     __tablename__ = 'cmos_rate'
 
-    #id = Column(Integer, primary_key=True)
-    index = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    index = Column(Integer)
     value = Column(Integer)
-    timestamp = Column(Float)
+    timestamp = Column(DateTime)
 
     def __init__(self, index, value, timestamp):
         self.index = index
         self.value = value
         self.timestamp = timestamp
+
+    def __iter__(self):
+        yield self.index
+        yield self.value
+        yield self.timestamp
+
+    def __getitem__(self, i):
+        return [self.id, self.index, self.value, self.timestamp][i]
 
     def __repr__(self):
         return "<CMOSRate(index=%i,value=%i)>" % (self.index, self.value) 
@@ -71,6 +84,8 @@ def parse_cmos(rec):
     counts = np.frombuffer(rec[80:80+8*32*4], dtype=np.uint32).reshape((8,-1))
     date_string = rec[21*4+8*32*4-4:].strip('\x00')
     timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
+    print timestamp
+    sys.stdout.flush()
     return crate, slot_mask, channel_mask, delay, error_flags, counts, timestamp
 
 def parse_base(rec):
@@ -114,6 +129,8 @@ def total_seconds(td):
     """Returns the total number of seconds contained in the duration."""
     return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
+import sys
+
 def orca_producer(hostname='snoplusdaq1', port=44666):
     socket = Socket()
     socket.connect(hostname, port)
@@ -123,10 +140,24 @@ def orca_producer(hostname='snoplusdaq1', port=44666):
     push.bind('tcp://127.0.0.1:5557')
 
     while True:
-        push.send_pyobj(socket.recv_record())
+        id, rec = socket.recv_record()
+        if id == CMOS_ID:
+            print 'sent'
+            sys.stdout.flush()
+            push.send(rec)
+        #push.send_pyobj((id,rec))
+        #push.send_pyobj(socket.recv_record())
+
+def _fk_pragma_on_connect(dbapi_con, con_record):
+    dbapi_con.execute('PRAGMA journal_mode = OFF')
+    #dbapi_con.execute('PRAGMA synchronous = OFF')
+
+from sqlalchemy import event
 
 engine = create_engine('sqlite:////tmp/test.db', echo=False)
 Base.metadata.create_all(engine)
+
+event.listen(engine,'connect',_fk_pragma_on_connect)
 
 def orca_consumer():
     pull_context = zmq.Context()
@@ -135,10 +166,18 @@ def orca_consumer():
 
     Session = scoped_session(sessionmaker(bind=engine,autoflush=False,autocommit=False))
 
+    cctable = CMOSCount.__table__
+    crtable = CMOSRate.__table__
+
+    cmos = {}
+
+    #conn = engine.connect()
     session = Session()
     while True:
 
-        id, rec = pull.recv_pyobj()
+        id = CMOS_ID
+        rec = pull.recv()
+        #id, rec = pull.recv_pyobj()
 
         if id == CMOS_ID:
             crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
@@ -153,20 +192,35 @@ def orca_consumer():
 
                     t = total_seconds(timestamp-TZERO)
 
-                    try:
-                        count = session.query(CMOSCount).filter(CMOSCount.index == index).one()
+                    if index in cmos:
+                        #count = conn.execute(select([cctable]).where(cctable.c.index == index)).fetchone()
+                        count = cmos[index]
+                        #count = session.query(CMOSCount).filter(CMOSCount.index == index).one()
 
-                        rate = (value-count.value)/(t-count.timestamp)
-                        cmos_rate = CMOSRate(index,rate,t)
-                        session.merge(cmos_rate)
-                    except NoResultFound:
-                        count = CMOSCount(index,value,t)
-                        session.add(count)
-                    else:
-                        count.value = value
-                        count.timestamp = t
+                        rate = (value-count[0])/(t-count[1])
+                        #stmt = crtable.update().where(crtable.c.index == index).values(value=rate,timestamp=timestamp)
+                        #conn.execute(stmt)
+                        cmos_rate = CMOSRate(index,rate,timestamp)
+                        session.add(cmos_rate)
+                    #except NoResultFound:
+                    cmos[index] = value, t
+                        #count = CMOSCount(index,value,t)
+                        #session.add(count)
+                        
+                        #pass
+                        #stmt = cctable.update().where(cctable.c.index == index).values(value=value,timestamp=t)
+                        #conn.execute(stmt)
+                        #count.value = value
+                        #count.timestamp = t
 
-        session.commit()
+        expire = datetime.now() - timedelta(minutes=10) + timedelta(hours=5)
+        # delete rows that are more than 2 minutes old
+        session.query(CMOSRate).filter(CMOSRate.timestamp < expire).delete()
+        try:
+            session.commit()
+        except Exception as e:
+            print e
+            session.rollback()
 
 class CMOSThread(Thread):
     def __init__(self, callback, hostname='snoplusdaq1', port=44666):
@@ -369,6 +423,7 @@ def start():
     for process in processes:
         process.start()
 
+@atexit.register
 def stop():
     for process in processes:
         process.terminate()
@@ -376,3 +431,4 @@ def stop():
 cmos_table = CMOSRate.__table__
 
 conn = engine.connect()
+Session = sessionmaker(bind=engine)

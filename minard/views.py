@@ -1,6 +1,6 @@
 from minard import app
 from flask import render_template, jsonify, request 
-from minard.orca import cmos_table, conn
+from minard.orca import cmos_table, conn, Session, CMOSRate
 from sqlalchemy.sql import select
 from minard.database import init_db, db_session
 from minard.models import *
@@ -13,6 +13,7 @@ from itertools import groupby
 import atexit
 from Queue import Queue, Empty
 import sys
+from datetime import datetime, timedelta
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -59,6 +60,8 @@ def stop_worker():
     # try to gracefully exit
     stop.set()
     tail_thread.join()
+
+session = Session()
 
 init_db()
 
@@ -158,17 +161,17 @@ def query():
     if name == 'cmos':
         stats = request.args.get('stats','now',type=str)
 
-        #session.query(CMOSRate).order_by(CMOSRate.timestamp.desc())
-        cmos_rates = conn.execute(select([cmos_table]))
+        cmos_rates = session.query(CMOSRate).filter(CMOSRate.timestamp > datetime.now() - timedelta(minutes=5) + timedelta(hours=5)).order_by(CMOSRate.timestamp.desc())
+        #cmos_rates = conn.execute(select([cmos_table]))
 
         cmos = {}
-        for index, rates in groupby(cmos_rates, lambda x: x[0]):
+        for index, rates in groupby(cmos_rates, lambda x: x[1]):
             if stats == 'now':
-                cmos[index] = rates.next()[1]
+                cmos[index] = rates.next()[2]
             elif stats == 'avg':
-                cmos[index] = sum(map(lambda x: x[1],rates))/len(rates)
+                cmos[index] = sum(map(lambda x: x[2],rates))/len(list(rates))
             elif stats == 'max':
-                cmos[index] = max(map(lambda x: x[1],rates))
+                cmos[index] = max(map(lambda x: x[2],rates))
 
         return jsonify(value=cmos)
 
