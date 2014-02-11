@@ -8,4 +8,4 @@ if __name__ == '__main__':
     else:
         port = 50000
 
-    call(['gunicorn','-b','0.0.0.0:%i' % port,'minard:app','-D','--access-logfile','/tmp/minard_access.log','--error-logfile','/tmp/minard_error.log','-w','2'])
+    call(['gunicorn','-b','0.0.0.0:%i' % port,'minard:app','-D','--access-logfile','/tmp/minard_access.log','--error-logfile','/tmp/minard_error.log','-w','4'])

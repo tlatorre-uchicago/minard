@@ -37,7 +37,7 @@ def tail_worker(stop):
     i = 0
     while not stop.is_set():
         try:
-            line = q.get_nowait()
+            line = q.get(timeout=1.0)
         except Empty:
             continue
         else:
@@ -162,18 +162,19 @@ def query():
         if name == 'cmos':
             sql_result = session.query(CMOSRate.index,CMOSRate.value)\
                 .filter(CMOSRate.timestamp > expire)\
-                .order_by(CMOSRate.timestamp.desc())
+                .order_by(CMOSRate.index.asc(),CMOSRate.timestamp.desc())
         else:
             sql_result = session.query(BaseCurrent.index,BaseCurrent.value)\
                 .filter(BaseCurrent.timestamp > expire)\
-                .order_by(BaseCurrent.timestamp.desc())
+                .order_by(BaseCurrent.index.asc(),BaseCurrent.timestamp.desc())
 
         result = {}
         for index, values in groupby(sql_result, lambda x: x[0]):
             if stats == 'now':
                 result[index] = values.next()[1]
             elif stats == 'avg':
-                result[index] = sum(map(lambda x: x[1],values))/len(list(values))
+                values = map(lambda x: x[1],values)
+                result[index] = sum(values)/float(len(values))
             elif stats == 'max':
                 result[index] = max(map(lambda x: x[1],values))
 
