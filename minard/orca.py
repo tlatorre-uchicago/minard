@@ -20,6 +20,7 @@ import struct, random
 import zmq
 from multiprocessing import Process
 import atexit
+from dbinfo import user, passwd, host, name
 
 CMOS_ID = 1310720
 BASE_ID = 1048576
@@ -150,12 +151,13 @@ def orca_producer(hostname='snoplusdaq1', port=44666):
             push.send_pyobj((id,rec))
 
 def _fk_pragma_on_connect(dbapi_con, con_record):
-    dbapi_con.execute('PRAGMA journal_mode = MEMORY')
+    pass
+    #dbapi_con.execute('PRAGMA journal_mode = MEMORY')
     #dbapi_con.execute('PRAGMA synchronous = OFF')
 
 from sqlalchemy import event
 
-engine = create_engine('sqlite:////tmp/test.db', echo=False)
+engine = create_engine('mysql://snoplus:%s@%s/test' % (passwd,host), echo=False)
 Base.metadata.create_all(engine)
 
 event.listen(engine,'connect',_fk_pragma_on_connect)
@@ -429,3 +431,7 @@ cmos_table = CMOSRate.__table__
 
 conn = engine.connect()
 Session = sessionmaker(bind=engine)
+
+if __name__ == '__main__':
+    start()
+    processes[0].join()
