@@ -15,7 +15,7 @@ var crate_setup = createArray(19,32,16);
 for (var i=0; i < 19; i++) {
     for (var j=0; j < 32; j++) {
         for (var k=0; k < 16; k++) {
-            crate_setup[i][j][k] = (i << 16) | (k << 8) | j;
+            crate_setup[i][31-j][k] = (i << 16) | (k << 8) | j;
         }
     }
 }
