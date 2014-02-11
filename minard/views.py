@@ -162,37 +162,24 @@ def query():
                   'y': [total_seconds(x.entry_time - x.get_clock()) for x in value]}
         return jsonify(value=result)
 
-    if name == 'cmos':
+    if name == 'cmos' or name == 'base':
         stats = request.args.get('stats','now',type=str)
 
-        cmos_rates = session.query(CMOSRate).filter(CMOSRate.timestamp > datetime.now() - timedelta(minutes=1) + timedelta(hours=5)).order_by(CMOSRate.timestamp.desc())
+        if name == 'cmos':
+            sql_result = session.query(CMOSRate.index,CMOSRate.value).filter(CMOSRate.timestamp > datetime.now() - timedelta(minutes=1) + timedelta(hours=5)).order_by(CMOSRate.timestamp.desc())
+        else:
+            sql_result = session.query(BaseCurrent.index,BaseCurrent.value).filter(BaseCurrent.timestamp > datetime.now() - timedelta(minutes=1) + timedelta(hours=5)).order_by(BaseCurrent.timestamp.desc())
 
-        cmos = {}
-        for index, rates in groupby(cmos_rates, lambda x: x[1]):
+        result = {}
+        for index, values in groupby(sql_result, lambda x: x[0]):
             if stats == 'now':
-                cmos[index] = rates.next()[2]
+                result[index] = values.next()[1]
             elif stats == 'avg':
-                cmos[index] = sum(map(lambda x: x[2],rates))/len(list(rates))
+                result[index] = sum(map(lambda x: x[1],values))/len(list(values))
             elif stats == 'max':
-                cmos[index] = max(map(lambda x: x[2],rates))
+                result[index] = max(map(lambda x: x[1],values))
 
-        return jsonify(value=cmos)
-
-    if name == 'base':
-        stats = request.args.get('stats','',type=str)
-
-        base_currents = session.query(BaseCurrent).filter(BaseCurrent.timestamp > datetime.now() - timedelta(minutes=1) + timedelta(hours=5)).order_by(BaseCurrent.timestamp.desc())
-
-        base = {}
-        for index, currents in groupby(base_currents, lambda x: x[1]):
-            if stats == 'now':
-                base[index] = currents.next()[2]
-            elif stats == 'avg':
-                base[index] = sum(map(lambda x: x[2],currents))/len(list(currents))
-            elif stats == 'max':
-                base[index] = max(map(lambda x: x[2],currents))
-
-        return jsonify(value=base)
+        return jsonify(value=result)
 
     if name == 'alarms':
         alarms = db_session.query(Alarms)
