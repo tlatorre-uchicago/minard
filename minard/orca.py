@@ -4,7 +4,7 @@ from xml.etree.ElementTree import XML
 from itertools import izip_longest
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, SmallInteger
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.sql import select
@@ -27,8 +27,7 @@ def _fk_pragma_on_connect(dbapi_con, con_record):
     #dbapi_con.execute('PRAGMA synchronous = OFF')
 
 Base = declarative_base()
-engine = create_engine('mysql://snoplus:%s@%s/test' % (passwd,host), echo=False)
-Base.metadata.create_all(engine)
+engine = create_engine('mysql://snoplus:%s@%s/test2' % (passwd,host), echo=False)
 
 event.listen(engine,'connect',_fk_pragma_on_connect)
 
@@ -36,9 +35,9 @@ class BaseCurrent(Base):
     __tablename__ = 'base_current'
 
     id = Column(Integer, primary_key=True)
-    index = Column(Integer)
-    value = Column(Integer)
-    timestamp = Column(DateTime)
+    index = Column(Integer, nullable=False)
+    value = Column(SmallInteger, nullable=False)
+    timestamp = Column(DateTime, nullable=False)
 
     def __init__(self, index, value, timestamp):
         self.index = index
@@ -55,9 +54,9 @@ class CMOSRate(Base):
     __tablename__ = 'cmos_rate'
 
     id = Column(Integer, primary_key=True)
-    index = Column(Integer)
-    value = Column(Integer)
-    timestamp = Column(DateTime)
+    index = Column(Integer, nullable=False)
+    value = Column(Integer, nullable=False)
+    timestamp = Column(DateTime, nullable=False)
 
     def __init__(self, index, value, timestamp):
         self.index = index
@@ -74,6 +73,8 @@ class CMOSRate(Base):
 
     def __repr__(self):
         return "<CMOSRate(index=%i,value=%i)>" % (self.index, self.value) 
+
+Base.metadata.create_all(engine)
 
 def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
@@ -155,14 +156,15 @@ def orca_consumer():
     pull = pull_context.socket(zmq.PULL)
     pull.connect('tcp://127.0.0.1:5557')
 
+    engine = create_engine('mysql://snoplus:%s@%s/test2' % (passwd,host), echo=False)
     Session = scoped_session(sessionmaker(bind=engine,autoflush=False,autocommit=False))
 
     cmos = {}
 
-    session = Session()
     while True:
         id, rec = pull.recv_pyobj()
 
+        session = Session()
         if id == CMOS_ID:
             crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
                 parse_cmos(rec)
@@ -203,6 +205,8 @@ def orca_consumer():
         except Exception as e:
             print e
             session.rollback()
+        finally:
+            session.close()
 
 class Socket(object):
     def __init__(self, sock=None):
@@ -272,7 +276,7 @@ def stop():
     for process in processes:
         process.terminate()
 
-Session = sessionmaker(bind=engine)
+Session = scoped_session(sessionmaker(bind=engine,autoflush=False,autocommit=False))
 
 if __name__ == '__main__':
     start()

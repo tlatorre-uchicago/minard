@@ -61,8 +61,6 @@ def stop_worker():
     stop.set()
     tail_thread.join()
 
-session = Session()
-
 init_db()
 
 PROJECT_NAME = 'Minard'
@@ -160,11 +158,11 @@ def query():
         expire = datetime.now() - timedelta(minutes=1) + timedelta(hours=5)
 
         if name == 'cmos':
-            sql_result = session.query(CMOSRate.index,CMOSRate.value)\
+            sql_result = Session.query(CMOSRate.index,CMOSRate.value)\
                 .filter(CMOSRate.timestamp > expire)\
                 .order_by(CMOSRate.index.asc(),CMOSRate.timestamp.desc())
         else:
-            sql_result = session.query(BaseCurrent.index,BaseCurrent.value)\
+            sql_result = Session.query(BaseCurrent.index,BaseCurrent.value)\
                 .filter(BaseCurrent.timestamp > expire)\
                 .order_by(BaseCurrent.index.asc(),BaseCurrent.timestamp.desc())
 
@@ -178,6 +176,7 @@ def query():
             elif stats == 'max':
                 result[index] = max(map(lambda x: x[1],values))
 
+        Session.remove()
         return jsonify(value=result)
 
     if name == 'alarms':
