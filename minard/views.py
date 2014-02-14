@@ -27,7 +27,7 @@ def enqueue_output(out, queue):
     out.close()
 
 def tail_worker(stop):
-    p = Popen(shlex.split('ssh -i %s/.ssh/id_rsa_builder snotdaq@snoplusbuilder1 tail_log data_temp' % home), stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
+    p = Popen(shlex.split('ssh -i %s/.ssh/id_rsa_builder -t -t snotdaq@snoplusbuilder1 tail_log data_temp' % home), stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
 
     q = Queue()
     t = Thread(target=enqueue_output, args=(p.stdout,q))
@@ -107,7 +107,7 @@ def query():
     if name == 'sphere':
     	latest = PMT.latest()
 	id, charge_occupancy = zip(*db_session.query(PMT.pmtid, PMT.chargeocc)\
-            .filter(PMT.id == latest.id).all())
+            .filter(PMT.id == latest.id).filter(PMT.chargeocc != 0).all())
         return jsonify(id=id, values2=charge_occupancy)
 
     if name == 'l2_info':
@@ -168,6 +168,8 @@ def query():
 
         result = {}
         for index, values in groupby(sql_result, lambda x: x[0]):
+            i, j, k = (index >> 10) & 0x1f, (index >> 5) & 0x1f, index & 0x1f
+            index = i << 16 | j << 8 | k
             if stats == 'now':
                 result[index] = values.next()[1]
             elif stats == 'avg':

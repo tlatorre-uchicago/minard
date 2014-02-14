@@ -27,7 +27,7 @@ def _fk_pragma_on_connect(dbapi_con, con_record):
     #dbapi_con.execute('PRAGMA synchronous = OFF')
 
 Base = declarative_base()
-engine = create_engine('mysql://snoplus:%s@%s/test2' % (passwd,host), echo=False)
+engine = create_engine('mysql://snoplus:%s@%s/cmos' % (passwd,host), echo=False)
 
 event.listen(engine,'connect',_fk_pragma_on_connect)
 
@@ -35,7 +35,7 @@ class BaseCurrent(Base):
     __tablename__ = 'base_current'
 
     id = Column(Integer, primary_key=True)
-    index = Column(Integer, nullable=False)
+    index = Column(SmallInteger, nullable=False)
     value = Column(SmallInteger, nullable=False)
     timestamp = Column(DateTime, nullable=False)
 
@@ -54,7 +54,7 @@ class CMOSRate(Base):
     __tablename__ = 'cmos_rate'
 
     id = Column(Integer, primary_key=True)
-    index = Column(Integer, nullable=False)
+    index = Column(SmallInteger, nullable=False)
     value = Column(Integer, nullable=False)
     timestamp = Column(DateTime, nullable=False)
 
@@ -139,24 +139,34 @@ def orca_producer(hostname='snoplusdaq1', port=44666):
     socket = Socket()
     socket.connect(hostname, port)
 
-    push_context = zmq.Context()
-    push = push_context.socket(zmq.PUSH)
-    push.bind('tcp://127.0.0.1:5557')
+    cmos_context = zmq.Context()
+    cmos = cmos_context.socket(zmq.PUSH)
+    cmos.bind('tcp://127.0.0.1:5557')
+
+    base_context = zmq.Context()
+    base = base_context.socket(zmq.PUSH)
+    base.bind('tcp://127.0.0.1:5558')
 
     while True:
         id, rec = socket.recv_record()
-        if id == CMOS_ID or id == BASE_ID:
-            print 'sent'
+        if id == CMOS_ID:
+            print 'cmos'
             sys.stdout.flush()
 
-            push.send_pyobj((id,rec))
+            cmos.send_pyobj((id,rec))
 
-def orca_consumer():
+        if id == BASE_ID:
+            print 'base'
+            sys.stdout.flush()
+
+            base.send_pyobj((id,rec))
+
+def orca_consumer(port):
     pull_context = zmq.Context()
     pull = pull_context.socket(zmq.PULL)
-    pull.connect('tcp://127.0.0.1:5557')
+    pull.connect('tcp://127.0.0.1:%s' % port)
 
-    engine = create_engine('mysql://snoplus:%s@%s/test2' % (passwd,host), echo=False)
+    engine = create_engine('mysql://snoplus:%s@%s/cmos' % (passwd,host), echo=False)
     Session = scoped_session(sessionmaker(bind=engine,autoflush=False,autocommit=False))
 
     cmos = {}
@@ -174,7 +184,7 @@ def orca_consumer():
                     if not channelmask[slot] & (1 << j) or value >> 31:
                         continue
 
-                    index = crate << 16 | slot << 8 | j
+                    index = crate << 10 | slot << 5 | j
 
                     if index in cmos:
                         count = cmos[index]
@@ -192,7 +202,7 @@ def orca_consumer():
                     if not channelmask[slot] & (1 << j) or value >> 31:
                         continue
 
-                    index = crate << 16 | slot << 8 | j
+                    index = crate << 10 | slot << 5 | j
 
                     session.add(BaseCurrent(index,value-127,timestamp))
 
@@ -264,8 +274,10 @@ class Socket(object):
 
 processes = []
 processes.append(Process(target=orca_producer))
-for i in range(4):
-    processes.append(Process(target=orca_consumer))
+processes.append(Process(target=orca_consumer,args=(5557,)))
+processes.append(Process(target=orca_consumer,args=(5557,)))
+processes.append(Process(target=orca_consumer,args=(5558,)))
+processes.append(Process(target=orca_consumer,args=(5558,)))
 
 def start():
     for process in processes:
@@ -276,7 +288,7 @@ def stop():
     for process in processes:
         process.terminate()
 
-Session = scoped_session(sessionmaker(bind=engine,autoflush=False,autocommit=False))
+Session = scoped_session(sessionmaker(bind=engine,autoflush=False,autocommit=True))
 
 if __name__ == '__main__':
     start()
