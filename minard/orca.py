@@ -122,8 +122,6 @@ def orca_consumer(port):
             crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
                 parse_cmos(rec)
 
-            timestamp = datetime.now()
-
             p = redis.pipeline()
             for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
                 for j, value in enumerate(map(int,counts[i])):
