@@ -3,12 +3,6 @@ from threading import Timer, Lock, Thread
 from xml.etree.ElementTree import XML
 from itertools import izip_longest
 from datetime import datetime, timedelta
-from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, DateTime, SmallInteger
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.sql import select
-from sqlalchemy import event
 import sys
 import socket
 import struct
@@ -17,64 +11,19 @@ import zmq
 from multiprocessing import Process
 import numpy as np
 from dbinfo import user, passwd, host, name
+from redis import Redis
+from functools import partial
+import time
+
+def strptime(format, string):
+    return datetime.strptime(string,format)
+
+strpiso = partial(strptime,'%Y-%m-%dT%H:%M:%S.%f')
+
+redis = Redis()
 
 CMOS_ID = 1310720
 BASE_ID = 1048576
-
-def _fk_pragma_on_connect(dbapi_con, con_record):
-    pass
-    #dbapi_con.execute('PRAGMA journal_mode = MEMORY')
-    #dbapi_con.execute('PRAGMA synchronous = OFF')
-
-Base = declarative_base()
-engine = create_engine('mysql://snoplus:%s@%s/cmos' % (passwd,host), echo=False)
-
-event.listen(engine,'connect',_fk_pragma_on_connect)
-
-class BaseCurrent(Base):
-    __tablename__ = 'base_current'
-
-    id = Column(Integer, primary_key=True)
-    index = Column(SmallInteger, nullable=False)
-    value = Column(SmallInteger, nullable=False)
-    timestamp = Column(DateTime, nullable=False)
-
-    def __init__(self, index, value, timestamp):
-        self.index = index
-        self.value = value
-        self.timestamp = timestamp
-
-    def __getitem__(self, i):
-        return [self.id, self.index, self.value, self.timestamp][i]
-
-    def __repr__(self):
-        return "<BaseCurrent(index=%i,value=%i)>" % (self.index, self.value) 
-
-class CMOSRate(Base):
-    __tablename__ = 'cmos_rate'
-
-    id = Column(Integer, primary_key=True)
-    index = Column(SmallInteger, nullable=False)
-    value = Column(Integer, nullable=False)
-    timestamp = Column(DateTime, nullable=False)
-
-    def __init__(self, index, value, timestamp):
-        self.index = index
-        self.value = value
-        self.timestamp = timestamp
-
-    def __iter__(self):
-        yield self.index
-        yield self.value
-        yield self.timestamp
-
-    def __getitem__(self, i):
-        return [self.id, self.index, self.value, self.timestamp][i]
-
-    def __repr__(self):
-        return "<CMOSRate(index=%i,value=%i)>" % (self.index, self.value) 
-
-Base.metadata.create_all(engine)
 
 def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
@@ -135,7 +84,7 @@ def total_seconds(td):
     """Returns the total number of seconds contained in the duration."""
     return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
-def orca_producer(hostname='snoplusdaq1', port=44666):
+def orca_producer(hostname='localhost', port=44666):
     socket = Socket()
     socket.connect(hostname, port)
 
@@ -166,57 +115,54 @@ def orca_consumer(port):
     pull = pull_context.socket(zmq.PULL)
     pull.connect('tcp://127.0.0.1:%s' % port)
 
-    engine = create_engine('mysql://snoplus:%s@%s/cmos' % (passwd,host), echo=False)
-    Session = scoped_session(sessionmaker(bind=engine,autoflush=False,autocommit=False))
-
-    cmos = {}
-
     while True:
         id, rec = pull.recv_pyobj()
 
-        session = Session()
         if id == CMOS_ID:
             crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
                 parse_cmos(rec)
 
+            timestamp = datetime.now()
+
+            p = redis.pipeline()
             for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
                 for j, value in enumerate(map(int,counts[i])):
                     if not channelmask[slot] & (1 << j) or value >> 31:
                         continue
 
-                    index = crate << 10 | slot << 5 | j
+                    index = crate << 16 | slot << 8 | j
 
-                    if index in cmos:
-                        count = cmos[index]
-                        rate = (value-count[0])/total_seconds(timestamp-count[1])
+                    prev_count = redis.get('cmos/index:%i:count' % index)
 
-                        session.add(CMOSRate(index,rate,timestamp))
+                    if prev_count is not None:
+                        prev_timestamp = strpiso(redis.get('cmos/index:%i:time' % index))
+                        prev_count = int(prev_count)
+                        rate = (value-prev_count)/total_seconds(timestamp-prev_timestamp)
+                        p.set('cmos/index:%i:value' % index, int(rate))
 
-                    cmos[index] = value, timestamp
+                    expire = int(time.time() + 10*60)
+                    p.set('cmos/index:%i:count' % index, value)
+                    p.expireat('cmos/index:%i:count' % index, expire)
+                    p.set('cmos/index:%i:time' % index, timestamp.isoformat())
+                    p.expireat('cmos/index:%i:time' % index, expire)
+            p.execute()
+
         elif id == BASE_ID:
             crate, slotmask, channelmask, error_flags, counts, busy, timestamp = \
                 parse_base(rec)
 
+            p = redis.pipeline()
             for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
                 for j, value in enumerate(map(int,counts[i])):
                     if not channelmask[slot] & (1 << j) or value >> 31:
                         continue
 
-                    index = crate << 10 | slot << 5 | j
+                    index = crate << 16 | slot << 8 | j
 
-                    session.add(BaseCurrent(index,value-127,timestamp))
-
-        expire = datetime.now() - timedelta(minutes=5) + timedelta(hours=5)
-        # delete rows that are more than 5 minutes old
-        session.query(CMOSRate).filter(CMOSRate.timestamp < expire).delete()
-        session.query(BaseCurrent).filter(BaseCurrent.timestamp < expire).delete()
-        try:
-            session.commit()
-        except Exception as e:
-            print e
-            session.rollback()
-        finally:
-            session.close()
+                    expire = int(time.time() + 10*60)
+                    p.set('base/index:%i:value' % index, value-127)
+                    p.expireat('base/index:%i:value' % index, expire)
+            p.execute()
 
 class Socket(object):
     def __init__(self, sock=None):
@@ -272,24 +218,24 @@ class Socket(object):
 
             return self.get_dataid(rec), self.recv(size)
 
-processes = []
-processes.append(Process(target=orca_producer))
-processes.append(Process(target=orca_consumer,args=(5557,)))
-processes.append(Process(target=orca_consumer,args=(5557,)))
-processes.append(Process(target=orca_consumer,args=(5558,)))
-processes.append(Process(target=orca_consumer,args=(5558,)))
-
-def start():
-    for process in processes:
-        process.start()
-
-@atexit.register
-def stop():
-    for process in processes:
-        process.terminate()
-
-Session = scoped_session(sessionmaker(bind=engine,autoflush=False,autocommit=True))
-
 if __name__ == '__main__':
+    processes = []
+    processes.append(Process(target=orca_producer))
+    processes.append(Process(target=orca_consumer,args=(5557,)))
+    processes.append(Process(target=orca_consumer,args=(5557,)))
+    processes.append(Process(target=orca_consumer,args=(5557,)))
+    processes.append(Process(target=orca_consumer,args=(5557,)))
+    processes.append(Process(target=orca_consumer,args=(5558,)))
+    processes.append(Process(target=orca_consumer,args=(5558,)))
+
+    def start():
+        for process in processes:
+            process.start()
+
+    @atexit.register
+    def stop():
+        for process in processes:
+            process.terminate()
+
     start()
     processes[0].join()

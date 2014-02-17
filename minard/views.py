@@ -1,6 +1,6 @@
 from minard import app
 from flask import render_template, jsonify, request 
-from minard.orca import Session, CMOSRate, BaseCurrent, total_seconds
+from minard.orca import total_seconds, redis
 from sqlalchemy.sql import select
 from minard.database import init_db, db_session
 from minard.models import *
@@ -52,14 +52,14 @@ def tail_worker(stop):
 stop = Event()
 tail_thread = Thread(target=tail_worker,args=(stop,))
 # thread dies with the server
-tail_thread.daemon = True
-tail_thread.start() 
+#tail_thread.daemon = True
+#tail_thread.start() 
 
-@atexit.register
-def stop_worker():
-    # try to gracefully exit
-    stop.set()
-    tail_thread.join()
+# @atexit.register
+# def stop_worker():
+#     # try to gracefully exit
+#     stop.set()
+#     tail_thread.join()
 
 init_db()
 
@@ -153,32 +153,16 @@ def query():
         return jsonify(value=result)
 
     if name == 'cmos' or name == 'base':
-        stats = request.args.get('stats','now',type=str)
-
-        expire = datetime.now() - timedelta(minutes=1) + timedelta(hours=5)
-
-        if name == 'cmos':
-            sql_result = Session.query(CMOSRate.index,CMOSRate.value)\
-                .filter(CMOSRate.timestamp > expire)\
-                .order_by(CMOSRate.index.asc(),CMOSRate.timestamp.desc())
-        else:
-            sql_result = Session.query(BaseCurrent.index,BaseCurrent.value)\
-                .filter(BaseCurrent.timestamp > expire)\
-                .order_by(BaseCurrent.index.asc(),BaseCurrent.timestamp.desc())
-
-        result = {}
-        for index, values in groupby(sql_result, lambda x: x[0]):
-            i, j, k = (index >> 10) & 0x1f, (index >> 5) & 0x1f, index & 0x1f
-            index = i << 16 | j << 8 | k
-            if stats == 'now':
-                result[index] = values.next()[1]
-            elif stats == 'avg':
-                values = map(lambda x: x[1],values)
-                result[index] = sum(values)/float(len(values))
-            elif stats == 'max':
-                result[index] = max(map(lambda x: x[1],values))
-
-        Session.remove()
+        p = redis.pipeline()
+        indices = []
+        for crate in range(19):
+            for card in range(16):
+                for channel in range(32):
+                    index = crate << 16 | card << 8 | channel
+                    p.get('%s/index:%i:value' % (name,index))
+                    indices.append(index)
+        indices, values = zip(*filter(lambda x: x[1] is not None, zip(indices,p.execute())))
+        result = dict(zip(indices,map(int,values)))
         return jsonify(value=result)
 
     if name == 'alarms':
