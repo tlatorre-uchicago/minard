@@ -15,10 +15,11 @@ from redis import Redis
 from functools import partial
 import time
 
-def strptime(format, string):
-    return datetime.strptime(string,format)
-
-strpiso = partial(strptime,'%Y-%m-%dT%H:%M:%S.%f')
+def strpiso(string):
+    try:
+        return datetime.strptime(string,'%Y-%m-%dT%H:%M:%S.%f')
+    except ValueError:
+        return datetime.strptime(string,'%Y-%m-%dT%H:%M:%S')
 
 redis = Redis()
 
@@ -51,6 +52,7 @@ def parse_base(rec):
     date_string = rec[76+2*16*32:].strip('\x00')
     timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
     print timestamp
+    sys.stdout.flush()
     return crate, slot_mask, channel_mask, error_flags, counts, busy, timestamp
 
 def parse_header(header):
@@ -115,6 +117,8 @@ def orca_consumer(port):
     pull = pull_context.socket(zmq.PULL)
     pull.connect('tcp://127.0.0.1:%s' % port)
 
+    print 'connecting'
+
     while True:
         id, rec = pull.recv_pyobj()
 
@@ -135,7 +139,11 @@ def orca_consumer(port):
                     if prev_count is not None:
                         prev_timestamp = strpiso(redis.get('cmos/index:%i:time' % index))
                         prev_count = int(prev_count)
-                        rate = (value-prev_count)/total_seconds(timestamp-prev_timestamp)
+                        try:
+                            rate = (value-prev_count)/total_seconds(timestamp-prev_timestamp)
+                        except ZeroDivisionError as e:
+                            print 'ZeroDivisonError %s' % e
+                            continue
                         p.set('cmos/index:%i:value' % index, int(rate))
 
                     expire = int(time.time() + 10*60)
@@ -236,4 +244,14 @@ if __name__ == '__main__':
             process.terminate()
 
     start()
+    while True:
+        for process in processes[:]:
+            if not process.is_alive():
+                processes.remove(process)
+                p = Process(target=process._target,args=process._args)
+                processes.append(p)
+                p.start()
+
+            time.sleep(1)
+
     processes[0].join()

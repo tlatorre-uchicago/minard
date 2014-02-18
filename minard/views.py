@@ -4,62 +4,7 @@ from minard.orca import total_seconds, redis
 from sqlalchemy.sql import select
 from minard.database import init_db, db_session
 from minard.models import *
-from threading import Thread, Event
-import os
-import shlex
-from collections import deque
-from subprocess import Popen, PIPE
-from itertools import groupby
-import atexit
-from Queue import Queue, Empty
-import sys
 from datetime import datetime, timedelta
-
-ON_POSIX = 'posix' in sys.builtin_module_names
-
-home = os.environ['HOME']
-tail = deque(maxlen=1000)
-
-def enqueue_output(out, queue):
-    """Put output in a queue for non-blocking reads."""
-    for line in iter(out.readline, b''):
-        queue.put(line)
-    out.close()
-
-def tail_worker(stop):
-    p = Popen(shlex.split('ssh -i %s/.ssh/id_rsa_builder -t -t snotdaq@snoplusbuilder1 tail_log data_temp' % home), stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
-
-    q = Queue()
-    t = Thread(target=enqueue_output, args=(p.stdout,q))
-    t.daemon = True
-    t.start()
-
-    i = 0
-    while not stop.is_set():
-        try:
-            line = q.get(timeout=1.0)
-        except Empty:
-            continue
-        else:
-            tail.append((i,line))
-            i += 1
-            if not line:
-                break
-
-    p.kill()
-    p.wait()
-
-stop = Event()
-tail_thread = Thread(target=tail_worker,args=(stop,))
-# thread dies with the server
-#tail_thread.daemon = True
-#tail_thread.start() 
-
-# @atexit.register
-# def stop_worker():
-#     # try to gracefully exit
-#     stop.set()
-#     tail_thread.join()
 
 init_db()
 
@@ -101,8 +46,16 @@ def query():
     name = request.args.get('name','',type=str)
 
     if name == 'tail_log':
-        id = request.args.get('id',0,type=int)
-        return jsonify(value=[line for i, line in tail if i > id],id=max(zip(*tail)[0]))
+        start = request.args.get('id',0,type=int)
+        stop = int(redis.get('builder/global:next'))
+        if start > stop:
+            # server restart
+            start = 0
+        p = redis.pipeline()
+        for i in range(start,stop):
+            p.get('builder/uid:%i:msg' % i)
+        value = map(lambda x: x if x is not None else '',p.execute())
+        return jsonify(value=value,id=stop-1)
 
     if name == 'sphere':
     	latest = PMT.latest()
