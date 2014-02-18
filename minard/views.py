@@ -6,6 +6,7 @@ from minard.database import init_db, db_session
 from minard.models import *
 from datetime import datetime, timedelta
 from itertools import product
+from xml.utils.8601 import parse
 
 init_db()
 
@@ -122,3 +123,25 @@ def query():
     if name == 'alarms':
         alarms = db_session.query(Alarms)
         return jsonify(messages=[dict(x) for x in alarms])
+
+@app.route('/metric/')
+def metric():
+    expr = request.args.get('expr','',type=str)
+    start = request.args.get('start','',type=str)
+    stop = request.args.get('stop','',type=str)
+    # convert ms -> sec
+    step = request.args.get('step',None,type=int)//1000
+
+    start = int(parse(start))
+    stop = int(parse(stop))
+
+    p = redis.pipeline()
+    for t in range(start,stop,step):
+        if step > 60:
+            p.get('/time/min/{:d}/'.format(t//60) + expr + ':count')
+        else:
+            p.get('/time/sec/{:d}/'.format(t) + expr + ':count')
+
+    values = p.execute()
+
+    return jsonify(values=values)

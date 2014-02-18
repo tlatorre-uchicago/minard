@@ -71,8 +71,10 @@ def dispatch_worker(host='surf.sno.laurentian.ca'):
             p = redis.pipeline()
             for i in range(26):
                 if trigger_word & (1 << i):
-                    p.incr('/time/{:d}/trigger:{:d}:count'.format(now,i))
-                    p.expireat('/time/{:d}/trigger:{:d}:count'.format(now,i),expires)
+                    p.incr('time/sec/{:d}/trigger:{:d}:count'.format(now,i))
+                    p.expireat('time/sec/{:d}/trigger:{:d}:count'.format(now,i),expires)
+                    p.incr('time/min/{:d}/trigger:{:d}:count'.format(now//60,i))
+                    p.expireat('time/min/{:d}/trigger:{:d}:count'.format(now//60,i),expires)
             p.execute()
 
 if __name__ == '__main__':
