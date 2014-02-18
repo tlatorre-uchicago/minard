@@ -5,6 +5,7 @@ from sqlalchemy.sql import select
 from minard.database import init_db, db_session
 from minard.models import *
 from datetime import datetime, timedelta
+from itertools import product
 
 init_db()
 
@@ -40,6 +41,9 @@ def alarms():
 @app.route('/builder')
 def builder():
     return render_template('builder.html')
+
+CHANNELS = [crate << 16 | card << 8 | channel \
+            for crate, card, channel in product(range(19),range(16),range(32))]
 
 @app.route('/query')
 def query():
@@ -107,15 +111,12 @@ def query():
 
     if name == 'cmos' or name == 'base':
         p = redis.pipeline()
-        indices = []
-        for crate in range(19):
-            for card in range(16):
-                for channel in range(32):
-                    index = crate << 16 | card << 8 | channel
-                    p.get('%s/index:%i:value' % (name,index))
-                    indices.append(index)
-        indices, values = zip(*filter(lambda x: x[1] is not None, zip(indices,p.execute())))
-        result = dict(zip(indices,map(int,values)))
+        for index in CHANNELS:
+            p.get('%s/index:%i:value' % (name,index))
+        values = p.execute()
+
+        result = dict((i,int(v)) for i, v in zip(CHANNELS,values) if v is not None)
+
         return jsonify(value=result)
 
     if name == 'alarms':

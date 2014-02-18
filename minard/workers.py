@@ -8,6 +8,7 @@ from redis import Redis
 import time
 import os
 import atexit
+from orca import orca_consumer, orca_producer
 
 redis = Redis()
 
@@ -22,16 +23,21 @@ def enqueue_output(out, queue):
     out.close()
 
 def tail_worker(stop):
-    p = Popen(shlex.split('ssh -i %s/.ssh/id_rsa_builder -t -t snotdaq@snoplusbuilder1.snolab.ca tail_log data_temp' % home), stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
+    user = 'snotdaq'
+    host = 'snoplusbuilder1.snolab.ca'
+    ssh_key = '%s/.ssh/id_rsa_builder' % home
+    cmd = shlex.split('ssh -i %s %s@%s tail_log data_temp' % (ssh_key,user,host))
+    p = Popen(cmd, stdout=PIPE,stderr=PIPE)#, bufsize=1, close_fds=ON_POSIX)
+    #p = Popen(shlex.split('tail -f /tmp/minard_access.log'),stdout=PIPE)
 
-    q = Queue()
-    t = Thread(target=enqueue_output, args=(p.stdout,q))
-    t.daemon = True
-    t.start()
+    #q = Queue()
+    #t = Thread(target=enqueue_output, args=(p.stdout,q))
+    #t.daemon = True
+    #t.start()
 
     while not stop.is_set():
         try:
-            line = q.get(timeout=1.0)
+            line = p.stdout.readline()#q.get(timeout=1.0)
         except Empty:
             continue
         else:
@@ -45,15 +51,70 @@ def tail_worker(stop):
     p.kill()
     p.wait()
 
-stop = Event()
-tail_process = Process(target=tail_worker,args=(stop,))
-# process dies with the server
-tail_process.daemon = True
-tail_process.start() 
-tail_process.join()
+def dispatch_worker(host='surf.sno.laurentian.ca'):
+    import ratzdab
 
-@atexit.register
-def stop_worker():
-    # try to gracefully exit
-    stop.set()
-    tail_process.join()
+    dispatcher = ratzdab.dispatch(host)
+
+    while True:
+        o = dispatcher.next(False)
+
+        if not o:
+            continue
+
+        if o.IsA() == ratzdab.ROOT.RAT.DS.Root.Class():
+            ev = o.GetEV(0)
+            trigger_word = ev.trigType
+
+            now = int(time.time())
+            expires = now + 60*60*24
+            p = redis.pipeline()
+            for i in range(26):
+                if trigger_word & (1 << i):
+                    p.incr('/time/{:d}/trigger:{:d}:count'.format(now,i))
+                    p.expireat('/time/{:d}/trigger:{:d}:count'.format(now,i),expires)
+            p.execute()
+
+if __name__ == '__main__':
+    _stop = Event()
+    tail_process = Process(target=tail_worker,args=(_stop,))
+    # process dies with the server
+    #tail_process.daemon = True
+    tail_process.start() 
+    #tail_process.join()
+
+    @atexit.register
+    def stop_worker():
+        # try to gracefully exit
+        _stop.set()
+        tail_process.join()
+
+    processes = [Process(target=orca_producer),
+                 Process(target=orca_consumer,args=(5557,)),
+                 Process(target=orca_consumer,args=(5557,)),
+                 Process(target=orca_consumer,args=(5558,)),
+                 Process(target=orca_consumer,args=(5558,)),
+                 Process(target=dispatch_worker)]
+
+    def start():
+        for process in processes:
+            process.start()
+
+    @atexit.register
+    def stop():
+        for process in processes:
+            process.terminate()
+
+    start()
+    while True:
+        for process in processes[:]:
+            if not process.is_alive():
+                processes.remove(process)
+                p = Process(target=process._target,args=process._args)
+                processes.append(p)
+                p.start()
+
+            print 'sleep'
+            time.sleep(1)
+
+    processes[0].join()

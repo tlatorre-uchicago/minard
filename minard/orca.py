@@ -136,6 +136,8 @@ def orca_consumer(port):
 
                     prev_count = redis.get('cmos/index:%i:count' % index)
 
+                    expire = int(time.time() + 10*60)
+
                     if prev_count is not None:
                         prev_timestamp = strpiso(redis.get('cmos/index:%i:time' % index))
                         prev_count = int(prev_count)
@@ -145,8 +147,8 @@ def orca_consumer(port):
                             print 'ZeroDivisonError %s' % e
                             continue
                         p.set('cmos/index:%i:value' % index, int(rate))
+                        p.expireat('cmos/index:%i:value' % index,expire)
 
-                    expire = int(time.time() + 10*60)
                     p.set('cmos/index:%i:count' % index, value)
                     p.expireat('cmos/index:%i:count' % index, expire)
                     p.set('cmos/index:%i:time' % index, timestamp.isoformat())
@@ -223,35 +225,3 @@ class Socket(object):
             size = self.get_length(rec)*4 - 4
 
             return self.get_dataid(rec), self.recv(size)
-
-if __name__ == '__main__':
-    processes = []
-    processes.append(Process(target=orca_producer))
-    processes.append(Process(target=orca_consumer,args=(5557,)))
-    processes.append(Process(target=orca_consumer,args=(5557,)))
-    processes.append(Process(target=orca_consumer,args=(5557,)))
-    processes.append(Process(target=orca_consumer,args=(5557,)))
-    processes.append(Process(target=orca_consumer,args=(5558,)))
-    processes.append(Process(target=orca_consumer,args=(5558,)))
-
-    def start():
-        for process in processes:
-            process.start()
-
-    @atexit.register
-    def stop():
-        for process in processes:
-            process.terminate()
-
-    start()
-    while True:
-        for process in processes[:]:
-            if not process.is_alive():
-                processes.remove(process)
-                p = Process(target=process._target,args=process._args)
-                processes.append(p)
-                p.start()
-
-            time.sleep(1)
-
-    processes[0].join()
