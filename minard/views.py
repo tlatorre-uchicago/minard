@@ -55,7 +55,7 @@ def query():
         for i in range(start,stop):
             p.get('builder/uid:%i:msg' % i)
         value = map(lambda x: x if x is not None else '',p.execute())
-        return jsonify(value=value,id=stop-1)
+        return jsonify(value=value,id=stop)
 
     if name == 'sphere':
     	latest = PMT.latest()

@@ -50,6 +50,7 @@ tail_process = Process(target=tail_worker,args=(stop,))
 # process dies with the server
 tail_process.daemon = True
 tail_process.start() 
+tail_process.join()
 
 @atexit.register
 def stop_worker():
