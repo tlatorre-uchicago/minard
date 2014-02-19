@@ -18,7 +18,7 @@
 
 var size = $('#demo').width();
 var context = cubism.context()
-    .step(1e5)
+    .step({{ step }})
     .size(size);
 
 d3.select("#demo").selectAll(".axis")
@@ -32,10 +32,11 @@ d3.select("#demo").append("div")
     .call(context.rule());
 
 d3.select("#demo").selectAll(".horizon")
-    .data(["TOTAL","ESUMH","ESUML","PED","PULGT","MISS","100H"].map(stock))
+    .data(["TOTAL","ESUMH","ESUML","PED","PULGT","MISS","100H",
+           "TOTAL-nhits"].map(stock))
   .enter().insert("div", ".bottom")
     .attr("class", "horizon")
-  .call(context.horizon().height(40).extent([0,400]));
+  .call(context.horizon().height({{ height }}));//.extent([0,{{ extent }}]));
 
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
@@ -46,7 +47,7 @@ function stock(name) {
   var format = d3.time.format("%d-%b-%y");
   return context.metric(function(start, stop, step, callback) {
     d3.json($SCRIPT_ROOT + '/metric' + 
-            '?expr=trigger:' + name +
+            '?expr=' + name +
             '&start=' + start.toISOString() +
             '&stop=' + stop.toISOString() +
             '&step=' + step, function(data) {

@@ -1,5 +1,6 @@
+from __future__ import division
 from minard import app
-from flask import render_template, jsonify, request 
+from flask import render_template, jsonify, request, redirect, url_for
 from minard.orca import total_seconds, redis
 from sqlalchemy.sql import select
 from minard.database import init_db, db_session
@@ -148,20 +149,40 @@ def metric():
     start -= dt
     stop -= dt
 
+    if step > 3600:
+        t = 3600
+    elif step > 60:
+        t = 60
+    else:
+        t = 1
+
+    try:
+        trig, type = expr.split('-')
+    except ValueError:
+        trig = expr
+        type = 'count'
+
     p = redis.pipeline()
-    for t in range(start,stop,step):
-        if step > 60:
-            p.get('time/min/{0:d}/'.format(t//60) + expr + ':count')
-        else:
-            p.get('time/sec/{0:d}/'.format(t) + expr + ':count')
+    for i in range(start,stop,step):
+        p.get('time/{0:d}/{1:d}/trigger:{2}:{3}'.format(t,i//t,trig,type))
+    values = p.execute()
 
-    values = map(lambda x: int(x) if x else 0, p.execute())
-
-    if step > 60:
-        values = map(lambda x: x/60.0, values)
+    if type != 'count':
+        p = redis.pipeline()
+        for i in range(start,stop,step):
+            p.get('time/{0:d}/{1:d}/trigger:{2}:{3}'.format(t,i//t,trig,'count'))
+        counts = p.execute()
+        values = [float(a)/int(b) if a or b else 0 for a, b in zip(values,counts)]
+    else:
+        values = map(lambda x: int(x)/t if x else 0, values)
 
     return jsonify(values=values)
 
 @app.route('/snostream')
 def snostream():
-    return render_template('demo-stocks.html')
+    if not request.args.get('step'):
+        return redirect(url_for('snostream',step=1,height=40,extent=400,_external=True))
+    step = request.args.get('step',1,type=int)*1000
+    height = request.args.get('height',40,type=int)
+    extent = request.args.get('extent',400,type=int)
+    return render_template('demo-stocks.html',step=step,height=height,extent=extent)
