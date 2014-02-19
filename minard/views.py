@@ -143,17 +143,26 @@ def metric():
     start = int(parse(start))
     stop = int(parse(stop))
 
+    now = int(time.time())
+
+    dt = stop - now
+    start -= dt
+    stop -= dt
+
     p = redis.pipeline()
     for t in range(start,stop,step):
         if step > 60:
-            p.get('time/min/{:d}/'.format(t//60) + expr + ':count')
+            p.get('time/min/{0:d}/'.format(t//60) + expr + ':count')
         else:
-            p.get('time/sec/{:d}/'.format(t) + expr + ':count')
+            p.get('time/sec/{0:d}/'.format(t) + expr + ':count')
 
     values = map(lambda x: x if x else 0, p.execute())
 
+    if step > 60:
+        values = map(lambda x: x/60.0, values)
+
     return jsonify(values=values)
 
-@app.route('/cubetest')
-def cubetest():
+@app.route('/snostream')
+def snostream():
     return render_template('demo-stocks.html')

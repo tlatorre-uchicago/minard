@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% block title %}Stream{% endblock %}
 {% block head %}
 {{ super() }}
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
@@ -15,7 +16,6 @@
 
 var size = $('#demo').width();
 var context = cubism.context()
-    //.serverDelay(new Date(2012, 4, 2) - Date.now())
     .step(1e3)
     .size(size);
 
@@ -30,7 +30,7 @@ d3.select("#demo").append("div")
     .call(context.rule());
 
 d3.select("#demo").selectAll(".horizon")
-    .data(["ESUMH","ESUML","PED","PULGT","MISS","100H"].map(stock))
+    .data(["TOTAL","ESUMH","ESUML","PED","PULGT","MISS","100H"].map(stock))
   .enter().insert("div", ".bottom")
     .attr("class", "horizon")
   .call(context.horizon().height(40).extent([0,400]));

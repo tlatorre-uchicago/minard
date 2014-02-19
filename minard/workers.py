@@ -71,18 +71,26 @@ def dispatch_worker(host='surf.sno.laurentian.ca'):
             ev = o.GetEV(0)
             trigger_word = ev.trigType
 
-            print 'trigger word = %s' % trigger_word
-
             now = int(time.time())
-            expires = now + 60*60*24
+            min = now//60
+            sec_expires = now + 60*60
+            min_expires = now + 60*60*24
+
+            p = redis.pipeline()
+            p.incr('time/sec/{0:d}/trigger:TOTAL:count'.format(now))
+            p.expireat('time/sec/{0:d}/trigger:TOTAL:count'.format(now),sec_expires)
+            p.incr('time/min/{0:d}/trigger:TOTAL:count'.format(min))
+            p.expireat('time/min/{0:d}/trigger:TOTAL:count'.format(now),min_expires)
+            p.execute()
+
             p = redis.pipeline()
             for i in range(26):
                 if trigger_word & (1 << i):
                     name = TRIGGER_NAMES[i]
-                    p.incr('time/sec/{:d}/trigger:{}:count'.format(now,name))
-                    p.expireat('time/sec/{:d}/trigger:{}:count'.format(now,name),expires)
-                    p.incr('time/min/{:d}/trigger:{}:count'.format(now//60,name))
-                    p.expireat('time/min/{:d}/trigger:{}:count'.format(now//60,name),expires)
+                    p.incr('time/sec/{0:d}/trigger:{1}:count'.format(now,name))
+                    p.expireat('time/sec/{0:d}/trigger:{1}:count'.format(now,name),sec_expires)
+                    p.incr('time/min/{0:d}/trigger:{1}:count'.format(min,name))
+                    p.expireat('time/min/{0:d}/trigger:{1}:count'.format(min,name),min_expires)
             p.execute()
 
 if __name__ == '__main__':
