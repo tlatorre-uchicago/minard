@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block head %}
+{{ super() }}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+
+  <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cubism.v1.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/metric.js') }}"></script>
+{% endblock %}
+{% block body %}
+{{ super() }}
+<body>
+    <div class="container" id="demo"></div>
+<script>
+
+var size = $('#demo').width();
+var context = cubism.context()
+    //.serverDelay(new Date(2012, 4, 2) - Date.now())
+    .step(1e3)
+    .size(size);
+
+d3.select("#demo").selectAll(".axis")
+    .data(["top", "bottom"])
+  .enter().append("div")
+    .attr("class", function(d) { return d + " axis"; })
+    .each(function(d) { d3.select(this).call(context.axis().ticks(12).orient(d)); });
+
+d3.select("#demo").append("div")
+    .attr("class", "rule")
+    .call(context.rule());
+
+d3.select("#demo").selectAll(".horizon")
+    .data(["ESUMH","ESUML","PED","PULGT","MISS","100H"].map(stock))
+  .enter().insert("div", ".bottom")
+    .attr("class", "horizon")
+  .call(context.horizon().height(40).extent([0,400]));
+
+context.on("focus", function(i) {
+  d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
+});
+
+// Replace this with context.graphite and graphite.metric!
+function stock(name) {
+  var format = d3.time.format("%d-%b-%y");
+  return context.metric(function(start, stop, step, callback) {
+    d3.json($SCRIPT_ROOT + '/metric' + 
+            '?expr=trigger:' + name +
+            '&start=' + start.toISOString() +
+            '&stop=' + stop.toISOString() +
+            '&step=' + step, function(data) {
+              if (!data) return callback(new Error('unable to load data'));
+              return callback(null,data.values);
+    });
+  }, name);
+}
+
+</script>
+{% endblock %}

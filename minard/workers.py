@@ -51,6 +51,11 @@ def tail_worker(stop):
     p.kill()
     p.wait()
 
+TRIGGER_NAMES = \
+['100L','100M','100H','20','20LB','ESUML','ESUMH','OWLN','OWLEL','OWLEH','PULGT','PRESCL',
+ 'PED','PONG','SYNC','EXTA','EXT2','EXT3','EXT4','EXT5','EXT6','EXT7','EXT8','SRAW','NCD',
+ 'SOFGT','MISS']
+
 def dispatch_worker(host='surf.sno.laurentian.ca'):
     import ratzdab
 
@@ -66,15 +71,18 @@ def dispatch_worker(host='surf.sno.laurentian.ca'):
             ev = o.GetEV(0)
             trigger_word = ev.trigType
 
+            print 'trigger word = %s' % trigger_word
+
             now = int(time.time())
             expires = now + 60*60*24
             p = redis.pipeline()
             for i in range(26):
                 if trigger_word & (1 << i):
-                    p.incr('time/sec/{:d}/trigger:{:d}:count'.format(now,i))
-                    p.expireat('time/sec/{:d}/trigger:{:d}:count'.format(now,i),expires)
-                    p.incr('time/min/{:d}/trigger:{:d}:count'.format(now//60,i))
-                    p.expireat('time/min/{:d}/trigger:{:d}:count'.format(now//60,i),expires)
+                    name = TRIGGER_NAMES[i]
+                    p.incr('time/sec/{:d}/trigger:{}:count'.format(now,name))
+                    p.expireat('time/sec/{:d}/trigger:{}:count'.format(now,name),expires)
+                    p.incr('time/min/{:d}/trigger:{}:count'.format(now//60,name))
+                    p.expireat('time/min/{:d}/trigger:{}:count'.format(now//60,name),expires)
             p.execute()
 
 if __name__ == '__main__':

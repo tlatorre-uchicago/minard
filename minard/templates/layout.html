@@ -16,13 +16,13 @@
 
         <!-- jquery for $() pattern -->
         <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+        {% endblock %}
+    </head>
+    <body>
         <!-- $SCRIPT_ROOT for app location -->
         <script type="text/javascript">
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
         </script>
-        {% endblock %}
-    </head>
-    <body>
         {% block body %}
         <div class="navbar navbar-default navbar-static-top">
             <div class="container">
