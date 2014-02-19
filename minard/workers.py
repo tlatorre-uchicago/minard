@@ -92,6 +92,7 @@ def dispatch_worker(host='surf.sno.laurentian.ca'):
                     p.incr('time/min/{0:d}/trigger:{1}:count'.format(min,name))
                     p.expireat('time/min/{0:d}/trigger:{1}:count'.format(min,name),min_expires)
             p.execute()
+            o.IsA().Destructor(o)
 
 if __name__ == '__main__':
     _stop = Event()
