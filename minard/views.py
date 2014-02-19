@@ -6,7 +6,6 @@ from minard.database import init_db, db_session
 from minard.models import *
 from datetime import datetime, timedelta
 from itertools import product
-#from xml.utils.iso8601 import parse
 import time
 import calendar
 
@@ -156,7 +155,7 @@ def metric():
         else:
             p.get('time/sec/{0:d}/'.format(t) + expr + ':count')
 
-    values = map(lambda x: x if x else 0, p.execute())
+    values = map(lambda x: int(x) if x else 0, p.execute())
 
     if step > 60:
         values = map(lambda x: x/60.0, values)

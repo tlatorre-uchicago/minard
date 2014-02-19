@@ -11,12 +11,14 @@
 {% block body %}
 {{ super() }}
 <body>
-    <div class="container" id="demo"></div>
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1" style="padding:0" id="demo"></div>
+    </div>
 <script>
 
 var size = $('#demo').width();
 var context = cubism.context()
-    .step(1e3)
+    .step(1e5)
     .size(size);
 
 d3.select("#demo").selectAll(".axis")
