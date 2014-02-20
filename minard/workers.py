@@ -91,7 +91,7 @@ def dispatch_worker(host='surf.sno.laurentian.ca'):
                 if ev.trigType & (1 << i):
                     name = TRIGGER_NAMES[i]
                     for t in [1,60,3600]:
-                        expires = now + t*1000
+                        expires = now + t*100000
                         p.incr('time/{0:d}/{1:d}/trigger:{2}:count'.format(t,now//t,name))
                         p.expireat('time/{0:d}/{1:d}/trigger:{2}:count'.format(t,now//t,name),expires)
                         # nhit
