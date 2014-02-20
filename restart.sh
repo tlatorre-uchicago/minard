@@ -11,7 +11,7 @@ else
     ./runserver.py
 fi
 
-if ps -ef | grep -v grep | grep workers.py; then
+if ps -ef | grep -v grep | grep -v vim | grep workers.py; then
     :
 else
     cd $VIRTUALENV
