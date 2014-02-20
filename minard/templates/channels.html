@@ -23,41 +23,23 @@
 {{ super() }}
 <div class="container">
     <div class="row">
-        <div class="col-md-12" id="crate">
+        <div class="col-md-6" id="crate">
             <h4>Crate View</h4>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
+    <!--</div>
+<div class="row">-->
+        <div class="col-md-6">
             <div class="row">
-                <div class="col-md-6" id="card">
+                <div class="col-md-8" id="card">
                     <h4>Card View <small></small></h4>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <h4>Options</h4>
                     <div class="form-group">
                     <div class='input-group input-group-sm'>
                         <span class='input-group-addon'>Threshold:</span>
                         <input type='text' class='form-control' id='threshold'>
-                        <span class='input-group-btn'>
-                        <button class='btn btn-default' type='button' id='threshold-btn'>Set</button>
-                        </span>
-                        <script>
-                            // Set threshold when <Enter> key is pressed
-                            $('#threshold').keyup(function(event) {
-                                if (event.keyCode == 13)
-                                    $('#threshold-btn').click();
-                            });
-                        </script>
-                    </div></div>
-                    <div class="form-group">
-                    <div class='input-group input-group-sm'>
-                        <span class='input-group-addon'>Stats:</span>
-                        <select class='form-control' id='stats'>
-                            <option>now</option>
-                            <option>avg</option>
-                            <option>max</option>
-                        </select>
+                        <script></script>
                     </div></div>
                     <h4>Status</h4>
                     <div id="status"></div>
@@ -84,11 +66,15 @@
 
     $('#threshold').val(crate.threshold());
 
-    $('#threshold-btn').click(function() {
+    // Set threshold when <Enter> key is pressed
+    $('#threshold').keyup(function(event) {
+      if (event.keyCode == 13) {
         crate.threshold($('#threshold').val());
         card.threshold($('#threshold').val());
+        update();
+      }
     });
-
+                        
     function warn(jqxhr, text_status, error) {
         var err = text_status + ', ' + error;
         $('#status').text(err).attr('class', 'alert alert-warning');
