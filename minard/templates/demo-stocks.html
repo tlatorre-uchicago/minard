@@ -56,7 +56,7 @@ d3.select("#demo").selectAll(".horizon")
   .data(TRIGGER_NAMES.map(stock))
   .enter().insert("div", ".bottom")
     .attr("class", "horizon")
-  .call(context.horizon().height({{ height }}));
+  .call(context.horizon().height({{ height }}).format(d3.format()));
 
 d3.select("#demo").selectAll("#nhit")
   .data(["TOTAL-nhits","TOTAL-q","PULGT-nhits","PULGT-q"].map(stock))
