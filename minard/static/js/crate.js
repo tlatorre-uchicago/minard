@@ -48,7 +48,7 @@ function card_view() {
                   return '';
                 }
               })
-              .attr('style','text-align:center');
+              .attr('class','card-label-col');
 
             var td = tr2.selectAll('td')
                 .data(function(d) { return d; }, function(d) { return d; })
@@ -59,7 +59,7 @@ function card_view() {
                     return 'Card ' + ((d >> 8) & 0xff) + ', Channel ' + (d & 0xff);});
 
             tr2.insert('td',':first-child').text(function(d, i) { return 31-i; })
-              .attr('style','text-align:center');
+              .attr('class','card-label-row');
 
             var k = [],
                 v = [];
