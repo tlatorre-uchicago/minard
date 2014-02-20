@@ -26,18 +26,18 @@ def tail_worker(stop):
     user = 'snotdaq'
     host = 'snoplusbuilder1.snolab.ca'
     ssh_key = '%s/.ssh/id_rsa_builder' % home
-    cmd = shlex.split('ssh -i -tt %s %s@%s tail_log data_temp' % (ssh_key,user,host))
-    p = Popen(cmd, stdout=PIPE,stderr=PIPE)#, bufsize=1, close_fds=ON_POSIX)
-    #p = Popen(shlex.split('tail -f /tmp/minard_access.log'),stdout=PIPE)
+    cmd = shlex.split('ssh -i %s %s@%s tail_log_ssh data_temp' % (ssh_key,user,host))
+    p = Popen(cmd, stdout=PIPE,stderr=PIPE, bufsize=1, close_fds=ON_POSIX)
 
-    #q = Queue()
-    #t = Thread(target=enqueue_output, args=(p.stdout,q))
-    #t.daemon = True
-    #t.start()
+    q = Queue()
+    t = Thread(target=enqueue_output, args=(p.stdout,q))
+    t.daemon = True
+    t.start()
 
     while not stop.is_set():
         try:
-            line = p.stdout.readline()#q.get(timeout=1.0)
+            line = q.get(timeout=1.0)
+            print line
         except Empty:
             continue
         else:
