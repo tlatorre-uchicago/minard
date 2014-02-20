@@ -40,12 +40,26 @@ function card_view() {
                 .data(setup)
                 .enter().append('tr');
 
+            table.insert('tr',':first-child').selectAll('td').data(d3.range(17)).enter().append('td')
+              .text(function(d, i) {
+                if (i) {
+                  return i-1;
+                } else {
+                  return '';
+                }
+              })
+              .attr('style','text-align:center');
+
             var td = tr2.selectAll('td')
                 .data(function(d) { return d; }, function(d) { return d; })
                 .enter().append('td')
+                .attr('id','channel')
                 .attr('style','background-color:#e0e0e0')
                 .attr('title', function(d) {
                     return 'Card ' + ((d >> 8) & 0xff) + ', Channel ' + (d & 0xff);});
+
+            tr2.insert('td',':first-child').text(function(d, i) { return 31-i; })
+              .attr('style','text-align:center');
 
             var k = [],
                 v = [];
@@ -55,7 +69,7 @@ function card_view() {
                 v.push(data[key]);
             }
 
-            var select = d3.select(this).selectAll('td')
+            var select = d3.select(this).selectAll('#channel')
                 .data(k, function(d) { return d; });
 
             select.attr('style', function(d, i) {
@@ -119,6 +133,8 @@ function crate_view() {
           .append('table')
             .attr('style','padding:2px;border-collapse:separate;border-spacing:1px')
             .attr('title', function(d, i) { return 'Crate ' + i; });
+
+            tr1.insert('caption').text(function(d, i) { return i; })
 
         var tr2 = tr1.selectAll('tr')
             .data(function(d) { return d; })

@@ -52,11 +52,20 @@ d3.select("#demo").append("div")
   //'EXT2','EXT3','EXT4','EXT5','EXT6','EXT7',
   'EXT8','SRAW','NCD', 'SOFGT','MISS']
 
+var si_format = d3.format('.2s');
+
+var my_format = function(a) {
+  if (a == 0)
+    return '0';
+  else
+    return si_format(a);
+}
+
 d3.select("#demo").selectAll(".horizon")
   .data(TRIGGER_NAMES.map(stock))
   .enter().insert("div", ".bottom")
     .attr("class", "horizon")
-  .call(context.horizon().height({{ height }}).format(d3.format()));
+  .call(context.horizon().height({{ height }}).format(my_format));
 
 d3.select("#demo").selectAll("#nhit")
   .data(["TOTAL-nhits","TOTAL-q","PULGT-nhits","PULGT-q"].map(stock))
