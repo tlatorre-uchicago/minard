@@ -26,7 +26,7 @@ def tail_worker(stop):
     user = 'snotdaq'
     host = 'snoplusbuilder1.snolab.ca'
     ssh_key = '%s/.ssh/id_rsa_builder' % home
-    cmd = shlex.split('ssh -i %s %s@%s tail_log data_temp' % (ssh_key,user,host))
+    cmd = shlex.split('ssh -i -tt %s %s@%s tail_log data_temp' % (ssh_key,user,host))
     p = Popen(cmd, stdout=PIPE,stderr=PIPE)#, bufsize=1, close_fds=ON_POSIX)
     #p = Popen(shlex.split('tail -f /tmp/minard_access.log'),stdout=PIPE)
 
@@ -75,7 +75,7 @@ def dispatch_worker(host='surf.sno.laurentian.ca'):
 
             p = redis.pipeline()
             for t in [1,60,3600]:
-                expires = now + t*1000
+                expires = now + t*100000
                 p.incr('time/{0:d}/{1:d}/trigger:TOTAL:count'.format(t,now//t))
                 p.expireat('time/{0:d}/{1:d}/trigger:TOTAL:count'.format(t,now//t),expires)
                 # nhit
