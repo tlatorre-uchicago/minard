@@ -156,6 +156,13 @@ def metric():
     else:
         t = 1
 
+    if expr in ('gtid', 'run', 'subrun'):
+        p = redis.pipeline()
+        for i in range(start,stop,step):
+            p.get('time/{0:d}/{1:d}/{2}'.format(t,i//t,expr))
+        values = p.execute()
+        return jsonify(values=values)
+
     try:
         trig, type = expr.split('-')
     except ValueError:

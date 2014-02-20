@@ -38,7 +38,28 @@ d3.select("#demo").selectAll(".horizon")
            "TOTAL-nhits","TOTAL-q","PULGT-nhits","PULGT-q"].map(stock))
   .enter().insert("div", ".bottom")
     .attr("class", "horizon")
-  .call(context.horizon().height({{ height }}));//.extent([0,{{ extent }}]));
+  .call(context.horizon().height({{ height }}));
+
+d3.select("#demo").selectAll("#gtid")
+    .data(["gtid"].map(stock))
+  .enter().insert("div", ".bottom")
+    .attr("id","gtid")
+    .attr("class", "horizon")
+  .call(context.horizon().height({{ height }}).format(d3.format('#0xx')).colors([]));
+
+d3.select("#demo").selectAll("#run")
+    .data(["run"].map(stock))
+  .enter().insert("div", ".bottom")
+    .attr("id","run")
+    .attr("class", "horizon")
+  .call(context.horizon().height({{ height }}).format(d3.format()).colors([]));
+
+d3.select("#demo").selectAll("#subrun")
+    .data(["subrun"].map(stock))
+  .enter().insert("div", ".bottom")
+    .attr("id","subrun")
+    .attr("class", "horizon")
+  .call(context.horizon().height({{ height }}).format(d3.format()).extent([0,100]));
 
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");

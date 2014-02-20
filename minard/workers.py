@@ -75,15 +75,26 @@ def dispatch_worker(host='surf.sno.laurentian.ca'):
 
             p = redis.pipeline()
             for t in [1,60,3600]:
+                uid = now//t
                 expires = now + t*100000
-                p.incr('time/{0:d}/{1:d}/trigger:TOTAL:count'.format(t,now//t))
-                p.expireat('time/{0:d}/{1:d}/trigger:TOTAL:count'.format(t,now//t),expires)
+                p.incr('time/{0:d}/{1:d}/trigger:TOTAL:count'.format(t,uid))
+                p.expireat('time/{0:d}/{1:d}/trigger:TOTAL:count'.format(t,uid),expires)
                 # nhit
-                p.incrby('time/{0:d}/{1:d}/trigger:TOTAL:nhits'.format(t,now//t),ev.nhits)
-                p.expireat('time/{0:d}/{1:d}/trigger:TOTAL:nhits'.format(t,now//t),expires)
+                p.incrby('time/{0:d}/{1:d}/trigger:TOTAL:nhits'.format(t,uid),ev.nhits)
+                p.expireat('time/{0:d}/{1:d}/trigger:TOTAL:nhits'.format(t,uid),expires)
                 # charge
-                p.incrbyfloat('time/{0:d}/{1:d}/trigger:TOTAL:q'.format(t,now//t),ev.totalQ)
-                p.expireat('time/{0:d}/{1:d}/trigger:TOTAL:q'.format(t,now//t),expires)
+                p.incrbyfloat('time/{0:d}/{1:d}/trigger:TOTAL:q'.format(t,uid),ev.totalQ)
+                p.expireat('time/{0:d}/{1:d}/trigger:TOTAL:q'.format(t,uid),expires)
+                # run
+                p.set('time/{0:d}/{1:d}/run'.format(t,uid),o.runID)
+                p.expireat('time/{0:d}/{1:d}/run'.format(t,uid),expires)
+                # subrun
+                p.set('time/{0:d}/{1:d}/subrun'.format(t,uid),o.subRunID)
+                p.expireat('time/{0:d}/{1:d}/subrun'.format(t,uid),expires)
+                # gtid
+                p.set('time/{0:d}/{1:d}/gtid'.format(t,uid),ev.eventID)
+                p.expireat('time/{0:d}/{1:d}/gtid'.format(t,uid),expires)
+
             p.execute()
 
             p = redis.pipeline()
@@ -91,15 +102,16 @@ def dispatch_worker(host='surf.sno.laurentian.ca'):
                 if ev.trigType & (1 << i):
                     name = TRIGGER_NAMES[i]
                     for t in [1,60,3600]:
+                        uid = now//t
                         expires = now + t*100000
-                        p.incr('time/{0:d}/{1:d}/trigger:{2}:count'.format(t,now//t,name))
-                        p.expireat('time/{0:d}/{1:d}/trigger:{2}:count'.format(t,now//t,name),expires)
+                        p.incr('time/{0:d}/{1:d}/trigger:{2}:count'.format(t,uid,name))
+                        p.expireat('time/{0:d}/{1:d}/trigger:{2}:count'.format(t,uid,name),expires)
                         # nhit
-                        p.incrby('time/{0:d}/{1:d}/trigger:{2}:nhits'.format(t,now//t,name),ev.nhits)
-                        p.expireat('time/{0:d}/{1:d}/trigger:{2}:nhits'.format(t,now//t,name),expires)
+                        p.incrby('time/{0:d}/{1:d}/trigger:{2}:nhits'.format(t,uid,name),ev.nhits)
+                        p.expireat('time/{0:d}/{1:d}/trigger:{2}:nhits'.format(t,uid,name),expires)
                         # charge
-                        p.incrbyfloat('time/{0:d}/{1:d}/trigger:{2}:q'.format(t,now//t,name),ev.totalQ)
-                        p.expireat('time/{0:d}/{1:d}/trigger:{2}:q'.format(t,now//t,name),expires)
+                        p.incrbyfloat('time/{0:d}/{1:d}/trigger:{2}:q'.format(t,uid,name),ev.totalQ)
+                        p.expireat('time/{0:d}/{1:d}/trigger:{2}:q'.format(t,uid,name),expires)
             p.execute()
             o.IsA().Destructor(o)
 
