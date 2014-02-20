@@ -34,7 +34,8 @@ d3.select("#demo").append("div")
     .call(context.rule());
 
 d3.select("#demo").selectAll(".horizon")
-    .data(["TOTAL","ESUMH","ESUML","PED","PULGT","MISS","100H",
+  .data(["TOTAL","ESUMH","ESUML","PED","PULGT","MISS","100H","100L",
+           "20","20LB","PONG","SYNC",
            "TOTAL-nhits","TOTAL-q","PULGT-nhits","PULGT-q"].map(stock))
   .enter().insert("div", ".bottom")
     .attr("class", "horizon")
