@@ -4,6 +4,20 @@
 {{ super() }}
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
 
+  <style>
+
+  .horizon .title,
+  .horizon .value {
+    bottom: 0;
+    line-height: {{ height }}px;
+    margin: 0 6px;
+    position: absolute;
+    text-shadow: 0 1px 0 rgba(255,255,255,.5);
+    white-space: nowrap;
+  }
+
+  </style>
+
   <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
   <script src="{{ url_for('static', filename='js/cubism.v1.js') }}"></script>
   <script src="{{ url_for('static', filename='js/metric.js') }}"></script>
@@ -33,11 +47,21 @@ d3.select("#demo").append("div")
     .attr("class", "rule")
     .call(context.rule());
 
+  var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB','ESUML','ESUMH',
+  'OWLN','OWLEL','OWLEH','PULGT','PRESCL', 'PED','PONG','SYNC','EXTA',
+  //'EXT2','EXT3','EXT4','EXT5','EXT6','EXT7',
+  'EXT8','SRAW','NCD', 'SOFGT','MISS']
+
 d3.select("#demo").selectAll(".horizon")
-  .data(["TOTAL","ESUMH","ESUML","PED","PULGT","MISS","100H","100L",
-           "20","20LB","PONG","SYNC",
-           "TOTAL-nhits","TOTAL-q","PULGT-nhits","PULGT-q"].map(stock))
+  .data(TRIGGER_NAMES.map(stock))
   .enter().insert("div", ".bottom")
+    .attr("class", "horizon")
+  .call(context.horizon().height({{ height }}));
+
+d3.select("#demo").selectAll("#nhit")
+  .data(["TOTAL-nhits","TOTAL-q","PULGT-nhits","PULGT-q"].map(stock))
+  .enter().insert("div", ".bottom")
+    .attr("id","nhit")
     .attr("class", "horizon")
   .call(context.horizon().height({{ height }}));
 

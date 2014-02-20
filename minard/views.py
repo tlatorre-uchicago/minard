@@ -188,8 +188,7 @@ def metric():
 @app.route('/snostream')
 def snostream():
     if not request.args.get('step'):
-        return redirect(url_for('snostream',step=1,height=40,extent=400,_external=True))
+        return redirect(url_for('snostream',step=1,height=20,_external=True))
     step = request.args.get('step',1,type=int)*1000
     height = request.args.get('height',40,type=int)
-    extent = request.args.get('extent',400,type=int)
-    return render_template('demo-stocks.html',step=step,height=height,extent=extent)
+    return render_template('demo-stocks.html',step=step,height=height)
