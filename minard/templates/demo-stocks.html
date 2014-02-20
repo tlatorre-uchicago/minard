@@ -35,7 +35,7 @@ d3.select("#demo").append("div")
 
 d3.select("#demo").selectAll(".horizon")
     .data(["TOTAL","ESUMH","ESUML","PED","PULGT","MISS","100H",
-           "TOTAL-nhits"].map(stock))
+           "TOTAL-nhits","TOTAL-q","PULGT-nhits","PULGT-q"].map(stock))
   .enter().insert("div", ".bottom")
     .attr("class", "horizon")
   .call(context.horizon().height({{ height }}));//.extent([0,{{ extent }}]));
