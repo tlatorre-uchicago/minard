@@ -141,15 +141,18 @@ def metric():
     expr = request.args.get('expr','',type=str)
     start = request.args.get('start','',type=str)
     stop = request.args.get('stop','',type=str)
+    now_client = request.args.get('now','',type=str)
     # convert ms -> sec
     step = request.args.get('step',None,type=int)//1000
 
     start = int(parse(start))
     stop = int(parse(stop))
+    now_client = int(parse(now_client))
 
     now = int(time.time())
 
-    dt = stop - now
+    # adjust for clock skew
+    dt = now_client - now
     start -= dt
     stop -= dt
 

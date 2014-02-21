@@ -107,6 +107,7 @@ function stock(name) {
             '?expr=' + name +
             '&start=' + start.toISOString() +
             '&stop=' + stop.toISOString() +
+            '&now=' + new Date().toISOString() +
             '&step=' + step, function(data) {
               if (!data) return callback(new Error('unable to load data'));
               return callback(null,data.values);
