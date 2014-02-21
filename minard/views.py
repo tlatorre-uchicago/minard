@@ -22,9 +22,13 @@ SECRET_KEY = "=S\t3w>zKIVy0n]b1h,<%|@EHBgfRJQ;A\rLC'[\x0blPF!` ai}/4W"
 
 app.config.from_object(__name__)
 
+@app.route('/l2_filter')
+def l2_filter():
+    return render_template('index.html')
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return redirect(url_for('snostream'))
 
 @app.route('/detector')
 def hero():
