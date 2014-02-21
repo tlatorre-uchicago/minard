@@ -62,7 +62,7 @@ def dispatch_worker(host='surf.sno.laurentian.ca'):
     dispatcher = ratzdab.dispatch(host)
 
     while True:
-        o = dispatcher.next(True)
+        o = dispatcher.next(False)
 
         if not o:
             time.sleep(0.01)
@@ -78,6 +78,7 @@ def dispatch_worker(host='surf.sno.laurentian.ca'):
             gtids = map(int,p.execute()[0])
 
             if ev.eventID in gtids:
+                o.IsA().Destructor(o)
                 continue
 
             trigger_word = ev.trigType
