@@ -74,7 +74,7 @@ def dispatch_worker(host='surf.sno.laurentian.ca'):
             p = redis.pipeline()
             p.lrange('gtids',0,-1)
             p.lpush('gtids',ev.eventID)
-            p.ltrim('gtids',0,10)
+            p.ltrim('gtids',0,100)
             gtids = map(int,p.execute()[0])
 
             if ev.eventID in gtids:
