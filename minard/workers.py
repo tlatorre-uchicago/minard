@@ -62,13 +62,24 @@ def dispatch_worker(host='surf.sno.laurentian.ca'):
     dispatcher = ratzdab.dispatch(host)
 
     while True:
-        o = dispatcher.next(False)
+        o = dispatcher.next(True)
 
         if not o:
+            time.sleep(0.01)
             continue
 
         if o.IsA() == ratzdab.ROOT.RAT.DS.Root.Class():
             ev = o.GetEV(0)
+
+            p = redis.pipeline()
+            p.lrange('gtids',0,-1)
+            p.lpush('gtids',ev.eventID)
+            p.ltrim('gtids',0,10)
+            gtids = map(int,p.execute()[0])
+
+            if ev.eventID in gtids:
+                continue
+
             trigger_word = ev.trigType
 
             now = int(time.time())
@@ -134,6 +145,7 @@ if __name__ == '__main__':
                  Process(target=orca_consumer,args=(5557,)),
                  Process(target=orca_consumer,args=(5558,)),
                  Process(target=orca_consumer,args=(5558,)),
+                 Process(target=dispatch_worker),
                  Process(target=dispatch_worker)]
 
     def start():
