@@ -34,6 +34,8 @@
 
 var size = $('#demo').width();
 var context = cubism.context()
+    .serverDelay(1e3)
+    .clientDelay(1e3)
     .step({{ step }})
     .size(size);
 
