@@ -7,9 +7,9 @@ VIRTUAL_ENV=/venv/minard/
 PIDFILE=/var/run/minard/minard.pid
 LOGFILE=/var/log/minard.log
 
-source $VIRTUAL_ENV/bin/activate
-
 . /etc/init.d/functions
+
+source $VIRTUAL_ENV/bin/activate
 
 case "$1" in
     start)
