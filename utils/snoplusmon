@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# chkconfig: 345 91 19
+# description: Minard daemon init script
+
+VIRTUAL_ENV=/venv/minard/
+PIDFILE=/var/run/minard/minard.pid
+LOGFILE=/var/log/minard.log
+
+source $VIRTUAL_ENV/bin/activate
+
+case "$1" in
+    start)
+        if [ -f $PIDFILE ]; then
+            echo "$PIDFILE exists, process is already running or crashed"
+        else
+            echo "Starting workers daemon..."
+            workers --pidfile=$PIDFILE
+        fi
+        ;;
+    stop)
+        if [ ! -f $PIDFILE ]; then
+            echo "$PIDFILE does not exist, process is not running"
+        else
+            PID = $(cat $PIDFILE)
+            echo "Stopping..."
+            kill $PID
+            while [ -x /proc/${PID} ]; do
+                echo "Waiting for workers to shutdown..."
+                sleep 1
+            done
+        fi
+        ;;
+    reload|restart)
+        $0 stop
+        $0 start
+        ;;
+    *)
+        echo "Usage: $0 start|stop|restart|reload"
+        exit 1
+esac
+exit 0

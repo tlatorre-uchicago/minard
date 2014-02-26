@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+from multiprocessing import Event, Process
+import time
+from minard.workers import tail_worker, orca_producer, orca_consumer, dispatch_worker
+import atexit
+
+def write_pidfile(filename, processes):
+    pid = [p.pid for p in processes]
+
+    with open(filename,'w') as f:
+        f.write('\n'.join(map(str,pid)))
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Run background workers for SNO+ Monitoring')
+    parser.add_argument('--pidfile')
+    args = parser.parse_args()
+
+    _stop = Event()
+
+    processes = [Process(target=tail_worker,args=(_stop,)),
+                 Process(target=orca_producer),
+                 Process(target=orca_consumer,args=(5557,)),
+                 Process(target=orca_consumer,args=(5557,)),
+                 Process(target=orca_consumer,args=(5558,)),
+                 Process(target=orca_consumer,args=(5558,)),
+                 Process(target=dispatch_worker),
+                 Process(target=dispatch_worker)]
+
+    @atexit.register
+    def stop():
+        _stop.set()
+        for process in processes:
+            process.terminate()
+
+    for process in processes:
+        process.start()
+
+    if args.pidfile:
+        write_pidfile(args.pidfile,processes)
+
+    while True:
+        for process in processes[:]:
+            if not process.is_alive():
+                processes.remove(process)
+                p = Process(target=process._target,args=process._args)
+                processes.append(p)
+                p.start()
+
+                if args.pidfile:
+                    write_pidfile(args.pidfile,processes)
+
+            time.sleep(60)
