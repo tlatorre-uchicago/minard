@@ -1,10 +1,15 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
-from dbinfo import user, passwd, host, name
+from minard import app
 import datetime
 
 # see http://flask.pocoo.org/docs/patterns/sqlalchemy/
+
+user = app.config['DBUSER']
+host = app.config['DBHOST']
+passwd = app.config['DBPASS']
+name = app.config['DBNAME']
 
 engine = create_engine('mysql://%s:%s@%s/%s' % (user,passwd,host,name), pool_recycle=60)
 db_session = scoped_session(sessionmaker(autocommit=False,autoflush=False,bind=engine))

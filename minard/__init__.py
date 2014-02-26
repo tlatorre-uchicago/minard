@@ -1,5 +1,4 @@
 from flask import Flask
-from minard.database import db_session
 
 class ReverseProxied(object):
     '''Wrap the application in this middleware and configure the 
@@ -34,8 +33,11 @@ class ReverseProxied(object):
             environ['wsgi.url_scheme'] = scheme
         return self.app(environ, start_response)
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='/var/www/minard/static', template_folder='/var/www/minard/templates')
 app.wsgi_app = ReverseProxied(app.wsgi_app)
+app.config.from_pyfile('/etc/minard/settings.cfg')
+
+from minard.database import db_session
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):

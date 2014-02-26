@@ -11,11 +11,11 @@ def write_pidfile(filename, processes):
         f.write('\n'.join(map(str,pid)))
 
 if __name__ == '__main__':
-    import argparse
+    import optparse
 
-    parser = argparse.ArgumentParser(description='Run background workers for SNO+ Monitoring')
-    parser.add_argument('--pidfile')
-    args = parser.parse_args()
+    parser = optparse.OptionParser(description='Run background workers for SNO+ Monitoring')
+    parser.add_option('--pidfile',dest='pidfile')
+    options, args = parser.parse_args()
 
     _stop = Event()
 
@@ -37,8 +37,8 @@ if __name__ == '__main__':
     for process in processes:
         process.start()
 
-    if args.pidfile:
-        write_pidfile(args.pidfile,processes)
+    if options.pidfile:
+        write_pidfile(options.pidfile,processes)
 
     while True:
         for process in processes[:]:
@@ -48,7 +48,7 @@ if __name__ == '__main__':
                 processes.append(p)
                 p.start()
 
-                if args.pidfile:
-                    write_pidfile(args.pidfile,processes)
+                if options.pidfile:
+                    write_pidfile(options.pidfile,processes)
 
             time.sleep(60)

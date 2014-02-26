@@ -10,7 +10,6 @@ import atexit
 import zmq
 from multiprocessing import Process
 import numpy as np
-from dbinfo import user, passwd, host, name
 from redis import Redis
 from functools import partial
 import time

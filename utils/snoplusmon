@@ -15,7 +15,7 @@ case "$1" in
             echo "$PIDFILE exists, process is already running or crashed"
         else
             echo "Starting workers daemon..."
-            workers --pidfile=$PIDFILE
+            workers --pidfile=$PIDFILE &> $LOGFILE &
         fi
         ;;
     stop)
