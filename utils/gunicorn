@@ -17,14 +17,14 @@ case "$1" in
             echo "$PIDFILE exists, process is already running or crashed"
         else
             echo "Starting Gunicorn daemon..."
-            gunicorn -w 4 -b 0.0.0.0:50000 --access-logfile=$ACCESS_LOGFILE --error-logfile=$ERROR_LOGFILE $APP -D
+            gunicorn -w 4 -b 0.0.0.0:50000 --access-logfile=$ACCESS_LOGFILE --error-logfile=$ERROR_LOGFILE $APP -D --pid=$PIDFILE
         fi
         ;;
     stop)
         if [ ! -f $PIDFILE ]; then
             echo "$PIDFILE does not exist, process is not running"
         else
-            PID = $(cat $PIDFILE)
+            PID=$(cat $PIDFILE)
             echo "Stopping..."
             kill $PID
             while [ -x /proc/${PID} ]; do

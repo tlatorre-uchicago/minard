@@ -13,9 +13,10 @@ setup(name='minard',
       data_files = [# init scripts
                     ('/etc/init.d', ['utils/gunicorn','utils/snoplusmon']),
                     # static files
-                    ('/var/www/minard/static/css',   glob('minard/static/css/*')),
-                    ('/var/www/minard/static/js',    glob('minard/static/js/*')),
-                    ('/var/www/minard/static/fonts', glob('minard/static/fonts/*')),
-                    ('/var/www/minard/templates',    glob('minard/templates/*'))],
+                    ('/var/www/minard/static/css',    glob('minard/static/css/*')),
+                    ('/var/www/minard/static/js',     glob('minard/static/js/*')),
+                    ('/var/www/minard/static/fonts',  glob('minard/static/fonts/*')),
+                    ('/var/www/minard/static/images', glob('minard/static/images/*')),
+                    ('/var/www/minard/templates',     glob('minard/templates/*'))],
       install_requires=['flask','gunicorn','sqlalchemy','numpy','pyzmq','redis']
       )

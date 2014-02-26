@@ -37,7 +37,6 @@ def tail_worker(stop):
     while not stop.is_set():
         try:
             line = q.get(timeout=1.0)
-            print line
         except Empty:
             continue
         else:
