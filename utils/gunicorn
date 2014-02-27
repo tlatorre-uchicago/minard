@@ -1,15 +1,15 @@
-#!/bin/bash
+#!/bin/sh
 #
 # chkconfig: 345 91 19
 # description: Gunicorn daemon init script
 
-VIRTUAL_ENV=/venv/minard/
-PIDFILE=/var/run/minard/gunicorn.pid
+CMD=/venv/minard/bin/gunicorn
+PIDFILE=/var/run/gunicorn.pid
+LOGFILE=/var/log/gunicorn.error.log
 ACCESS_LOGFILE=/var/log/gunicorn.access.log
-ERROR_LOGFILE=/var/log/gunicorn.error.log
 APP=minard:app
 
-source $VIRTUAL_ENV/bin/activate
+. /etc/init.d/functions
 
 case "$1" in
     start)
@@ -17,7 +17,9 @@ case "$1" in
             echo "$PIDFILE exists, process is already running or crashed"
         else
             echo "Starting Gunicorn daemon..."
-            gunicorn -w 4 -b 0.0.0.0:50000 --access-logfile=$ACCESS_LOGFILE --error-logfile=$ERROR_LOGFILE $APP -D --pid=$PIDFILE
+            $CMD -u nobody -w 4 -b 0.0.0.0:50000 $APP -D \
+                --access-logfile=$ACCESS_LOGFILE --error-logfile=$LOGFILE \
+                --pid=$PIDFILE
         fi
         ;;
     stop)
