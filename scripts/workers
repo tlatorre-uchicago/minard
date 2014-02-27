@@ -4,18 +4,17 @@ import time
 from minard.workers import tail_worker, orca_producer, orca_consumer, dispatch_worker
 import atexit
 
-def write_pidfile(filename, processes):
-    pid = [p.pid for p in processes]
-
-    with open(filename,'w') as f:
-        f.write('\n'.join(map(str,pid)))
-
 if __name__ == '__main__':
     import optparse
+    import os
 
     parser = optparse.OptionParser(description='Run background workers for SNO+ Monitoring')
     parser.add_option('--pidfile',dest='pidfile')
     options, args = parser.parse_args()
+
+    if options.pidfile:
+        with open(options.pidfile,'w') as f:
+            f.write(str(os.getpid()))
 
     _stop = Event()
 
@@ -30,15 +29,15 @@ if __name__ == '__main__':
 
     @atexit.register
     def stop():
+        if options.pidfile:
+            os.remove(options.pidfile)
+
         _stop.set()
         for process in processes:
             process.terminate()
 
     for process in processes:
         process.start()
-
-    if options.pidfile:
-        write_pidfile(options.pidfile,processes)
 
     while True:
         for process in processes[:]:
@@ -47,8 +46,5 @@ if __name__ == '__main__':
                 p = Process(target=process._target,args=process._args)
                 processes.append(p)
                 p.start()
-
-                if options.pidfile:
-                    write_pidfile(options.pidfile,processes)
 
             time.sleep(60)

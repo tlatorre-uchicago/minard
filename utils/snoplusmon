@@ -25,7 +25,7 @@ case "$1" in
             echo "$PIDFILE does not exist, process is not running"
         else
             echo "Stopping..."
-            killproc -p $PIDFILE
+            killproc -p $PIDFILE -d 5
             echo "Waiting for workers to shutdown..."
             sleep 1
         fi

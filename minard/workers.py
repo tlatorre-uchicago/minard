@@ -9,12 +9,11 @@ import time
 import os
 import atexit
 from orca import orca_consumer, orca_producer
+from minard import app
 
 redis = Redis()
 
 ON_POSIX = 'posix' in sys.builtin_module_names
-
-home = os.environ['HOME']
 
 def enqueue_output(out, queue):
     """Put output in a queue for non-blocking reads."""
@@ -25,7 +24,7 @@ def enqueue_output(out, queue):
 def tail_worker(stop):
     user = 'snotdaq'
     host = 'snoplusbuilder1.snolab.ca'
-    ssh_key = '%s/.ssh/id_rsa_builder' % home
+    ssh_key = app.config['BUILDER_KEY']
     cmd = shlex.split('ssh -i %s %s@%s tail_log_ssh data_temp' % (ssh_key,user,host))
     p = Popen(cmd, stdout=PIPE,stderr=PIPE, bufsize=1, close_fds=ON_POSIX)
 
