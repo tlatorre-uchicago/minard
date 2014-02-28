@@ -2,55 +2,7 @@
 {% block title %}Home{% endblock %}
 {% block head %}
     {{ super() }}
-    <style>
-
-    .bar {
-        fill: steelblue;
-    }
-
-    .axis text {
-        font: 10px sans-serif;
-    }
-
-    .axis path, .axis line {
-        fill: none;
-        stroke: #000;
-        shape-rendering: crispEdges;
-    }
-
-    .x.label {
-        font: 14px sans-serif;
-    }
-
-    .x.axis line {
-        shape-rendering: auto;
-    }
-
-    .line {
-      fill: none;
-      stroke: #000;
-      stroke-width: 1.5px;
-    }
-
-    .axis path, .axis line {
-        fill: none;
-        stroke: #000;
-        shape-rendering: crispEdges;
-    }
-
-    .area {
-        fill: #31a354;
-        stroke: #000;
-        stroke-width: 0;
-        opacity: 0.25;
-    }
-
-    .title {
-        line-height: 30px;
-    }
-
-    </style>
-
+    <link href="{{ url_for('static', filename='css/bar-chart.css') }}" rel="stylesheet">
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bar-chart.js') }}"></script>
     <script src="{{ url_for('static', filename='js/time-series.js') }}"></script>
@@ -181,7 +133,7 @@
 	    for (key in info)
 	    	$('#' + key).text(info[key]);
 
-            $.getJSON($SCRIPT_ROOT + '/query', {'name': 'nhit', 'id': id}, function(reply) {
+            $.getJSON($SCRIPT_ROOT + '/query', {'name': 'nhit_l2', 'id': id}, function(reply) {
                 result = reply.value;
                 d3.select('#nhit').datum(result).call(chart1);
             });

@@ -60,6 +60,18 @@ CHANNELS = [crate << 16 | card << 8 | channel \
 def query():
     name = request.args.get('name','',type=str)
 
+    if name == 'nhit':
+        start = request.args.get('start','',type=str)
+        start = int(parse(start))
+
+        now = int(time.time())
+
+        p = redis.pipeline()
+        for i in range(start,now):
+            p.lrange('time/{0:d}/nhit'.format(i),0,-1)
+        nhit = sum(p.execute(),[])
+        return jsonify(value=nhit)
+
     if name == 'tail_log':
         start = request.args.get('id',None,type=int)
         stop = int(redis.get('builder/global:next'))
@@ -89,7 +101,7 @@ def query():
 
         return jsonify(value=dict(info))
 
-    if name == 'nhit':
+    if name == 'nhit_l2':
         latest = Nhit.latest()
         hist = [getattr(latest,'nhit%i' % i) for i in range(30)]
         bins = range(5,300,10)
@@ -200,3 +212,7 @@ def snostream():
     step = request.args.get('step',1,type=int)*1000
     height = request.args.get('height',40,type=int)
     return render_template('demo-stocks.html',step=step,height=height)
+
+@app.route('/nhit')
+def nhit():
+  return render_template('nhit.html')

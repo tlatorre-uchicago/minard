@@ -47,7 +47,13 @@ def dispatch_worker(host='surf.sno.laurentian.ca'):
 
             now = int(time.time())
 
+
             p = redis.pipeline()
+
+            # nhit distribution
+            p.lpush('time/{0:d}/nhit'.format(now),ev.nhits)
+            p.expireat('time/{0:d}/nhit'.format(now),now + 3600)
+
             for t in [1,60,3600]:
                 uid = now//t
                 expires = now + t*100000

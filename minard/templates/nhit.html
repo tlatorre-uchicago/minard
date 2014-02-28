@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block title %}NHit{% endblock %}
+{% block head %}
+  {{ super() }}
+  <link href="{{ url_for('static', filename='css/bar-chart.css') }}" rel="stylesheet">
+  <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/bar-chart.js') }}"></script>
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6" id="test1">
+        <h2>NHit (60 seconds)</h2>
+      </div>
+      <div class="col-md-6" id="test2">
+        <h2>NHit (10 seconds)</h2>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12" id="test3">
+        <h2>NHit (hour)</h2>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var hist = d3.layout.histogram().bins(d3.range(0,100,2));
+    var chart = bar_chart().layout(hist).xlabel('NHit').margin({'left': 50});
+
+    function add_chart(selector, start, interval) {
+      function update_chart(reply) {
+        d3.select(selector).datum(reply.value).call(chart);
+      }
+      function get_json() {
+        $.getJSON($SCRIPT_ROOT + '/query', {'name': 'nhit', 'start': (new Date(Date.now()-1000*start)).toISOString()}, function(reply) {
+          update_chart(reply); });
+      }
+      get_json();
+      setInterval(get_json,interval*1000);
+    }
+  //update();
+  //setInterval(update,10*1000);
+  add_chart('#test1',60,10);
+  add_chart('#test2',10,1);
+  add_chart('#test3',3600,60);
+  </script>
+{% endblock %}
