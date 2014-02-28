@@ -4,12 +4,15 @@ if __name__ == '__main__':
     import argparse
     from minard.orca import orca_consumer
     from multiprocessing import Process
+    from minard.utils import pkill
 
     parser = argparse.ArgumentParser('ORCA stream producer')
     parser.add_argument('-w',default=2,type=int,help='number of workers')
     parser.add_argument('--host',default='snoplusdaq1.snolab.ca')
     parser.add_argument('--port',default=44666,type=int)
     args = parser.parse_args()
+
+    pkill('orca_consumer')
 
     workers = []
     for i in range(args.w):

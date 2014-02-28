@@ -5,6 +5,7 @@ from subprocess import call
 
 if __name__ == '__main__':
     import argparse
+    from minard.utils import pkill
 
     parser = argparse.ArgumentParser('Process events from a dispatch stream')
     parser.add_argument('--host',default='surf.sno.laurentian.ca',
@@ -12,7 +13,7 @@ if __name__ == '__main__':
     parser.add_argument('-w',default=2,type=int,help='number of workers')
     args = parser.parse_args()
 
-    call(['killall','minard_dispatch'])
+    pkill('minard_dispatch')
 
     workers = []
     for i in range(args.w):
