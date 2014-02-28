@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+import sys
+from subprocess import Popen, PIPE
+import shlex
+from minard import app
+import atexit
+from redis import Redis
+import time
+
+redis = Redis()
+
+def tail_worker():
+    user = 'snotdaq'
+    host = 'snoplusbuilder1.snolab.ca'
+    ssh_key = app.config['BUILDER_KEY']
+    cmd = 'ssh -i %s -o StrictHostKeyChecking=no %s@%s tail_log_ssh data_temp' % (ssh_key,user,host)
+    p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
+
+    @atexit.register
+    def stop():
+        p.kill()
+        p.wait()
+
+    while True:
+        line = p.stdout.readline()
+
+        i = redis.incr('builder/global:next')
+        expire = int(time.time() + 10*60)
+        redis.set('builder/uid:%i:msg' % i,line)
+        redis.expireat('builder/uid:%i:msg' % i,expire)
+
+        if not line:
+            break
+
+if __name__ == '__main__':
+    from subprocess import call
+
+    call(['killall','minard_builder'])
+
+    tail_worker()

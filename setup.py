@@ -18,5 +18,5 @@ setup(name='minard',
                     ('/var/www/minard/static/fonts',  glob('minard/static/fonts/*')),
                     ('/var/www/minard/static/images', glob('minard/static/images/*')),
                     ('/var/www/minard/templates',     glob('minard/templates/*'))],
-      install_requires=['flask','gunicorn','sqlalchemy','numpy','pyzmq','redis']
+      install_requires=['flask','gunicorn','sqlalchemy','numpy','pyzmq','redis','argparse']
       )

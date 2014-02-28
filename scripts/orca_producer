@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+
+if __name__ == '__main__':
+    import argparse
+    from minard.orca import orca_producer
+
+    parser = argparse.ArgumentParser('ORCA stream producer')
+    parser.add_argument('--host',default='snoplusdaq1.snolab.ca')
+    parser.add_argument('--port',default=44666,type=int)
+    args = parser.parse_args()
+
+    orca_producer(args.host,args.port)

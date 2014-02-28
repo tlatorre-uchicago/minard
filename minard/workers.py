@@ -13,42 +13,6 @@ from minard import app
 
 redis = Redis()
 
-ON_POSIX = 'posix' in sys.builtin_module_names
-
-def enqueue_output(out, queue):
-    """Put output in a queue for non-blocking reads."""
-    for line in iter(out.readline, b''):
-        queue.put(line)
-    out.close()
-
-def tail_worker(stop):
-    user = 'snotdaq'
-    host = 'snoplusbuilder1.snolab.ca'
-    ssh_key = app.config['BUILDER_KEY']
-    cmd = shlex.split('ssh -i %s %s@%s tail_log_ssh data_temp' % (ssh_key,user,host))
-    p = Popen(cmd, stdout=PIPE,stderr=PIPE, bufsize=1, close_fds=ON_POSIX)
-
-    q = Queue()
-    t = Thread(target=enqueue_output, args=(p.stdout,q))
-    t.daemon = True
-    t.start()
-
-    while not stop.is_set():
-        try:
-            line = q.get(timeout=1.0)
-        except Empty:
-            continue
-        else:
-            i = redis.incr('builder/global:next')
-            expire = int(time.time() + 10*60)
-            redis.set('builder/uid:%i:msg' % i,line)
-            redis.expireat('builder/uid:%i:msg' % i,expire)
-            if not line:
-                break
-
-    p.kill()
-    p.wait()
-
 TRIGGER_NAMES = \
 ['100L','100M','100H','20','20LB','ESUML','ESUMH','OWLN','OWLEL','OWLEH','PULGT','PRESCL',
  'PED','PONG','SYNC','EXTA','EXT2','EXT3','EXT4','EXT5','EXT6','EXT7','EXT8','SRAW','NCD',
