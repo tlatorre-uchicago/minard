@@ -9,7 +9,7 @@ setup(name='minard',
       author_email='tlatorre@uchicago.edu',
       url='snopl.us',
       packages=['minard'],
-      scripts=['scripts/workers'],
+      scripts=glob('scripts/*'),
       data_files = [# static files
                     ('/var/www/minard/static/css',    glob('minard/static/css/*')),
                     ('/var/www/minard/static/js',     glob('minard/static/js/*')),
