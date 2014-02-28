@@ -10,9 +10,7 @@ setup(name='minard',
       url='snopl.us',
       packages=['minard'],
       scripts=['scripts/workers'],
-      data_files = [# init scripts
-                    ('/etc/init.d', ['utils/gunicorn','utils/snoplusmon']),
-                    # static files
+      data_files = [# static files
                     ('/var/www/minard/static/css',    glob('minard/static/css/*')),
                     ('/var/www/minard/static/js',     glob('minard/static/js/*')),
                     ('/var/www/minard/static/fonts',  glob('minard/static/fonts/*')),
