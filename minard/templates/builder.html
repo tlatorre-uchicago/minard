@@ -15,7 +15,7 @@ font-size: 10pt;
 </div>
 
 <script>
-var id = 0;
+var id = null;
 
 function get_poll() {
   return $.getJSON($SCRIPT_ROOT + '/query', {name: 'tail_log', 'id': id});

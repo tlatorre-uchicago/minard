@@ -61,11 +61,12 @@ def query():
     name = request.args.get('name','',type=str)
 
     if name == 'tail_log':
-        start = request.args.get('id',0,type=int)
+        start = request.args.get('id',None,type=int)
         stop = int(redis.get('builder/global:next'))
-        if start > stop:
-            # server restart
-            start = 0
+
+        if start is None or start > stop:
+            start = stop - 10
+
         p = redis.pipeline()
         for i in range(start,stop):
             p.get('builder/uid:%i:msg' % i)
