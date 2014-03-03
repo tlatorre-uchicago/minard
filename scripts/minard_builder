@@ -9,9 +9,6 @@ import time
 redis = Redis()
 
 def tail_worker(user, host, ssh_key):
-    user = 'snotdaq'
-    host = 'snoplusbuilder1.snolab.ca'
-    ssh_key = app.config['BUILDER_KEY']
     cmd = 'ssh -i %s -o StrictHostKeyChecking=no %s@%s tail_log_ssh data_temp' % (ssh_key,user,host)
     p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
 
