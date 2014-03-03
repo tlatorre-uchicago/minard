@@ -55,7 +55,8 @@ def dispatch_worker(host):
             # unix timestamp
             now = int(time.time())
 
-            if not redis.zadd('gtids',ev.eventID,-now):
+            event_key = '{0:d}:{1:d}'.format(o.runID,ev.eventID)
+            if not redis.zadd('gtids',event_key,-now):
                 # event is already processed
                 o.IsA().Destructor(o)
                 continue
