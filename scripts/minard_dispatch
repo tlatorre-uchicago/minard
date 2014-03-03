@@ -110,8 +110,8 @@ def dispatch_worker(host):
                         p.incrby(key.format(t,id,name + ':nhit'),ev.nhits)
                         p.expire(key.format(t,id,name + ':nhit'),expire)
                         # charge
-                        p.incrbyfloat(key.format(t,uid,name + ':charge'),ev.totalQ)
-                        p.expire(key.format(t,uid,name + ':charge'),expire)
+                        p.incrbyfloat(key.format(t,id,name + ':charge'),ev.totalQ)
+                        p.expire(key.format(t,id,name + ':charge'),expire)
 
             p.execute()
             # need to call the destructor explicitly because PyROOT memory
@@ -130,7 +130,7 @@ if __name__ == '__main__':
 
     workers = []
     for i in range(args.w):
-        p = Process(target=dispatch_worker)
+        p = Process(target=dispatch_worker, args=(args.host,))
         p.start()
         workers.append(p)
 
