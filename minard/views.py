@@ -81,7 +81,7 @@ def query():
 
         p = redis.pipeline()
         for i in range(start,stop):
-            p.get('builder/uid:%i:msg' % i)
+            p.get('builder/id:%i:msg' % i)
         value = map(lambda x: x if x is not None else '',p.execute())
         return jsonify(value=value,id=stop)
 
