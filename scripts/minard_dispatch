@@ -1,19 +1,132 @@
 #!/usr/bin/env python
-from multiprocessing import Process
-from minard.workers import dispatch_worker
-from subprocess import call
+import time
+from redis import Redis
+
+redis = Redis()
+
+# triggers, note: the order here is important!
+# the position of the trigger in the list corresponds to the bit in the
+# trigger word.
+# http://snopl.us/docs/rat/user_manual/html/node43.html
+TRIGGER_NAMES = \
+['100L',
+ '100M',
+ '100H',
+ '20',
+ '20LB',
+ 'ESUML',
+ 'ESUMH',
+ 'OWLN',
+ 'OWLEL',
+ 'OWLEH',
+ 'PULGT',
+ 'PRESCL',
+ 'PED',
+ 'PONG',
+ 'SYNC',
+ 'EXTA',
+ 'EXT2',
+ 'EXT3',
+ 'EXT4',
+ 'EXT5',
+ 'EXT6',
+ 'EXT7',
+ 'EXT8',
+ 'SRAW',
+ 'NCD',
+ 'SOFGT',
+ 'MISS']
+
+def dispatch_worker(host):
+    import ratzdab
+
+    dispatcher = ratzdab.dispatch(host)
+
+    while True:
+        o = dispatcher.next(False)
+
+        if not o:
+            time.sleep(0.01)
+            continue
+
+        if o.IsA() == ratzdab.ROOT.RAT.DS.Root.Class():
+            ev = o.GetEV(0)
+
+            # unix timestamp
+            now = int(time.time())
+
+            if not redis.zadd('gtids',ev.eventID,now):
+                # event is already processed
+                o.IsA().Destructor(o)
+                continue
+
+            # trim gtid list to 100 elements
+            redis.zremrangebyrank('gtids',100,-1)
+
+            trigger_word = ev.trigType
+
+            # for docs on redis pipeline see http://redis.io/topics/pipelining
+            p = redis.pipeline()
+
+            # nhit distribution
+            # see http://flask.pocoo.org/snippets/71/ for this design pattern
+            p.lpush('events/id:{0:d}:name:nhit'.format(now),ev.nhits)
+            p.expire('events/id:{0:d}:name:nhit'.format(now),3600)
+
+            # int:{interval}:id:{timestamp}:name:{name}
+            key = 'stream/int:{0:d}:id:{1:d}:name:{2:s}'
+            for t in [1,60,3600]:
+                id = now//t
+                # expire in 100,000*[time interval]
+                expire = t*100000
+                # total trigger count
+                p.incr(key.format(t,id,'TOTAL'))
+                p.expire(key.format(t,id,'TOTAL'),expire)
+                # nhit
+                p.incrby(key.format(t,id,'TOTAL:nhit'),ev.nhits)
+                p.expire(key.format(t,id,'TOTAL:nhit'),expire)
+                # charge
+                p.incrbyfloat(key.format(t,id,'TOTAL:charge'),ev.totalQ)
+                p.expire(key.format(t,id,'TOTAL:charge'),expire)
+                # run
+                p.set(key.format(t,id,'run'),o.runID)
+                p.expire(key.format(t,id,'run'),expire)
+                # subrun
+                p.set(key.format(t,id,'subrun'),o.subRunID)
+                p.expire(key.format(t,id,'subrun'),expire)
+                # gtid
+                p.set(key.format(t,id,'gtid'),ev.eventID)
+                p.expire(key.format(t,id,'gtid'),expire)
+
+            for i, name in enumerate(TRIGGER_NAMES):
+                if ev.trigType & (1 << i):
+                    for t in [1,60,3600]:
+                        id = now//t
+                        expire = t*100000
+                        # trigger rate
+                        p.incr(key.format(t,id,name))
+                        p.expire(key.format(t,id,name),expire)
+                        # nhit
+                        p.incrby(key.format(t,id,name + ':nhit'),ev.nhits)
+                        p.expire(key.format(t,id,name + ':nhit'),expire)
+                        # charge
+                        p.incrbyfloat(key.format(t,uid,name + ':charge'),ev.totalQ)
+                        p.expire(key.format(t,uid,name + ':charge'),expire)
+
+            p.execute()
+            # need to call the destructor explicitly because PyROOT memory
+            # management is weird. See http://wlav.web.cern.ch/wlav/pyroot/memory.html
+            o.IsA().Destructor(o)
 
 if __name__ == '__main__':
     import argparse
-    from minard.utils import pkill
+    from multiprocessing import Process
 
-    parser = argparse.ArgumentParser('Process events from a dispatch stream')
+    parser = argparse.ArgumentParser(description='Process SNO+ events from a dispatch stream')
     parser.add_argument('--host',default='surf.sno.laurentian.ca',
-                        help='dispatch host')
-    parser.add_argument('-w',default=2,type=int,help='number of workers')
+                        help='hostname of the dispatcher')
+    parser.add_argument('-w', default=2, type=int, help='number of workers')
     args = parser.parse_args()
-
-    pkill('minard_dispatch')
 
     workers = []
     for i in range(args.w):
