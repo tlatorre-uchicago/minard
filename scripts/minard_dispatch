@@ -55,13 +55,13 @@ def dispatch_worker(host):
             # unix timestamp
             now = int(time.time())
 
-            if not redis.zadd('gtids',ev.eventID,now):
+            if not redis.zadd('gtids',ev.eventID,-now):
                 # event is already processed
                 o.IsA().Destructor(o)
                 continue
 
-            # trim gtid list to 100 elements
-            redis.zremrangebyrank('gtids',100,-1)
+            # trim gtid list to 100,000 elements
+            redis.zremrangebyrank('gtids',100000,-1)
 
             trigger_word = ev.trigType
 
