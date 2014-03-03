@@ -179,7 +179,7 @@ def metric():
     if expr in ('gtid', 'run', 'subrun'):
         p = redis.pipeline()
         for i in range(start,stop,step):
-            p.get('time/{0:d}/{1:d}/{2}'.format(t,i//t,expr))
+            p.get('stream/int:{0:d}:id:{1:d}:name:{2}'.format(t,i//t,expr))
         values = p.execute()
         return jsonify(values=values)
 
@@ -187,17 +187,20 @@ def metric():
         trig, type = expr.split('-')
     except ValueError:
         trig = expr
-        type = 'count'
+        type = None
 
     p = redis.pipeline()
     for i in range(start,stop,step):
-        p.get('time/{0:d}/{1:d}/trigger:{2}:{3}'.format(t,i//t,trig,type))
+        if type is None:
+            p.get('stream/int:{0:d}:id:{1:d}:name:{2}'.format(t,i//t,trig))
+        else:
+            p.get('stream/int:{0:d}:id:{1:d}:name:{2}:{3}'.format(t,i//t,trig,type))
     values = p.execute()
 
-    if type != 'count':
+    if type is not None:
         p = redis.pipeline()
         for i in range(start,stop,step):
-            p.get('time/{0:d}/{1:d}/trigger:{2}:{3}'.format(t,i//t,trig,'count'))
+            p.get('stream/int:{0:d}:id:{1:d}:name:{2}'.format(t,i//t,trig))
         counts = p.execute()
         values = [float(a)/int(b) if a or b else 0 for a, b in zip(values,counts)]
     else:

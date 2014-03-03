@@ -70,7 +70,7 @@ d3.select("#demo").selectAll(".horizon")
   .call(context.horizon().height({{ height }}).format(my_format));
 
 d3.select("#demo").selectAll("#nhit")
-  .data(["TOTAL-nhits","TOTAL-q","PULGT-nhits","PULGT-q"].map(stock))
+  .data(["TOTAL-nhit","TOTAL-charge","PULGT-nhit","PULGT-charge"].map(stock))
   .enter().insert("div", ".bottom")
     .attr("id","nhit")
     .attr("class", "horizon")
