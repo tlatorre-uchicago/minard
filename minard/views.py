@@ -1,7 +1,6 @@
 from __future__ import division
 from minard import app
 from flask import render_template, jsonify, request, redirect, url_for
-from minard.orca import total_seconds, redis
 from sqlalchemy.sql import select
 from minard.database import init_db, db_session
 from minard.models import *
@@ -9,29 +8,41 @@ from datetime import datetime, timedelta
 from itertools import product
 import time
 import calendar
+from redis import Redis
 
-def parse(timestr):
+redis = Redis()
+
+def total_seconds(td):
+    """Returns the total number of seconds contained in the duration."""
+    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
+def parseiso(timestr):
+    """Convert an iso time string -> unix timestamp."""
     dt = datetime.strptime(timestr,'%Y-%m-%dT%H:%M:%S.%fZ')
     return calendar.timegm(dt.timetuple())
-
-init_db()
-
-PROJECT_NAME = 'Minard'
-DEBUG = True
-SECRET_KEY = "=S\t3w>zKIVy0n]b1h,<%|@EHBgfRJQ;A\rLC'[\x0blPF!` ai}/4W"
-
-app.config.from_object(__name__)
-
-@app.route('/l2_filter')
-def l2_filter():
-    return render_template('index.html')
 
 @app.route('/')
 def index():
     return redirect(url_for('snostream'))
 
+@app.route('/snostream')
+def snostream():
+    if not request.args.get('step'):
+        return redirect(url_for('snostream',step=1,height=20,_external=True))
+    step = request.args.get('step',1,type=int)*1000
+    height = request.args.get('height',40,type=int)
+    return render_template('snostream.html',step=step,height=height)
+
+@app.route('/nhit')
+def nhit():
+  return render_template('nhit.html')
+
+@app.route('/l2_filter')
+def l2_filter():
+    return render_template('l2_filter.html')
+
 @app.route('/detector')
-def hero():
+def detector():
     return render_template('detector.html')
 
 @app.route('/daq/<name>')
@@ -40,10 +51,6 @@ def channels(name):
         return render_template('channels.html',name=name, threshold=5000)
     elif name == 'base':
         return render_template('channels.html',name=name, threshold=80)
-
-@app.route('/stream')
-def stream():
-    return render_template('stream.html')
 
 @app.route('/alarms')
 def alarms():
@@ -61,8 +68,7 @@ def query():
     name = request.args.get('name','',type=str)
 
     if name == 'nhit':
-        start = request.args.get('start','',type=str)
-        start = int(parse(start))
+        start = request.args.get('start',type=parseiso)
 
         now = int(time.time())
 
@@ -147,20 +153,16 @@ def query():
         alarms = db_session.query(Alarms)
         return jsonify(messages=[dict(x) for x in alarms])
 
-import sys
-
 @app.route('/metric/')
 def metric():
-    expr = request.args.get('expr','',type=str)
-    start = request.args.get('start','',type=str)
-    stop = request.args.get('stop','',type=str)
-    now_client = request.args.get('now','',type=str)
-    # convert ms -> sec
-    step = request.args.get('step',None,type=int)//1000
+    args = request.args
 
-    start = int(parse(start))
-    stop = int(parse(stop))
-    now_client = int(parse(now_client))
+    expr = args.get('expr',type=str)
+    start = args.get('start',type=parseiso)
+    stop = args.get('stop',type=parseiso)
+    now_client = args.get('now',type=parseiso)
+    # convert ms -> sec
+    step = args.get('step',type=int)//1000
 
     now = int(time.time())
 
@@ -208,14 +210,3 @@ def metric():
 
     return jsonify(values=values)
 
-@app.route('/snostream')
-def snostream():
-    if not request.args.get('step'):
-        return redirect(url_for('snostream',step=1,height=20,_external=True))
-    step = request.args.get('step',1,type=int)*1000
-    height = request.args.get('height',40,type=int)
-    return render_template('demo-stocks.html',step=step,height=height)
-
-@app.route('/nhit')
-def nhit():
-  return render_template('nhit.html')
