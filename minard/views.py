@@ -60,7 +60,7 @@ def alarms():
 def builder():
     return render_template('builder.html')
 
-CHANNELS = [crate << 16 | card << 8 | channel \
+CHANNELS = [crate << 9 | card << 5 | channel \
             for crate, card, channel in product(range(19),range(16),range(32))]
 
 @app.route('/query')
@@ -74,7 +74,7 @@ def query():
 
         p = redis.pipeline()
         for i in range(start,now):
-            p.lrange('time/{0:d}/nhit'.format(i),0,-1)
+            p.lrange('events/id:{0:d}:name:nhit'.format(i),0,-1)
         nhit = sum(p.execute(),[])
         return jsonify(value=nhit)
 
@@ -92,10 +92,21 @@ def query():
         return jsonify(value=value,id=stop)
 
     if name == 'sphere':
-    	latest = PMT.latest()
-	id, charge_occupancy = zip(*db_session.query(PMT.pmtid, PMT.chargeocc)\
-            .filter(PMT.id == latest.id).filter(PMT.chargeocc != 0).all())
-        return jsonify(id=id, values2=charge_occupancy)
+        now = int(time.time())
+
+        occ = []
+        p = redis.pipeline()
+        for channel in CHANNELS:
+            #for i in range(now-60,now):
+            p.get('events/id:{0:d}:channel:{1:d}'.format(now//60-1,channel))
+            #values = [int(n) if n else 0 for n in p.execute()]
+            #occ.append(sum(values))
+        occ = p.execute()
+
+    	#latest = PMT.latest()
+	#id, charge_occupancy = zip(*db_session.query(PMT.pmtid, PMT.chargeocc)\
+            #.filter(PMT.id == latest.id).filter(PMT.chargeocc != 0).all())
+        return jsonify(values=occ)#id=CHANNELS, values2=occ)#charge_occupancy)
 
     if name == 'l2_info':
         id = request.args.get('id',None,type=str)

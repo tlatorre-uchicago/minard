@@ -69,6 +69,11 @@ def dispatch_worker(host):
             # for docs on redis pipeline see http://redis.io/topics/pipelining
             p = redis.pipeline()
 
+            for pmt in ev.pmtUnCal:
+                key = 'events/id:{0:d}:channel:{1:d}'
+                p.incr(key.format(now//60,pmt.id))
+                p.expire(key.format(now//60,pmt.id),600)
+
             # nhit distribution
             # see http://flask.pocoo.org/snippets/71/ for this design pattern
             p.lpush('events/id:{0:d}:name:nhit'.format(now),ev.nhits)

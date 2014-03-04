@@ -25,6 +25,25 @@
     stroke: #fff;
     stroke-width: .5px;
 }
+
+#card table tr td {
+    font-size: 10px;
+    text-align: right;
+    width: 25px;
+    height: 18px;
+}
+
+#crate table tr td {
+    padding:2px;
+}
+
+.card-label-row {
+  padding-right: 5px;
+}
+
+.card-label-col {
+  text-align:center !important;
+}
 </style>
 {% endblock %}
 
@@ -37,6 +56,7 @@
 <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
 <script src="{{ url_for('static', filename='js/colorbrewer.js') }}"></script>
 <script src="{{ url_for('static', filename='js/d3.geo.projection.v0.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/crate.js') }}"></script>
 
 <script>
 
@@ -209,37 +229,41 @@ function projectionTween(projection0, projection1) {
     };
 }
 
+var crate = crate_view();
+
 function on_done(result){
-    id = result.id;
-    values = result.values2;
+    values = result.values;
 
-    for (var i=0; i < id.length; i++) {
-        if (typeof(pos[id[i]]) === 'undefined') {
-            //alert('undefined for i = ' + i + '!');
-        }
-    }
-
-    var circle = svg.selectAll('circle').data(id,String);
+    var circle = svg.selectAll('circle').data(values);//id,String);
 
     circle.transition()
-        .style('fill',function(d, i) { return z(values[i]);})
-        .attr('r', function(d, i) { return Math.log(values[i]); });
+        .style('fill',function(d, i) { return z(d);})
+        .attr('r', function(d, i) { return Math.log(d); });
  
     circle.enter().append('circle')
 	.attr('r',0)
         .transition()
-        .style('fill',function(d, i) { return z(values[i]);})
-        .attr('cx',function(d, i) { return pos[d]?pos[d][0]:null; })
-        .attr('cy',function(d, i) { return pos[d]?pos[d][1]:null; })
-        .attr('r', function(d, i) { return values[i]; });
+        .style('fill',function(d, i) { return z(d);})
+        .attr('cx',function(d, i) { return pos[i]?pos[i][0]:null; })
+        .attr('cy',function(d, i) { return pos[i]?pos[i][1]:null; })
+        .attr('r', function(d, i) { return Math.log(d); });
 
     circle.exit().remove();
+    
+    var dict = Object();
+    for (var i=0; i < values.length; i++)
+        dict[i] = values[i]
+
+    d3.select('#crate').datum(dict).call(crate);
 }
 
 update().done(on_done);
 
 setInterval(function() { update().done(on_done);},10000);
 </script>
+
+<div class="container" id="crate">
+</div>
 
 <script>$('#nav-detector').attr('class','active');</script>
 
