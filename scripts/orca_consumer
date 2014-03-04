@@ -1,18 +1,116 @@
 #!/usr/bin/env python
+from __future__ import division
+from datetime import datetime, timedelta
+import struct
+import zmq
+from multiprocessing import Process
+import numpy as np
+from redis import Redis
+import time
+
+redis = Redis()
+
+CMOS_ID = 1310720
+BASE_ID = 1048576
+
+# number of seconds to keep CMOS records
+EXPIRE = 600
+
+def strpiso(string):
+    """Converts an iso string -> python datetime object."""
+    try:
+        return datetime.strptime(string,'%Y-%m-%dT%H:%M:%S.%f')
+    except ValueError:
+        return datetime.strptime(string,'%Y-%m-%dT%H:%M:%S')
+
+def parse_cmos(rec):
+    """Parse a CMOS record."""
+    crate, slot_mask = struct.unpack('II', rec[:8])
+    channel_mask = np.frombuffer(rec[8:8+4*16], dtype=np.uint32)
+    delay, error_flags = struct.unpack('II',rec[72:72+2*4])
+    counts = np.frombuffer(rec[80:80+8*32*4], dtype=np.uint32).reshape((8,-1))
+    date_string = rec[21*4+8*32*4-4:].strip('\x00')
+    timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
+    return crate, slot_mask, channel_mask, delay, error_flags, counts, timestamp
+
+def parse_base(rec):
+    """Parse a base current record."""
+    crate, slot_mask = struct.unpack('II', rec[:8])
+    channel_mask = np.frombuffer(rec[8:8+4*16], dtype=np.uint32)
+    error_flags = struct.unpack('I',rec[72:72+4])
+    counts = np.frombuffer(rec[76:76+16*32], dtype=np.uint8).reshape((16,-1))
+    busy = np.frombuffer(rec[76+16*32:76+16*32+16*32], dtype=np.uint8).reshape((16,-1))
+    date_string = rec[76+2*16*32:].strip('\x00')
+    timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
+    return crate, slot_mask, channel_mask, error_flags, counts, busy, timestamp
+
+def total_seconds(td):
+    """Returns the total number of seconds contained in the duration."""
+    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
+def orca_consumer(port):
+    pull_context = zmq.Context()
+    pull = pull_context.socket(zmq.PULL)
+    pull.connect('tcp://127.0.0.1:%s' % port)
+
+    while True:
+        id, rec = pull.recv_pyobj()
+
+        if id == CMOS_ID:
+            crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
+                parse_cmos(rec)
+
+            p = redis.pipeline()
+            for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
+                for j, value in enumerate(map(int,counts[i])):
+                    if not channelmask[slot] & (1 << j) or value >> 31:
+                        continue
+
+                    index = crate << 16 | slot << 8 | j
+
+                    prev_count = redis.get('cmos/index:%i:count' % index)
+
+                    if prev_count is not None:
+                        prev_timestamp = strpiso(redis.get('cmos/index:%i:time' % index))
+                        prev_count = int(prev_count)
+                        try:
+                            rate = (value-prev_count)/total_seconds(timestamp-prev_timestamp)
+                        except ZeroDivisionError as e:
+                            print 'ZeroDivisonError %s' % e
+                            continue
+                        p.set('cmos/index:%i:value' % index, int(rate))
+                        p.expire('cmos/index:%i:value' % index,EXPIRE)
+
+                    p.set('cmos/index:%i:count' % index, value)
+                    p.expire('cmos/index:%i:count' % index, EXPIRE)
+                    p.set('cmos/index:%i:time' % index, timestamp.isoformat())
+                    p.expire('cmos/index:%i:time' % index, EXPIRE)
+            p.execute()
+
+        elif id == BASE_ID:
+            crate, slotmask, channelmask, error_flags, counts, busy, timestamp = \
+                parse_base(rec)
+
+            p = redis.pipeline()
+            for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
+                for j, value in enumerate(map(int,counts[i])):
+                    if not channelmask[slot] & (1 << j) or value >> 31:
+                        continue
+
+                    index = crate << 16 | slot << 8 | j
+
+                    expire = int(time.time() + 10*60)
+                    p.set('base/index:%i:value' % index, value-127)
+                    p.expire('base/index:%i:value' % index, EXPIRE)
+            p.execute()
 
 if __name__ == '__main__':
     import argparse
-    from minard.orca import orca_consumer
     from multiprocessing import Process
-    from minard.utils import pkill
 
-    parser = argparse.ArgumentParser('ORCA stream producer')
-    parser.add_argument('-w',default=2,type=int,help='number of workers')
-    parser.add_argument('--host',default='snoplusdaq1.snolab.ca')
-    parser.add_argument('--port',default=44666,type=int)
+    parser = argparse.ArgumentParser('ORCA stream consumer')
+    parser.add_argument('-w', type=int, default=2, help='number of workers')
     args = parser.parse_args()
-
-    pkill('orca_consumer')
 
     workers = []
     for i in range(args.w):
