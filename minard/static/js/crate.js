@@ -42,15 +42,15 @@ function card_view() {
                 .data(setup)
                 .enter().append('tr');
 
-            table.insert('tr',':first-child').selectAll('td').data(d3.range(17)).enter().append('td')
-              .text(function(d, i) {
-                if (i) {
-                  return i-1;
-                } else {
-                  return '';
-                }
-              })
-              .attr('class','card-label-col');
+            //table.insert('tr',':first-child').selectAll('td').data(d3.range(17)).enter().append('td')
+            //  .text(function(d, i) {
+            //    if (i) {
+            //      return i-1;
+            //    } else {
+            //      return '';
+            //    }
+            //  })
+            //  .attr('class','card-label-col');
 
             var td = tr2.selectAll('td')
                 .data(function(d) { return d; }, function(d) { return d; })
@@ -60,8 +60,8 @@ function card_view() {
                 .attr('title', function(d) {
                     return 'Card ' + ((d >> 5) & 0xf) + ', Channel ' + (d & 0x1f);});
 
-            tr2.insert('td',':first-child').text(function(d, i) { return 31-i; })
-              .attr('class','card-label-row');
+            //tr2.insert('td',':first-child').text(function(d, i) { return 31-i; })
+            //  .attr('class','card-label-row');
 
             var k = [],
                 v = [];
