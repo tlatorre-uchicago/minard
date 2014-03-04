@@ -58,7 +58,7 @@ function card_view() {
                 .attr('id','channel')
                 .attr('style','background-color:#e0e0e0')
                 .attr('title', function(d) {
-                    return 'Card ' + ((d >> 8) & 0xff) + ', Channel ' + (d & 0xff);});
+                    return 'Card ' + ((d >> 5) & 0xf) + ', Channel ' + (d & 0x1f);});
 
             tr2.insert('td',':first-child').text(function(d, i) { return 31-i; })
               .attr('class','card-label-row');
@@ -115,7 +115,7 @@ function crate_view() {
 
     var click = function(d, i) { return; };
 
-    var caption = false;
+    var caption = true;
 
     var scale = d3.scale.threshold().domain([100]).range(['#bababa','#ca0020']);
 
