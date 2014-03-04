@@ -67,6 +67,9 @@ CHANNELS = [crate << 9 | card << 5 | channel \
 def query():
     name = request.args.get('name','',type=str)
 
+    if name == 'dispatcher':
+        return jsonify(name=redis.get('dispatcher'))
+
     if name == 'nhit':
         start = request.args.get('start',type=parseiso)
 

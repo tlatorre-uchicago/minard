@@ -42,6 +42,8 @@ def dispatch_worker(host):
 
     dispatcher = ratzdab.dispatch(host)
 
+    redis.set('dispatcher',host)
+
     while True:
         o = dispatcher.next(False)
 

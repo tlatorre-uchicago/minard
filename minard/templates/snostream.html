@@ -27,10 +27,15 @@
 <body>
   <div class="container">
     <div class="row">
+        <p>Dispatcher: <span id='dispatcher'></span>
       <div class="col-md-12" style="padding:0" id="demo"></div>
     </div>
   </div>
 <script>
+
+    $.getJSON($SCRIPT_ROOT + '/query', {'name': 'dispatcher'}, function(reply) {
+        $('#dispatcher').text(reply.name);
+    });
 
 var size = $('#demo').width();
 var context = cubism.context()
