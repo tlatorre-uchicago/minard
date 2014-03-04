@@ -83,7 +83,7 @@ def query():
         stop = int(redis.get('builder/global:next'))
 
         if start is None or start > stop:
-            start = stop - 10
+            start = stop - 100
 
         p = redis.pipeline()
         for i in range(start,stop):
@@ -97,16 +97,10 @@ def query():
         occ = []
         p = redis.pipeline()
         for channel in CHANNELS:
-            #for i in range(now-60,now):
             p.get('events/id:{0:d}:channel:{1:d}'.format(now//60-1,channel))
-            #values = [int(n) if n else 0 for n in p.execute()]
-            #occ.append(sum(values))
         occ = p.execute()
 
-    	#latest = PMT.latest()
-	#id, charge_occupancy = zip(*db_session.query(PMT.pmtid, PMT.chargeocc)\
-            #.filter(PMT.id == latest.id).filter(PMT.chargeocc != 0).all())
-        return jsonify(values=occ)#id=CHANNELS, values2=occ)#charge_occupancy)
+        return jsonify(values=occ)
 
     if name == 'l2_info':
         id = request.args.get('id',None,type=str)

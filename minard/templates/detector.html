@@ -49,9 +49,14 @@
 
 {% block body %}
 {{ super() }}
-<div class="container" id="hero" style="position:relative">
-    <h2>Charge Occupancy</h2>
-    <select id="projection-menu"></select>
+<div class="container">
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1" id="hero">
+      <select id="projection-menu"></select>
+    </div>
+    <div class="col-md-10 col-md-offset-1" id="crate">
+    </div>
+  </div>
 </div>
 <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
 <script src="{{ url_for('static', filename='js/colorbrewer.js') }}"></script>
@@ -201,8 +206,8 @@ function update_projection(option) {
 
     svg.selectAll('circle')
         .transition().duration(1000)
-        .attr('cx',function(d, i) { return pos[d][0]; })
-        .attr('cy',function(d, i) { return pos[d][1]; });
+        .attr('cx',function(d, i) { return pos[i][0]; })
+        .attr('cy',function(d, i) { return pos[i][1]; });
 }
 
 function projectionTween(projection0, projection1) {
@@ -229,7 +234,7 @@ function projectionTween(projection0, projection1) {
     };
 }
 
-var crate = crate_view();
+var crate = crate_view().caption(false).scale(z);
 
 function on_done(result){
     values = result.values;
@@ -262,8 +267,6 @@ update().done(on_done);
 setInterval(function() { update().done(on_done);},10000);
 </script>
 
-<div class="container" id="crate">
-</div>
 
 <script>$('#nav-detector').attr('class','active');</script>
 

@@ -25,6 +25,8 @@ function card_view() {
     var crate = 12;
     var threshold = null;
 
+    var scale = d3.scale.threshold().domain([100]).range(['#bababa','#ca0020']);
+
     var format = d3.format('.0f');
 
     function chart(selection) {
@@ -73,9 +75,9 @@ function card_view() {
                 .data(k, function(d) { return d; });
 
             select.attr('style', function(d, i) {
-                return (v[i] > threshold) ? 'background-color:#ca0020' : 'background-color:#bababa';
-                })
-                .text(function(d, i) { return format(v[i]); });
+                return 'background-color:' + scale(v[i]);
+            })
+            .text(function(d, i) { return format(v[i]); });
 
             select.exit().attr('style','background-color:#e0e0e0')
                 .text(function() { return '';});
@@ -90,6 +92,7 @@ function card_view() {
    chart.threshold = function(value) {
        if (!arguments.length) return threshold;
        threshold = value;
+       scale = d3.scale.threshold().domain([threshold]).range(['#bababa','#ca0020']);
        return chart;
    }
 
@@ -111,6 +114,10 @@ function crate_view() {
     var svg;
 
     var click = function(d, i) { return; };
+
+    var caption = false;
+
+    var scale = d3.scale.threshold().domain([100]).range(['#bababa','#ca0020']);
 
     function chart(selection) {
         selection.each(function(data) {
@@ -134,7 +141,9 @@ function crate_view() {
             .attr('style','padding:2px;border-collapse:separate;border-spacing:1px')
             .attr('title', function(d, i) { return 'Crate ' + i; });
 
+        if (caption) {
             tr1.insert('caption').text(function(d, i) { return i; })
+        }
 
         var tr2 = tr1.selectAll('tr')
             .data(function(d) { return d; })
@@ -157,7 +166,7 @@ function crate_view() {
             .data(k, function(d) { return d; });
 
         select.attr('style', function(d, i) {
-            return (v[i] > threshold) ? 'background-color:#ca0020' : 'background-color:#bababa';
+            return 'background-color:' + scale(v[i]);
             });
 
         select.exit().attr('style','background-color:#e0e0e0');
@@ -166,6 +175,18 @@ function crate_view() {
        chart.height = function(value) {
            if (!arguments.length) return height;
            height = value;
+           return chart;
+       }
+
+       chart.scale = function(value) {
+           if (!arguments.length) return scale;
+           scale = value;
+           return chart;
+       }
+
+       chart.caption = function(value) {
+           if (!arguments.length) return caption;
+           caption = value;
            return chart;
        }
 
@@ -184,6 +205,7 @@ function crate_view() {
        chart.threshold = function(value) {
            if (!arguments.length) return threshold;
            threshold = value;
+           scale = d3.scale.threshold().domain([threshold]).range(['#bababa','#ca0020']);
            return chart;
        }
 

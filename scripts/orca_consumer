@@ -66,7 +66,7 @@ def orca_consumer(port):
                     if not channelmask[slot] & (1 << j) or value >> 31:
                         continue
 
-                    index = crate << 16 | slot << 8 | j
+                    index = crate << 9 | slot << 5 | j
 
                     prev_count = redis.get('cmos/index:%i:count' % index)
 
@@ -97,7 +97,7 @@ def orca_consumer(port):
                     if not channelmask[slot] & (1 << j) or value >> 31:
                         continue
 
-                    index = crate << 16 | slot << 8 | j
+                    index = crate << 9 | slot << 5 | j
 
                     expire = int(time.time() + 10*60)
                     p.set('base/index:%i:value' % index, value-127)
