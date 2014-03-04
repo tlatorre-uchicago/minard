@@ -167,8 +167,8 @@ for (var i=0; i < coords.length; i++)
     pos[i] = projection(coords[i]);
 
 var z = d3.scale.linear()
-    .domain([0,5,10])
-    .range(colorbrewer.YlOrRd[5]);
+    .domain([0,1e-5,1e-4,1e-3])
+    .range(colorbrewer.YlOrRd[4]);
 
 var menu = d3.select("#projection-menu")
     .on("change", change);
@@ -242,8 +242,7 @@ function on_done(result){
     var circle = svg.selectAll('circle').data(values);//id,String);
 
     circle.transition()
-        .style('fill',function(d, i) { return z(d);})
-        .attr('r', function(d, i) { return Math.log(d); });
+        .style('fill',function(d, i) { return z(d);});
  
     circle.enter().append('circle')
 	.attr('r',0)
@@ -251,7 +250,7 @@ function on_done(result){
         .style('fill',function(d, i) { return z(d);})
         .attr('cx',function(d, i) { return pos[i]?pos[i][0]:null; })
         .attr('cy',function(d, i) { return pos[i]?pos[i][1]:null; })
-        .attr('r', function(d, i) { return Math.log(d); });
+        .attr('r', function(d, i) { return 2; });
 
     circle.exit().remove();
     

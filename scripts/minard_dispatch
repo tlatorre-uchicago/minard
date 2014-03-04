@@ -70,6 +70,8 @@ def dispatch_worker(host):
             p = redis.pipeline()
 
             for pmt in ev.pmtUnCal:
+                p.incr('events/id:{0:d}:count'.format(now//60))
+                p.expire('events/id:{0:d}:count'.format(now//60),600)
                 key = 'events/id:{0:d}:channel:{1:d}'
                 p.incr(key.format(now//60,pmt.id))
                 p.expire(key.format(now//60,pmt.id),600)

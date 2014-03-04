@@ -100,6 +100,9 @@ def query():
             p.get('events/id:{0:d}:channel:{1:d}'.format(now//60-1,channel))
         occ = p.execute()
 
+        count = int(redis.get('events/id:{0:d}:count'.format(now//60-1)))
+        occ = [int(n)/count if n else 0 for n in occ]
+
         return jsonify(values=occ)
 
     if name == 'l2_info':
