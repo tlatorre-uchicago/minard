@@ -48,9 +48,9 @@ def detector():
 @app.route('/daq/<name>')
 def channels(name):
     if name == 'cmos':
-        return render_template('channels.html',name=name, threshold=5000)
+        return render_template('channels.html', name=name, threshold=5000)
     elif name == 'base':
-        return render_template('channels.html',name=name, threshold=80)
+        return render_template('channels.html', name=name, threshold=80)
 
 @app.route('/alarms')
 def alarms():
@@ -94,7 +94,7 @@ def query():
         value = map(lambda x: x if x is not None else '',p.execute())
         return jsonify(value=value,id=stop)
 
-    if name == 'sphere':
+    if name == 'occupancy':
         now = int(time.time())
 
         occ = []
@@ -114,6 +114,7 @@ def query():
         if id is not None:
             info = db_session.query(L2).filter(L2.id == id).one()
         else:
+            # grab latest
             info = db_session.query(L2).order_by(L2.id.desc()).first()
 
         return jsonify(value=dict(info))

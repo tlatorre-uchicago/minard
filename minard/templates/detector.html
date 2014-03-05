@@ -159,7 +159,7 @@ svg.append("path")
 d3.select(self.frameElement).style("height", height + "px");
 
 function update() {
-    return $.getJSON($SCRIPT_ROOT + '/query', { name: 'sphere' });
+    return $.getJSON($SCRIPT_ROOT + '/query', { name: 'occupancy' });
 }
 
 pos = []
