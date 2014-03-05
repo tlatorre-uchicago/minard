@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import time
 from redis import Redis
+from itertools import count
 
 redis = Redis()
 
@@ -42,10 +43,28 @@ def dispatch_worker(host):
 
     dispatcher = ratzdab.dispatch(host)
 
-    redis.set('dispatcher',host)
-
-    while True:
+    for i in count():
         o = dispatcher.next(False)
+
+        # unix timestamp
+        now = int(time.time())
+
+        if i % 10 == 0:
+            # heartbeat information
+            p = redis.pipeline()
+            p.set('dispatcher',host)
+            p.expire('dispatcher',60)
+
+            # int:{interval}:id:{timestamp}:name:{name}
+            key = 'stream/int:{0:d}:id:{1:d}:name:{2:s}'
+            for t in [1,60,3600]:
+                id = now//t
+                # expire in 100,000*[time interval]
+                expire = t*100000
+                p.set(key.format(t,id,'heartbeat'),1)
+                p.expire(key.format(t,id,'heartbeat'),expire)
+
+            p.execute()
 
         if not o:
             time.sleep(0.01)
@@ -54,8 +73,6 @@ def dispatch_worker(host):
         if o.IsA() == ratzdab.ROOT.RAT.DS.Root.Class():
             ev = o.GetEV(0)
 
-            # unix timestamp
-            now = int(time.time())
 
             event_key = '{0:d}:{1:d}'.format(o.runID,ev.eventID)
             if not redis.zadd('gtids',event_key,-now):

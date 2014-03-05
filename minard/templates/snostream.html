@@ -102,6 +102,13 @@ d3.select("#demo").selectAll("#subrun")
     .attr("class", "horizon")
   .call(context.horizon().height({{ height }}).format(d3.format()).extent([0,100]));
 
+d3.select("#demo").selectAll("#heartbeat")
+    .data(["heartbeat"].map(stock))
+  .enter().insert("div", ".bottom")
+    .attr("id","heartbeat")
+    .attr("class", "horizon")
+  .call(context.horizon().height({{ height }}).format(d3.format()).extent([0,4]));
+
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
 });
