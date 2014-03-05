@@ -11,10 +11,17 @@ setup(name='minard',
       packages=['minard'],
       scripts=glob('scripts/*'),
       data_files = [# static files
-                    ('/var/www/minard/static/css',    glob('minard/static/css/*')),
-                    ('/var/www/minard/static/js',     glob('minard/static/js/*')),
-                    ('/var/www/minard/static/fonts',  glob('minard/static/fonts/*')),
-                    ('/var/www/minard/static/images', glob('minard/static/images/*')),
-                    ('/var/www/minard/templates',     glob('minard/templates/*'))],
-      install_requires=['flask','gunicorn','sqlalchemy','numpy','pyzmq','redis','argparse']
+                    ('/opt/minard/www/minard/static/css',    glob('minard/static/css/*')),
+                    ('/opt/minard/www/minard/static/js',     glob('minard/static/js/*')),
+                    ('/opt/minard/www/minard/static/fonts',  glob('minard/static/fonts/*')),
+                    ('/opt/minard/www/minard/static/images', glob('minard/static/images/*')),
+                    ('/opt/minard/www/minard/templates',     glob('minard/templates/*'))],
+      install_requires=['flask',
+                        'gunicorn',
+                        'sqlalchemy',
+                        'numpy',
+                        'pyzmq',
+                        'redis',
+                        'argparse',
+                        'MySQL-python']
       )
