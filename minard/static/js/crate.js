@@ -63,24 +63,22 @@ function card_view() {
             //tr2.insert('td',':first-child').text(function(d, i) { return 31-i; })
             //  .attr('class','card-label-row');
 
-            var k = [],
-                v = [];
+            var select = d3.select(this).selectAll('#channel');
 
-            for (var key in data) {
-                k.push(key);
-                v.push(data[key]);
-            }
-
-            var select = d3.select(this).selectAll('#channel')
-                .data(k, function(d) { return d; });
-
-            select.attr('style', function(d, i) {
-                return 'background-color:' + scale(v[i]);
+            select.attr('style', function(k, i) {
+                var v = data[k];
+                if (v == null || typeof v === 'undefined')
+                    return 'background-color:#e0e0e0';
+                else
+                    return 'background-color:' + scale(+v);
             })
-            .text(function(d, i) { return format(v[i]); });
-
-            select.exit().attr('style','background-color:#e0e0e0')
-                .text(function() { return '';});
+            .text(function(k, i) { 
+                var v = data[k];
+                if (v == null || typeof v === 'undefined')
+                    return '';
+                else
+                    return format(+v);
+            });
            });}
 
    chart.crate = function(value) {
@@ -154,22 +152,15 @@ function crate_view() {
             .enter().append('td')
             .attr('style','background-color:#e0e0e0');
 
-        var k = [],
-            v = [];
-
-        for (var key in data) {
-            k.push(key);
-            v.push(data[key]);
-        }
-
         var select = d3.select(this).selectAll('#crate-view div table tr td')
-            .data(k, function(d) { return d; });
 
-        select.attr('style', function(d, i) {
-            return 'background-color:' + scale(v[i]);
+        select.attr('style', function(k, i) {
+            var v = data[k];
+            if (v == null || typeof v === 'undefined')
+                return 'background-color:#e0e0e0';
+            else
+                return 'background-color:' + scale(v);
             });
-
-        select.exit().attr('style','background-color:#e0e0e0');
        });}
 
        chart.height = function(value) {

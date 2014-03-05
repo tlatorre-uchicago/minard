@@ -257,7 +257,7 @@ function on_done(result){
     for (var i=0; i < values.length; i++)
         dict[i] = values[i]
 
-    d3.select('#crate').datum(dict).call(crate);
+    d3.select('#crate').datum(values).call(crate);
 }
 
 update().done(on_done);

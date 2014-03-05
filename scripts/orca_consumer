@@ -14,7 +14,7 @@ CMOS_ID = 1310720
 BASE_ID = 1048576
 
 # number of seconds to keep CMOS records
-EXPIRE = 600
+EXPIRE = 60
 
 def strpiso(string):
     """Converts an iso string -> python datetime object."""

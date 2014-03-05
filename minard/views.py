@@ -157,9 +157,7 @@ def query():
             p.get('%s/index:%i:value' % (name,index))
         values = p.execute()
 
-        result = dict((i,int(v)) for i, v in zip(CHANNELS,values) if v is not None)
-
-        return jsonify(value=result)
+        return jsonify(value=values)
 
     if name == 'alarms':
         alarms = db_session.query(Alarms)
