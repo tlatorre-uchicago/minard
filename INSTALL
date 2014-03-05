@@ -1,0 +1,49 @@
+virtualenv /opt/minard
+cd /opt/minard
+source bin/activate
+mkdir src
+cd src
+git clone git@github.com:tlatorre-uchicago/minard.git
+pip install ./minard
+
+# install Root
+curl -O ftp://root.cern.ch/root/root_v5.34.01.source.tar.gz
+tar -xzvf root_v5.34.01.source.tar.gz
+cd root
+./configure --enable-minuit2 --enable-python
+make -j4
+source bin/thisroot.sh
+cd ..
+
+# install Geant4
+curl -O http://geant4.cern.ch/support/source/geant4.9.5.p01.tar.gz
+tar -xzvf geant4.9.5.p01.tar.gz
+mkdir geant4.9.5.p01-build
+cd geant4.9.5.p01-build
+cmake -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV/src/geant4.9.5.p01 $VIRTUAL_ENV/src/geant4.9.5.p01 
+make
+make install
+cd ..
+source geant4.9.5.p01/bin/geant4.sh
+
+# RAT
+git clone git@github.com:snoplus/rat
+cd rat
+# need to go back to release 4.5.0
+git checkout 12c07de85f0f24b824ce2ff5c3ac4b193bea680d
+./configure
+source env.sh
+scons -j4
+cd ..
+
+# rat-tools
+git clone git@github.com:snoplus/rat-tools.git
+cd rat-tools/ratzdab
+make
+source env.sh
+
+# update virtualenv activate script
+echo "source $VIRTUAL_ENV/src/root/bin/thisroot.sh" >> $VIRTUAL_ENV/bin/activate
+echo "source $VIRTUAL_ENV/src/geant4.9.5.p01/bin/geant4.sh" >> $VIRTUAL_ENV/bin/activate
+echo "source $VIRTUAL_ENV/src/rat/env.sh" >> $VIRTUAL_ENV/bin/activate
+echo "source $VIRTUAL_ENV/src/rat-tools/ratzdab/env.sh" >> $VIRTUAL_ENV/bin/activate

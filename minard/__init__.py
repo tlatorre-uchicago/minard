@@ -33,7 +33,7 @@ class ReverseProxied(object):
             environ['wsgi.url_scheme'] = scheme
         return self.app(environ, start_response)
 
-app = Flask(__name__, static_folder='/opt/minard/www/minard/static', template_folder='/opt/minard/www/minard/templates')
+app = Flask(__name__, static_folder='/opt/minard/www/static', template_folder='/opt/minard/www/templates')
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 app.config.from_pyfile('/opt/minard/settings.cfg')
 
