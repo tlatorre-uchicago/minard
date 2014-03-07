@@ -24,14 +24,29 @@
 {% endblock %}
 {% block body %}
 {{ super() }}
-<body>
   <div class="container">
     <div class="row">
+      <div class="col-md-6">
         <p>Dispatcher: <span id='dispatcher'></span>
+      </div>
+      <div class="col-md-6">
+        <p class="pull-right">Step: 
+        <select id="step-menu">
+          {% for i in [1,10,100,1000] %}
+            <option {% if step == i %}selected="selected" {% endif %}value="{{ i }}">{{ i }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="row">
       <div class="col-md-12" style="padding:0" id="demo"></div>
     </div>
   </div>
 <script>
+
+  $("#step-menu").on("change", function() {
+    window.location.replace("{{ url_for('snostream') }}?step=" + this.value + "&height=20");
+  });
 
     $.getJSON($SCRIPT_ROOT + '/query', {'name': 'dispatcher'}, function(reply) {
         $('#dispatcher').text(reply.name);
@@ -41,7 +56,7 @@ var size = $('#demo').width();
 var context = cubism.context()
     .serverDelay(1e3)
     .clientDelay(1e3)
-    .step({{ step }})
+    .step({{ step }}*1000)
     .size(size);
 
 d3.select("#demo").selectAll(".axis")

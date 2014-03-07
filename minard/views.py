@@ -29,7 +29,7 @@ def index():
 def snostream():
     if not request.args.get('step'):
         return redirect(url_for('snostream',step=1,height=20,_external=True))
-    step = request.args.get('step',1,type=int)*1000
+    step = request.args.get('step',1,type=int)
     height = request.args.get('height',40,type=int)
     return render_template('snostream.html',step=step,height=height)
 
@@ -188,7 +188,7 @@ def metric():
     else:
         t = 1
 
-    if expr in ('gtid', 'run', 'subrun'):
+    if expr in ('gtid', 'run', 'subrun', 'heartbeat'):
         p = redis.pipeline()
         for i in range(start,stop,step):
             p.get('stream/int:{0:d}:id:{1:d}:name:{2}'.format(t,i//t,expr))
