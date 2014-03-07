@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import time
 from redis import Redis
 from itertools import count
+import sys
 
 redis = Redis()
 
@@ -44,7 +46,11 @@ def dispatch_worker(host):
     dispatcher = ratzdab.dispatch(host)
 
     for i in count():
-        o = dispatcher.next(False)
+        try:
+            o = dispatcher.next(False)
+        except Exception as e:
+            print(e,file=sys.stderr)
+            continue
 
         # unix timestamp
         now = int(time.time())
