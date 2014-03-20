@@ -159,7 +159,7 @@ function crate_view() {
             if (v == null || typeof v === 'undefined')
                 return 'background-color:#e0e0e0';
             else
-                return 'background-color:' + scale(v);
+                return 'background-color:' + scale(+v);
             });
        });}
 
