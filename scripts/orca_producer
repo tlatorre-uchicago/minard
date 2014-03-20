@@ -131,10 +131,18 @@ def orca_producer(host, port=44666):
 
 if __name__ == '__main__':
     import argparse
+    import time
+    import sys
 
     parser = argparse.ArgumentParser('ORCA stream producer')
-    parser.add_argument('--host',default='snoplusdaq1.snolab.ca')
+    parser.add_argument('--host',default='daq1.sp.snolab.ca')
     parser.add_argument('--port',default=44666,type=int)
     args = parser.parse_args()
 
-    orca_producer(args.host,args.port)
+    while True:
+        try:
+            orca_producer(args.host,args.port)
+        except Exception as e:
+            sys.stderr.write(str(e) + '\n')
+
+        time.sleep(10)

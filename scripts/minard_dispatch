@@ -154,18 +154,17 @@ def dispatch_worker(host):
 if __name__ == '__main__':
     import argparse
     from multiprocessing import Process
+    import time
 
     parser = argparse.ArgumentParser(description='Process SNO+ events from a dispatch stream')
-    parser.add_argument('--host',default='surf.sno.laurentian.ca',
+    parser.add_argument('--host',default='builder1.sp.snolab.ca',
                         help='hostname of the dispatcher')
-    parser.add_argument('-w', default=2, type=int, help='number of workers')
     args = parser.parse_args()
 
-    workers = []
-    for i in range(args.w):
-        p = Process(target=dispatch_worker, args=(args.host,))
-        p.start()
-        workers.append(p)
+    while True:
+        try:
+            dispatch_worker(args.host)
+        except Exception as e:
+            sys.stderr.write(str(e) + '\n')
 
-    for worker in workers:
-        worker.join()
+        time.sleep(10)

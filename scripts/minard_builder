@@ -30,11 +30,19 @@ def tail_worker(user, host, ssh_key):
 
 if __name__ == '__main__':
     import argparse
+    import time
+    import sys
 
     parser = argparse.ArgumentParser(description='Add builder log to redis database')
-    parser.add_argument('--host', default='snoplusbuilder1.snolab.ca')
+    parser.add_argument('--host', default='builder1.sp.snolab.ca')
     parser.add_argument('--user', default='snotdaq')
     parser.add_argument('ssh_key', help='path to builder ssh key')
     args = parser.parse_args()
 
-    tail_worker(args.user, args.host, args.ssh_key)
+    while True:
+        try:
+            tail_worker(args.user, args.host, args.ssh_key)
+        except Exception as e:
+            sys.stderr.write(str(e) + '\n')
+
+        time.sleep(10)
