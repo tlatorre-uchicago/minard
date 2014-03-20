@@ -45,7 +45,7 @@
 <script>
 
   $("#step-menu").on("change", function() {
-    window.location.replace("{{ url_for('snostream') }}?step=" + this.value + "&height=20");
+      window.location.replace("{{ url_for('snostream') }}?step=" + this.value + "&height={{ height }}");
   });
 
     $.getJSON($SCRIPT_ROOT + '/query', {'name': 'dispatcher'}, function(reply) {
