@@ -21,6 +21,9 @@
   <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
   <script src="{{ url_for('static', filename='js/cubism.v1.js') }}"></script>
   <script src="{{ url_for('static', filename='js/metric.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/moment-timezone.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/moment-timezone-data.js') }}"></script>
 {% endblock %}
 {% block body %}
 {{ super() }}
@@ -28,6 +31,7 @@
     <div class="row">
       <div class="col-md-6">
         <p>Dispatcher: <span id='dispatcher'></span>
+        <p>Sudbury Time: <span id='sudbury-time'></span>
       </div>
       <div class="col-md-6">
         <p class="pull-right">Step: 
@@ -48,9 +52,15 @@
       window.location.replace("{{ url_for('snostream') }}?step=" + this.value + "&height={{ height }}");
   });
 
+  setInterval(function() {
     $.getJSON($SCRIPT_ROOT + '/query', {'name': 'dispatcher'}, function(reply) {
         $('#dispatcher').text(reply.name);
     });
+  },1000);
+
+  setInterval(function() {
+    $('#sudbury-time').text(moment().tz('America/Toronto').format('h:mm:ss'));
+  },1000);
 
 var size = $('#demo').width();
 var context = cubism.context()
