@@ -1,14 +1,25 @@
 from __future__ import division
+from __future__ import print_function
 from minard import app
-from flask import render_template, jsonify, request, redirect, url_for
-from sqlalchemy.sql import select
-from minard.database import init_db, db_session
-from minard.models import *
+from flask import render_template, jsonify, request, redirect, url_for, send_from_directory
 from datetime import datetime, timedelta
 from itertools import product
 import time
 import calendar
 from redis import Redis
+import sys
+
+try:
+    from minard.database import init_db, db_session
+    from minard.models import Clock, L2, Alarms, PMT, Nhit, Position
+
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        db_session.remove()
+
+except Exception as e:
+    print('failed to load MySQL database',file=sys.stderr)
+    print(str(e),file=sys.stderr)
 
 redis = Redis()
 
@@ -32,6 +43,10 @@ def snostream():
     step = request.args.get('step',1,type=int)
     height = request.args.get('height',40,type=int)
     return render_template('snostream.html',step=step,height=height)
+
+@app.route('/doc')
+def doc():
+    return send_from_directory('/opt/minard/src/minard/doc/_build/html/','index.html')
 
 @app.route('/nhit')
 def nhit():

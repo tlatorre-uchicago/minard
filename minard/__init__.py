@@ -1,4 +1,7 @@
+from __future__ import print_function
 from flask import Flask
+import sys
+from os.path import join
 
 class ReverseProxied(object):
     '''Wrap the application in this middleware and configure the 
@@ -33,14 +36,18 @@ class ReverseProxied(object):
             environ['wsgi.url_scheme'] = scheme
         return self.app(environ, start_response)
 
-app = Flask(__name__, static_folder='/opt/minard/www/static', template_folder='/opt/minard/www/templates')
+STATIC_FOLDER = join(sys.prefix,'www/static')
+TEMPLATE_FOLDER = join(sys.prefix,'www/templates')
+SECRET_KEY = '>#:nG6\\,Ep_3y q*^(+uh\n=w?cXNfV"R'
+PROJECT_NAME = 'minard'
+CONFIG = join(sys.prefix,'settings.cfg')
+
+app = Flask(__name__, static_folder=STATIC_FOLDER, template_folder=TEMPLATE_FOLDER)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
-app.config.from_pyfile('/opt/minard/settings.cfg')
-
-from minard.database import db_session
-
-@app.teardown_appcontext
-def shutdown_session(exception=None):
-    db_session.remove()
+try:
+    app.config.from_pyfile(CONFIG)
+except Exception as e:
+    print('unable to load configuration from {0:s}'.format(CONFIG),file=sys.stderr)
+    print(str(e),file=sys.stderr)
 
 import minard.views
