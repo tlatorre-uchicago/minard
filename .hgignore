@@ -5,3 +5,4 @@ syntax: glob
 *.swp
 minard/dbinfo.py
 *.orig
+doc/_build
