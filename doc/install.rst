@@ -22,7 +22,7 @@ To install redis, you can run these commands::
     $ tar -xzvf redis-stable.tar.gz
     $ cd redis-stable
     $ make
-    $ ln -s bin/redis-server $VIRTUAL_ENV/bin/redis-server
+    $ ln src/redis-server $VIRTUAL_ENV/bin/redis-server
 
 You can now run redis within your virtual environment by running `redis-server`.
 
