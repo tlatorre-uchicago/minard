@@ -8,6 +8,7 @@ import time
 import calendar
 from redis import Redis
 import sys
+from os.path import join
 
 try:
     from minard.database import init_db, db_session
@@ -36,6 +37,17 @@ def parseiso(timestr):
 def index():
     return redirect(url_for('snostream'))
 
+@app.route('/doc/')
+@app.route('/doc/<filename>')
+@app.route('/doc/_static/<filename>', defaults={'static': True})
+def doc(filename='index.html', static=False):
+    if static:
+        path = join('doc/_static',filename)
+    else:
+        path = join('doc',filename)
+
+    return app.send_static_file(path)
+
 @app.route('/snostream')
 def snostream():
     if not request.args.get('step'):
@@ -43,10 +55,6 @@ def snostream():
     step = request.args.get('step',1,type=int)
     height = request.args.get('height',40,type=int)
     return render_template('snostream.html',step=step,height=height)
-
-@app.route('/doc')
-def doc():
-    return send_from_directory('/opt/minard/src/minard/doc/_build/html/','index.html')
 
 @app.route('/nhit')
 def nhit():
