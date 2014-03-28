@@ -66,7 +66,7 @@ Our page is pretty boring, so let's add a histogram! Edit `hello_world.html` to 
             <div id="hist" />
         </div>
         <script>
-            var chart = bar_chart();
+            var chart = bar_chart().layout(d3.layout.histogram());
 
             setInterval(function() {
                 $.getJSON($SCRIPT_ROOT + '/hello_world_hist', function(reply) {
