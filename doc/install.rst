@@ -37,4 +37,4 @@ environment, run::
 
     $ gunicorn -b 0.0.0.0:50000 minard:app
 
-and navigate your web browser to `localhost:50000`.
+and navigate your web browser to `http://localhost:50000 <http://localhost:50000>`_.
