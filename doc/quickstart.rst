@@ -45,3 +45,43 @@ Now edit `views.py` again and change the `hello_world` function to look like thi
         return render_template('hello_world.html')
 
 Now, reinstall minard, and restart the web server and navigate to `http://localhost:5000/hello_world <http://localhost:5000/hello_world>`_ again, and you should see `Hello World` displayed below the navigation bar.
+
+Adding a Histogram
+------------------
+
+Our page is pretty boring, so let's add a histogram! Edit `hello_world.html` to look like this::
+
+    {% extends "layout.html" %}
+    {% block title %}Hello World{% endblock %}
+    {% block head %}
+        {{ super() }}
+        <link href="{{ url_for('static', filename='css/bar-chart.css') }}" rel="stylesheet">
+        <script src="{{ url_for('static', filename='js/d3.js') }} />
+        <script src="{{ url_for('static', filename='js/bar-chart.js') }} />
+    {% endblock %}
+    {% block body %}
+        {{ super() }}
+        <div class="container">
+            <h1>Hello World!</h1>
+            <div id="hist" />
+        </div>
+        <script>
+            var chart = bar_chart();
+
+            setInterval(function() {
+                $.getJSON($SCRIPT_ROOT + '/hello_world_hist', function(reply) {
+                    d3.select('#hist').datum(reply.value).call(chart);
+                });
+            },1000);
+        </script>
+    {% endblock %}
+
+Now we need to edit `views.py` again and add a function which will return the histogram data::
+
+    import random
+
+    @app.route('/hello_world_hist')
+    def hello_world_hist():
+        return jsonify(value=[random.gauss(0,1) for i in range(100)])
+
+Reinstall minard, restart the web server and navigate to `http://localhost:5000/hello_world <http://localhost:5000/hello_world>`_, and you should see your beautiful histogram updating every second.
