@@ -1,6 +1,9 @@
 Installation
 ============
 
+Installing minard
+-----------------
+
 The easiest way to install minard is to use a virtual environment with
 `virtualenv <http://virtualenv.org>`_::
 
