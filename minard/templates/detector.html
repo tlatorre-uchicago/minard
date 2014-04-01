@@ -320,6 +320,8 @@ function on_done(result){
 
     var circle = svg.selectAll('circle').data(values);
 
+    circle.style('fill',function(d, i) { return d ? color_scale(d) : "#e0e0e0";})
+
     circle.enter().append('circle')
 	.attr('r',0)
         .transition()
@@ -328,7 +330,7 @@ function on_done(result){
         .attr('cy',function(d, i) { return pos[i]?pos[i][1]:null; })
         .attr('r', function(d, i) { return 2; });
 
-        circle.exit().remove();
+    circle.exit().remove();
     
     d3.select('#crate').datum(values).call(crate);
 }
