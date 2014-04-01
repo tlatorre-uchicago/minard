@@ -45,6 +45,8 @@
   text-align:center !important;
 }
 </style>
+<link href="{{ url_for('static', filename='css/bar-chart.css') }}" rel="stylesheet">
+<script src="{{ url_for('static', filename='js/histogram.js') }}"></script>
 {% endblock %}
 
 {% block body %}
@@ -54,8 +56,10 @@
     <div class="col-md-10 col-md-offset-1" id="hero">
       <select id="projection-menu"></select>
     </div>
-    <div class="col-md-10 col-md-offset-1" id="crate">
-    </div>
+    <div class="col-md-10 col-md-offset-1" id="crate"></div>
+  </div>
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1" id="hist"></div>
   </div>
 </div>
 <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
@@ -64,6 +68,23 @@
 <script src="{{ url_for('static', filename='js/crate.js') }}"></script>
 
 <script>
+
+function linspace(min, max, N)
+{
+  var a = new Array();
+  for (var i=0; i < N; i++)
+  {
+    a[i] = min + (max-min)*i/(N-1)
+  }
+  return a;
+}
+
+var xmin = 0,
+    xmax = 1e-3;
+
+var color_range = ["#4876ff","#32cd32","#ffff00","#ffa500","#ff0000"];
+var color = d3.scale.linear().domain(linspace(xmin,xmax,5)).range(color_range);
+var chart = histogram().color(color);
 
 var options = [
 {name: "Aitoff", projection: d3.geo.aitoff()},
@@ -168,7 +189,7 @@ for (var i=0; i < coords.length; i++)
 
 var z = d3.scale.linear()
     .domain([0,1e-5,1e-4,1e-3])
-    .range(colorbrewer.YlOrRd[4]);
+    .range(colorbrewer.Spectral[4].reverse());
 
 var menu = d3.select("#projection-menu")
     .on("change", change);
@@ -234,19 +255,19 @@ function projectionTween(projection0, projection1) {
     };
 }
 
-var crate = crate_view().caption(false).scale(z);
+var crate = crate_view().caption(false).scale(color);
 
 function on_done(result){
     values = result.values;
 
     var circle = svg.selectAll('circle').data(values);//id,String);
 
-    circle.style('fill',function(d, i) { return z(d);});
+    circle.style('fill',function(d, i) { return color(d);});
  
     circle.enter().append('circle')
 	.attr('r',0)
         .transition()
-        .style('fill',function(d, i) { return z(d);})
+        .style('fill',function(d, i) { return color(d);})
         .attr('cx',function(d, i) { return pos[i]?pos[i][0]:null; })
         .attr('cy',function(d, i) { return pos[i]?pos[i][1]:null; })
         .attr('r', function(d, i) { return 2; });
@@ -258,6 +279,7 @@ function on_done(result){
         dict[i] = values[i]
 
     d3.select('#crate').datum(values).call(crate);
+    d3.select('#hist').datum(values).call(chart);
 }
 
 update().done(on_done);
