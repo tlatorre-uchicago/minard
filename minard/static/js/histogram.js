@@ -1,11 +1,21 @@
+function linspace(start, stop, num)
+{
+    var a = new Array();
+    for (var i=0; i < num; i++)
+        a[i] = start + (stop-start)*i/(num-1);
+    return a;
+}
+
 function histogram() {
     var margin = {top: 20, right: 25, bottom: 50, left: 50},
         width = null,
         height = null,
         xlabel = '',
         ylabel = '',
-        nbins = 20,
-        color = function(x) { return "steelblue" };
+        bins = 20,
+        color_scale = d3.scale.linear().domain([0,1]).range(['steelblue','steelblue']);
+        on_scale_change = null,
+        domain = null;
 
     function chart(selection) {
         selection.each(function(values) {
@@ -18,15 +28,19 @@ function histogram() {
             if (typeof this.x === "undefined")
             {
                 var x = d3.scale.linear()
-                    .domain([d3.min(values), d3.max(values)])
-                    .range([0,width]);
+                .range([0,width]);
+
+                if (domain !== null)
+                    x.domain(domain)
+                else
+                    x.domain([d3.min(values), d3.max(values)])
                 this.x = x;
             }
 
             x = this.x;
 
             var data = d3.layout.histogram()
-                .bins(x.ticks(nbins))
+                .bins(x.ticks(bins))
                 (values);
 
             var y = d3.scale.linear()
@@ -103,6 +117,10 @@ function histogram() {
                                 var mouse = d3.mouse(element);
                                 var scale = (x_down(mouse_down[0])/x_down(mouse[0]))
                                 x.domain([0,x_down.domain()[1]*scale]);
+
+                                if (on_scale_change !== null)
+                                    on_scale_change();
+
                                 draw();
                             }
                             x_down = null;
@@ -112,8 +130,10 @@ function histogram() {
                 });
 
             function draw() {
+                color_scale.domain(linspace(x.domain()[0],x.domain()[1],color_scale.range().length));
+
                 var data = d3.layout.histogram()
-                    .bins(x.ticks(nbins))
+                    .bins(x.ticks(bins))
                     (values);
 
                 var y = d3.scale.linear()
@@ -141,7 +161,7 @@ function histogram() {
 
                 bar.transition()
                     .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; })
-                    .attr("fill", function(d) { return color(d.x); })
+                    .attr("fill", function(d) { return color_scale(d.x); })
                     .attr('width', x(data[0].dx) - 1)
                     .attr('height', function(d) { return height - y(d.y); })
                     .style({opacity: 1});
@@ -149,7 +169,7 @@ function histogram() {
                 bar.enter().append("rect")
                     .attr("class", "hist-bar")
                     .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; })
-                    .attr("fill", function(d) { return color(d.x); })
+                    .attr("fill", function(d) { return color_scale(d.x); })
                     .attr("x", 1)
                     .attr('width', x(data[0].dx) - 1)
                     .attr('height', function(d) { return height - y(d.y); })
@@ -160,9 +180,27 @@ function histogram() {
         });
     }
 
-    chart.color = function(value) {
-        if (!arguments.length) return color;
-        color = value;
+    chart.domain = function(value) {
+        if (!arguments.length) return domain;
+        domain = value;
+        return chart;
+    }
+
+    chart.on_scale_change = function(value) {
+        if (!arguments.length) return on_scale_change;
+        on_scale_change = value;
+        return chart;
+    }
+
+    chart.bins = function(value) {
+        if (!arguments.length) return bins;
+        bins = value;
+        return chart;
+    }
+
+    chart.color_scale = function(value) {
+        if (!arguments.length) return color_scale;
+        color_scale = value;
         return chart;
     }
 
