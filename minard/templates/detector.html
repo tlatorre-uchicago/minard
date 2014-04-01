@@ -308,7 +308,8 @@ function draw()
     d3.select("#hist").call(chart);
     d3.select("#crate").call(crate);
 
-    svg.selectAll("circle").style('fill',function(d, i) { return color_scale(d);});
+    svg.selectAll("circle")
+        .style('fill',function(d, i) { return d ? color_scale(d) : "#e0e0e0";})
  
 }
 
@@ -322,7 +323,7 @@ function on_done(result){
     circle.enter().append('circle')
 	.attr('r',0)
         .transition()
-        .style('fill',function(d, i) { return color_scale(d);})
+        .style('fill',function(d, i) { return d ? color_scale(d) : "#e0e0e0";})
         .attr('cx',function(d, i) { return pos[i]?pos[i][0]:null; })
         .attr('cy',function(d, i) { return pos[i]?pos[i][1]:null; })
         .attr('r', function(d, i) { return 2; });

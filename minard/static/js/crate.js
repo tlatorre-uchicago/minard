@@ -157,7 +157,7 @@ function crate_view() {
 
         select.attr('style', function(k, i) {
             var v = data[k];
-            if (v == null || typeof v === 'undefined')
+            if (v == null || typeof v === 'undefined' || v == 0)
                 return 'background-color:#e0e0e0';
             else
                 return 'background-color:' + scale(+v);
