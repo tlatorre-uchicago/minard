@@ -61,7 +61,7 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-md-10 col-md-offset-1" id="crate"></div>
+    <div class="col-md-10 col-md-offset-1" id="crate" style="text-align:center"></div>
   </div>
   <div class="row">
     <div class="col-md-10 col-md-offset-1" id="hist"></div>
@@ -299,6 +299,9 @@ function projectionTween(projection0, projection1) {
 }
 
 var crate = crate_view().caption(false).scale(color_scale);
+
+d3.select("#crate").datum([]).call(crate);
+$("#crate9").after("<br>");
 
 function draw()
 {

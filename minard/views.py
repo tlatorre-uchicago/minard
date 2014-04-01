@@ -84,7 +84,7 @@ def builder():
     return render_template('builder.html')
 
 CHANNELS = [crate << 9 | card << 5 | channel \
-            for crate, card, channel in product(range(19),range(16),range(32))]
+            for crate, card, channel in product(range(20),range(16),range(32))]
 
 @app.route('/query')
 def query():

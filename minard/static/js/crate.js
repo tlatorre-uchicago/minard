@@ -10,9 +10,9 @@ function createArray(length) {
     return arr;
 }
 
-var crate_setup = createArray(19,32,16);
+var crate_setup = createArray(20,32,16);
 
-for (var i=0; i < 19; i++) {
+for (var i=0; i < 20; i++) {
     for (var j=0; j < 32; j++) {
         for (var k=0; k < 16; k++) {
             crate_setup[i][31-j][k] = (i << 9) | (k << 5) | j;
@@ -134,7 +134,8 @@ function crate_view() {
             .enter()
           .append('div')
             .on('click', click)
-            .attr('style','float:left')
+            .attr('style','display:inline-block')
+            .attr("id", function(d, i) { return "crate" + i;})
           .append('table')
             .attr('style','padding:2px;border-collapse:separate;border-spacing:1px')
             .attr('title', function(d, i) { return 'Crate ' + i; });
