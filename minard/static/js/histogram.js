@@ -66,17 +66,17 @@ function histogram() {
 
             var element = this;
 
+            genter.append("rect")
+                .attr("fill","white")
+                .attr("width",width)
+                .attr("height",height);
+
             genter.append('g').attr('class', 'x axis').attr('id','x-axis')
                 .attr('transform', 'translate(0,' + height + ')')
                 .call(x_axis);
 
             genter.append('g').attr('class', 'y axis').attr('id','y-axis')
                 .call(y_axis);
-
-            genter.append("rect")
-                .attr("fill","white")
-                .attr("width",width)
-                .attr("height",height);
 
             genter.append('text')
                 .attr('class', 'x label')
@@ -163,7 +163,7 @@ function histogram() {
                     .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; })
                     .attr("fill", function(d) { return color_scale(d.x); })
                     .attr('width', x(data[0].dx) - 1)
-                    .attr('height', function(d) { return height - y(d.y); })
+                    .attr('height', function(d) { return height - y(d.y) - 1; })
                     .style({opacity: 1});
 
                 bar.enter().append("rect")
@@ -172,7 +172,7 @@ function histogram() {
                     .attr("fill", function(d) { return color_scale(d.x); })
                     .attr("x", 1)
                     .attr('width', x(data[0].dx) - 1)
-                    .attr('height', function(d) { return height - y(d.y); })
+                    .attr('height', function(d) { return height - y(d.y) - 1; })
                     .style({opacity: 1});
 
                 bar.exit().transition().style({opacity: 0}).remove();
