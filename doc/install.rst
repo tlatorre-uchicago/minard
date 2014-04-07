@@ -15,6 +15,10 @@ The easiest way to install minard is to use a virtual environment with
     $ git clone https://github.com/tlatorre-uchicago/minard
     $ pip install ./minard
 
+On Mac OSX you may need to add the following line to your bash_profile::
+
+    export ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future
+
 Installing Redis
 ----------------
 
