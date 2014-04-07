@@ -57,7 +57,7 @@ Our page is pretty boring, so let's add a histogram! Edit `hello_world.html` to 
         {{ super() }}
         <link href="{{ url_for('static', filename='css/bar-chart.css') }}" rel="stylesheet">
         <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/bar-chart.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/histogram.js') }}"></script>
     {% endblock %}
     {% block body %}
         {{ super() }}
@@ -66,7 +66,7 @@ Our page is pretty boring, so let's add a histogram! Edit `hello_world.html` to 
             <div id="hist" />
         </div>
         <script>
-            var chart = bar_chart().layout(d3.layout.histogram());
+            var chart = histogram();
 
             setInterval(function() {
                 $.getJSON($SCRIPT_ROOT + '/hello_world_hist', function(reply) {
