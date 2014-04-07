@@ -47,6 +47,8 @@ function histogram() {
                 .domain([0,d3.max(data, function(d) { return d.y; })])
                 .range([height,0]);
 
+            this.y = y;
+
             var x_axis = d3.svg.axis()
                 .scale(x)
                 .orient("bottom");
@@ -100,14 +102,21 @@ function histogram() {
                     mouse_down = d3.mouse(element);
                     var x_down = d3.scale.linear().domain(x.domain()).range([0,width]);
 
+                    var id = this.id;
+
                     d3.event.preventDefault();
 
                     d3.select(window)
                         .on('mousemove', function(d) {
                             if (x_down !== null) {
                                 var mouse = d3.mouse(element);
-                                var scale = (x_down(mouse_down[0])/x_down(mouse[0]))
-                                x.domain([0,x_down.domain()[1]*scale]);
+                                if (id == 'x-axis') {
+                                    var scale = (x_down(mouse_down[0])/x_down(mouse[0]))
+                                    x.domain([x_down.domain()[0],x_down.domain()[1]*scale]);
+                                } else {
+                                    var dx = x_down.invert(mouse_down[0]) - x_down.invert(mouse[0]);
+                                    x.domain([x_down.domain()[0] + dx, x_down.domain()[1] + dx])
+                                }
                                 draw();
                             }
                         d3.event.preventDefault();
@@ -115,8 +124,13 @@ function histogram() {
                         .on('mouseup', function(d) {
                             if (x_down !== null) {
                                 var mouse = d3.mouse(element);
-                                var scale = (x_down(mouse_down[0])/x_down(mouse[0]))
-                                x.domain([0,x_down.domain()[1]*scale]);
+                                if (id == 'x-axis') {
+                                    var scale = (x_down(mouse_down[0])/x_down(mouse[0]))
+                                    x.domain([x_down.domain()[0],x_down.domain()[1]*scale]);
+                                } else {
+                                    var dx = x_down.invert(mouse_down[0]) - x_down.invert(mouse[0]);
+                                    x.domain([x_down.domain()[0] + dx, x_down.domain()[1] + dx])
+                                }
 
                                 if (on_scale_change !== null)
                                     on_scale_change();
@@ -132,13 +146,16 @@ function histogram() {
             function draw() {
                 color_scale.domain(linspace(x.domain()[0],x.domain()[1],color_scale.range().length));
 
+
                 var data = d3.layout.histogram()
                     .bins(x.ticks(bins))
                     (values);
 
+                var bin_width = Math.floor(data[0].dx*(x.range()[1]-x.range()[0])/(x.domain()[1] - x.domain()[0])) - 1;
+
                 var y = d3.scale.linear()
                     .domain([0,d3.max(data, function(d) { return d.y; })])
-                    .range([height,0]);
+                    .range([0,height]);
 
                 var x_axis = d3.svg.axis()
                     .scale(x)
@@ -160,19 +177,20 @@ function histogram() {
                     .data(data);
 
                 bar.transition()
-                    .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; })
+                    .attr("x", function(d) { return x(d.x); })
+                    .attr("y", function(d) { return height - y(d.y); })
                     .attr("fill", function(d) { return color_scale(d.x); })
-                    .attr('width', x(data[0].dx) - 1)
-                    .attr('height', function(d) { return height - y(d.y) - 1; })
+                    .attr('width', bin_width)
+                    .attr('height', function(d) { return y(d.y); })
                     .style({opacity: 1});
 
                 bar.enter().append("rect")
                     .attr("class", "hist-bar")
-                    .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; })
+                    .attr("x", function(d) { return x(d.x); })
+                    .attr("y", function(d) { return height - y(d.y); })
                     .attr("fill", function(d) { return color_scale(d.x); })
-                    .attr("x", 1)
-                    .attr('width', x(data[0].dx) - 1)
-                    .attr('height', function(d) { return height - y(d.y) - 1; })
+                    .attr('width', bin_width)
+                    .attr('height', function(d) { return y(d.y); })
                     .style({opacity: 1});
 
                 bar.exit().transition().style({opacity: 0}).remove();
