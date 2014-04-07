@@ -181,7 +181,7 @@ function histogram() {
                     .attr("y", function(d) { return y(d.y); })
                     .attr("fill", function(d) { return color_scale(d.x); })
                     .attr('width', bin_width)
-                    .attr('height', function(d) { return height - y(d.y); })
+                    .attr('height', function(d) { return height - y(d.y) - 1; })
                     .style({opacity: 1});
 
                 bar.enter().append("rect")
@@ -190,7 +190,7 @@ function histogram() {
                     .attr("y", function(d) { return y(d.y); })
                     .attr("fill", function(d) { return color_scale(d.x); })
                     .attr('width', bin_width)
-                    .attr('height', function(d) { return height - y(d.y); })
+                    .attr('height', function(d) { return height - y(d.y) - 1; })
                     .style({opacity: 1});
 
                 bar.exit().transition().style({opacity: 0}).remove();
