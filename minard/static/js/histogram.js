@@ -155,7 +155,7 @@ function histogram() {
 
                 var y = d3.scale.linear()
                     .domain([0,d3.max(data, function(d) { return d.y; })])
-                    .range([0,height]);
+                    .range([height,0]);
 
                 var x_axis = d3.svg.axis()
                     .scale(x)
@@ -178,19 +178,19 @@ function histogram() {
 
                 bar.transition()
                     .attr("x", function(d) { return x(d.x); })
-                    .attr("y", function(d) { return height - y(d.y); })
+                    .attr("y", function(d) { return y(d.y); })
                     .attr("fill", function(d) { return color_scale(d.x); })
                     .attr('width', bin_width)
-                    .attr('height', function(d) { return y(d.y); })
+                    .attr('height', function(d) { return height - y(d.y); })
                     .style({opacity: 1});
 
                 bar.enter().append("rect")
                     .attr("class", "hist-bar")
                     .attr("x", function(d) { return x(d.x); })
-                    .attr("y", function(d) { return height - y(d.y); })
+                    .attr("y", function(d) { return y(d.y); })
                     .attr("fill", function(d) { return color_scale(d.x); })
                     .attr('width', bin_width)
-                    .attr('height', function(d) { return y(d.y); })
+                    .attr('height', function(d) { return height - y(d.y); })
                     .style({opacity: 1});
 
                 bar.exit().transition().style({opacity: 0}).remove();
