@@ -42,6 +42,6 @@ Running the Web Server
 You should now be able to run the web server. After activating your virtual
 environment, run::
 
-    $ gunicorn -b 0.0.0.0:50000 minard:app
+    $ gunicorn -b 127.0.0.1:5000 minard:app
 
-and navigate your web browser to `http://localhost:50000 <http://localhost:50000>`_.
+and navigate your web browser to `http://localhost:5000 <http://localhost:5000>`_.
