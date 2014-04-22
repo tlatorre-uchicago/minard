@@ -14,6 +14,8 @@ Contents:
    install
    quickstart
    data
+   dispatch_local
+   api
 
 Indices and tables
 ==================
