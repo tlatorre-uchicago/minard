@@ -40,7 +40,7 @@ TRIGGER_NAMES = \
  'MISS']
 
 def dispatch_worker(host):
-    """Test."""
+    """Connects to a dispatcher at ip address `host` and processes the dispatch stream."""
     import ratzdab
 
     dispatcher = ratzdab.dispatch(host)
