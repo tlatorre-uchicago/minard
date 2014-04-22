@@ -47,3 +47,13 @@ commands::
 
 For more information on the ORCA file formats see `Data File Format
 <http://orca.physics.unc.edu/~markhowe/Data_Format_Viewing/Data_Format.html>`_.
+
+To mimic the ORCA data stream see :doc:`mimic_orca`.
+
+Builder Log
+-----------
+
+The `minard_builder` script monitors the builder log::
+
+    $ source /opt/minard/bin/activate
+    $ nohup minard_builder [path/to/builder/ssh/key] &>/opt/minard/log/minard_builder.log &

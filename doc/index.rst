@@ -15,6 +15,7 @@ Contents:
    quickstart
    data
    dispatch_local
+   mimic_orca
    api
 
 Indices and tables
