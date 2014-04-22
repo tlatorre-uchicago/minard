@@ -39,13 +39,10 @@ def index():
 
 @app.route('/doc/')
 @app.route('/doc/<filename>')
-@app.route('/doc/_static/<filename>', defaults={'static': True})
-def doc(filename='index.html', static=False):
-    if static:
-        path = join('doc/_static',filename)
-    else:
-        path = join('doc',filename)
-
+@app.route('/doc/<dir>/<filename>')
+@app.route('/doc/<dir>/<subdir>/<filename>')
+def doc(dir='', subdir='', filename='index.html'):
+    path = join('doc', dir, subdir, filename)
     return app.send_static_file(path)
 
 @app.route('/snostream')
