@@ -142,7 +142,7 @@ def parse_header(header):
 class Socket(object):
     """
     Socket object used to communicate with ORCA.
-    See `here <orca.physics.unc.edu/~markhowe/Data_Format_Viewing/Data_Format.html>`_
+    See `here <http://orca.physics.unc.edu/~markhowe/Data_Format_Viewing/Data_Format.html>`_
     for more information.
     """
     def __init__(self, sock=None):
