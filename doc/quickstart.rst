@@ -109,10 +109,16 @@ To use this script, you'll need to install the psutil python package::
 
 $ pip install psutil
 
+Template
+^^^^^^^^
+
 Now, we need to create a template to display the time series. Create a file in
 the templates directory called `system_monitor.html`.
 
 .. literalinclude:: system_monitor.html
+
+View
+^^^^
 
 Finally, we need to add the following to views.py::
 
