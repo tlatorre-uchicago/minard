@@ -84,4 +84,83 @@ Now we need to edit `views.py` again and add a function which will return the hi
     def hello_world_hist():
         return jsonify(value=[random.gauss(0,1) for i in range(100)])
 
-Reinstall minard, restart the web server and navigate to `http://localhost:5000/hello_world <http://localhost:5000/hello_world>`_, and you should see your beautiful histogram updating every second.
+        Reinstall minard, restart the web server and navigate to `http://localhost:5000/hello_world <http://localhost:5000/hello_world>`_, and you should see your beautiful histogram updating every second.
+
+Monitoring CPU Usage
+--------------------
+
+For this example, we'll use the redis database to log the current CPU usage and
+display it using a d3 plugin called `cubism <http://square.github.io/cubism/>`_.
+
+Script
+^^^^^^
+
+First, we need to set up a script that will write to the redis database. We'll
+monitor the cpu usage and memory in intervals of one second, and one minute. I
+will use a design pattern found `here <http://flask.pocoo.org/snippets/71>`_,
+where we use the unix timestamp to keep track of keys. For more details on how
+redis works see the tutorial on creating a `twitter clone
+<http://redis.io/topics/twitter-clone>`_.
+
+.. literalinclude:: system_monitor
+    :language: python
+
+To use this script, you'll need to install the psutil python package::
+
+$ pip install psutil
+
+Now, we need to create a template to display the time series. Create a file in
+the templates directory called `system_monitor.html`.
+
+.. literalinclude:: system_monitor.html
+
+Finally, we need to add the following to views.py::
+
+    @app.route('/system_monitor')
+    def system_monitor():
+        if not request.args.get('step'):
+            return redirect(url_for('system_monitor',step=1,height=20,_external=True))
+        step = request.args.get('step',1,type=int)
+        height = request.args.get('height',40,type=int)
+        return render_template('system_monitor.html',step=step,height=height)
+
+    @app.route('/hello_world_metric')
+    def hello_world_metric():
+        args = request.args
+
+        expr = args.get('expr',type=str)
+        start = args.get('start',type=parseiso)
+        stop = args.get('stop',type=parseiso)
+        now_client = args.get('now',type=parseiso)
+        # convert ms -> sec
+        step = args.get('step',type=int)//1000
+
+        now = int(time.time())
+
+        # adjust for clock skew
+        dt = now_client - now
+        start -= dt
+        stop -= dt
+
+        if step > 60:
+            t = 60
+        else:
+            t = 1
+
+        p = redis.pipeline()
+        for i in range(start,stop,step):
+            p.get('stream/%i:%i:%s' % (t,i//t,expr))
+        result = [float(x) if x else 0 for x in p.execute()]
+
+        if t == 60:
+            p = redis.pipeline()
+            for i in range(start,stop,step):
+                p.get('stream/60:%i:count' % (i//t))
+            counts = [int(x) if x else 0 for x in p.execute()]
+            result = [a/b for a, b in zip(result,counts)]
+
+            return jsonify(values=result)
+
+Now, run the script, reinstall minard, and restart the web server and you should
+see the time series at `localhost:5000/system_monitor
+<http://localhost:5000/system_monitor>`_.
