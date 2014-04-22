@@ -13,6 +13,7 @@ Contents:
 
    install
    quickstart
+   data
 
 Indices and tables
 ==================
