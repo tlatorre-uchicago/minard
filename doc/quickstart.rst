@@ -165,7 +165,7 @@ Finally, we need to add the following to views.py::
             counts = [int(x) if x else 0 for x in p.execute()]
             result = [a/b for a, b in zip(result,counts)]
 
-            return jsonify(values=result)
+        return jsonify(values=result)
 
 Now, run the script, reinstall minard, and restart the web server and you should
 see the time series at `localhost:5000/system_monitor
