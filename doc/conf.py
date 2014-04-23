@@ -115,7 +115,8 @@ html_theme = 'alabaster'
 html_theme_options = {
 'gittip_user': False,
 'github_button': False,
-'github_repo': 'https://github.com/tlatorre-uchicago/minard'
+'github_repo': 'https://github.com/tlatorre-uchicago/minard',
+'extra_nav_links' : {'Home': '/'}
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
