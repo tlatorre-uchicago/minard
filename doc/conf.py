@@ -116,7 +116,7 @@ html_theme_options = {
 'gittip_user': False,
 'github_button': False,
 'github_repo': 'https://github.com/tlatorre-uchicago/minard',
-'extra_nav_links' : {'Home': '/'}
+'extra_nav_links' : {'Home': '/monitoring'}
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
