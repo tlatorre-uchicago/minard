@@ -84,7 +84,7 @@ Now we need to edit `views.py` again and add a function which will return the hi
     def hello_world_hist():
         return jsonify(value=[random.gauss(0,1) for i in range(100)])
 
-        Reinstall minard, restart the web server and navigate to `http://localhost:5000/hello_world <http://localhost:5000/hello_world>`_, and you should see your beautiful histogram updating every second.
+Reinstall minard, restart the web server and navigate to `http://localhost:5000/hello_world <http://localhost:5000/hello_world>`_, and you should see your beautiful histogram updating every second.
 
 Monitoring CPU Usage
 --------------------
