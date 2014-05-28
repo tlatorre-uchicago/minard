@@ -5,6 +5,7 @@ if __name__ == '__main__':
     import argparse
     from multiprocessing import Process
     import time
+    import sys
 
     parser = argparse.ArgumentParser(description='Process SNO+ events from a dispatch stream')
     parser.add_argument('--host',default='builder1.sp.snolab.ca',
