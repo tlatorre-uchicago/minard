@@ -13,6 +13,31 @@ else
     sudo make install
 fi
 
+if [ ! -d /etc/redis ]; then
+    sudo mkdir /etc/redis
+fi
+
+if [ ! -d /var/redis ]; then
+    sudo mkdir /var/redis
+fi
+
+# install redis init script
+sudo curl -o /etc/init.d/redis_6379 https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/redis_6379
+sudo chmod +x /etc/init.d/redis_6379
+sudo curl -o /etc/redis/6379.conf https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/redis.conf
+
+# start redis
+sudo /etc/init.d/redis_6379 start
+
+if [ -f /etc/debian_version ]; then
+    sudo update-rc.d redis_6379 defaults
+else
+    if [ -f /etc/redhat-release ]; then
+        sudo chkconfig --add redis_6379
+        sudo chkconfig --level 2345 redis_6379 on
+    fi
+fi
+
 if [ -d /opt/minard ]; then
     echo "/opt/minard already exists. exiting..."
     exit 0
