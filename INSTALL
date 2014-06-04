@@ -1,3 +1,25 @@
+set -e
+sudo -v || exit
+
+if hash redis-server 2>/dev/null; then
+    echo "redis-server already installed..."
+else
+    echo "installing redis..."
+    cd /usr/local
+    sudo curl -O http://download.redis.io/redis-stable.tar.gz
+    sudo tar -xzvf redis-stable.tar.gz
+    cd redis-stable
+    sudo make
+    sudo make install
+fi
+
+if [ -d /opt/minard ]; then
+    echo "/opt/minard already exists. exiting..."
+    exit 0
+fi
+
+sudo mkdir /opt/minard
+sudo chown $USER /opt/minard
 virtualenv /opt/minard
 cd /opt/minard
 source bin/activate
