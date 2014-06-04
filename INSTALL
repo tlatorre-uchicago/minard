@@ -43,7 +43,7 @@ if [ ! -d /opt/minard ]; then
     sudo chown $USER /opt/minard
 fi
 
-if [! -f /opt/minard/bin/activate ]; then
+if [ ! -f /opt/minard/bin/activate ]; then
     virtualenv /opt/minard
 fi
 
