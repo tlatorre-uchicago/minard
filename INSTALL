@@ -125,8 +125,9 @@ if [ ! -d /opt/minard/src/rat-tools ]; then
     # rat-tools
     cd $VIRTUAL_ENV/src
     git clone git@github.com:snoplus/rat-tools.git
+    cd rat-tools
     git checkout 27af7f240965c823816ed9bfb7fecdccb040a9ca
-    cd rat-tools/ratzdab
+    cd ratzdab
     make
     source env.sh
     echo "source $VIRTUAL_ENV/src/rat-tools/ratzdab/env.sh" >> $VIRTUAL_ENV/bin/activate
