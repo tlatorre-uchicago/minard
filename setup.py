@@ -23,5 +23,7 @@ setup(name='minard',
                         'pyzmq',
                         'redis',
                         'argparse',
+                        'sphinx',
+                        'alabaster',
                         'MySQL-python']
       )
