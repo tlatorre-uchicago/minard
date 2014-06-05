@@ -85,6 +85,7 @@ if [ ! -d /opt/minard/src/root ]; then
     make -j4
     source bin/thisroot.sh
     cd ..
+    echo "source $VIRTUAL_ENV/src/root/bin/thisroot.sh" >> $VIRTUAL_ENV/bin/activate
 fi
 
 if [ ! -d /opt/minard/src/geant4.9.5.p01 ]; then
@@ -98,6 +99,7 @@ if [ ! -d /opt/minard/src/geant4.9.5.p01 ]; then
     make install
     cd ..
     source geant4.9.5.p01/bin/geant4.sh
+    echo "source $VIRTUAL_ENV/src/geant4.9.5.p01/bin/geant4.sh" >> $VIRTUAL_ENV/bin/activate
 fi
 
 if [ ! -d /opt/minard/src/rat ]; then
@@ -110,6 +112,7 @@ if [ ! -d /opt/minard/src/rat ]; then
     source env.sh
     scons -j4
     cd ..
+    echo "source $VIRTUAL_ENV/src/rat/env.sh" >> $VIRTUAL_ENV/bin/activate
 fi
 
 if [ ! -d /opt/minard/src/rat-tools ]; then
@@ -118,10 +121,5 @@ if [ ! -d /opt/minard/src/rat-tools ]; then
     cd rat-tools/ratzdab
     make
     source env.sh
+    echo "source $VIRTUAL_ENV/src/rat-tools/ratzdab/env.sh" >> $VIRTUAL_ENV/bin/activate
 fi
-
-# update virtualenv activate script
-echo "source $VIRTUAL_ENV/src/root/bin/thisroot.sh" >> $VIRTUAL_ENV/bin/activate
-echo "source $VIRTUAL_ENV/src/geant4.9.5.p01/bin/geant4.sh" >> $VIRTUAL_ENV/bin/activate
-echo "source $VIRTUAL_ENV/src/rat/env.sh" >> $VIRTUAL_ENV/bin/activate
-echo "source $VIRTUAL_ENV/src/rat-tools/ratzdab/env.sh" >> $VIRTUAL_ENV/bin/activate
