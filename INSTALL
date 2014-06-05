@@ -81,6 +81,7 @@ fi
 
 if [ ! -d /opt/minard/src/root ]; then
     # install Root
+    cd $VIRTUAL_ENV/src
     curl -O ftp://root.cern.ch/root/root_v5.34.01.source.tar.gz
     tar -xzvf root_v5.34.01.source.tar.gz
     cd root
@@ -93,6 +94,7 @@ fi
 
 if [ ! -d /opt/minard/src/geant4.9.5.p01 ]; then
     # install Geant4
+    cd $VIRTUAL_ENV/src
     curl -O http://geant4.cern.ch/support/source/geant4.9.5.p01.tar.gz
     tar -xzvf geant4.9.5.p01.tar.gz
     mkdir geant4.9.5.p01-build
@@ -107,6 +109,7 @@ fi
 
 if [ ! -d /opt/minard/src/rat ]; then
     # RAT
+    cd $VIRTUAL_ENV/src
     git clone git@github.com:snoplus/rat
     cd rat
     # need to go back to release 4.5.0
@@ -120,7 +123,9 @@ fi
 
 if [ ! -d /opt/minard/src/rat-tools ]; then
     # rat-tools
+    cd $VIRTUAL_ENV/src
     git clone git@github.com:snoplus/rat-tools.git
+    git checkout 27af7f240965c823816ed9bfb7fecdccb040a9ca
     cd rat-tools/ratzdab
     make
     source env.sh
