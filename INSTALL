@@ -78,6 +78,15 @@ sudo chmod +x /etc/init.d/gunicorn
 
 add_service gunicorn
 
+sudo mkdir -p /etc/minard
+
+sudo curl -o /etc/init.d/monitoring_scripts \
+https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/monitoring_scripts
+
+sudo chmod +x /etc/init.d/monitoring_scripts
+
+add_service monitoring_scripts
+
 if [ ! -d /opt/minard/src/root ]; then
     # install Root
     cd $VIRTUAL_ENV/src
@@ -131,3 +140,6 @@ if [ ! -d /opt/minard/src/rat-tools ]; then
     source env.sh
     echo "source $VIRTUAL_ENV/src/rat-tools/ratzdab/env.sh" >> $VIRTUAL_ENV/bin/activate
 fi
+
+echo "done! Make sure to install the builder key at /etc/minard/id_rsa_builder "
+echo "and the flask settings file at /etc/minard/settings.cfg"

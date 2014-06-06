@@ -40,7 +40,7 @@ STATIC_FOLDER = join(sys.prefix,'www/static')
 TEMPLATE_FOLDER = join(sys.prefix,'www/templates')
 SECRET_KEY = '>#:nG6\\,Ep_3y q*^(+uh\n=w?cXNfV"R'
 PROJECT_NAME = 'minard'
-CONFIG = join(sys.prefix,'settings.cfg')
+CONFIG = '/etc/minard/settings.cfg'
 
 app = Flask(__name__, static_folder=STATIC_FOLDER, template_folder=TEMPLATE_FOLDER)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
