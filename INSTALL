@@ -1,21 +1,21 @@
-set -e
-sudo -v || exit
+set -e; sudo -v || exit
 
 add_service () {
     if [ -f /etc/debian_version ]; then
         sudo update-rc.d $1 defaults
+    elif [ -f /etc/redhat-release ]; then
+        sudo chkconfig --add $1
+        sudo chkconfig --level 2345 $1 on
     else
-        if [ -f /etc/redhat-release ]; then
-            sudo chkconfig --add $1
-            sudo chkconfig --level 2345 $1 on
-        fi
+        echo "Error! Couldn't determine Linux distribution!"
+        echo "no /etc/debian_version or /etc/redhat-release file"
+        exit 1
     fi
 }
     
-if hash redis-server 2>/dev/null; then
-    echo "redis-server already installed..."
-else
-    echo "installing redis..."
+if ! hash redis-server 2>/dev/null; then
+    # install redis to /usr/local
+    echo "Installing redis..."
     cd /usr/local
     sudo curl -O http://download.redis.io/redis-stable.tar.gz
     sudo tar -xzvf redis-stable.tar.gz
@@ -24,15 +24,18 @@ else
     sudo make install
 fi
 
+# make directories for redis
+# see "Installing Redis more properly" at http://redis.io/topics/quickstart
 sudo mkdir -p /etc/redis /var/redis /opt/redis
 
 # install redis init script
-sudo curl -o /etc/init.d/redis_6379 https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/redis_6379
-sudo chmod +x /etc/init.d/redis_6379
-sudo curl -o /etc/redis/6379.conf https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/redis.conf
+sudo curl -o /etc/init.d/redis_6379\
+https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/redis_6379
 
-# start redis
-sudo /etc/init.d/redis_6379 start
+sudo chmod +x /etc/init.d/redis_6379
+
+sudo curl -o /etc/redis/6379.conf\
+https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/redis.conf
 
 add_service redis_6379
 
@@ -42,6 +45,7 @@ if [ ! -d /opt/minard ]; then
 fi
 
 if [ ! -f /opt/minard/bin/activate ]; then
+    # create virtual environment
     virtualenv /opt/minard
 fi
 
@@ -52,9 +56,8 @@ if [ ! -d /opt/minard/src ]; then
     mkdir src
 fi
 
-cd src
-
 if [ ! -d /opt/minard/src/minard ]; then
+    cd $VIRTUAL_ENV/src
     git clone git@github.com:tlatorre-uchicago/minard.git
     pip install ./minard
     cd minard/doc
@@ -64,14 +67,14 @@ if [ ! -d /opt/minard/src/minard ]; then
 
 # make sure www-data user exists
 if ! id -u www-data 2>/dev/null; then
+    echo "Adding www-data user..."
     sudo useradd -r www-data
 fi
 
-sudo curl -o /etc/init.d/gunicorn https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/gunicorn
-sudo chmod +x /etc/init.d/gunicorn
+sudo curl -o /etc/init.d/gunicorn\
+https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/gunicorn
 
-# start gunicorn
-sudo /etc/init.d/gunicorn start
+sudo chmod +x /etc/init.d/gunicorn
 
 add_service gunicorn
 
