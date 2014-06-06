@@ -24,13 +24,7 @@ else
     sudo make install
 fi
 
-if [ ! -d /etc/redis ]; then
-    sudo mkdir /etc/redis
-fi
-
-if [ ! -d /var/redis ]; then
-    sudo mkdir /var/redis
-fi
+sudo mkdir -p /etc/redis /var/redis /opt/redis
 
 # install redis init script
 sudo curl -o /etc/init.d/redis_6379 https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/redis_6379
