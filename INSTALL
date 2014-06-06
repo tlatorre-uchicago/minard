@@ -1,6 +1,17 @@
 set -e
 sudo -v || exit
 
+add_service () {
+    if [ -f /etc/debian_version ]; then
+        sudo update-rc.d $1 defaults
+    else
+        if [ -f /etc/redhat-release ]; then
+            sudo chkconfig --add $1
+            sudo chkconfig --level 2345 $1 on
+        fi
+    fi
+}
+    
 if hash redis-server 2>/dev/null; then
     echo "redis-server already installed..."
 else
@@ -29,14 +40,7 @@ sudo curl -o /etc/redis/6379.conf https://raw.githubusercontent.com/tlatorre-uch
 # start redis
 sudo /etc/init.d/redis_6379 start
 
-if [ -f /etc/debian_version ]; then
-    sudo update-rc.d redis_6379 defaults
-else
-    if [ -f /etc/redhat-release ]; then
-        sudo chkconfig --add redis_6379
-        sudo chkconfig --level 2345 redis_6379 on
-    fi
-fi
+add_service redis_6379
 
 if [ ! -d /opt/minard ]; then
     sudo mkdir /opt/minard
@@ -62,6 +66,11 @@ if [ ! -d /opt/minard/src/minard ]; then
     cd minard/doc
     make html
     cp -r _build/html /opt/minard/www/static/doc
+    fi
+
+# make sure www-data user exists
+if ! id -u www-data 2>/dev/null; then
+    sudo useradd -r www-data
 fi
 
 sudo curl -o /etc/init.d/gunicorn https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/gunicorn
@@ -70,14 +79,7 @@ sudo chmod +x /etc/init.d/gunicorn
 # start gunicorn
 sudo /etc/init.d/gunicorn start
 
-if [ -f /etc/debian_version ]; then
-    sudo update-rc.d gunicorn defaults
-else
-    if [ -f /etc/redhat-release ]; then
-        sudo chkconfig --add gunicorn
-        sudo chkconfig --level 2345 gunicorn on
-    fi
-fi
+add_service gunicorn
 
 if [ ! -d /opt/minard/src/root ]; then
     # install Root

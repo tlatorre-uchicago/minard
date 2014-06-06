@@ -7,6 +7,7 @@ CMD=/opt/minard/bin/gunicorn
 PIDFILE=/var/run/gunicorn.pid
 LOGFILE=/var/log/gunicorn.log
 APP=minard:app
+USER=www-data
 
 case "$1" in
     start)
@@ -14,7 +15,7 @@ case "$1" in
             echo "$PIDFILE exists, process is already running or crashed"
         else
             echo "Starting Gunicorn daemon..."
-            $CMD -w 4 -b 0.0.0.0:50000 $APP -D --error-logfile=$LOGFILE --pid=$PIDFILE
+            $CMD -w 4 -b 0.0.0.0:50000 $APP -D --error-logfile=$LOGFILE --pid=$PIDFILE --user=$USER
         fi
         ;;
     stop)
