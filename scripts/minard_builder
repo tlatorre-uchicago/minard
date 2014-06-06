@@ -28,6 +28,9 @@ def tail_worker(user, host, ssh_key):
         if not line:
             break
 
+    p.kill()
+    p.wait()
+
 if __name__ == '__main__':
     import argparse
     import time
