@@ -9,7 +9,26 @@ BUILDER_KEY=/etc/minard/id_rsa_builder
 # make sure log directory exists
 mkdir -p /opt/minard/log
 
-sudo -u www-data nohup $BIN/minard_dispatch &>/opt/minard/log/minard_dispatch.log &
-sudo -u www-data nohup $BIN/minard_builder $BUILDER_KEY &>/opt/minard/log/minard_builder.log &
-sudo -u www-data nohup $BIN/orca_producer &>/opt/minard/log/orca_producer.log &
-sudo -u www-data nohup $BIN/orca_consumer &>/opt/minard/log/orca_consumer.log &
+case "$1" in
+    start)
+        sudo -u www-data nohup $BIN/minard_dispatch &>/opt/minard/log/minard_dispatch.log &
+        sudo -u www-data nohup $BIN/minard_builder $BUILDER_KEY &>/opt/minard/log/minard_builder.log &
+        sudo -u www-data nohup $BIN/orca_producer &>/opt/minard/log/orca_producer.log &
+        sudo -u www-data nohup $BIN/orca_consumer &>/opt/minard/log/orca_consumer.log &
+        ;;
+    stop)
+        killall minard_dispatch
+        killall minard_builder
+        killall orca_producer
+        killall orca_consumer
+        ;;
+    reload|restart)
+        $0 stop
+        sleep 3
+        $0 start
+        ;;
+    *)
+        echo "Usage: $0 start|stop|restart|reload"
+        exit 1
+esac
+exit 0
