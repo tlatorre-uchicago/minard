@@ -29,12 +29,12 @@ fi
 sudo mkdir -p /etc/redis /var/redis /opt/redis
 
 # install redis init script
-sudo curl -o /etc/init.d/redis_6379\
+sudo curl -o /etc/init.d/redis_6379 \
 https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/redis_6379
 
 sudo chmod +x /etc/init.d/redis_6379
 
-sudo curl -o /etc/redis/6379.conf\
+sudo curl -o /etc/redis/6379.conf \
 https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/redis.conf
 
 add_service redis_6379
@@ -71,7 +71,7 @@ if ! id -u www-data 2>/dev/null; then
     sudo useradd -r www-data
 fi
 
-sudo curl -o /etc/init.d/gunicorn\
+sudo curl -o /etc/init.d/gunicorn \
 https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/gunicorn
 
 sudo chmod +x /etc/init.d/gunicorn
