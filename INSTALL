@@ -80,12 +80,11 @@ add_service gunicorn
 
 sudo mkdir -p /etc/minard
 
-sudo curl -o /etc/init.d/monitoring_scripts \
-https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/monitoring_scripts
-
-sudo chmod +x /etc/init.d/monitoring_scripts
-
-add_service monitoring_scripts
+# add monitoring init scripts
+for name in minard_dispatch minard_builder orca_producer orca_consumer; do
+    sudo cp $VIRTUAL_ENV/src/minard/utils/$name /etc/init.d/
+    add_service $name
+done
 
 if [ ! -d /opt/minard/src/root ]; then
     # install Root
