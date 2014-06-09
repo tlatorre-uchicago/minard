@@ -1,15 +1,9 @@
 #!/usr/bin/env python
 from __future__ import division
 from minard.orca import orca_consumer
+from multiprocessing import Process
 
-if __name__ == '__main__':
-    import argparse
-    from multiprocessing import Process
-
-    parser = argparse.ArgumentParser('ORCA stream consumer')
-    parser.add_argument('-w', type=int, default=2, help='number of workers')
-    args = parser.parse_args()
-
+def main(args):
     workers = []
     for i in range(args.w):
         p = Process(target=orca_consumer,args=(5557,))
@@ -21,3 +15,39 @@ if __name__ == '__main__':
 
     for worker in workers:
         worker.join()
+
+if __name__ == '__main__':
+    import argparse
+    import daemon
+    from daemon.pidfile import PIDLockFile
+    import os
+    import pwd
+
+    parser = argparse.ArgumentParser('ORCA stream consumer')
+    parser.add_argument('-w', type=int, default=2, help='number of workers')
+    parser.add_argument('--pidfile', help='PID file in daemon mode')
+    parser.add_argument('--logfile', help='log file in daemon mode')
+    parser.add_argument('--user', default=None, help='run as [user] in daemon mode')
+    parser.add_argument('-d', '--daemon', default=False, action='store_true')
+    args = parser.parse_args()
+
+    if args.user:
+        uid = pwd.getpwnam(args.user).pw_uid
+    else:
+        uid = os.getuid()
+
+    if args.daemon:
+        if args.pidfile:
+            pidfile = PIDLockFile(args.pidfile)
+        else:
+            pidfile = None
+
+        if args.logfile:
+            logfile = open(args.logfile,'w')
+        else:
+            logfile = None
+
+        with daemon.DaemonContext(pidfile=pidfile,stderr=logfile,uid=uid):
+            main(args)
+    else:
+        main(args)

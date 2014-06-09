@@ -31,21 +31,51 @@ def tail_worker(user, host, ssh_key):
     p.kill()
     p.wait()
 
-if __name__ == '__main__':
-    import argparse
-    import time
-    import sys
-
-    parser = argparse.ArgumentParser(description='Add builder log to redis database')
-    parser.add_argument('--host', default='builder1.sp.snolab.ca')
-    parser.add_argument('--user', default='snotdaq')
-    parser.add_argument('ssh_key', help='path to builder ssh key')
-    args = parser.parse_args()
-
+def main(args):
     while True:
         try:
-            tail_worker(args.user, args.host, args.ssh_key)
+            tail_worker(args.ssh_user, args.host, args.ssh_key)
         except Exception as e:
             sys.stderr.write(str(e) + '\n')
 
         time.sleep(10)
+
+if __name__ == '__main__':
+    import argparse
+    import time
+    import sys
+    import daemon
+    from daemon.pidfile import PIDLockFile
+    import os
+    import pwd
+
+    parser = argparse.ArgumentParser(description='Add builder log to redis database')
+    parser.add_argument('--host', default='builder1.sp.snolab.ca')
+    parser.add_argument('--ssh_user', default='snotdaq')
+    parser.add_argument('ssh_key', help='path to builder ssh key')
+    parser.add_argument('--pidfile', help='PID file in daemon mode')
+    parser.add_argument('--logfile', help='log file in daemon mode')
+    parser.add_argument('--user', default=None, help='run as [user] in daemon mode')
+    parser.add_argument('-d', '--daemon', default=False, action='store_true')
+    args = parser.parse_args()
+
+    if args.user:
+        uid = pwd.getpwnam(args.user).pw_uid
+    else:
+        uid = os.getuid()
+
+    if args.daemon:
+        if args.pidfile:
+            pidfile = PIDLockFile(args.pidfile)
+        else:
+            pidfile = None
+
+        if args.logfile:
+            logfile = open(args.logfile,'w')
+        else:
+            logfile = None
+
+        with daemon.DaemonContext(pidfile=pidfile,stderr=logfile,uid=uid):
+            main(args)
+    else:
+        main(args)
