@@ -71,6 +71,12 @@ if ! id -u www-data 2>/dev/null; then
     sudo useradd -r www-data
 fi
 
+# make sure snoplusmon user exists
+if ! id -u snoplusmon 2>/dev/null; then
+    echo "Adding snoplusmon user..."
+    sudo useradd -r snoplusmon
+fi
+
 sudo curl -o /etc/init.d/gunicorn \
 https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/gunicorn
 
@@ -79,6 +85,8 @@ sudo chmod +x /etc/init.d/gunicorn
 add_service gunicorn
 
 sudo mkdir -p /etc/minard
+sudo mkdir -p /var/run/minard
+sudo chown snoplusmon:snoplusmon /var/run/minard
 
 # add monitoring init scripts
 for name in minard_dispatch minard_builder orca_producer orca_consumer; do

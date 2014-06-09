@@ -5,7 +5,7 @@
 
 NAME=orca_producer
 CMD=/opt/minard/bin/$NAME
-PIDFILE=/var/run/$NAME.pid
+PIDFILE=/var/run/minard/$NAME.pid
 LOGFILE=/var/log/$NAME.log
 USER=snoplusmon
 
