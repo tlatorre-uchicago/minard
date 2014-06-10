@@ -1,7 +1,8 @@
+#!/usr/bin/env bash
 set -e; sudo -v || exit
 
 # apt-get install package dependencies
-if [ -f /etc/debian_version]; then
+if [ -f /etc/debian_version ]; then
    sudo apt-get install git dpkg-dev make g++ gcc binutils libx11-dev libxpm-dev \
        libxft-dev libxext-dev \
        gfortran libssl-dev libpcre3-dev \
