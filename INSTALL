@@ -123,7 +123,7 @@ done
 if [ ! -d /opt/minard/src/root ]; then
     # install Root
     cd $VIRTUAL_ENV/src
-    curl -O ftp://root.cern.ch/root/root_v5.34.01.source.tar.gz
+    curl -O ftp://root.cern.ch/root/root_v5.34.18.source.tar.gz
     tar -xzvf root_v5.34.01.source.tar.gz
     cd root
     ./configure --enable-minuit2 --enable-python
@@ -141,7 +141,7 @@ if [ ! -d /opt/minard/src/geant4.9.5.p01 ]; then
     mkdir geant4.9.5.p01-build
     cd geant4.9.5.p01-build
     cmake -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV/src/geant4.9.5.p01 $VIRTUAL_ENV/src/geant4.9.5.p01 
-    make
+    make -j8
     make install
     cd ..
     source geant4.9.5.p01/bin/geant4.sh
