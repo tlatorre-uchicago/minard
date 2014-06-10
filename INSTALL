@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 set -e; sudo -v || exit
 
-# apt-get install package dependencies
+# install latest version of supervisor
+# this will be used to manage the scripts which
+# monitor the dispatch stream and ORCA
+sudo pip install supervisor
+
+# apt-get install package dependencies (mostly ROOT)
 if [ -f /etc/debian_version ]; then
    sudo apt-get install git dpkg-dev make g++ gcc binutils libx11-dev libxpm-dev \
        libxft-dev libxext-dev \
@@ -10,7 +15,7 @@ if [ -f /etc/debian_version ]; then
        libmysqlclient-dev libfftw3-dev cfitsio-dev \
        graphviz-dev libavahi-compat-libdnssd-dev \
        libldap2-dev python-dev libxml2-dev libkrb5-dev \
-       libgsl0-dev libqt4-dev \
+       libgsl0-dev libqt4-dev libfreetype6 libfreetype6-dev \
        curl libcurl3 bzip2 libbz2-1.0 scons
 elif [ -f /etc/redhat-release ]; then
    sudo yum install git make gcc-c++ gcc binutils \
@@ -25,9 +30,16 @@ else
     echo "Error! Couldn't determine Linux distribution!"
     echo "no /etc/debian_version or /etc/redhat-release file"
     exit 1
+    fi
+
+if [ -d /usr/include/freetype2 ] && [ ! -d /usr/include/freetype ]; then
+    # issue on Ubuntu 14.04
+    # see http://root.cern.ch/phpBB3/viewtopic.php?f=3&t=18065 
+    sudo ln -s /usr/include/freetype2 /usr/include/freetype
 fi
 
 add_service () {
+    # adds an init script service to chkconfig or update-rc.d
     if [ -f /etc/debian_version ]; then
         sudo update-rc.d $1 defaults
     elif [ -f /etc/redhat-release ]; then
@@ -59,12 +71,17 @@ sudo mkdir -p /etc/redis /var/redis /opt/redis
 sudo curl -o /etc/init.d/redis_6379 \
 https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/redis_6379
 
+# make it executable
 sudo chmod +x /etc/init.d/redis_6379
 
+# redis configuration file
+# this is where, for example, the location of the backup image is configured
 sudo curl -o /etc/redis/6379.conf \
 https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/redis.conf
 
+# add redis service and start it
 add_service redis_6379
+sudo /etc/init.d/redis_6379 start
 
 if [ ! -d /opt/minard ]; then
     sudo mkdir /opt/minard
@@ -84,6 +101,7 @@ if [ ! -d /opt/minard/src ]; then
 fi
 
 if [ ! -d /opt/minard/src/minard ]; then
+    echo "Installing minard..."
     cd $VIRTUAL_ENV/src
     git clone git@github.com:tlatorre-uchicago/minard.git
     pip install ./minard
@@ -104,46 +122,43 @@ if ! id -u snoplusmon 2>/dev/null; then
     sudo useradd -r snoplusmon
 fi
 
+# download gunicorn init script
 sudo curl -o /etc/init.d/gunicorn \
 https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/gunicorn
 
+# make it executable
 sudo chmod +x /etc/init.d/gunicorn
 
+# add and start gunicorn
 add_service gunicorn
+sudo /etc/init.d/gunicorn start
 
+# create /etc/minard
 sudo mkdir -p /etc/minard
-sudo mkdir -p /var/run/minard
-sudo chown snoplusmon:snoplusmon /var/run/minard
-
-# add monitoring init scripts
-for name in minard_dispatch minard_builder orca_producer orca_consumer; do
-    sudo cp $VIRTUAL_ENV/src/minard/utils/$name /etc/init.d/
-    add_service $name
-done
 
 if [ ! -d /opt/minard/src/root ]; then
-    # install Root
+    echo "Installing ROOT..."
     cd $VIRTUAL_ENV/src
     ROOT=root_v5.34.18
     curl -O ftp://root.cern.ch/root/$ROOT.source.tar.gz
     tar -xzvf $ROOT.source.tar.gz
     cd root
     ./configure --enable-minuit2 --enable-python
-    make -j4
+    make -j$(nproc)
     source bin/thisroot.sh
     cd ..
     echo "source $VIRTUAL_ENV/src/root/bin/thisroot.sh" >> $VIRTUAL_ENV/bin/activate
 fi
 
 if [ ! -d /opt/minard/src/geant4.9.5.p01 ]; then
-    # install Geant4
+    echo "Installing Geant4..."
     cd $VIRTUAL_ENV/src
     curl -O http://geant4.cern.ch/support/source/geant4.9.5.p01.tar.gz
     tar -xzvf geant4.9.5.p01.tar.gz
     mkdir geant4.9.5.p01-build
     cd geant4.9.5.p01-build
     cmake -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV/src/geant4.9.5.p01 $VIRTUAL_ENV/src/geant4.9.5.p01 
-    make -j8
+    make -j$(nproc)
     make install
     cd ..
     source geant4.9.5.p01/bin/geant4.sh
@@ -151,7 +166,7 @@ if [ ! -d /opt/minard/src/geant4.9.5.p01 ]; then
 fi
 
 if [ ! -d /opt/minard/src/rat ]; then
-    # RAT
+    echo "Installing RAT..."
     cd $VIRTUAL_ENV/src
     git clone git@github.com:snoplus/rat
     cd rat
@@ -159,13 +174,13 @@ if [ ! -d /opt/minard/src/rat ]; then
     git checkout 12c07de85f0f24b824ce2ff5c3ac4b193bea680d
     ./configure
     source env.sh
-    scons -j4
+    scons -j$(nproc)
     cd ..
     echo "source $VIRTUAL_ENV/src/rat/env.sh" >> $VIRTUAL_ENV/bin/activate
 fi
 
 if [ ! -d /opt/minard/src/rat-tools ]; then
-    # rat-tools
+    echo "Installing rat-tools..."
     cd $VIRTUAL_ENV/src
     git clone git@github.com:snoplus/rat-tools.git
     cd rat-tools
