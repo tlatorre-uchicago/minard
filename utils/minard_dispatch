@@ -20,6 +20,8 @@ PIDFILE=/var/run/minard/$NAME.pid
 LOGFILE=/var/log/$NAME.log
 USER=snoplusmon
 
+. /opt/minard/bin/activate
+
 case "$1" in
     start)
         if [ -f $PIDFILE ]; then

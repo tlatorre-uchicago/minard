@@ -124,8 +124,9 @@ done
 if [ ! -d /opt/minard/src/root ]; then
     # install Root
     cd $VIRTUAL_ENV/src
-    curl -O ftp://root.cern.ch/root/root_v5.34.18.source.tar.gz
-    tar -xzvf root_v5.34.01.source.tar.gz
+    ROOT=root_v5.34.18
+    curl -O ftp://root.cern.ch/root/$ROOT.source.tar.gz
+    tar -xzvf $ROOT.source.tar.gz
     cd root
     ./configure --enable-minuit2 --enable-python
     make -j4

@@ -1,19 +1,16 @@
 #!/usr/bin/env python
+from __future__ import print_function
 from subprocess import Popen, PIPE
 import shlex
 import atexit
 from redis import Redis
+import traceback
 
 redis = Redis()
 
 def tail_worker(user, host, ssh_key):
-    cmd = 'ssh -i %s -o StrictHostKeyChecking=no %s@%s tail_log_ssh data_temp' % (ssh_key,user,host)
-    p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
-
-    @atexit.register
-    def stop():
-        p.kill()
-        p.wait()
+    cmd = 'ssh -i %s -o StrictHostKeyChecking=no -o ConnectTimeout=1 %s@%s tail_log_ssh data_temp' % (ssh_key,user,host)
+    p = Popen(shlex.split(cmd), stdout=PIPE)
 
     while True:
         line = p.stdout.readline()
@@ -36,9 +33,10 @@ def main(args):
         try:
             tail_worker(args.ssh_user, args.host, args.ssh_key)
         except Exception as e:
-            sys.stderr.write(str(e) + '\n')
+            print(traceback.format_exc(),file=sys.stderr)
+            print(e,file=sys.stderr)
 
-        time.sleep(10)
+        time.sleep(60)
 
 if __name__ == '__main__':
     import argparse
