@@ -186,20 +186,29 @@ def query():
 
         return jsonify(value=values)
 
-    if name == 'alarms':
-        alarms = []
-        try:
-            latest = int(redis.get('/alarms/count'))
-        except TypeError:
-            return jsonify(messages=[])
+@app.route('/get_alarm/')
+def get_alarm():
+    try:
+        latest = int(redis.get('/alarms/count'))
+    except TypeError:
+        return jsonify(messages=[])
 
-        for i in range(max(latest-100,0),latest):
-            value = redis.get('/alarms/{0:d}'.format(i))
+    if 'start' in request.args:
+        start = request.args.get('start',type=int)
 
-            if value:
-                alarms.append(json.loads(value))
+        if start < 0:
+            start = latest - 1
+    else:
+        start = max(latest-100,0)
 
-        return jsonify(messages=alarms)
+    alarms = []
+    for i in range(start,latest):
+        value = redis.get('/alarms/{0:d}'.format(i))
+
+        if value:
+            alarms.append(json.loads(value))
+
+    return jsonify(messages=alarms)
 
 @app.route('/set_alarm/', methods=['POST'])
 def set_alarm():
