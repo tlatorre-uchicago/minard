@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 set -e; sudo -v || exit
 
-# install latest version of supervisor
-# this will be used to manage the scripts which
-# monitor the dispatch stream and ORCA
-sudo pip install supervisor
-
 # apt-get install package dependencies (mostly ROOT)
 if [ -f /etc/debian_version ]; then
    sudo apt-get install git dpkg-dev make g++ gcc binutils libx11-dev libxpm-dev \
@@ -95,6 +90,8 @@ fi
 
 cd /opt/minard
 source bin/activate
+
+pip install supervisor
 
 if [ ! -d /opt/minard/src ]; then
     mkdir src

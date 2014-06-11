@@ -20,7 +20,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
 DESC="supervisord daemon"
 NAME=supervisord
-DAEMON=supervisord
+DAEMON=/opt/minard/bin/supervisord
 DAEMON_ARGS=""
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
