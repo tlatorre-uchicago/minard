@@ -186,7 +186,7 @@ def query():
 
         return jsonify(value=values)
 
-@app.route('/get_alarm/')
+@app.route('/get_alarm')
 def get_alarm():
     try:
         latest = int(redis.get('/alarms/count'))
@@ -210,7 +210,7 @@ def get_alarm():
 
     return jsonify(alarms=alarms)
 
-@app.route('/set_alarm/', methods=['POST'])
+@app.route('/set_alarm', methods=['POST'])
 def set_alarm():
     lvl = int(request.form['lvl'])
     msg = request.form['msg']
@@ -225,9 +225,9 @@ def set_alarm():
     redis.set('/alarms/latest', json.dumps(alarm))
     redis.expire('/alarms/latest', 60)
 
-    return 'ok'
+    return 'ok\n'
 
-@app.route('/metric/')
+@app.route('/metric')
 def metric():
     args = request.args
 
