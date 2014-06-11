@@ -9,6 +9,7 @@ import calendar
 from redis import Redis
 import sys
 from os.path import join
+import json
 
 try:
     from minard.database import init_db, db_session
@@ -186,8 +187,34 @@ def query():
         return jsonify(value=values)
 
     if name == 'alarms':
-        alarms = db_session.query(Alarms)
-        return jsonify(messages=[dict(x) for x in alarms])
+        alarms = []
+        try:
+            latest = int(redis.get('/alarms/count'))
+        except TypeError:
+            return jsonify(messages=[])
+
+        for i in range(max(latest-100,0),latest):
+            value = redis.get('/alarms/{0:d}'.format(i))
+
+            if value:
+                alarms.append(json.loads(value))
+
+        return jsonify(messages=alarms)
+
+@app.route('/set_alarm/')
+def set_alarm():
+    lvl = request.args.get('lvl',type=int)
+    msg = request.args.get('msg',type=str)
+    now = datetime.now().isoformat()
+
+    id = redis.incr('/alarms/count')-1
+
+    alarm = {'id': id, 'level': lvl, 'message': msg, 'time': now}
+
+    key = '/alarms/{0:d}'.format(id)
+    redis.set(key, json.dumps(alarm))
+    redis.set('/alarms/latest', json.dumps(alarm))
+    redis.expire('/alarms/latest', 60)
 
 @app.route('/metric/')
 def metric():
