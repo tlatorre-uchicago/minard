@@ -25,5 +25,6 @@ setup(name='minard',
                         'argparse',
                         'sphinx',
                         'alabaster',
+                        'python-daemon',
                         'MySQL-python']
       )
