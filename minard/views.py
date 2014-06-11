@@ -191,7 +191,7 @@ def get_alarm():
     try:
         latest = int(redis.get('/alarms/count'))
     except TypeError:
-        return jsonify(messages=[])
+        return jsonify(alarms=[])
 
     if 'start' in request.args:
         start = request.args.get('start',type=int)
@@ -208,7 +208,7 @@ def get_alarm():
         if value:
             alarms.append(json.loads(value))
 
-    return jsonify(messages=alarms)
+    return jsonify(alarms=alarms)
 
 @app.route('/set_alarm/', methods=['POST'])
 def set_alarm():

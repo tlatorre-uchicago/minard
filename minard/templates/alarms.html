@@ -36,7 +36,7 @@ function get_poll() {
 
 function update() {
     get_poll().done(function (obj) {
-            msglist = obj.messages;
+            msglist = obj.alarms;
             parse();
             });
 }
@@ -69,13 +69,13 @@ function parse() {
         msgdisp = msglist;
     }
 
-    var id = msgdisp.map(function(d) { return d.time; });
+    var id = msgdisp.map(function(d) { return d.id; });
 
     var div1 = d3.select('#main').selectAll('div');
     var div = div1.data(id, String).sort(String);
 
     div.enter()
-        .append('div')
+        .insert('div',':first-child')
         .attr('class', function(d, i) {
                 return [levels[level_map[msgdisp[i].level]], 
                 ' alert-dismissable'].join(' ');})
