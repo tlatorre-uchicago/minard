@@ -139,9 +139,9 @@ sudo mkdir -p /etc/minard
 cd $VIRTUAL_ENV/src/minard
 
 if [ -f /etc/debian_version ]; then
-    sudo cp init/supervisord_debian /etc/supervisord
+    sudo cp init/supervisord_debian /etc/init.d/supervisord
 elif [ -f /etc/redhat-release ]; then
-    sudo cp init/supervisord_redhat /etc/supervisord
+    sudo cp init/supervisord_redhat /etc/init.d/supervisord
 else
     echo "Error! Couldn't determine Linux distribution!"
     echo "no /etc/debian_version or /etc/redhat-release file"
