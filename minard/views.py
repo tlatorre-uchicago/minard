@@ -201,10 +201,10 @@ def query():
 
         return jsonify(messages=alarms)
 
-@app.route('/set_alarm/')
+@app.route('/set_alarm/', methods=['POST'])
 def set_alarm():
-    lvl = request.args.get('lvl',type=int)
-    msg = request.args.get('msg',type=str)
+    lvl = int(request.form['lvl'])
+    msg = request.form['msg']
     now = datetime.now().isoformat()
 
     id = redis.incr('/alarms/count')-1
@@ -215,6 +215,8 @@ def set_alarm():
     redis.set(key, json.dumps(alarm))
     redis.set('/alarms/latest', json.dumps(alarm))
     redis.expire('/alarms/latest', 60)
+
+    return 'ok'
 
 @app.route('/metric/')
 def metric():
