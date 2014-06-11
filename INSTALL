@@ -136,6 +136,22 @@ sudo /etc/init.d/gunicorn start
 # create /etc/minard
 sudo mkdir -p /etc/minard
 
+cd $VIRTUAL_ENV/src/minard
+
+if [ -f /etc/debian_version ]; then
+    sudo cp init/supervisord_debian /etc/supervisord
+elif [ -f /etc/redhat-release ]; then
+    sudo cp init/supervisord_redhat /etc/supervisord
+else
+    echo "Error! Couldn't determine Linux distribution!"
+    echo "no /etc/debian_version or /etc/redhat-release file"
+    exit 1
+fi
+
+add_service supervisord
+
+sudo cp utils/supervisord.conf /etc/supervisord.conf
+
 if [ ! -d /opt/minard/src/root ]; then
     echo "Installing ROOT..."
     cd $VIRTUAL_ENV/src
@@ -157,7 +173,7 @@ if [ ! -d /opt/minard/src/geant4.9.5.p01 ]; then
     tar -xzvf geant4.9.5.p01.tar.gz
     mkdir geant4.9.5.p01-build
     cd geant4.9.5.p01-build
-    cmake -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV/src/geant4.9.5.p01 $VIRTUAL_ENV/src/geant4.9.5.p01 
+    cmake -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV/src/geant4.9.5.p01 $VIRTUAL_ENV/src/geant4.9.5.p01
     make -j$(nproc)
     make install
     cd ..
