@@ -216,6 +216,9 @@ def set_alarm():
     msg = request.form['message']
     now = datetime.now().isoformat()
 
+    if not 0 <= lvl <= 3:
+        return 'level must be in [0,3]\n', 400
+
     id = redis.incr('/alarms/count')-1
 
     alarm = {'id': id, 'level': lvl, 'message': msg, 'time': now}

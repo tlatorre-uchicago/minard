@@ -23,7 +23,7 @@
 var levels = {'success': 'alert alert-success',
               'info'   : 'alert alert-info',
               'warning': 'alert alert-warning',
-              'danger' : 'alert alert-danger'};
+              'danger'  : 'alert alert-danger'};
 
 var level_map = {0: 'success', 1: 'info', 2: 'warning', 3: 'danger'};
 
@@ -80,7 +80,7 @@ function parse() {
                 return [levels[level_map[msgdisp[i].level]], 
                 ' alert-dismissable'].join(' ');})
         .text(function(d, i) {
-                return ['[',(new Date(msgdisp[i].time)).toUTCString(),
+                return ['[',(new Date(msgdisp[i].time)).toLocaleString(),
                 '] ', msgdisp[i].message].join('');})
         .append('button')
         .attr('type', 'button')
