@@ -1,38 +1,17 @@
 from __future__ import division
 from __future__ import print_function
 from minard import app
-from flask import render_template, jsonify, request, redirect, url_for, send_from_directory
-from datetime import datetime, timedelta
+from flask import render_template, jsonify, request, redirect, url_for
+from datetime import datetime
 from itertools import product
 import time
-import calendar
 from redis import Redis
 import sys
 from os.path import join
 import json
-
-try:
-    from minard.database import init_db, db_session
-    from minard.models import Clock, L2, Alarms, PMT, Nhit, Position
-
-    @app.teardown_appcontext
-    def shutdown_session(exception=None):
-        db_session.remove()
-
-except Exception as e:
-    print('failed to load MySQL database',file=sys.stderr)
-    print(str(e),file=sys.stderr)
+from tools import total_seconds, parseiso
 
 redis = Redis()
-
-def total_seconds(td):
-    """Returns the total number of seconds contained in the duration."""
-    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
-
-def parseiso(timestr):
-    """Convert an iso time string -> unix timestamp."""
-    dt = datetime.strptime(timestr,'%Y-%m-%dT%H:%M:%S.%fZ')
-    return calendar.timegm(dt.timetuple())
 
 @app.route('/')
 def index():
@@ -138,49 +117,6 @@ def query():
         occ = [int(n)/count if n else 0 for n in occ]
 
         return jsonify(values=occ)
-
-    if name == 'l2_info':
-        id = request.args.get('id',None,type=str)
-
-        if id is not None:
-            info = db_session.query(L2).filter(L2.id == id).one()
-        else:
-            # grab latest
-            info = db_session.query(L2).order_by(L2.id.desc()).first()
-
-        return jsonify(value=dict(info))
-
-    if name == 'nhit_l2':
-        latest = Nhit.latest()
-        hist = [getattr(latest,'nhit%i' % i) for i in range(30)]
-        bins = range(5,300,10)
-        result = dict(zip(bins,hist))
-        return jsonify(value=result)
-
-    if name == 'pos':
-        latest = Position.latest()
-        hist = [getattr(latest,'pos%i' % i) for i in range(13)]
-        bins = range(25,650,50)
-        result = dict(zip(bins,hist))
-        return jsonify(value=result)
-
-    if name == 'events':
-        value = db_session.query(L2.entry_time, L2.events).order_by(L2.entry_time.desc())[:600]
-        t, y = zip(*value)
-        result = {'t': [x.isoformat() for x in t], 'y': y}
-        return jsonify(value=result)
-
-    if name == 'events_passed':
-        value = db_session.query(L2.entry_time, L2.passed_events).order_by(L2.entry_time.desc())[:600]
-        t, y = zip(*value)
-        result = {'t': [x.isoformat() for x in t], 'y': y}
-        return jsonify(value=result)
-
-    if name == 'delta_t':
-        value = db_session.query(L2).order_by(L2.entry_time.desc())[:600]
-        result = {'t': [x.entry_time.isoformat() for x in value],
-                  'y': [total_seconds(x.entry_time - x.get_clock()) for x in value]}
-        return jsonify(value=result)
 
     if name == 'cmos' or name == 'base':
         p = redis.pipeline()
