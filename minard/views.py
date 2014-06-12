@@ -212,8 +212,8 @@ def get_alarm():
 
 @app.route('/set_alarm', methods=['POST'])
 def set_alarm():
-    lvl = int(request.form['lvl'])
-    msg = request.form['msg']
+    lvl = int(request.form['level'])
+    msg = request.form['message']
     now = datetime.now().isoformat()
 
     id = redis.incr('/alarms/count')-1
