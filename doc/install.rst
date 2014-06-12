@@ -4,16 +4,6 @@ Installation
 Installing minard
 -----------------
 
-Before installing minard, you need to install the MYSQL development package for your distribution.
-
-On RHEL systems::
-
-    $ sudo yum install mysql-devel
-
-On Ubuntu::
-
-    $ sudo apt-get install libmysqlclient-dev
-
 The easiest way to install minard is to use a virtual environment with
 `virtualenv <http://virtualenv.org>`_::
 

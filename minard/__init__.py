@@ -38,16 +38,10 @@ class ReverseProxied(object):
 
 STATIC_FOLDER = join(sys.prefix,'www/static')
 TEMPLATE_FOLDER = join(sys.prefix,'www/templates')
-SECRET_KEY = '>#:nG6\\,Ep_3y q*^(+uh\n=w?cXNfV"R'
+SECRET_KEY = "=S\t3w>zKIVy0n]b1h,<%|@EHBgfRJQ;A\rLC'[\x0blPF!` ai}/4W"
 PROJECT_NAME = 'minard'
-CONFIG = '/etc/minard/settings.cfg'
 
 app = Flask(__name__, static_folder=STATIC_FOLDER, template_folder=TEMPLATE_FOLDER)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
-try:
-    app.config.from_pyfile(CONFIG)
-except Exception as e:
-    print('unable to load configuration from {0:s}'.format(CONFIG),file=sys.stderr)
-    print(str(e),file=sys.stderr)
 
 import minard.views

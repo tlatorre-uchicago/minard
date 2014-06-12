@@ -18,13 +18,11 @@ setup(name='minard',
                     ('www/templates',     glob('minard/templates/*'))],
       install_requires=['flask',
                         'gunicorn',
-                        'sqlalchemy',
                         'numpy',
                         'pyzmq',
                         'redis',
                         'argparse',
                         'sphinx',
                         'alabaster',
-                        'python-daemon',
-                        'MySQL-python']
+                        'python-daemon']
       )
