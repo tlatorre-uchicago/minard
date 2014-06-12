@@ -1,167 +1,119 @@
 {% extends "layout.html" %}
 {% block title %}L2 Filter{% endblock %}
 {% block head %}
-    {{ super() }}
-    <link href="{{ url_for('static', filename='css/bar-chart.css') }}" rel="stylesheet">
-    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/bar-chart.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/time-series.js') }}"></script>
+{{ super() }}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+
+  <style>
+
+  .horizon .title,
+  .horizon .value {
+    bottom: 0;
+    line-height: {{ height }}px;
+    margin: 0 6px;
+    position: absolute;
+    text-shadow: 0 1px 0 rgba(255,255,255,.5);
+    white-space: nowrap;
+  }
+
+  </style>
+
+  <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cubism.v1.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/metric.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/moment-timezone.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/moment-timezone-data.js') }}"></script>
 {% endblock %}
 {% block body %}
-    {{ super() }}
-    <div class="container">
-        <div class="row">
-            <div class="col-md-9">
-                <div class="row">
-                    <div class="col-md-12" id="nhit">
-                        <h2>NHit</h2>
-                    </div>
-                    <div class="col-md-12" id="pos">
-                        <h2>Radial Position</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3" id="info">
-                <h2>Info</h2>
-                <button type='button' class='btn btn-default disabled' id='btn-start'>Keep it Current</button>
-                <button type='button' class='btn btn-default' id='btn-stop'>Pause</button>
-                <p>
-                <table class="table table-bordered">
-                    <tr>
-                        <td>ID</td>
-                        <td id='id'></td>
-                    </tr>
-                    <tr>
-                        <td>Run #</td>
-                        <td id='run'></td>
-                    </tr>
-                    <tr>
-                        <td>First GTID</td>
-                        <td id='gtid_first'></td>
-                    </tr>
-                    <tr>
-                        <td>Last GTID</td>
-                        <td id='gtid_last'></td>
-                    </tr>
-                    <tr>
-                        <td>Events</td>
-                        <td id='events'></td>
-                    </tr>
-                    <tr>
-                        <td>Passed Events</td>
-                        <td id='passed_events'></td>
-                    </tr>
-                    <tr>
-                        <td>Orphans</td>
-                        <td id='orphans'></td>
-                    </tr>
-                    <tr>
-                        <td>Avg NHit</td>
-                        <td id='avgnhit'></td>
-                    </tr>
-                    <tr>
-                        <td>History</td>
-                        <td>
-                <button type='button' class='btn btn-default btn-xs' id='ctrlm1'>-1</button>
-                <button type='button' class='btn btn-default btn-xs' id='ctrlp1'>+1</button>
-                <button type='button' class='btn btn-default btn-xs' id='ctrlmt'>-10</button>
-                <button type='button' class='btn btn-default btn-xs' id='ctrlpt'>+10</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Time</td>
-                        <td id='entry_time'></td>
-                    </tr>
-                    <tr>
-                        <td>Clock</td>
-                        <td id='clock'></td>
-                    </tr>
-                </table>
-                <h3>Status</h3>
-                <div id='status'></div>
-            </div><!--/span-->
-        </div>
+{{ super() }}
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6">
+        <p>Sudbury Time: <span id='sudbury-time'></span>
+      </div>
+      <div class="col-md-6">
+        <p class="pull-right">Step: 
+        <select id="step-menu">
+          {% for i in [1,10,100,1000] %}
+            <option {% if step == i %}selected="selected" {% endif %}value="{{ i }}">{{ i }}</option>
+          {% endfor %}
+        </select>
+      </div>
     </div>
+    <div class="row">
+      <div class="col-md-12" style="padding:0" id="demo"></div>
+    </div>
+  </div>
+<script>
 
-    <script>$('#nav-home').attr('class','active');</script>
+  $("#step-menu").on("change", function() {
+      window.location.replace("{{ url_for('l2_filter') }}?step=" + this.value + "&height={{ height }}");
+  });
 
-    <script>
-    var current_id = null;
+  setInterval(function() {
+    $('#sudbury-time').text(moment().tz('America/Toronto').format('h:mm:ss'));
+  },1000);
 
-    $('#ctrlm1').click(function() {
-        $('#btn-stop').trigger('click');
-	current_id -= 1;
-	$('#id').text(current_id);
-        update_l2(current_id);
+var size = $('#demo').width();
+var context = cubism.context()
+    .serverDelay(1e3)
+    .clientDelay(1e3)
+    .step({{ step }}*1000)
+    .size(size);
+
+d3.select("#demo").selectAll(".axis")
+    .data(["top", "bottom"])
+  .enter().append("div")
+    .attr("class", function(d) { return d + " axis"; })
+    .each(function(d) { d3.select(this).call(context.axis().ticks(12).orient(d)); });
+
+d3.select("#demo").append("div")
+    .attr("class", "rule")
+    .call(context.rule());
+
+var STREAMS = ['L1','L2','ORPHANS'];
+
+var si_format = d3.format('.2s');
+
+var my_format = function(n) {
+  if (n < 100 && n % 1 === 0)
+    return n.toString();
+  else
+    return si_format(n);
+}
+
+d3.select("#demo").selectAll(".horizon")
+  .data(STREAMS.map(metric))
+  .enter().insert("div", ".bottom")
+    .attr("class", "horizon")
+  .call(context.horizon().height({{ height }}).format(my_format));
+
+d3.select("#demo").selectAll("#heartbeat")
+    .data(["l2-heartbeat"].map(metric))
+  .enter().insert("div", ".bottom")
+    .attr("id","heartbeat")
+    .attr("class", "horizon")
+  .call(context.horizon().height({{ height }}).extent([0,4]));
+
+context.on("focus", function(i) {
+  d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
+});
+
+function metric(name) {
+  var format = d3.time.format("%d-%b-%y");
+  return context.metric(function(start, stop, step, callback) {
+    d3.json($SCRIPT_ROOT + '/metric' + 
+            '?expr=' + name +
+            '&start=' + start.toISOString() +
+            '&stop=' + stop.toISOString() +
+            '&now=' + new Date().toISOString() +
+            '&step=' + step, function(data) {
+              if (!data) return callback(new Error('unable to load data'));
+              return callback(null,data.values);
     });
-    $('#ctrlp1').click(function() {
-        $('#btn-stop').trigger('click');
-	current_id += 1;
-	$('#id').text(current_id);
-        update_l2(current_id+1);
-    });
-    $('#ctrlmt').click(function() {
-        $('#btn-stop').trigger('click');
-	current_id -= 10;
-	$('#id').text(current_id);
-        update_l2(current_id-10);
-    });
-    $('#ctrlpt').click(function() {
-        $('#btn-stop').trigger('click');
-	current_id += 10;
-	$('#id').text(current_id);
-        update_l2(current_id+10);
-    });
+  }, name);
+}
 
-    function warn(jqxhr, text_status, error) {
-        var err = text_status + ', ' + error;
-        $('#status').text(err).attr('class', 'alert alert-warning');
-    }
-
-    function success() {
-        $('#status').attr('class', 'alert alert-success').text('Connected');
-    }
-
-    var chart1 = bar_chart().height(100);
-    var chart2 = bar_chart().height(100).xlabel('Position (cm)');
-
-    function update_l2(id) {
-        $.getJSON($SCRIPT_ROOT + '/query', {'name': 'l2_info', 'id': id}, function(reply) {
-            info = reply.value;
-            current_id = info.id;
-
-	    for (key in info)
-	    	$('#' + key).text(info[key]);
-
-            $.getJSON($SCRIPT_ROOT + '/query', {'name': 'nhit_l2', 'id': id}, function(reply) {
-                result = reply.value;
-                d3.select('#nhit').datum(result).call(chart1);
-            });
-
-            $.getJSON($SCRIPT_ROOT + '/query', {'name': 'pos', 'id': id}, function(reply) {
-                result = reply.value;
-                d3.select('#pos').datum(result).call(chart2);
-            });
-        }).done(success).fail(warn);
-    }
-
-    update_l2();
-    var intervalid = setInterval(update_l2,10000);
-
-    $('#btn-stop').click(function() {
-        if (intervalid != null) {
-            clearInterval(intervalid);
-            $('#btn-stop, #btn-start').toggleClass('disabled');
-            intervalid = null;
-        }
-    });
-
-    $('#btn-start').click(function() {
-        if (intervalid == null) {
-            intervalid = setInterval(update_l2,1000);
-            $('#btn-stop, #btn-start').toggleClass('disabled');
-        }
-    });
-    </script>
+</script>
 {% endblock %}
-</html>

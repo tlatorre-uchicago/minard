@@ -60,7 +60,11 @@ def nhit():
 
 @app.route('/l2_filter')
 def l2_filter():
-    return render_template('l2_filter.html')
+    if not request.args.get('step'):
+        return redirect(url_for('l2_filter',step=1,height=20,_external=True))
+    step = request.args.get('step',1,type=int)
+    height = request.args.get('height',40,type=int)
+    return render_template('l2_filter.html',step=step,height=height)
 
 @app.route('/detector')
 def detector():
@@ -255,7 +259,7 @@ def metric():
     else:
         t = 1
 
-    if expr in ('gtid', 'run', 'subrun', 'heartbeat'):
+    if expr in ('gtid', 'run', 'subrun', 'heartbeat','l2-heartbeat'):
         p = redis.pipeline()
         for i in range(start,stop,step):
             p.get('stream/int:{0:d}:id:{1:d}:name:{2}'.format(t,i//t,expr))
