@@ -64,7 +64,7 @@ sudo mkdir -p /etc/redis /var/redis /opt/redis
 
 # install redis init script
 sudo curl -o /etc/init.d/redis_6379 \
-https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/redis_6379
+https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/init/redis_6379
 
 # make it executable
 sudo chmod +x /etc/init.d/redis_6379
@@ -72,7 +72,7 @@ sudo chmod +x /etc/init.d/redis_6379
 # redis configuration file
 # this is where, for example, the location of the backup image is configured
 sudo curl -o /etc/redis/6379.conf \
-https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/redis.conf
+https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/etc/redis.conf
 
 # add redis service and start it
 add_service redis_6379
@@ -121,7 +121,7 @@ fi
 
 # download gunicorn init script
 sudo curl -o /etc/init.d/gunicorn \
-https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/utils/gunicorn
+https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/init/gunicorn
 
 # make it executable
 sudo chmod +x /etc/init.d/gunicorn
@@ -147,7 +147,7 @@ fi
 
 add_service supervisord
 
-sudo cp utils/supervisord.conf /etc/supervisord.conf
+sudo cp etc/supervisord.conf /etc/supervisord.conf
 
 if [ ! -d /opt/minard/src/root ]; then
     echo "Installing ROOT..."
