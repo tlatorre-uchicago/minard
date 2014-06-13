@@ -1,51 +1,13 @@
 #!/usr/bin/env python
 from __future__ import print_function
 from minard.orca import orca_producer
-import time
-import sys
-
-def main(args):
-    while True:
-        try:
-            orca_producer(args.host,args.port)
-        except Exception as e:
-            print(e,file=sys.stderr)
-
-        time.sleep(10)
 
 if __name__ == '__main__':
     import argparse
-    import daemon
-    from daemon.pidfile import PIDLockFile
-    import os
-    import pwd
 
     parser = argparse.ArgumentParser('ORCA stream producer')
     parser.add_argument('--host',default='daq1.sp.snolab.ca')
     parser.add_argument('--port',default=44666,type=int)
-    parser.add_argument('--pidfile', help='PID file in daemon mode')
-    parser.add_argument('--logfile', help='log file in daemon mode')
-    parser.add_argument('--user', default=None, help='run as [user] in daemon mode')
-    parser.add_argument('-d', '--daemon', default=False, action='store_true')
     args = parser.parse_args()
 
-    if args.user:
-        uid = pwd.getpwnam(args.user).pw_uid
-    else:
-        uid = os.getuid()
-
-    if args.daemon:
-        if args.pidfile:
-            pidfile = PIDLockFile(args.pidfile)
-        else:
-            pidfile = None
-
-        if args.logfile:
-            logfile = open(args.logfile,'w')
-        else:
-            logfile = None
-
-        with daemon.DaemonContext(pidfile=pidfile,stderr=logfile,uid=uid):
-            main(args)
-    else:
-        main(args)
+    orca_producer(args.host,args.port)

@@ -23,6 +23,5 @@ setup(name='minard',
                         'redis',
                         'argparse',
                         'sphinx',
-                        'alabaster',
-                        'python-daemon']
+                        'alabaster']
       )
