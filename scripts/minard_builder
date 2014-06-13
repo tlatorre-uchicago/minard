@@ -35,4 +35,4 @@ if __name__ == '__main__':
     parser.add_argument('ssh_key', help='path to builder ssh key')
     args = parser.parse_args()
 
-    tail_worker(args.ssh_user, args.host, args.ssh_key)
+    tail_worker(args.user, args.host, args.ssh_key)
