@@ -47,7 +47,7 @@ add_service () {
     fi
 }
     
-if ! hash redis-server 2>/dev/null; then
+if ! hash /usr/local/bin/redis-server 2>/dev/null; then
     # install redis to /usr/local
     echo "Installing redis..."
     cd /usr/local
@@ -85,7 +85,7 @@ fi
 
 if [ ! -f /opt/minard/bin/activate ]; then
     # create virtual environment
-    virtualenv /opt/minard
+    virtualenv --no-site-packages /opt/minard
 fi
 
 cd /opt/minard
@@ -157,7 +157,7 @@ if [ ! -d /opt/minard/src/root ]; then
     tar -xzvf $ROOT.source.tar.gz
     cd root
     ./configure --enable-minuit2 --enable-python
-    make -j$(nproc)
+    make
     source bin/thisroot.sh
     cd ..
     echo "source $VIRTUAL_ENV/src/root/bin/thisroot.sh" >> $VIRTUAL_ENV/bin/activate
@@ -171,7 +171,7 @@ if [ ! -d /opt/minard/src/geant4.9.5.p01 ]; then
     mkdir geant4.9.5.p01-build
     cd geant4.9.5.p01-build
     cmake -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV/src/geant4.9.5.p01 $VIRTUAL_ENV/src/geant4.9.5.p01
-    make -j$(nproc)
+    make
     make install
     cd ..
     source geant4.9.5.p01/bin/geant4.sh
@@ -187,7 +187,7 @@ if [ ! -d /opt/minard/src/rat ]; then
     git checkout 12c07de85f0f24b824ce2ff5c3ac4b193bea680d
     ./configure
     source env.sh
-    scons -j$(nproc)
+    scons
     cd ..
     echo "source $VIRTUAL_ENV/src/rat/env.sh" >> $VIRTUAL_ENV/bin/activate
 fi
