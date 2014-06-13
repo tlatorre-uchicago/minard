@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 ### BEGIN INIT INFO
 # Provides:          supervisord
 # Required-Start:    $remote_fs
@@ -21,7 +21,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
 DESC="supervisord daemon"
 NAME=supervisord
 DAEMON=/opt/minard/bin/supervisord
-DAEMON_ARGS=""
+DAEMON_ARGS="-c /etc/supervisord.conf"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
