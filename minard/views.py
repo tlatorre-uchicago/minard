@@ -10,12 +10,22 @@ import sys
 from os.path import join
 import json
 from tools import total_seconds, parseiso
+import requests
 
 redis = Redis()
 
 @app.route('/')
 def index():
     return redirect(url_for('snostream'))
+
+@app.route('/supervisor')
+@app.route('/supervisor/<path:path>')
+def supervisor(path=None):
+    if path is None:
+        return redirect(url_for('supervisor', path='index.html'))
+
+    resp = requests.get('http://127.0.0.1:9001' + request.full_path[11:])
+    return resp.content, resp.status_code, resp.headers.items()
 
 @app.route('/doc/')
 @app.route('/doc/<filename>')

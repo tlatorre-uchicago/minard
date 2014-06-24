@@ -23,5 +23,6 @@ setup(name='minard',
                         'redis',
                         'argparse',
                         'sphinx',
+                        'requests',
                         'alabaster']
       )
