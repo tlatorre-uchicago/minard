@@ -47,7 +47,7 @@
 
                         if (alarm.level == 3) {
                             alarm.message += ALARM_AUDIO;
-                            toastr.options = {'timeOut': 0, 'closeButton': true};
+                            toastr.options = {'timeOut': 0, 'extendedTimeOut': 0, 'closeButton': true};
                         } else {
                             toastr.options = {'timeOut': 20000};
                         }
