@@ -25,6 +25,12 @@
         <script type="text/javascript">
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
+        ALARM_AUDIO = '<audio autoplay loop> \
+        <source src="{{ url_for('static', filename='audio/0096.ogg') }}", type="audio/ogg"> \
+        <source src="{{ url_for('static', filename='audio/0096.mp3') }}", type="audio/mp3"> \
+        <source src="{{ url_for('static', filename='audio/0096.wav') }}", type="audio/wav"> \
+        </audio>'
+
             // global variable to keep track of the most recent alarm id
             var latest_alarm;
 
@@ -38,6 +44,14 @@
                     for (var i=0; i < obj.alarms.length; i++)
                     {
                         alarm = obj.alarms[i];
+
+                        if (alarm.level == 3) {
+                            alarm.message += ALARM_AUDIO;
+                            toastr.options = {'timeOut': 0, 'closeButton': true};
+                        } else {
+                            toastr.options = {'timeOut': 5000};
+                        }
+
                         toastr[alarm_level_map[alarm.level]](alarm.message);
 
                         // update latest_alarm id

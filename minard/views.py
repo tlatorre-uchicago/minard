@@ -175,8 +175,8 @@ def set_alarm():
 
     key = '/alarms/{0:d}'.format(id)
     redis.set(key, json.dumps(alarm))
-    redis.set('/alarms/latest', json.dumps(alarm))
-    redis.expire('/alarms/latest', 60)
+    # expire alarms after 24 hours
+    redis.expire(key, 24*60*60)
 
     return 'ok\n'
 
