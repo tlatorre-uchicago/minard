@@ -72,7 +72,7 @@ function parse() {
     var id = msgdisp.map(function(d) { return d.id; });
 
     var div1 = d3.select('#main').selectAll('div');
-    var div = div1.data(id, String).sort(String);
+    var div = div1.data(id, String).sort(d3.descending);
 
     div.enter()
         .insert('div',':first-child')
