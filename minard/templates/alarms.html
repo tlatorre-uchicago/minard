@@ -77,24 +77,10 @@ function parse() {
     div.enter()
         .insert('div',':first-child')
         .attr('class', function(d, i) {
-                return [levels[level_map[msgdisp[i].level]], 
-                ' alert-dismissable'].join(' ');})
+                return levels[level_map[msgdisp[i].level]];})
         .text(function(d, i) {
                 return ['[',(new Date(msgdisp[i].time)).toLocaleString(),
                 '] ', msgdisp[i].message].join('');})
-        .append('button')
-        .attr('type', 'button')
-        .attr('class', 'close')
-        .attr('aria-hidden', 'true')
-        .html('&times;')
-        {% if edit %}
-        .attr('data-dismiss', 'alert')
-        .attr('onclick', function(d, i) {
-                return "$.post('/dismiss',{'dismiss': '" + d + "'});";});
-        {% else %}
-        .attr('onclick', function(d, i) {
-                return "alert('You must have edit priveleges!');";});
-        {% endif %}
 
     div.exit().remove();
 
