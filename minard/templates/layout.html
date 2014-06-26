@@ -49,7 +49,7 @@
                             alarm.message += ALARM_AUDIO;
                             toastr.options = {'timeOut': 0, 'closeButton': true};
                         } else {
-                            toastr.options = {'timeOut': 5000};
+                            toastr.options = {'timeOut': 20000};
                         }
 
                         toastr[alarm_level_map[alarm.level]](alarm.message);

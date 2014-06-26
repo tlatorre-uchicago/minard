@@ -116,7 +116,11 @@ fi
 # make sure snoplusmon user exists
 if ! id -u snoplusmon 2>/dev/null; then
     echo "Adding snoplusmon user..."
-    sudo useradd -r snoplusmon
+    sudo useradd -d snoplusmon
+    # create a .ssh folder for the builder key
+    sudo mkdir /home/snoplusmon/.ssh
+    sudo chown snoplusmon:snoplusmon /home/snoplusmon/.ssh
+    sudo chmod 700 /home/snoplusmon/.ssh
 fi
 
 # download gunicorn init script
@@ -204,5 +208,4 @@ if [ ! -d /opt/minard/src/rat-tools ]; then
     echo "source $VIRTUAL_ENV/src/rat-tools/ratzdab/env.sh" >> $VIRTUAL_ENV/bin/activate
 fi
 
-echo "done! Make sure to install the builder key at /etc/minard/id_rsa_builder "
-echo "and the flask settings file at /etc/minard/settings.cfg"
+echo "done! Make sure to copy the builder key to /home/snoplusmon/.ssh/id_rsa_builder."
