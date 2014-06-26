@@ -6,6 +6,14 @@
     .btn {
         margin: 5px 5px;
     }
+
+    .word-wrap {
+        white-space: pre-wrap;
+        white-space: -moz-pre-wrap;
+        white-space: -pre-wrap;
+        white-space: -o-pre-wrap;
+        word-wrap: break-word;
+    }
 </style>
 {% endblock %}
 {% block body %}
@@ -77,9 +85,9 @@ function parse() {
     div.enter()
         .insert('div',':first-child')
         .attr('class', function(d, i) {
-                return levels[level_map[msgdisp[i].level]];})
+                return levels[level_map[msgdisp[i].level]] + ' word-wrap';})
         .text(function(d, i) {
-                return ['[',(new Date(msgdisp[i].time)).toLocaleString(),
+            return ['[',(new Date(msgdisp[i].time)).toLocaleString(),
                 '] ', msgdisp[i].message].join('');})
 
     div.exit().remove();
