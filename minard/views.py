@@ -171,6 +171,9 @@ def set_alarm():
 
     id = redis.incr('/alarms/count')-1
 
+    if len(msg) > 1024:
+        msg = msg[:1024] + '...'
+
     alarm = {'id': id, 'level': lvl, 'message': msg, 'time': now}
 
     key = '/alarms/{0:d}'.format(id)
