@@ -92,7 +92,7 @@ def dispatch_worker(host):
             trigger_word = ev.trigType
 
             # for docs on redis pipeline see http://redis.io/topics/pipelining
-            p = redis.pipeline()
+            p = redis.pipeline(transaction=False)
 
             for pmt in ev.pmtUnCal:
                 p.incr('events/id:{0:d}:count'.format(now//60))
