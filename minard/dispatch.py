@@ -3,6 +3,7 @@ import time
 from redis import Redis
 from itertools import count
 import sys
+from dispatch import Dispatch, iter_pmt_hits, get_trigger_type
 
 redis = Redis()
 
@@ -43,11 +44,13 @@ def dispatch_worker(host):
     """Connects to a dispatcher at ip address `host` and processes the dispatch stream."""
     import ratzdab
 
-    dispatcher = ratzdab.dispatch(host)
+    dispatcher = Dispatch(host)
 
     for i in count():
         try:
-            o = dispatcher.next(False)
+            pev = dispatcher.next(False)
+        except (NotImplementedError, ValueError):
+            pass
         except Exception as e:
             print(e,file=sys.stderr)
             continue
@@ -76,77 +79,77 @@ def dispatch_worker(host):
             time.sleep(0.01)
             continue
 
-        if o.IsA() == ratzdab.ROOT.RAT.DS.Root.Class():
-            ev = o.GetEV(0)
+        gtid = pev.MTCReadoutData.BcGT
+        nhit = pev.NPmtHit
+        run = pev.RunNumber
+        subrun = pev.DAQCodeVersion # seriously :)
+        trig = get_trigger_type(pev)
 
+        event_key = '{0:d}:{1:d}'.format(run,gtid)
+        if not redis.zadd('gtids',event_key,-now):
+            # event is already processed
+            continue
 
-            event_key = '{0:d}:{1:d}'.format(o.runID,ev.eventID)
-            if not redis.zadd('gtids',event_key,-now):
-                # event is already processed
-                o.IsA().Destructor(o)
-                continue
+        # trim gtid list to 100 elements
+        redis.zremrangebyrank('gtids',100,-1)
 
-            # trim gtid list to 100,000 elements
-            redis.zremrangebyrank('gtids',100000,-1)
+        # for docs on redis pipeline see http://redis.io/topics/pipelining
+        p = redis.pipeline(transaction=False)
 
-            trigger_word = ev.trigType
+        qhs_sum = 0.0
+        for pmt in iter_pmt_hits(pev):
+            id = 16*32*pmt.CrateID + 32*pmt.BoardID + pmt.ChannelID
+            p.incr('events/id:{0:d}:count'.format(now//60))
+            p.expire('events/id:{0:d}:count'.format(now//60),600)
+            key = 'events/id:{0:d}:channel:{1:d}'
+            p.incr(key.format(now//60,id))
+            p.expire(key.format(now//60,id),600)
 
-            # for docs on redis pipeline see http://redis.io/topics/pipelining
-            p = redis.pipeline(transaction=False)
+            qhs_sum += pmt.Qhs
 
-            for pmt in ev.pmtUnCal:
-                p.incr('events/id:{0:d}:count'.format(now//60))
-                p.expire('events/id:{0:d}:count'.format(now//60),600)
-                key = 'events/id:{0:d}:channel:{1:d}'
-                p.incr(key.format(now//60,pmt.id))
-                p.expire(key.format(now//60,pmt.id),600)
+        # nhit distribution
+        # see http://flask.pocoo.org/snippets/71/ for this design pattern
+        p.lpush('events/id:{0:d}:name:nhit'.format(now),nhit)
+        p.expire('events/id:{0:d}:name:nhit'.format(now),3600)
 
-            # nhit distribution
-            # see http://flask.pocoo.org/snippets/71/ for this design pattern
-            p.lpush('events/id:{0:d}:name:nhit'.format(now),ev.nhits)
-            p.expire('events/id:{0:d}:name:nhit'.format(now),3600)
+        # int:{interval}:id:{timestamp}:name:{name}
+        key = 'stream/int:{0:d}:id:{1:d}:name:{2:s}'
+        for t in [1,60,3600]:
+            id = now//t
+            # expire in 100,000*[time interval]
+            expire = t*100000
+            # total trigger count
+            p.incr(key.format(t,id,'TOTAL'))
+            p.expire(key.format(t,id,'TOTAL'),expire)
+            # nhit
+            p.incrby(key.format(t,id,'TOTAL:nhit'),nhit)
+            p.expire(key.format(t,id,'TOTAL:nhit'),expire)
+            # charge
+            p.incrbyfloat(key.format(t,id,'TOTAL:charge'),qhs_sum)
+            p.expire(key.format(t,id,'TOTAL:charge'),expire)
+            # run
+            p.set(key.format(t,id,'run'),run)
+            p.expire(key.format(t,id,'run'),expire)
+            # subrun
+            p.set(key.format(t,id,'subrun'),subrun)
+            p.expire(key.format(t,id,'subrun'),expire)
+            # gtid
+            p.set(key.format(t,id,'gtid'),gtid)
+            p.expire(key.format(t,id,'gtid'),expire)
 
-            # int:{interval}:id:{timestamp}:name:{name}
-            key = 'stream/int:{0:d}:id:{1:d}:name:{2:s}'
-            for t in [1,60,3600]:
-                id = now//t
-                # expire in 100,000*[time interval]
-                expire = t*100000
-                # total trigger count
-                p.incr(key.format(t,id,'TOTAL'))
-                p.expire(key.format(t,id,'TOTAL'),expire)
-                # nhit
-                p.incrby(key.format(t,id,'TOTAL:nhit'),ev.nhits)
-                p.expire(key.format(t,id,'TOTAL:nhit'),expire)
-                # charge
-                p.incrbyfloat(key.format(t,id,'TOTAL:charge'),ev.totalQ)
-                p.expire(key.format(t,id,'TOTAL:charge'),expire)
-                # run
-                p.set(key.format(t,id,'run'),o.runID)
-                p.expire(key.format(t,id,'run'),expire)
-                # subrun
-                p.set(key.format(t,id,'subrun'),o.subRunID)
-                p.expire(key.format(t,id,'subrun'),expire)
-                # gtid
-                p.set(key.format(t,id,'gtid'),ev.eventID)
-                p.expire(key.format(t,id,'gtid'),expire)
+        for i, name in enumerate(TRIGGER_NAMES):
+            if trig & (1 << i):
+                for t in [1,60,3600]:
+                    id = now//t
+                    expire = t*100000
+                    # trigger rate
+                    p.incr(key.format(t,id,name))
+                    p.expire(key.format(t,id,name),expire)
+                    # nhit
+                    p.incrby(key.format(t,id,name + ':nhit'),nhit)
+                    p.expire(key.format(t,id,name + ':nhit'),expire)
+                    # charge
+                    p.incrbyfloat(key.format(t,id,name + ':charge'),qhs_sum)
+                    p.expire(key.format(t,id,name + ':charge'),expire)
 
-            for i, name in enumerate(TRIGGER_NAMES):
-                if ev.trigType & (1 << i):
-                    for t in [1,60,3600]:
-                        id = now//t
-                        expire = t*100000
-                        # trigger rate
-                        p.incr(key.format(t,id,name))
-                        p.expire(key.format(t,id,name),expire)
-                        # nhit
-                        p.incrby(key.format(t,id,name + ':nhit'),ev.nhits)
-                        p.expire(key.format(t,id,name + ':nhit'),expire)
-                        # charge
-                        p.incrbyfloat(key.format(t,id,name + ':charge'),ev.totalQ)
-                        p.expire(key.format(t,id,name + ':charge'),expire)
-
-            p.execute()
-            # need to call the destructor explicitly because PyROOT memory
-            # management is weird. See http://wlav.web.cern.ch/wlav/pyroot/memory.html
-            o.IsA().Destructor(o)
+        p.execute()
