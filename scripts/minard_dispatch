@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from __future__ import print_function
 import time
 from redis import Redis
@@ -47,6 +48,8 @@ def main(host):
     cache = defaultdict(int)
     cache_set = {}
     cache['time'] = int(time.time())
+    nhit_cache = []
+    event_cache = defaultdict(int)
 
     for i in count():
         try:
@@ -89,8 +92,7 @@ def main(host):
 
         # nhit distribution
         # see http://flask.pocoo.org/snippets/71/ for this design pattern
-        redis.lpush('events/id:{0:d}:name:nhit'.format(now),nhit)
-        redis.expire('events/id:{0:d}:name:nhit'.format(now),3600)
+        nhit_cache += [nhit]
 
         event_key = '{0:d}:{1:d}'.format(run,gtid)
         if not redis.zadd('gtids',event_key,-now):
@@ -100,39 +102,48 @@ def main(host):
         # trim gtid list to 100 elements
         redis.zremrangebyrank('gtids',10000,-1)
 
-        KEY_STR = 'stream/int:{interval}:id:{id}:name:{name}'
-        p = redis.pipeline()
+        STREAM_KEY_STR = 'stream/int:{interval}:id:{id}:name:{name}'
+        EVENT_KEY_STR = 'events/id:{id}:{name}'
         if now > cache['time']:
+            # for docs on redis pipeline see http://redis.io/topics/pipelining
+            p = redis.pipeline(transaction=False)
+
             t = cache['time']
             for key, value in cache.items():
                 for interval in [1,60,3600]:
-                    redis_key = KEY_STR.format(interval=interval,id=t//interval,name=key)
+                    redis_key = STREAM_KEY_STR.format(interval=interval,id=t//interval,name=key)
                     p.incrby(redis_key,value)
                     p.expire(redis_key,interval*100000)
+
             for key, value in cache_set.items():
                 for interval in [1,60,3600]:
-                    redis_key = KEY_STR.format(interval=interval,id=t//interval,name=key)
+                    redis_key = STREAM_KEY_STR.format(interval=interval,id=t//interval,name=key)
                     p.set(redis_key,value)
                     p.expire(redis_key,interval*100000)
+
+            for key, value in event_cache.items():
+                redis_key = EVENT_KEY_STR.format(id=t//60,name=key)
+                p.incrby(redis_key,value)
+                p.expire(redis_key,600)
+
+            p.lpush('events/id:{id}:name:nhit'.format(id=t),*nhit_cache)
+            p.expire('events/id:{id}:name:nhit'.format(id=t),3600)
+
             cache.clear()
             cache_set.clear()
+            nhit_cache = []
+            event_cache.clear()
             cache['time'] = now
-        p.execute()
-                
-        # for docs on redis pipeline see http://redis.io/topics/pipelining
-        p = redis.pipeline(transaction=False)
 
+            p.execute()
+                
         qhs_sum = 0
         for pmt in iter_pmt_hits(pev):
             id = 16*32*pmt.CrateID + 32*pmt.BoardID + pmt.ChannelID
-            p.incr('events/id:{0:d}:count'.format(now//60))
-            p.expire('events/id:{0:d}:count'.format(now//60),600)
-            key = 'events/id:{0:d}:channel:{1:d}'
-            p.incr(key.format(now//60,id))
-            p.expire(key.format(now//60,id),600)
+            event_cache['count'] += 1
+            event_cache['channel:{num}'.format(num=id)] += 1
 
             qhs_sum += pmt.Qhs
-        p.execute()
 
         cache['TOTAL'] += 1
         cache['TOTAL:nhit'] += nhit
