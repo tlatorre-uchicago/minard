@@ -42,7 +42,6 @@ TRIGGER_NAMES = \
  'SOFGT',
  'MISS']
 
-#@profile
 def main(host):
     """Connects to a dispatcher at ip address `host` and processes the dispatch stream."""
     dispatcher = Dispatch(host)
@@ -91,8 +90,9 @@ def main(host):
             p.incrby('events/id:{id}:count'.format(id=t//60),cache['TOTAL'])
             p.expire('events/id:{id}:count'.format(id=t//60),600)
 
-            p.lpush('events/id:{id}:name:nhit'.format(id=t),*nhit_cache)
-            p.expire('events/id:{id}:name:nhit'.format(id=t),3600)
+            if len(nhit_cache) > 0:
+                p.lpush('events/id:{id}:name:nhit'.format(id=t),*nhit_cache)
+                p.expire('events/id:{id}:name:nhit'.format(id=t),3600)
 
             # heartbeat information
             p.set('dispatcher',host)
@@ -116,7 +116,7 @@ def main(host):
             p.execute()
                 
         if not pev:
-            time.sleep(0.001)
+            time.sleep(0.01)
             continue
 
         run = pev.RunNumber
