@@ -65,7 +65,7 @@ def main(host):
         now = int(time.time())
 
         STREAM_KEY_STR = 'stream/int:{interval}:id:{id}:name:{name}'
-        EVENT_KEY_STR = 'events/id:{id}:{name}'
+        EVENT_KEY_STR = 'events/id:{id}:channel:{name}'
         if now > cache['time']:
             # for docs on redis pipeline see http://redis.io/topics/pipelining
             p = redis.pipeline(transaction=False)
@@ -87,6 +87,9 @@ def main(host):
                 redis_key = EVENT_KEY_STR.format(id=t//60,name=key)
                 p.incrby(redis_key,value)
                 p.expire(redis_key,600)
+
+            p.incrby('events/id:{id}:count'.format(id=t//60),cache['TOTAL'])
+            p.expire('events/id:{id}:count'.format(id=t//60),600)
 
             p.lpush('events/id:{id}:name:nhit'.format(id=t),*nhit_cache)
             p.expire('events/id:{id}:name:nhit'.format(id=t),3600)
@@ -124,7 +127,7 @@ def main(host):
             # event is already processed
             continue
 
-        # trim gtid list to 100 elements
+        # trim gtid list to 10,000 elements
         redis.zremrangebyrank('gtids',10000,-1)
 
         nhit = pev.NPmtHit
@@ -138,8 +141,7 @@ def main(host):
         qhs_sum = 0
         for pmt in iter_pmt_hits(pev):
             id = 16*32*pmt.CrateID + 32*pmt.BoardID + pmt.ChannelID
-            event_cache['count'] += 1
-            event_cache['channel:{num}'.format(num=id)] += 1
+            event_cache[id] += 1
 
             qhs_sum += pmt.Qhs
 
