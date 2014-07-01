@@ -45,6 +45,8 @@
   text-align:center !important;
 }
 </style>
+<link href="{{ url_for('static', filename='css/bar-chart.css') }}" rel="stylesheet">
+<script src="{{ url_for('static', filename='js/histogram.js') }}"></script>
 {% endblock %}
 
 {% block body %}
@@ -52,10 +54,18 @@
 <div class="container">
   <div class="row">
     <div class="col-md-10 col-md-offset-1" id="hero">
+      <h2>Occupancy</h2>
       <select id="projection-menu"></select>
     </div>
-    <div class="col-md-10 col-md-offset-1" id="crate">
+    <div class="col-md-1">
+      <select id="color-scale-menu"></select>
     </div>
+  </div>
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1" id="crate" style="text-align:center"></div>
+  </div>
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1" id="hist"></div>
   </div>
 </div>
 <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
@@ -64,6 +74,61 @@
 <script src="{{ url_for('static', filename='js/crate.js') }}"></script>
 
 <script>
+
+function linspace(min, max, N)
+{
+  var a = new Array();
+  for (var i=0; i < N; i++)
+  {
+    a[i] = min + (max-min)*i/(N-1)
+  }
+  return a;
+}
+
+var xmin = 0,
+    xmax = 1e-3;
+
+function callback()
+{
+    draw();
+}
+
+var xsnoed1 = ["#4876ff","#32cd32","#ffff00","#ffa500","#ff0000"],
+    xsnoed2 = ["#3a5fcd","#2e8b57","#cd9b1d","#ffa500","#ff0000"];
+
+var color_scales = Object();
+color_scales['xsnoed1'] = xsnoed1;
+color_scales['xsnoed2'] = xsnoed2;
+for (var key in colorbrewer)
+  color_scales[key] = colorbrewer[key][5];
+
+color_scales = d3.entries(color_scales);
+
+function change_color_scale()
+{
+  chart.color_scale().range(color_scales[this.selectedIndex].value);
+  draw();
+}
+
+var color_menu = d3.select("#color-scale-menu")
+    .on("change", change_color_scale);
+
+color_menu.selectAll("option")
+    .data(color_scales)
+  .enter().append("option")
+    .text(function(d) { return d.key; });
+
+color_menu.property("selectedIndex", 12);
+
+var color_scale = d3.scale.linear()
+    .domain(linspace(xmin,xmax,5))
+    .range(color_scales[12].value);
+
+var chart = histogram()
+    .on_scale_change(callback)
+    .color_scale(color_scale)
+    .bins(50)
+    .domain([0,3e-4]);
 
 var options = [
 {name: "Aitoff", projection: d3.geo.aitoff()},
@@ -135,7 +200,7 @@ for (var i=0; i < pmtinfo['x'].length; i++) {
 
     var r = Math.sqrt(x*x + y*y + z*z);
 
-    var theta = Math.acos(z/r)*180.0/Math.PI - 90.0;
+    var theta = -(Math.acos(z/r)*180.0/Math.PI - 90.0);
     var phi   = Math.atan2(y,x)*180.0/Math.PI;
 
     coords[i] = [phi, theta];
@@ -168,7 +233,7 @@ for (var i=0; i < coords.length; i++)
 
 var z = d3.scale.linear()
     .domain([0,1e-5,1e-4,1e-3])
-    .range(colorbrewer.YlOrRd[4]);
+    .range(colorbrewer.Spectral[4].reverse());
 
 var menu = d3.select("#projection-menu")
     .on("change", change);
@@ -234,29 +299,40 @@ function projectionTween(projection0, projection1) {
     };
 }
 
-var crate = crate_view().caption(false).scale(z);
+var crate = crate_view().caption(false).scale(color_scale);
+
+d3.select("#crate").datum([]).call(crate);
+$("#crate9").after("<br>");
+
+function draw()
+{
+    d3.select("#hist").call(chart);
+    d3.select("#crate").call(crate);
+
+    svg.selectAll("circle")
+        .style('fill',function(d, i) { return d ? color_scale(d) : "#e0e0e0";})
+ 
+}
 
 function on_done(result){
     values = result.values;
 
-    var circle = svg.selectAll('circle').data(values);//id,String);
+    d3.select('#hist').datum(values).call(chart);
 
-    circle.style('fill',function(d, i) { return z(d);});
- 
+    var circle = svg.selectAll('circle').data(values);
+
+    circle.style('fill',function(d, i) { return d ? color_scale(d) : "#e0e0e0";})
+
     circle.enter().append('circle')
 	.attr('r',0)
         .transition()
-        .style('fill',function(d, i) { return z(d);})
+        .style('fill',function(d, i) { return d ? color_scale(d) : "#e0e0e0";})
         .attr('cx',function(d, i) { return pos[i]?pos[i][0]:null; })
         .attr('cy',function(d, i) { return pos[i]?pos[i][1]:null; })
         .attr('r', function(d, i) { return 2; });
 
     circle.exit().remove();
     
-    var dict = Object();
-    for (var i=0; i < values.length; i++)
-        dict[i] = values[i]
-
     d3.select('#crate').datum(values).call(crate);
 }
 

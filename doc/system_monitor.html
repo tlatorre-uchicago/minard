@@ -1,38 +1,16 @@
 {% extends "layout.html" %}
-{% block title %}L2 Filter{% endblock %}
+{% block title %}System Monitor{% endblock %}
 {% block head %}
 {{ super() }}
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
-
-  <style>
-
-  .horizon .title,
-  .horizon .value {
-    bottom: 0;
-    line-height: {{ height }}px;
-    margin: 0 6px;
-    position: absolute;
-    text-shadow: 0 1px 0 rgba(255,255,255,.5);
-    white-space: nowrap;
-  }
-
-  </style>
-
   <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
   <script src="{{ url_for('static', filename='js/cubism.v1.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/metric.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/moment-timezone.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/moment-timezone-data.js') }}"></script>
 {% endblock %}
 {% block body %}
 {{ super() }}
   <div class="container">
     <div class="row">
-      <div class="col-md-6">
-        <p>Sudbury Time: <span id='sudbury-time'></span>
-      </div>
-      <div class="col-md-6">
+      <div class="col-md-12">
         <p class="pull-right">Step: 
         <select id="step-menu">
           {% for i in [1,10,100,1000] %}
@@ -46,14 +24,9 @@
     </div>
   </div>
 <script>
-
   $("#step-menu").on("change", function() {
-      window.location.replace("{{ url_for('l2_filter') }}?step=" + this.value + "&height={{ height }}");
+      window.location.replace("{{ url_for('system_monitor') }}?step=" + this.value + "&height={{ height }}");
   });
-
-  setInterval(function() {
-    $('#sudbury-time').text(moment().tz('America/Toronto').format('h:mm:ss'));
-  },1000);
 
 var size = $('#demo').width();
 var context = cubism.context()
@@ -72,38 +45,20 @@ d3.select("#demo").append("div")
     .attr("class", "rule")
     .call(context.rule());
 
-var STREAMS = ['L1','L2','ORPHANS'];
-
-var si_format = d3.format('.2s');
-
-var my_format = function(n) {
-  if (n < 100 && n % 1 === 0)
-    return n.toString();
-  else
-    return si_format(n);
-}
-
 d3.select("#demo").selectAll(".horizon")
-  .data(STREAMS.map(metric))
+  .data(['cpu','mem'].map(get_metric))
   .enter().insert("div", ".bottom")
     .attr("class", "horizon")
-  .call(context.horizon().height({{ height }}).format(my_format));
-
-d3.select("#demo").selectAll("#heartbeat")
-    .data(["l2-heartbeat"].map(metric))
-  .enter().insert("div", ".bottom")
-    .attr("id","heartbeat")
-    .attr("class", "horizon")
-  .call(context.horizon().height({{ height }}).extent([0,4]));
+  .call(context.horizon().height({{ height }}));
 
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
 });
 
-function metric(name) {
+function get_metric(name) {
   var format = d3.time.format("%d-%b-%y");
   return context.metric(function(start, stop, step, callback) {
-    d3.json($SCRIPT_ROOT + '/metric' + 
+    d3.json($SCRIPT_ROOT + '/hello_world_metric' + 
             '?expr=' + name +
             '&start=' + start.toISOString() +
             '&stop=' + stop.toISOString() +

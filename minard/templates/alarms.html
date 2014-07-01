@@ -6,6 +6,14 @@
     .btn {
         margin: 5px 5px;
     }
+
+    .word-wrap {
+        white-space: pre-wrap;
+        white-space: -moz-pre-wrap;
+        white-space: -pre-wrap;
+        white-space: -o-pre-wrap;
+        word-wrap: break-word;
+    }
 </style>
 {% endblock %}
 {% block body %}
@@ -23,7 +31,7 @@
 var levels = {'success': 'alert alert-success',
               'info'   : 'alert alert-info',
               'warning': 'alert alert-warning',
-              'danger' : 'alert alert-danger'};
+              'danger'  : 'alert alert-danger'};
 
 var level_map = {0: 'success', 1: 'info', 2: 'warning', 3: 'danger'};
 
@@ -31,12 +39,12 @@ var msglist = [],
     filter_level = 'default';
 
 function get_poll() {
-    return $.getJSON($SCRIPT_ROOT + '/query', {name: 'alarms'});
+    return $.getJSON($SCRIPT_ROOT + '/get_alarm');
 }
 
 function update() {
     get_poll().done(function (obj) {
-            msglist = obj.messages;
+            msglist = obj.alarms;
             parse();
             });
 }
@@ -69,32 +77,18 @@ function parse() {
         msgdisp = msglist;
     }
 
-    var id = msgdisp.map(function(d) { return d.time; });
+    var id = msgdisp.map(function(d) { return d.id; });
 
     var div1 = d3.select('#main').selectAll('div');
-    var div = div1.data(id, String).sort(String);
+    var div = div1.data(id, String).sort(d3.descending);
 
     div.enter()
-        .append('div')
+        .insert('div',':first-child')
         .attr('class', function(d, i) {
-                return [levels[level_map[msgdisp[i].level]], 
-                ' alert-dismissable'].join(' ');})
+                return levels[level_map[msgdisp[i].level]] + ' word-wrap';})
         .text(function(d, i) {
-                return ['[',(new Date(msgdisp[i].time)).toUTCString(),
+            return ['[',(new Date(msgdisp[i].time)).toLocaleString(),
                 '] ', msgdisp[i].message].join('');})
-        .append('button')
-        .attr('type', 'button')
-        .attr('class', 'close')
-        .attr('aria-hidden', 'true')
-        .html('&times;')
-        {% if edit %}
-        .attr('data-dismiss', 'alert')
-        .attr('onclick', function(d, i) {
-                return "$.post('/dismiss',{'dismiss': '" + d + "'});";});
-        {% else %}
-        .attr('onclick', function(d, i) {
-                return "alert('You must have edit priveleges!');";});
-        {% endif %}
 
     div.exit().remove();
 

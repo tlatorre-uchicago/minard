@@ -13,15 +13,59 @@
         <title>{% block title %}{% endblock %}</title>
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" media="screen">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" media="screen">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/toastr.css') }}" media="screen">
 
         <!-- jquery for $() pattern -->
         <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/toastr.js') }}"></script>
         {% endblock %}
     </head>
     <body>
         <!-- $SCRIPT_ROOT for app location -->
         <script type="text/javascript">
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
+        ALARM_AUDIO = '<audio autoplay loop> \
+        <source src="{{ url_for('static', filename='audio/0096.ogg') }}", type="audio/ogg"> \
+        <source src="{{ url_for('static', filename='audio/0096.mp3') }}", type="audio/mp3"> \
+        <source src="{{ url_for('static', filename='audio/0096.wav') }}", type="audio/wav"> \
+        </audio>'
+
+            // global variable to keep track of the most recent alarm id
+            var latest_alarm;
+
+            // convert alarm level -> string
+            var alarm_level_map = {0: 'success', 1: 'info', 2: 'warning', 3: 'error'};
+
+            function update_toastr()
+            {
+                next = latest_alarm + 1;
+                $.getJSON($SCRIPT_ROOT + '/get_alarm?start=' + next).done(function(obj) {
+                    for (var i=0; i < obj.alarms.length; i++)
+                    {
+                        alarm = obj.alarms[i];
+
+                        if (alarm.level == 3) {
+                            alarm.message += ALARM_AUDIO;
+                            toastr.options = {'timeOut': 0, 'extendedTimeOut': 0, 'closeButton': true};
+                        } else {
+                            toastr.options = {'timeOut': 20000};
+                        }
+
+                        toastr[alarm_level_map[alarm.level]](alarm.message);
+
+                        // update latest_alarm id
+                        latest_alarm = Math.max(latest_alarm,alarm.id);
+                    }
+                });
+
+                setTimeout(update_toastr,1000);
+            }
+
+            $.getJSON($SCRIPT_ROOT + '/get_alarm?start=-1').done(function(obj) {
+                latest_alarm = obj.alarms[0].id;
+                update_toastr();
+            });
         </script>
         {% block body %}
         <div class="navbar navbar-default navbar-static-top">
@@ -56,6 +100,7 @@
                         <li id='nav-alarms'><a href="{{ url_for('alarms') }}">Alarms</a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
+                      <li><a href="{{ url_for('supervisor') }}">Supervisor</a></li>
                       <li><a href="{{ url_for('doc') }}">Docs</a></li>
                     </ul>
                 </div><!--/.navbar-collapse -->

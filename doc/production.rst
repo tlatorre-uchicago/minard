@@ -1,0 +1,4 @@
+Production Install
+==================
+
+.. literalinclude:: ../INSTALL

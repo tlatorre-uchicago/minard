@@ -4,10 +4,10 @@
 # description: Gunicorn daemon init script
 
 CMD=/opt/minard/bin/gunicorn
-PIDFILE=/opt/minard/run/gunicorn.pid
-LOGFILE=/opt/minard/log/gunicorn.error.log
-ACCESS_LOGFILE=/opt/minard/log/gunicorn.access.log
+PIDFILE=/var/run/gunicorn.pid
+LOGFILE=/var/log/gunicorn.log
 APP=minard:app
+USER=www-data
 
 case "$1" in
     start)
@@ -15,9 +15,7 @@ case "$1" in
             echo "$PIDFILE exists, process is already running or crashed"
         else
             echo "Starting Gunicorn daemon..."
-            $CMD -w 4 -b 0.0.0.0:50000 $APP -D \
-                --access-logfile=$ACCESS_LOGFILE --error-logfile=$LOGFILE \
-                --pid=$PIDFILE
+            $CMD -w 4 -b 0.0.0.0:50000 $APP -D --error-logfile=$LOGFILE --pid=$PIDFILE --user=$USER --chdir /tmp
         fi
         ;;
     stop)

@@ -4,7 +4,7 @@
   {{ super() }}
   <link href="{{ url_for('static', filename='css/bar-chart.css') }}" rel="stylesheet">
   <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/bar-chart.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/histogram.js') }}"></script>
 {% endblock %}
 {% block body %}
   {{ super() }}
@@ -18,8 +18,7 @@
   </div>
 
   <script>
-    var hist = d3.layout.histogram().bins(d3.range(0,100,2));
-    var chart = bar_chart().layout(hist).xlabel('NHit').margin({'left': 50});
+    var chart = histogram().xlabel('NHit').margin({'left': 50});
 
     function add_chart(selector, start, interval) {
       function update_chart(reply) {

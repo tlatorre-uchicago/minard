@@ -15,13 +15,15 @@ setup(name='minard',
                     ('www/static/js',     glob('minard/static/js/*')),
                     ('www/static/fonts',  glob('minard/static/fonts/*')),
                     ('www/static/images', glob('minard/static/images/*')),
+                    ('www/static/audio',  glob('minard/static/audio/*')),
                     ('www/templates',     glob('minard/templates/*'))],
       install_requires=['flask',
                         'gunicorn',
-                        'sqlalchemy',
                         'numpy',
                         'pyzmq',
                         'redis',
                         'argparse',
-                        'MySQL-python']
+                        'sphinx',
+                        'requests',
+                        'alabaster']
       )

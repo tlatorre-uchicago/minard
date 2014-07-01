@@ -1,6 +1,9 @@
 Installation
 ============
 
+Installing minard
+-----------------
+
 The easiest way to install minard is to use a virtual environment with
 `virtualenv <http://virtualenv.org>`_::
 
@@ -11,6 +14,10 @@ The easiest way to install minard is to use a virtual environment with
     $ cd src
     $ git clone https://github.com/tlatorre-uchicago/minard
     $ pip install ./minard
+
+On Mac OSX you may need to add the following line to your bash_profile::
+
+    export ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future
 
 Installing Redis
 ----------------
@@ -35,6 +42,6 @@ Running the Web Server
 You should now be able to run the web server. After activating your virtual
 environment, run::
 
-    $ gunicorn -b 0.0.0.0:50000 minard:app
+    $ gunicorn -b 127.0.0.1:5000 minard:app
 
-and navigate your web browser to `localhost:50000`.
+and navigate your web browser to `http://localhost:5000 <http://localhost:5000>`_.
