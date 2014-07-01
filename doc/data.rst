@@ -21,9 +21,6 @@ For example, on the production server::
 
 To see how to set up a local dispatcher see :doc:`dispatch_local`.
 
-For more details on how the stream is processed see the :ref:`API
-<dispatch-api>`.
-
 Orca Stream
 -----------
 

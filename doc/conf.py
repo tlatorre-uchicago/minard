@@ -114,8 +114,11 @@ html_theme = 'alabaster'
 # documentation.
 html_theme_options = {
 'gittip_user': False,
-'github_button': False,
-'github_repo': 'https://github.com/tlatorre-uchicago/minard',
+'github_button': True,
+'travis_button': False,
+'github_user': 'snoplus',
+'github_repo': 'minard',
+'github_banner': True,
 'extra_nav_links' : {'Home': '/monitoring'}
 }
 
