@@ -129,9 +129,6 @@ sudo chmod +x /etc/init.d/gunicorn
 # add gunicorn service
 add_service gunicorn
 
-# create /etc/minard
-sudo mkdir -p /etc/minard
-
 cd $VIRTUAL_ENV/src/minard
 
 if [ -f /etc/debian_version ]; then
