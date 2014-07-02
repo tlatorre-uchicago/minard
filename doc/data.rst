@@ -21,12 +21,14 @@ Orca Stream
 The ORCA stream is processed directly from a socket connection to ORCA. The
 stream is processed by two scripts:
 
-orca_producer
+`orca_producer
+<https://github.com/tlatorre-uchicago/minard/blob/master/scripts/orca_producer>`_
     This script receives the raw data from ORCA and pushes it to different
     sockets depending on the type of data. Currently it sends CMOS packets to
     port 5557 and base current packets to port 5558.
 
-orca_consumer
+`orca_consumer
+<https://github.com/tlatorre-uchicago/minard/blob/master/scripts/orca_consumer>`_
     This script processes the data packets pushed by the `orca_producer` script.
 
 For more information on the ORCA file formats see `Data File Format
@@ -37,7 +39,8 @@ To mimic the ORCA data stream see :doc:`mimic_orca`.
 Builder Log
 -----------
 
-The `minard_builder` script monitors the builder log::
+The `minard_builder
+<https://github.com/tlatorre-uchicago/minard/blob/master/scripts/minard_builder>`_ script monitors the builder log::
 
     $ source /opt/minard/bin/activate
     $ minard_builder [path/to/builder/ssh/key]
