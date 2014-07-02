@@ -33,7 +33,7 @@ sudo mkdir -p /etc/redis /var/redis /opt/redis
 
 # install redis init script
 sudo curl -s -o /etc/init.d/redis_6379 \
-https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/init/redis_6379
+https://raw.githubusercontent.com/snoplus/minard/master/init/redis_6379
 
 # make it executable
 sudo chmod +x /etc/init.d/redis_6379
@@ -41,11 +41,10 @@ sudo chmod +x /etc/init.d/redis_6379
 # redis configuration file
 # this is where, for example, the location of the backup image is configured
 sudo curl -s -o /etc/redis/6379.conf \
-https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/etc/redis.conf
+https://raw.githubusercontent.com/snoplus/minard/master/etc/redis.conf
 
-# add redis service and start it
+# add redis service
 add_service redis_6379
-sudo /etc/init.d/redis_6379 start
 
 if [ ! -d /opt/minard ]; then
     sudo mkdir /opt/minard
@@ -69,10 +68,19 @@ fi
 if [ ! -d /opt/minard/src/minard ]; then
     printf "Installing minard..."
     cd $VIRTUAL_ENV/src
-    git clone -q git@github.com:tlatorre-uchicago/minard.git
+    git clone -q git@github.com:snoplus/minard.git
     pip install -qq ./minard
     cd minard/doc
     make html
+    cp -r _build/html /opt/minard/www/static/doc
+    printf "Done\n"
+else
+    printf "Updating minard..."
+    cd $VIRTUAL_ENV/src/minard
+    git pull
+    cd doc
+    make html
+    rm -rf /opt/minard/www/static/doc
     cp -r _build/html /opt/minard/www/static/doc
     printf "Done\n"
 fi
@@ -80,9 +88,16 @@ fi
 if [ ! -d /opt/minard/src/disp ]; then
     printf "Installing disp..."
     cd $VIRTUAL_ENV/src
-    git clone -q git@github.com:tlatorre-uchicago/disp.git
+    git clone -q git@github.com:snoplus/disp.git
     cd disp
     make &>/tmp/disp.log
+    printf "Done\n"
+else
+    printf "Updating disp..."
+    cd $VIRTUAL_ENV/src/disp
+    git pull
+    make clean &>/dev/null
+    make &>/tmp/disp_install.log
     printf "Done\n"
 fi
 
@@ -106,14 +121,13 @@ fi
 
 # download gunicorn init script
 sudo curl -s -o /etc/init.d/gunicorn \
-https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/init/gunicorn
+https://raw.githubusercontent.com/snoplus/minard/master/init/gunicorn
 
 # make it executable
 sudo chmod +x /etc/init.d/gunicorn
 
-# add and start gunicorn
+# add gunicorn service
 add_service gunicorn
-sudo /etc/init.d/gunicorn start
 
 # create /etc/minard
 sudo mkdir -p /etc/minard
