@@ -42,6 +42,7 @@ TRIGGER_NAMES = \
  'SOFGT',
  'MISS']
 
+@profile
 def main(host):
     """Connects to a dispatcher at ip address `host` and processes the dispatch stream."""
     dispatcher = Dispatch(host)
@@ -54,7 +55,7 @@ def main(host):
     while True:
         try:
             pev = dispatcher.next(block=False)
-        except (NotImplementedError, ValueError):
+        except (NotImplementedError, TypeError):
             pass
         except Exception as e:
             print(traceback.format_exc(), file=sys.stderr)
@@ -79,8 +80,7 @@ def main(host):
             for key, value in cache_set.items():
                 for interval in [1,60,3600]:
                     redis_key = STREAM_KEY_STR.format(interval=interval,id=t//interval,name=key)
-                    p.set(redis_key,value)
-                    p.expire(redis_key,interval*100000)
+                    p.setex(redis_key,value,interval*100000)
 
             for key, value in event_cache.items():
                 redis_key = EVENT_KEY_STR.format(id=t//60,name=key)
@@ -91,21 +91,20 @@ def main(host):
             p.expire('events/id:{id}:count'.format(id=t//60),600)
 
             if len(nhit_cache) > 0:
+                # nhit distribution
+                # see http://flask.pocoo.org/snippets/71/ for this design pattern
                 p.lpush('events/id:{id}:name:nhit'.format(id=t),*nhit_cache)
                 p.expire('events/id:{id}:name:nhit'.format(id=t),3600)
 
             # heartbeat information
-            p.set('dispatcher',host)
-            p.expire('dispatcher',60)
+            p.setex('dispatcher',host,60)
 
             # int:{interval}:id:{timestamp}:name:{name}
             key = 'stream/int:{0:d}:id:{1:d}:name:{2:s}'
             for t in [1,60,3600]:
                 id = now//t
                 # expire in 100,000*[time interval]
-                expire = t*100000
-                p.set(key.format(t,id,'heartbeat'),1)
-                p.expire(key.format(t,id,'heartbeat'),expire)
+                p.setex(key.format(t,id,'heartbeat'),1,t*100000)
 
             cache.clear()
             cache_set.clear()
@@ -134,8 +133,6 @@ def main(host):
         subrun = pev.DaqStatus # seriously :)
         trig = get_trigger_type(pev)
 
-        # nhit distribution
-        # see http://flask.pocoo.org/snippets/71/ for this design pattern
         nhit_cache += [nhit]
 
         qhs_sum = 0
