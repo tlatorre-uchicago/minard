@@ -42,7 +42,6 @@ TRIGGER_NAMES = \
  'SOFGT',
  'MISS']
 
-@profile
 def main(host):
     """Connects to a dispatcher at ip address `host` and processes the dispatch stream."""
     dispatcher = Dispatch(host)
