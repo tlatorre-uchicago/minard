@@ -10,7 +10,7 @@ Installing the Dispatcher
 ::
 
     $ cd $VIRTUAL_ENV/src
-    $ git clone git@github.com:tlatorre-uchicago/disp.git
+    $ git clone git@github.com:snoplus/disp.git
     $ cd disp
     $ make
 
