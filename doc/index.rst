@@ -17,7 +17,6 @@ Contents:
    dispatch_local
    mimic_orca
    alarms
-   api
    production
    links
 
