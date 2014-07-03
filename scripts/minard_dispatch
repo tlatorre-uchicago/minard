@@ -2,11 +2,10 @@
 from __future__ import print_function
 import time
 from redis import Redis
-import sys
-from dispatch import Dispatch, unpack_trigger_type, unpack_header, unpack_pmt_record, records
+from dispatch import Dispatch, unpack_trigger_type, unpack_header, unpack_pmt_record, RECORD_IDS
 from collections import defaultdict
-import traceback
 import zmq
+import threading
 
 redis = Redis()
 
@@ -43,12 +42,19 @@ TRIGGER_NAMES = \
  'SOFGT',
  'MISS']
 
+def post(host):
+    """Posts the dispatcher name to redis every 20 seconds."""
+    threading.Timer(20.0, post).start()
+    redis.setex('dispatcher',host,60)
+
 def push(host):
     """
     Connects to a dispatcher at ip address `host` and pushes the records to
     a ZMQ socket.
     """
     dispatcher = Dispatch(host)
+
+    post(host)
 
     context = zmq.Context()
     zmq_socket = context.socket(zmq.PUSH)
@@ -111,9 +117,6 @@ def pull():
                 p.lpush('events/id:{id}:name:nhit'.format(id=t),*nhit_cache)
                 p.expire('events/id:{id}:name:nhit'.format(id=t),3600)
 
-            # heartbeat information
-            #p.setex('dispatcher',host,60)
-
             # int:{interval}:id:{timestamp}:name:{name}
             key = 'stream/int:{0:d}:id:{1:d}:name:{2:s}'
             for t in [1,60,3600]:
@@ -136,7 +139,7 @@ def pull():
 
         record_id, data = unpack_header(record)
 
-        if record_id != records['PMT_RECORD']:
+        if record_id != RECORD_IDS['PMT_RECORD']:
             continue
 
         pmt_gen = unpack_pmt_record(data)

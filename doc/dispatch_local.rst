@@ -19,6 +19,7 @@ To read events from the dispatch stream using the python module
 virtualenv `activate` script::
 
     export PYTHONPATH=[/path/to/disp]/python:$PYTHONPATH
+    export LD_LIBRARY_PATH=[/path/to/disp]/lib:$LD_LIBRARY_PATH
 
 Installing the Redispatcher
 ***************************
@@ -42,12 +43,19 @@ Now we can dispatch events from a zdab file::
 
 Now, we can read the events from python::
 
-    >>> import dispatch
-    >>> d = dispatch.Dispatch('localhost')
-    >>> event_record = d.next()
-    >>> event_record.RunNumber
-    6587L
-    >>> event_record.NPmtHit
-    28
-    >>> event_record.TriggerCardData.BcGT # gtid
-    2865675L
+    >>> from dispatch import *
+    >>> d = Dispatch('localhost')
+    >>> record = d.recv()
+    >>> id, record = unpack_header(record)
+    >>> id == RECORD_IDS['PMT_RECORD']
+    True
+    >>> pmt_record_gen = unpack_pmt_record(record)
+    >>> pmt_event_record = next(pmt_record_gen)
+    >>> pmt_event_record.NPmtHit
+    20
+    >>> for uncal_pmt in pmt_record_gen:
+    ...     print uncal_pmt.BoardID
+    ... 
+    11
+    3
+
