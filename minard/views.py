@@ -15,6 +15,11 @@ from collections import deque
 
 redis = Redis()
 
+@app.route('/log', methods=['POST'])
+def log():
+    resp = requests.post('http://127.0.0.1:50001', headers=request.headers, data=request.form)
+    return resp.content, resp.status_code, resp.headers.items()
+
 @app.route('/tail')
 def tail():
     name = request.args.get('name', None)
