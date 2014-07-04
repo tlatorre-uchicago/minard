@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block title %}Alarms{% endblock %}
+{% block head %}
+{{ super() }}
+<style>
+    .word-wrap {
+        white-space: pre-wrap;
+        white-space: -moz-pre-wrap;
+        white-space: -pre-wrap;
+        white-space: -o-pre-wrap;
+        word-wrap: break-word;
+    }
+</style>
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="col-md-10 col-md-offset-1">
+    <div class="container word-wrap" id="log"></div>
+</div>
+
+<script>
+function update_log(seek)
+{
+    if (typeof(seek) === 'undefined') seek = null;
+
+    $.getJSON($SCRIPT_ROOT + '/tail?name={{ name }}&seek=' + seek).done(function(obj) {
+        for (var i=0; i < obj.lines.length; i++)
+        {
+            $('#log').prepend('<p>' + obj.lines[i]);
+        }
+        setTimeout(function() { update_log(obj.seek) },10000); // 10 seconds
+    });
+}
+
+update_log()
+</script>
+
+<script>$('#nav-view_log').attr('class','active');</script>
+{% endblock %}

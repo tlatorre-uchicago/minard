@@ -15,8 +15,13 @@ from collections import deque
 
 redis = Redis()
 
+@app.route('/view_log/<name>')
+def view_log(name):
+    return render_template('view_log.html', name=name)
+
 @app.route('/log', methods=['POST'])
 def log():
+    """Forward a POST request to the log server at port 50001."""
     resp = requests.post('http://127.0.0.1:50001', headers=request.headers, data=request.form)
     return resp.content, resp.status_code, resp.headers.items()
 
