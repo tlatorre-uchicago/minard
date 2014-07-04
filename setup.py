@@ -8,7 +8,7 @@ setup(name='minard',
       author='Anthony LaTorre',
       author_email='tlatorre@uchicago.edu',
       url='snopl.us',
-      packages=['minard'],
+      packages=['minard','snoplus_log'],
       scripts=glob('scripts/*'),
       data_files = [# static files
                     ('www/static/css',    glob('minard/static/css/*')),
