@@ -33,14 +33,14 @@ def tail():
 
     if seek is None:
         # return last 100 lines
-        lines = deque(open(filename), maxlen=100)
+        lines = deque(f, maxlen=100)
     else:
         pos = f.tell()
         f.seek(0,2)
         end = f.tell()
         f.seek(pos)
 
-        if seek > pos:
+        if seek > end:
             # log file rolled over
             try:
                 prev_logfile = open(filename + '.1')
@@ -57,7 +57,7 @@ def tail():
             f.seek(seek)
             lines = f.readlines()
 
-    return jsonify(seek=f.tell(), lines=lines)
+    return jsonify(seek=f.tell(), lines=list(lines))
 
 @app.route('/')
 def index():
