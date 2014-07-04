@@ -15,6 +15,20 @@ from collections import deque
 
 redis = Redis()
 
+@app.route('/heartbeat', methods=['POST'])
+def heartbeat():
+    """Log heartbeat."""
+    if 'name' not in request.form:
+        return 'must specify name', 400
+
+    if 'status' not in request.form:
+        return 'must specify status', 400
+
+    # expire every 10 seconds
+    redis.setex('/heartbeat/{name}'.format(name=request.form['name']),request.form['status'],10)
+
+    return 'ok\n'
+
 @app.route('/view_log/<name>')
 def view_log(name):
     return render_template('view_log.html', name=name)
