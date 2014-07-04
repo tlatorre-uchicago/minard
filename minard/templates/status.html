@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+{% block title %}Status{% endblock %}
+{% block head %}
+{{ super() }}
+<style>
+    .word-wrap {
+        white-space: pre-wrap;
+        white-space: -moz-pre-wrap;
+        white-space: -pre-wrap;
+        white-space: -o-pre-wrap;
+        word-wrap: break-word;
+    }
+</style>
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="col-md-10 col-md-offset-1">
+    <table class="table table-condensed table-striped">
+        <tr>
+            <td>Status</td>
+            <td>Name</td>
+            <td>Machine</td>
+            <td>Log</td>
+            <td>Link</td>
+        </tr>
+        {% for program in programs %}
+        <tr id="{{ program.name }}">
+            <td id="status" />
+            <td>{{ program.name }}</td>
+            <td>{{ program.machine }}</td>
+            <td><a href="{{ url_for('view_log', name=program.name) }}">Tail -f</a></td>
+            <td>
+                {% if link in program %}
+                    <a href="{{ program.link }}">{{ program.link }}</a></td>
+                {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<script>
+function update_status(name)
+{
+    if (typeof(seek) === 'undefined') seek = null;
+
+    $.getJSON($SCRIPT_ROOT + '/get_status?name=' + name).done(function(obj) {
+        $('#' + name + ' #status').text(obj.status);
+
+        setTimeout(function() { update_status(name) },10000); // 10 seconds
+    });
+}
+
+{% for program in programs %}
+    update_status('{{ program.name }}');
+{% endfor %}
+
+</script>
+
+<script>$('#nav-view_log').attr('class','active');</script>
+{% endblock %}

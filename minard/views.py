@@ -11,9 +11,24 @@ from os.path import join
 import json
 from tools import total_seconds, parseiso
 import requests
-from collections import deque
+from collections import deque, namedtuple
+
+Program = namedtuple('Program', ['name', 'machine', 'link'])
 
 redis = Redis()
+
+PROGRAMS = [Program('L2',None,None)]
+
+@app.route('/status')
+def status():
+    return render_template('status.html', programs=PROGRAMS)
+
+@app.route('/get_status')
+def get_status():
+    if 'name' not in request.args:
+        return 'must specify name', 400
+
+    return jsonify(status=redis.get('/heartbeat/{name}'.format(name=request.args['name'])))
 
 @app.route('/heartbeat', methods=['POST'])
 def heartbeat():
