@@ -11,8 +11,53 @@ from os.path import join
 import json
 from tools import total_seconds, parseiso
 import requests
+from collections import deque
 
 redis = Redis()
+
+@app.route('/tail')
+def tail():
+    name = request.args.get('name', None)
+
+    if name is None:
+        return 'must specify name', 400
+
+    seek = request.args.get('seek', None, type=int)
+
+    filename = join('/var/log/snoplus', name + '.log')
+
+    try:
+        f = open(filename)
+    except IOError:
+        return "couldn't find log file {filename}".format(filename=filename), 400
+
+    if seek is None:
+        # return last 100 lines
+        lines = deque(open(filename), maxlen=100)
+    else:
+        pos = f.tell()
+        f.seek(0,2)
+        end = f.tell()
+        f.seek(pos)
+
+        if seek > pos:
+            # log file rolled over
+            try:
+                prev_logfile = open(filename + '.1')
+                prev_logfile.seek(seek)
+                # add previous log file lines
+                lines = prev_logfile.readlines()
+            except IOError:
+                return 'seek > log file length', 400
+
+            # add new lines
+            lines.append(f.readlines())
+        else:
+            # seek to last position and readlines
+            f.seek(seek)
+            lines = f.readlines()
+
+    return jsonify(seek=f.tell(), lines=lines)
 
 @app.route('/')
 def index():
