@@ -51,7 +51,7 @@ def tail():
                 return 'seek > log file length', 400
 
             # add new lines
-            lines.append(f.readlines())
+            lines.extend(f.readlines())
         else:
             # seek to last position and readlines
             f.seek(seek)
