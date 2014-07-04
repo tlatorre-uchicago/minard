@@ -17,7 +17,10 @@ Program = namedtuple('Program', ['name', 'machine', 'link'])
 
 redis = Redis()
 
-PROGRAMS = [Program('L2',None,None)]
+PROGRAMS = [Program('builder','builder1.sp.snolab.ca',None),
+            Program('L2','buffer1.sp.snolab.ca',None),
+            Program('dataflow',None,
+                'http://snoplus.westgrid.ca:5984/buffer/_design/buffer/index.html')]
 
 @app.route('/status')
 def status():

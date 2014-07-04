@@ -80,10 +80,10 @@
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
+                        <li id='nav-status'><a href="{{ url_for('status') }}">Status</a></li>
                         <li id='nav-snostream'><a href="{{ url_for('snostream') }}">Stream</a></li>
                         <li id='nav-l2-home'><a href="{{ url_for('l2_filter') }}">L2 Filter</a></li>
                         <li id='nav-detector'><a href="{{ url_for('detector') }}">Detector</a></li>
-                        <li id='nav-builder'><a href="{{ url_for('builder') }}">Builder Log</a></li>
 
                         <!-- Dropdown DAQ -->
                         <li class='dropdown'>
