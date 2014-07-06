@@ -45,7 +45,7 @@
                     {
                         alarm = obj.alarms[i];
 
-                        if (alarm.level == 3) {
+                        if (alarm.level >= 40) {
                             alarm.message += ALARM_AUDIO;
                             toastr.options = {'timeOut': 0, 'extendedTimeOut': 0, 'closeButton': true};
                         } else {
