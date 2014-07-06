@@ -24,6 +24,16 @@ def post(url, data, auth=None):
     return response.read()
 
 class HTTPHandler(logging.Handler):
+    """
+    Sends log messages to the monitoring server using POST requests.
+    If the log record has an attribute 'notify', then the log message
+    will trigger an alert on the monitoring site.
+
+    Example:
+        logger.addHandler(HTTPHandler(name,host))
+        logger.info("Hello, world!")
+        logger.info("Hello, world!", extra=NOTIFY)
+    """
     def __init__(self, name, host, auth=None):
         logging.Handler.__init__(self)
         self.name = name
@@ -39,6 +49,10 @@ class HTTPHandler(logging.Handler):
             raise Exception('POST got response {response}'.format(response=response))
 
 def post_heartbeat(host, name, auth=None):
+    """
+    Sends a POST request every five seconds to the monitoring server
+    indicating that the process is still running.
+    """
     timer = threading.Timer(5.0, post_heartbeat, args=(host, name, auth))
     # set the thread as a daemon to exit the program cleanly
     # when the main thread finishes
@@ -48,6 +62,12 @@ def post_heartbeat(host, name, auth=None):
     response = post('{host}/monitoring/heartbeat'.format(host=host), data, auth)
     if response.strip() != 'ok':
         raise Exception('POST got response {response}'.format(response=response))
+
+def set_up_root_logger():
+    """Sets up the root logger to send log messages to the monitoring server."""
+    root_logger = logging.getLogger()
+    root_logger.addHandler(HTTPHandler(name, host, auth))
+    root_logger.setLevel(logging.DEBUG)
 
 if __name__ == '__main__':
     import getpass
@@ -74,9 +94,7 @@ if __name__ == '__main__':
         auth = 'snoplus', passwd
 
     post_heartbeat(host, name, auth)
-    root_logger = logging.getLogger()
-    root_logger.addHandler(HTTPHandler(name, host, auth))
-    root_logger.setLevel(logging.DEBUG)
+    set_up_root_logger()
 
     for line in itertools.starmap(sys.stdin.readline,itertools.repeat([])):
         if not line:
