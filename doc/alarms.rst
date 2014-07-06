@@ -28,8 +28,6 @@ Alarm levels >= 40 will automatically trigger an alarm.
 Logging Levels
 ^^^^^^^^^^^^^^
 
-There are four levels of alarm.
-
 =====    ========     ================================================================================
 Level    Name         Description
 =====    ========     ================================================================================
