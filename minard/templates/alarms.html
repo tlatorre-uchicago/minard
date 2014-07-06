@@ -36,7 +36,7 @@ var levels = {'success': 'alert alert-success',
               'warning': 'alert alert-warning',
               'danger'  : 'alert alert-danger'};
 
-var level_map = {0: 'success', 1: 'info', 2: 'warning', 3: 'danger'};
+var level_map = {21: 'success', 20: 'info', 30: 'warning', 40: 'danger'};
 
 var msglist = [],
     filter_level = 'default';
@@ -88,7 +88,8 @@ function parse() {
     div.enter()
         .insert('div',':first-child')
         .attr('class', function(d, i) {
-                return levels[level_map[msgdisp[i].level]] + ' word-wrap';})
+                level = levels[level_map[msgdisp[i].level]] || "alert";
+                return level + ' word-wrap';})
         .text(function(d, i) {
             return ['[',moment(msgdisp[i].time).tz('America/Toronto').format('MMMM Do YYYY, h:mm:ss z'),
                 '] ', msgdisp[i].message].join('');})

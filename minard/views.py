@@ -247,29 +247,6 @@ def get_alarm():
 
     return jsonify(alarms=alarms)
 
-@app.route('/set_alarm', methods=['POST'])
-def set_alarm():
-    lvl = int(request.form['level'])
-    msg = request.form['message']
-    now = datetime.now().isoformat()
-
-    if not 0 <= lvl <= 3:
-        return 'level must be in [0,3]\n', 400
-
-    id = redis.incr('/alarms/count')-1
-
-    if len(msg) > 1024:
-        msg = msg[:1024] + '...'
-
-    alarm = {'id': id, 'level': lvl, 'message': msg, 'time': now}
-
-    key = '/alarms/{0:d}'.format(id)
-    redis.set(key, json.dumps(alarm))
-    # expire alarms after 24 hours
-    redis.expire(key, 24*60*60)
-
-    return 'ok\n'
-
 @app.route('/metric')
 def metric():
     args = request.args

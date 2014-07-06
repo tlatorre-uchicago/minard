@@ -51,7 +51,7 @@ def log():
     # log it to disk
     logger.log(lvl,msg)
 
-    if 'notify' in request.form or lvl >= 3:
+    if 'notify' in request.form or lvl >= 40:
         # post to redis
         id = redis.incr('/alarms/count') - 1
 

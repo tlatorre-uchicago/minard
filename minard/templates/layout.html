@@ -27,7 +27,7 @@
 
         ALARM_AUDIO = '<audio autoplay loop> \
         <source src="{{ url_for('static', filename='audio/0096.ogg') }}", type="audio/ogg"> \
-        <source src="{{ url_for('static', filename='audio/0096.mp3') }}", type="audio/mp3"> \
+        <source src="{{ url_for('static', filename='audio/0096.mp3') }}", type="audio/mpeg"> \
         <source src="{{ url_for('static', filename='audio/0096.wav') }}", type="audio/wav"> \
         </audio>'
 
@@ -35,7 +35,7 @@
             var latest_alarm;
 
             // convert alarm level -> string
-            var alarm_level_map = {0: 'success', 1: 'info', 2: 'warning', 3: 'error'};
+            var alarm_level_map = {21: 'success', 20: 'info', 30: 'warning', 40: 'error'};
 
             function update_toastr()
             {
@@ -52,7 +52,9 @@
                             toastr.options = {'timeOut': 20000};
                         }
 
-                        toastr[alarm_level_map[alarm.level]](alarm.message);
+                        level = alarm_level_map[alarm.level] || "info";
+
+                        toastr[level](alarm.message);
 
                         // update latest_alarm id
                         latest_alarm = Math.max(latest_alarm,alarm.id);
