@@ -28,23 +28,20 @@ class HTTPHandler(logging.Handler):
         self.host = host
         self.auth = auth
 
-
-    def log(self, level, msg, *args, **kwargs):
-        notify = kwargs.pop('notify', False)
-        if notify:
-            kwargs['extra'] = {'notify': True}
-        logging.Handler.log(self, level, msg, *args, **kwargs)
-
     def emit(self, record):
         data = {'name': self.name, 'level': record.levelno, 'message': record.msg}
-        if record.extra['notify']:
+        if hasattr(record,'notify'):
             data['notify'] = True
         response = post('{host}/monitoring/log'.format(host=self.host), data, self.auth)
         if response.strip() != 'ok':
             raise Exception('POST got response {response}'.format(response=response))
 
 def post_heartbeat(host, name, auth=None):
-    threading.Timer(5.0, post_heartbeat, args=(name, auth))
+    timer = threading.Timer(5.0, post_heartbeat, args=(host, name, auth))
+    # set the thread as a daemon to exit the program cleanly
+    # when the main thread finishes
+    timer.daemon = True
+    timer.start()
     data = {'name': name, 'status': 'ok'}
     response = post('{host}/monitoring/heartbeat'.format(host=host), data, auth)
     if response.strip() != 'ok':
@@ -75,7 +72,11 @@ if __name__ == '__main__':
         auth = 'snoplus', passwd
 
     post_heartbeat(host, name, auth)
-    logging.getLogger().addHandler(HTTPHandler(name, host, auth))
+    root_logger = logging.getLogger()
+    root_logger.addHandler(HTTPHandler(name, host, auth))
+    root_logger.setLevel(logging.DEBUG)
 
     for line in itertools.starmap(sys.stdin.readline,itertools.repeat([])):
+        if not line:
+            break
         logging.info(line)
