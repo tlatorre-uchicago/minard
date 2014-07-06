@@ -30,15 +30,14 @@ Logging Levels
 
 There are four levels of alarm.
 
-=====    ========     ===================================================================
+=====    ========     ================================================================================
 Level    Name         Description
-=====    ========     ===================================================================
-0        Success      Notify the operator that something has successfully completed.
-10       Debug        Messages that the operator doesn't need to see, but may be useful
-                          for debugging.
+=====    ========     ================================================================================
+10       Debug        Messages that the operator doesn't need to see, but may be useful for debugging.
 20       Info         General information (e.g. new run).
+21       Success      Notify the operator that something has successfully completed.
 30       Warning      Alert the operator about something to look into.
 40       Danger       Notify the operator of something that requires immediate attention.
-=====    ========     ===================================================================
+=====    ========     ================================================================================
 
 

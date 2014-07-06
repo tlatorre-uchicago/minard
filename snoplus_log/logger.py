@@ -6,33 +6,26 @@ from datetime import datetime
 from redis import Redis
 import json
 from os.path import join
+from minard.views import PROGRAMS
+
+logging.addLevelName(21, 'SUCCESS')
 
 redis = Redis()
 
-_ALLOWED = ['L2', 'ECA']
-
-# apparently logging.NOTSET does not mean to
-# process every message, but to defer to a parent
-# logger. If we set every logger to logging.NOTSET,
-# the effective level is determined by the root
-# logger. So, here, we set that to 0.
-# see https://docs.python.org/2/library/logging.html#logging.Logger.setLevel
-logging.getLogger().setLevel(0)
+PROGRAM_NAMES = [prog.name for prog in PROGRAMS]
 
 def get_logger(name):
     """Returns the logger for `name`."""
-    if name not in _ALLOWED:
-        raise NameError('logger name {name} not in allowed list'.format(name=name))
-
     logger = logging.getLogger(name)
 
     if logger.handlers:
         return logger
 
     filename = join('/var/log/snoplus', name + '.log')
-    logger.setLevel(logging.NOTSET)
+    logger.setLevel(logging.DEBUG)
     handler = logging.handlers.RotatingFileHandler(filename, maxBytes=5e6, backupCount=10)
-    handler.setLevel(logging.NOTSET)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
     logger.addHandler(handler)
 
     return logger
@@ -47,8 +40,8 @@ def log():
     """
     name = request.form['name']
 
-    if name not in _ALLOWED:
-        return 'unknown program {name}'.format(name), 400
+    if name not in PROGRAM_NAMES:
+        return 'unknown program {name}\n'.format(name=name), 400
 
     logger = get_logger(name)
 
