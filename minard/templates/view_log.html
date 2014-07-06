@@ -28,7 +28,7 @@ function update_log(seek)
         {
             $('#log').prepend('<p>' + obj.lines[i]);
         }
-        setTimeout(function() { update_log(obj.seek) },10000); // 10 seconds
+        setTimeout(function() { update_log(obj.seek) },1000); // 1 second
     });
 }
 
