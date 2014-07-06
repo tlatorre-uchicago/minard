@@ -4,6 +4,8 @@ import base64
 import threading
 import logging
 
+NOTIFY = {'notify': True}
+
 def post(url, data, auth=None):
     """
     Sends a POST request containing `data` to url. `auth` should be a
@@ -30,7 +32,7 @@ class HTTPHandler(logging.Handler):
 
     def emit(self, record):
         data = {'name': self.name, 'level': record.levelno, 'message': record.msg}
-        if hasattr(record,'notify'):
+        if hasattr(record,'notify') and record.notify:
             data['notify'] = True
         response = post('{host}/monitoring/log'.format(host=self.host), data, self.auth)
         if response.strip() != 'ok':
@@ -79,4 +81,4 @@ if __name__ == '__main__':
     for line in itertools.starmap(sys.stdin.readline,itertools.repeat([])):
         if not line:
             break
-        logging.info(line)
+        logging.info(line.strip())
