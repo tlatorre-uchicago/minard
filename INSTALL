@@ -33,7 +33,7 @@ sudo mkdir -p /etc/redis /var/redis /opt/redis
 
 # install redis init script
 sudo curl -s -o /etc/init.d/redis_6379 \
-https://raw.githubusercontent.com/snoplus/minard/master/init/redis_6379
+https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/init/redis_6379
 
 # make it executable
 sudo chmod +x /etc/init.d/redis_6379
@@ -41,7 +41,7 @@ sudo chmod +x /etc/init.d/redis_6379
 # redis configuration file
 # this is where, for example, the location of the backup image is configured
 sudo curl -s -o /etc/redis/6379.conf \
-https://raw.githubusercontent.com/snoplus/minard/master/etc/redis.conf
+https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/etc/redis.conf
 
 # add redis service
 add_service redis_6379
@@ -68,7 +68,7 @@ fi
 if [ ! -d /opt/minard/src/minard ]; then
     printf "Installing minard..."
     cd $VIRTUAL_ENV/src
-    git clone -q git@github.com:snoplus/minard.git
+    git clone -q git@github.com:tlatorre-uchicago/minard.git
     pip install -qq ./minard
     cd minard/doc
     make html
@@ -88,7 +88,7 @@ fi
 if [ ! -d /opt/minard/src/disp ]; then
     printf "Installing disp..."
     cd $VIRTUAL_ENV/src
-    git clone -q git@github.com:snoplus/disp.git
+    git clone -q git@github.com:tlatorre-uchicago/disp.git
     cd disp
     make &>/tmp/disp.log
     echo 'export PYTHONPATH=$VIRTUAL_ENV/src/disp/python:$PYTHONPATH' >> $VIRTUAL_ENV/bin/activate
@@ -119,9 +119,13 @@ if ! id -u snoplusmon 2>/dev/null; then
     sudo chmod 700 /home/snoplusmon/.ssh
 fi
 
+# create /var/log/snoplus
+sudo mkdir -p /var/log/snoplus
+sudo chown snoplusmon:snoplusmon /var/log/snoplus
+
 # download gunicorn init script
 sudo curl -s -o /etc/init.d/gunicorn \
-https://raw.githubusercontent.com/snoplus/minard/master/init/gunicorn
+https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/init/gunicorn
 
 # make it executable
 sudo chmod +x /etc/init.d/gunicorn
