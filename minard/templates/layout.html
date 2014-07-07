@@ -31,42 +31,39 @@
         <source src="{{ url_for('static', filename='audio/0096.wav') }}", type="audio/wav"> \
         </audio>'
 
-            // global variable to keep track of the most recent alarm id
-            var latest_alarm;
-
             // convert alarm level -> string
             var alarm_level_map = {21: 'success', 20: 'info', 30: 'warning', 40: 'error'};
 
-            function update_toastr()
+            function update_toastr(latest)
             {
-                next = latest_alarm + 1;
+                next = latest + 1;
                 $.getJSON($SCRIPT_ROOT + '/get_alarm?start=' + next).done(function(obj) {
                     for (var i=0; i < obj.alarms.length; i++)
                     {
                         alarm = obj.alarms[i];
 
+                        var level_string;
                         if (alarm.level >= 40) {
                             alarm.message += ALARM_AUDIO;
                             toastr.options = {'timeOut': 0, 'extendedTimeOut': 0, 'closeButton': true};
+                            level_string = "error";
                         } else {
                             toastr.options = {'timeOut': 20000};
+                            level_string = alarm_level_map[alarm.level] || "info";
                         }
 
-                        level = alarm_level_map[alarm.level] || "info";
+                        toastr[level_string](alarm.message);
 
-                        toastr[level](alarm.message);
-
-                        // update latest_alarm id
-                        latest_alarm = Math.max(latest_alarm,alarm.id);
+                        // update latest alarm id
+                        latest = Math.max(latest,alarm.id);
                     }
                 });
 
-                setTimeout(update_toastr,1000);
+                setTimeout(function() { update_toastr(latest); },1000);
             }
 
             $.getJSON($SCRIPT_ROOT + '/get_alarm?start=-1').done(function(obj) {
-                latest_alarm = obj.alarms[0].id;
-                update_toastr();
+                update_toastr(obj.alarms[0].id);
             });
         </script>
         {% block body %}
