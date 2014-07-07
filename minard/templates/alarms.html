@@ -15,6 +15,7 @@
         word-wrap: break-word;
     }
 </style>
+  <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
   <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/moment-timezone.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/moment-timezone-data.js') }}"></script>
@@ -22,74 +23,76 @@
 {% block body %}
 {{ super() }}
 <div class="col-md-8 col-md-offset-2">
-    <div class="container">
-        <center><p id="filter-nav"></p></center>
+    <div class="container" id="filter-nav">
+        <center>
+            <button class="btn btn-default" type="button" name="default">Default</button>
+            <button class="btn btn-success" type="button" name="success">Success</button>
+            <button class="btn btn-info" type="button" name="info">Info</button>
+            <button class="btn btn-warning" type="button" name="warning">Warning</button>
+            <button class="btn btn-danger" type="button" name="danger">Danger</button>
+        </center>
     </div>
     <div class="container" id="main"></div>
 </div>
 
-<script src="{{ url_for('static', filename='js/d3.js') }}"></script>
-
 <script>
-var levels = {'success': 'alert alert-success',
-              'info'   : 'alert alert-info',
-              'warning': 'alert alert-warning',
-              'danger'  : 'alert alert-danger'};
+(function () {
+var alert_class = {21 : "alert alert-success",
+                   20 : "alert alert-info",
+                   30 : "alert alert-warning",
+                   40 : "alert alert-danger"};
 
-var level_map = {21: 'success', 20: 'info', 30: 'warning', 40: 'danger'};
+var alert_level = {21 : "success",
+                   20 : "info",
+                   30 : "warning",
+                   40 : "danger"};
 
 var msglist = [],
-    filter_level = 'default';
+    filter = 'default';
 
-function get_poll() {
-    return $.getJSON($SCRIPT_ROOT + '/get_alarm');
+function update_alarms() {
+    $.getJSON($SCRIPT_ROOT + '/get_alarm?start=-100').done(function (obj) {
+        msglist = obj.alarms;
+        parse();
+    });
+    setTimeout(update_alarms,1000);
 }
 
-function update() {
-    get_poll().done(function (obj) {
-            msglist = obj.alarms;
-            parse();
-            });
-}
+$("#filter-nav button").each(function() {
+    $(this).click(function() {
+        filter = $(this).attr("name");
+        parse();
+    });
+});
 
-var names = ['default'].concat(Object.keys(levels));
-
-for (var i=0; i < names.length; i++) {
-    var level = names[i];
-    var label = $("<button />");
-    label.attr('type', 'button');
-    label.attr('class', 'btn btn-' + level);
-    label.text(level.charAt(0).toUpperCase() + level.slice(1));
-    label.attr('name', level);
-    label.click(function() {
-            filter_level = $(this).attr('name');parse();
-            });
-    $('#filter-nav').append(label);
-}
-
-update();
-setInterval(update,1000);
+update_alarms();
 
 function parse() {
     var msgdisp;
-    if (filter_level != 'default') {
+    if (filter != 'default') {
         msgdisp = msglist.filter(function(d) {
-                return level_map[d.level] == filter_level;
-                });
+            return alert_level[d.level] == filter;
+        });
     } else {
         msgdisp = msglist;
     }
 
     var id = msgdisp.map(function(d) { return d.id; });
 
-    var div1 = d3.select('#main').selectAll('div');
-    var div = div1.data(id, String).sort(d3.descending);
+    var div = d3.select('#main').selectAll('div').data(id, String).sort(d3.descending);
 
     div.enter()
         .insert('div',':first-child')
         .attr('class', function(d, i) {
-                level = levels[level_map[msgdisp[i].level]] || "alert";
-                return level + ' word-wrap';})
+          if (msgdisp[i].level >= 40)
+          {
+            return "alert alert-danger wordwrap";
+          }
+          else
+          {
+            return (alert_class[msgdisp[i].level] || "alert") + " word-wrap";
+          }
+        })
         .text(function(d, i) {
             return ['[',moment(msgdisp[i].time).tz('America/Toronto').format('MMMM Do YYYY, h:mm:ss z'),
                 '] ', msgdisp[i].message].join('');})
@@ -100,6 +103,7 @@ function parse() {
         $('#main').append('<div><center><h2>No alarms to display!</h2></center></div>');
     }
 }
+})()
 </script>
 
 <script>$('#nav-alarms').attr('class','active');</script>

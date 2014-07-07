@@ -235,7 +235,7 @@ def get_alarm():
         start = request.args.get('start',type=int)
 
         if start < 0:
-            start = latest - 1
+            start = max(0,latest + start)
     else:
         start = max(latest-100,0)
 
