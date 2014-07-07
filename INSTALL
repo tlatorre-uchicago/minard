@@ -144,3 +144,17 @@ fi
 add_service supervisord
 
 sudo cp etc/supervisord.conf /etc/supervisord.conf
+
+if [ -f /etc/debian_version ]; then
+    sudo cp init/nginx_debian /etc/init.d/nginx
+elif [ -f /etc/redhat-release ]; then
+    sudo cp init/nginx_redhat /etc/init.d/nginx
+else
+    echo "Error! Couldn't determine Linux distribution!"
+    echo "no /etc/debian_version or /etc/redhat-release file"
+    exit 1
+fi
+
+add_service nginx
+
+sudo cp etc/nginx.conf /etc/nginx/nginx.conf
