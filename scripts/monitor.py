@@ -17,7 +17,7 @@ def post(url, data, auth=None):
 
     request = urllib2.Request(url)
     if auth:
-        base64string = base64.encode('%s:%s' % auth).replace('\n','')
+        base64string = base64.encodestring('%s:%s' % auth).replace('\n','')
         request.add_header('Authorization', 'Basic %s' % base64string)
 
     params = urllib.urlencode(data)
