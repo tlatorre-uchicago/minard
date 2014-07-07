@@ -112,11 +112,7 @@ fi
 # make sure snoplusmon user exists
 if ! id -u snoplusmon 2>/dev/null; then
     echo "Adding snoplusmon user..."
-    sudo useradd -d snoplusmon
-    # create a .ssh folder for the builder key
-    sudo mkdir /home/snoplusmon/.ssh
-    sudo chown snoplusmon:snoplusmon /home/snoplusmon/.ssh
-    sudo chmod 700 /home/snoplusmon/.ssh
+    sudo useradd -r snoplusmon
 fi
 
 # create /var/log/snoplus
@@ -148,5 +144,3 @@ fi
 add_service supervisord
 
 sudo cp etc/supervisord.conf /etc/supervisord.conf
-
-echo "done! Make sure to copy the builder key to /home/snoplusmon/.ssh/id_rsa_builder."
