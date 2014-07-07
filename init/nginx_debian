@@ -67,7 +67,7 @@
 #                               Consts
 #------------------------------------------------------------------------------
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-DAEMON=nginx
+DAEMON=/usr/sbin/nginx
  
 PS="nginx"
 PIDNAME="nginx"				#lets you do $PS-slave

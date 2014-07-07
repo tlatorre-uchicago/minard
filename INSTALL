@@ -115,6 +115,12 @@ if ! id -u snoplusmon 2>/dev/null; then
     sudo useradd -r snoplusmon
 fi
 
+# make sure nginx user exists
+if ! id -u nginx 2>/dev/null; then
+    echo "Adding nginx user..."
+    sudo useradd -r nginx
+fi
+
 # create /var/log/snoplus
 sudo mkdir -p /var/log/snoplus
 sudo chown snoplusmon:snoplusmon /var/log/snoplus
