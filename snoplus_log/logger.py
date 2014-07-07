@@ -35,7 +35,7 @@ def log():
     """
     Log a message to disk and optionally set an alarm. The POST request
     should have the arguments 'name', 'level', and 'message'. If the
-    argument 'notify' is present or level >= 3, the message will trigger an
+    argument 'notify' is present or level >= 40, the message will trigger an
     alarm.
     """
     name = request.form['name']
