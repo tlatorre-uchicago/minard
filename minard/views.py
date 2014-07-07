@@ -20,7 +20,8 @@ redis = Redis()
 PROGRAMS = [Program('builder','builder1.sp.snolab.ca',None),
             Program('L2','buffer1.sp.snolab.ca',None),
             Program('dataflow',None,
-                'http://snoplus.westgrid.ca:5984/buffer/_design/buffer/index.html')]
+            'http://snoplus.westgrid.ca:5984/buffer/_design/buffer/index.html'),
+            Program('PMT-noiserate',None,None)]
 
 @app.route('/status')
 def status():
