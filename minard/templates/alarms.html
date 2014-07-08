@@ -93,7 +93,7 @@ function parse() {
           }
           else
           {
-            return (alert_level[msgdisp[i].level] || "") + " word-wrap";
+            return "bg-" + (alert_level[msgdisp[i].level] || "") + " word-wrap";
           }
         })
         .text(function(d, i) {
