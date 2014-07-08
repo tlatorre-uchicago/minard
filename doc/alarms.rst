@@ -61,3 +61,9 @@ and post a heartbeat signal every five seconds::
     logging.info("info")
     # you can create an alert on the monitoring site like this
     logging.info("info",extra=monitor.NOTIFY)
+
+Logging from C (libcurl)
+------------------------
+
+.. literalinclude:: ../examples/log.c
+    :language: c
