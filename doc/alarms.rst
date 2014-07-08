@@ -42,7 +42,7 @@ Logging from Python
 -------------------
 
 With the module `monitor <https://github.com/tlatorre-uchicago/minard/blob/master/scripts/monitor.py>`_,
-you can log to the monitoring server using the python `logging` module::
+you can log to the monitoring server using the python `logging <https://docs.python.org/2/howto/logging.html>`_ module::
 
     import logging
     import monitor
@@ -50,6 +50,5 @@ you can log to the monitoring server using the python `logging` module::
     monitor.set_up_root_logger()
 
     logging.info("info")
-    logging.error("error")
     # you can create an alert on the monitoring site like this
     logging.info("info",extra=monitor.NOTIFY)
