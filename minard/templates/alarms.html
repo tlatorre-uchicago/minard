@@ -22,17 +22,20 @@
 {% endblock %}
 {% block body %}
 {{ super() }}
-<div class="col-md-8 col-md-offset-2">
-    <div class="container" id="filter-nav">
-        <center>
-            <button class="btn btn-default" type="button" name="default">Default</button>
-            <button class="btn btn-success" type="button" name="success">Success</button>
-            <button class="btn btn-info" type="button" name="info">Info</button>
-            <button class="btn btn-warning" type="button" name="warning">Warning</button>
-            <button class="btn btn-danger" type="button" name="danger">Danger</button>
-        </center>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12" id="filter-nav">
+            <center>
+                <button class="btn btn-default" type="button" name="default">Default</button>
+                <button class="btn btn-success" type="button" name="success">Success</button>
+                <button class="btn btn-info" type="button" name="info">Info</button>
+                <button class="btn btn-warning" type="button" name="warning">Warning</button>
+                <button class="btn btn-danger" type="button" name="danger">Danger</button>
+            </center>
+            <p>
+            <div id="main"></div>
+        </div>
     </div>
-    <div class="container" id="main"></div>
 </div>
 
 <script>
@@ -79,18 +82,18 @@ function parse() {
 
     var id = msgdisp.map(function(d) { return d.id; });
 
-    var div = d3.select('#main').selectAll('div').data(id, String).sort(d3.descending);
+    var div = d3.select('#main').selectAll('p').data(id, String).sort(d3.descending);
 
     div.enter()
-        .insert('div',':first-child')
+        .insert('p',':first-child')
         .attr('class', function(d, i) {
           if (msgdisp[i].level >= 40)
           {
-            return "alert alert-danger wordwrap";
+            return "bg-danger word-wrap";
           }
           else
           {
-            return (alert_class[msgdisp[i].level] || "alert") + " word-wrap";
+            return (alert_level[msgdisp[i].level] || "") + " word-wrap";
           }
         })
         .text(function(d, i) {
