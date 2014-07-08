@@ -79,12 +79,12 @@ else
     cd $VIRTUAL_ENV/src/minard
     git pull
     cd doc
-    make html
+    make html &>/dev/null
     rm -rf /opt/minard/www/static/doc
     cp -r _build/html /opt/minard/www/static/doc
     cd $VIRTUAL_ENV/src
-    pip uninstall minard
-    pip install ./minard
+    yes | pip -qq uninstall minard
+    pip -qq install ./minard
     printf "Done\n"
 fi
 
@@ -107,19 +107,19 @@ else
 fi
 
 # make sure www-data user exists
-if ! id -u www-data 2>/dev/null; then
+if ! id -u www-data >/dev/null; then
     echo "Adding www-data user..."
     sudo useradd -r www-data
 fi
 
 # make sure snoplusmon user exists
-if ! id -u snoplusmon 2>/dev/null; then
+if ! id -u snoplusmon >/dev/null; then
     echo "Adding snoplusmon user..."
     sudo useradd -r snoplusmon
 fi
 
 # make sure nginx user exists
-if ! id -u nginx 2>/dev/null; then
+if ! id -u nginx >/dev/null; then
     echo "Adding nginx user..."
     sudo useradd -r nginx
 fi
