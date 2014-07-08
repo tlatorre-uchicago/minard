@@ -7,7 +7,7 @@ import logging
 
 NOTIFY = {'notify': True}
 
-def post(url, data, auth=None):
+def post(url, data, auth=None, retries=10):
     """
     Sends a POST request containing `data` to url. `auth` should be a
     tuple containing (username, password).
@@ -21,8 +21,30 @@ def post(url, data, auth=None):
         request.add_header('Authorization', 'Basic %s' % base64string)
 
     params = urllib.urlencode(data)
-    response = urllib2.urlopen(request, params)
-    return response.read()
+    for i in range(retries):
+        try:
+            response = urllib2.urlopen(request, params)
+        except urllib2.URLError, e:
+            # python 2.6
+            if i < retries-1:
+                if isinstance(e, socket.timeout):
+                    # try again
+                    continue
+                else:
+                    # not timeout exception
+                    raise
+            else:
+                # raise exception on last iteration
+                raise
+        except socket.timeout, e:
+            # python 2.7
+            if i < retries-1:
+                continue
+            else:
+                # raise exception on last iteration
+                raise
+
+        return response.read()
 
 class HTTPHandler(logging.Handler):
     """
