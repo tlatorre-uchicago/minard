@@ -37,11 +37,3 @@ For more information on the ORCA file formats see `Data File Format
 
 To mimic the ORCA data stream see :doc:`mimic_orca`.
 
-Builder Log
------------
-
-The `minard_builder
-<https://github.com/snoplus/minard/blob/master/scripts/minard_builder>`_ script monitors the builder log::
-
-    $ source /opt/minard/bin/activate
-    $ minard_builder [path/to/builder/ssh/key]
