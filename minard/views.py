@@ -2,11 +2,9 @@ from __future__ import division
 from __future__ import print_function
 from minard import app
 from flask import render_template, jsonify, request, redirect, url_for
-from datetime import datetime
 from itertools import product
 import time
 from redis import Redis
-import sys
 from os.path import join
 import json
 from tools import total_seconds, parseiso
@@ -158,10 +156,6 @@ def channels(name):
 def alarms():
     return render_template('alarms.html')
 
-@app.route('/builder')
-def builder():
-    return render_template('builder.html')
-
 CHANNELS = [crate << 9 | card << 5 | channel \
             for crate, card, channel in product(range(20),range(16),range(32))]
 
@@ -182,19 +176,6 @@ def query():
             p.lrange('events/id:{0:d}:name:nhit'.format(i),0,-1)
         nhit = sum(p.execute(),[])
         return jsonify(value=nhit)
-
-    if name == 'tail_log':
-        start = request.args.get('id',None,type=int)
-        stop = int(redis.get('builder/global:next'))
-
-        if start is None or start > stop:
-            start = stop - 100
-
-        p = redis.pipeline()
-        for i in range(start,stop):
-            p.get('builder/id:%i:msg' % i)
-        value = map(lambda x: x if x is not None else '',p.execute())
-        return jsonify(value=value,id=stop)
 
     if name == 'occupancy':
         now = int(time.time())
