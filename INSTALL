@@ -82,6 +82,9 @@ else
     make html
     rm -rf /opt/minard/www/static/doc
     cp -r _build/html /opt/minard/www/static/doc
+    cd $VIRTUAL_ENV/src
+    pip uninstall minard
+    pip install ./minard
     printf "Done\n"
 fi
 
