@@ -38,4 +38,18 @@ Level    Name         Description
 40       Danger       Notify the operator of something that requires immediate attention.
 =====    ========     ================================================================================
 
+Logging from Python
+-------------------
 
+With the module `monitor <https://github.com/tlatorre-uchicago/minard/blob/master/scripts/monitor.py>`_,
+you can log to the monitoring server using the python `logging` module::
+
+    import logging
+    import monitor
+
+    monitor.set_up_root_logger()
+
+    logging.info("info")
+    logging.error("error")
+    # you can create an alert on the monitoring site like this
+    logging.info("info",extra=monitor.NOTIFY)
