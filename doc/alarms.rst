@@ -42,12 +42,16 @@ Logging from Python
 -------------------
 
 With the module `monitor <https://github.com/tlatorre-uchicago/minard/blob/master/scripts/monitor.py>`_,
-you can log to the monitoring server using the python `logging <https://docs.python.org/2/howto/logging.html>`_ module::
+you can log to the monitoring server using the python `logging <https://docs.python.org/2/howto/logging.html>`_ module
+and post a heartbeat signal every five seconds::
 
     import logging
     import monitor
 
-    monitor.set_up_root_logger()
+    # this will start a new thread which posts the heartbeat signal automatically
+    # every five seconds until the main thread ends
+    monitor.post_heartbeat('snopl.us', [program_name], ('snoplus', [password]))
+    monitor.set_up_root_logger('snopl.us', [program_name], ('snoplus', [password]))
 
     logging.info("info")
     # you can create an alert on the monitoring site like this

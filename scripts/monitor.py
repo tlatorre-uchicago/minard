@@ -64,7 +64,7 @@ def post_heartbeat(host, name, auth=None):
     if response.strip() != 'ok':
         raise Exception('POST got response {response}'.format(response=response))
 
-def set_up_root_logger():
+def set_up_root_logger(host, name, auth=None):
     """Sets up the root logger to send log messages to the monitoring server."""
     root_logger = logging.getLogger()
     root_logger.addHandler(HTTPHandler(name, host, auth))
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         auth = 'snoplus', passwd
 
     post_heartbeat(host, name, auth)
-    set_up_root_logger()
+    set_up_root_logger(host, name, auth)
 
     for line in itertools.starmap(sys.stdin.readline,itertools.repeat([])):
         if not line:
