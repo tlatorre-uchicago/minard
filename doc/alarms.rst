@@ -48,10 +48,14 @@ and post a heartbeat signal every five seconds::
     import logging
     import monitor
 
+    host = 'snopl.us'
+    name = '[program_name]'
+    auth = 'snoplus', [password]
+
     # this will start a new thread which posts the heartbeat signal automatically
     # every five seconds until the main thread ends
-    monitor.post_heartbeat('snopl.us', [program_name], ('snoplus', [password]))
-    monitor.set_up_root_logger('snopl.us', [program_name], ('snoplus', [password]))
+    monitor.post_heartbeat(host, name, auth)
+    monitor.set_up_root_logger(host, name, auth)
 
     logging.info("info")
     # you can create an alert on the monitoring site like this
