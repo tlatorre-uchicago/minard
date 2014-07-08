@@ -4,18 +4,18 @@
 {{ super() }}
 <style>
     .word-wrap {
-        white-space: pre-wrap;
-        white-space: -moz-pre-wrap;
-        white-space: -pre-wrap;
-        white-space: -o-pre-wrap;
         word-wrap: break-word;
+    }
+
+    .monospace {
+        font-family:monospace;
     }
 </style>
 {% endblock %}
 {% block body %}
 {{ super() }}
 <div class="col-md-12">
-    <div class="container word-wrap" id="log"></div>
+    <div class="container word-wrap monospace well well-sm" id="log"></div>
 </div>
 
 <script>
