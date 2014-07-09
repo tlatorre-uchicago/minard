@@ -62,7 +62,7 @@ function update_status(name)
         }
 
         $('#' + name + ' #status').text(obj.status);
-        $('#' + name + ' #uptime').text(moment().subtract('seconds',obj.uptime).fromNow(true));
+        $('#' + name + ' #uptime').text(obj.uptime ? moment().subtract('seconds',obj.uptime).fromNow(true): "");
 
         setTimeout(function() { update_status(name) },2000); // 2 seconds
     });
