@@ -98,12 +98,12 @@ def pull():
                 for interval in [1,60,3600]:
                     redis_key = STREAM_KEY_STR.format(interval=interval,id=t//interval,name=key)
                     p.incrby(redis_key,value)
-                    p.expire(redis_key,interval*100000)
+                    p.expire(redis_key,interval*250000)
 
             for key, value in cache_set.items():
                 for interval in [1,60,3600]:
                     redis_key = STREAM_KEY_STR.format(interval=interval,id=t//interval,name=key)
-                    p.setex(redis_key,value,interval*100000)
+                    p.setex(redis_key,value,interval*250000)
 
             for key, value in event_cache.items():
                 redis_key = EVENT_KEY_STR.format(id=t//60,name=key)
@@ -124,7 +124,7 @@ def pull():
             for t in [1,60,3600]:
                 id = now//t
                 # expire in 100,000*[time interval]
-                p.setex(key.format(t,id,'heartbeat'),1,t*100000)
+                p.setex(key.format(t,id,'heartbeat'),1,t*250000)
 
             cache.clear()
             cache_set.clear()
