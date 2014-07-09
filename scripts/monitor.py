@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import urllib
 import urllib2
 import base64
@@ -98,6 +99,7 @@ if __name__ == '__main__':
     import sys
     import itertools
     import optparse
+    import sys
 
     parser = optparse.OptionParser()
     parser.add_option('--local', action='store_true', dest='local',
@@ -123,4 +125,8 @@ if __name__ == '__main__':
     for line in itertools.starmap(sys.stdin.readline,itertools.repeat([])):
         if not line:
             break
-        logging.info(line.strip())
+        try:
+            logging.info(line.strip())
+        except urllib2.URLError, e:
+            print(e, file=sys.stderr)
+            continue
