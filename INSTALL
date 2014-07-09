@@ -159,3 +159,9 @@ sudo cp etc/redis.conf /etc/redis/6379.conf
 # add redis service
 add_service redis_6379
 
+# echo commands from here
+set -x
+
+sudo /etc/init.d/nginx restart
+sudo /etc/init.d/gunicorn restart
+sudo /etc/init.d/supervisord restart
