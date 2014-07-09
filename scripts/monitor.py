@@ -6,8 +6,18 @@ import base64
 import threading
 import logging
 import socket
+from itertools import starmap, repeat
 
 NOTIFY = {'notify': True}
+
+def repeatfunc(func, times=None, *args):
+    """Repeat calls to func with specified arguments.
+
+    Example:  repeatfunc(random.random)
+    """
+    if times is None:
+        return starmap(func, repeat(args))
+    return starmap(func, repeat(args, times))
 
 def post(url, data, auth=None, retries=10):
     """
@@ -97,9 +107,9 @@ def set_up_root_logger(host, name, auth=None):
 if __name__ == '__main__':
     import getpass
     import sys
-    import itertools
     import optparse
     import sys
+    import traceback
 
     parser = optparse.OptionParser()
     parser.add_option('--local', action='store_true', dest='local',
@@ -122,11 +132,11 @@ if __name__ == '__main__':
     post_heartbeat(host, name, auth)
     set_up_root_logger(host, name, auth)
 
-    for line in itertools.starmap(sys.stdin.readline,itertools.repeat([])):
+    for line in repeatfunc(sys.stdin.readline):
         if not line:
             break
         try:
             logging.info(line.strip())
         except urllib2.URLError, e:
-            print(e, file=sys.stderr)
+            print(traceback.format_exc(), file=sys.stderr)
             continue
