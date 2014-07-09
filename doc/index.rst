@@ -18,6 +18,7 @@ Contents:
    mimic_orca
    alarms
    production
+   monitoring_software
    links
 
 Indices and tables
