@@ -44,4 +44,12 @@ PROJECT_NAME = 'minard'
 app = Flask(__name__, static_folder=STATIC_FOLDER, template_folder=TEMPLATE_FOLDER)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
+if not app.debug:
+    import logging
+    import logging.handlers
+
+    handler = logging.handlers.RotatingFileHandler('/tmp/minard.log',maxBytes=50e6,backupCount=10)
+    handler.setLevel(logging.WARNING)
+    app.logger.addHandler(handler)
+
 import minard.views
