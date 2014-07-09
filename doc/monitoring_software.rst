@@ -28,3 +28,33 @@ redis
 * **Log File**: `/var/log/redis.log`
 * **Description**: redis database.
 
+gunicorn
+--------
+
+* **Command**: `gunicorn -b 0.0.0.0:8080 minard:app --user=gunicorn`
+* **Run as** : root (drops to gunicorn)
+* **Ports**: 8080
+* **Started by**: `/etc/init.d/gunicorn`
+* **Log File**: `/var/log/gunicorn.log`
+* **Description**: Gunicorn web server which serves the main site.
+
+gunicorn (logging server)
+-------------------------
+
+* **Command**: `gunicorn -b 0.0.0.0:8081 snoplus_log:app --user=gunicorn`
+* **Run as** : root (drops to gunicorn)
+* **Ports**: 8081
+* **Started by**: supervisord
+* **Log File**: `/var/log/snoplus_log.log`
+* **Description**: Gunicorn web server for logging.
+
+nginx
+-----
+
+* **Command**: `nginx -c /etc/nginx/nginx.conf`
+* **Run as** : root (drops to nginx)
+* **Ports**: 50000
+* **Started by**: `/etc/init.d/nginx`
+* **Log File**: `/var/log/nginx.log`
+* **Description**: nginx web server which serves static files and slow clients for the main site.
+
