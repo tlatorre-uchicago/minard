@@ -30,7 +30,7 @@ def get_status():
     if 'name' not in request.args:
         return 'must specify name', 400
 
-    up = redis.get('/uptime/{name}'.format(name=request.form['name'])
+    up = redis.get('/uptime/{name}'.format(name=request.form['name']))
 
     if up is None:
         uptime = None
@@ -51,7 +51,7 @@ def heartbeat():
     # expire every 10 seconds
     redis.setex('/heartbeat/{name}'.format(name=request.form['name']),request.form['status'],10)
 
-    up = redis.get('/uptime/{name}'.format(name=request.form['name'])
+    up = redis.get('/uptime/{name}'.format(name=request.form['name']))
 
     if up is None:
         redis.setex('/uptime/{name}'.format(name=request.form['name']),int(time.time()),10)
