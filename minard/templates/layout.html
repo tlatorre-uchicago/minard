@@ -63,7 +63,7 @@
             }
 
             $.getJSON($SCRIPT_ROOT + '/get_alarm?start=-1').done(function(obj) {
-                update_toastr(obj.alarms[0].id);
+                update_toastr(obj.latest);
             });
         </script>
         {% block body %}

@@ -229,26 +229,27 @@ def query():
 @app.route('/get_alarm')
 def get_alarm():
     try:
-        latest = int(redis.get('/alarms/count'))
+        count = int(redis.get('/alarms/count'))
     except TypeError:
-        return jsonify(alarms=[])
+        redis.set('/alarms/count',0)
+        return jsonify(alarms=[],latest=-1)
 
     if 'start' in request.args:
         start = request.args.get('start',type=int)
 
         if start < 0:
-            start = max(0,latest + start)
+            start = max(0,count + start)
     else:
-        start = max(latest-100,0)
+        start = max(count-100,0)
 
     alarms = []
-    for i in range(start,latest):
+    for i in range(start,count):
         value = redis.get('/alarms/{0:d}'.format(i))
 
         if value:
             alarms.append(json.loads(value))
 
-    return jsonify(alarms=alarms)
+    return jsonify(alarms=alarms,latest=count-1)
 
 @app.route('/metric')
 def metric():
