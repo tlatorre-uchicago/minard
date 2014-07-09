@@ -31,21 +31,6 @@ fi
 # see "Installing Redis more properly" at http://redis.io/topics/quickstart
 sudo mkdir -p /etc/redis /var/redis /opt/redis
 
-# install redis init script
-sudo curl -s -o /etc/init.d/redis_6379 \
-https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/init/redis_6379
-
-# make it executable
-sudo chmod +x /etc/init.d/redis_6379
-
-# redis configuration file
-# this is where, for example, the location of the backup image is configured
-sudo curl -s -o /etc/redis/6379.conf \
-https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/etc/redis.conf
-
-# add redis service
-add_service redis_6379
-
 if [ ! -d /opt/minard ]; then
     sudo mkdir /opt/minard
     sudo chown $USER /opt/minard
@@ -106,10 +91,10 @@ else
     printf "Done\n"
 fi
 
-# make sure www-data user exists
-if ! id -u www-data >/dev/null; then
-    echo "Adding www-data user..."
-    sudo useradd -r www-data
+# make sure gunicorn user exists
+if ! id -u gunicorn >/dev/null; then
+    echo "Adding gunicorn user..."
+    sudo useradd -r gunicorn
 fi
 
 # make sure snoplusmon user exists
@@ -128,17 +113,13 @@ fi
 sudo mkdir -p /var/log/snoplus
 sudo chown snoplusmon:snoplusmon /var/log/snoplus
 
-# download gunicorn init script
-sudo curl -s -o /etc/init.d/gunicorn \
-https://raw.githubusercontent.com/tlatorre-uchicago/minard/master/init/gunicorn
+cd $VIRTUAL_ENV/src/minard
 
-# make it executable
-sudo chmod +x /etc/init.d/gunicorn
+# install gunicorn init script
+sudo cp init/gunicorn /etc/init.d/gunicorn
 
 # add gunicorn service
 add_service gunicorn
-
-cd $VIRTUAL_ENV/src/minard
 
 if [ -f /etc/debian_version ]; then
     sudo cp init/supervisord_debian /etc/init.d/supervisord
@@ -167,3 +148,14 @@ fi
 add_service nginx
 
 sudo cp etc/nginx.conf /etc/nginx/nginx.conf
+
+# install redis init script
+sudo cp init/redis_6379 /etc/init.d/redis_6379
+
+# redis configuration file
+# this is where, for example, the location of the backup image is configured
+sudo cp etc/redis.conf /etc/redis/6379.conf
+
+# add redis service
+add_service redis_6379
+
