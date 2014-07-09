@@ -23,6 +23,11 @@ the monitoring page. For example::
 
     $ curl --data "name=builder&level=20&message=info&notify" -u snoplus snopl.us/monitoring/log
 
+.. note::
+
+    Alarms will expire from the monitoring site after 24 hours, although they will
+    still appear in the log file saved to disk.
+
 Alarm levels >= 40 will automatically trigger an alarm.
 
 Logging Levels
