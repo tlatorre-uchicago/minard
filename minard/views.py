@@ -30,7 +30,14 @@ def get_status():
     if 'name' not in request.args:
         return 'must specify name', 400
 
-    return jsonify(status=redis.get('/heartbeat/{name}'.format(name=request.args['name'])))
+    up = redis.get('/uptime/{name}'.format(name=request.form['name'])
+
+    if up is None:
+        uptime = None
+    else:
+        uptime = int(time.time()) - int(up)
+
+    return jsonify(status=redis.get('/heartbeat/{name}'.format(name=request.args['name'])),uptime=uptime)
 
 @app.route('/heartbeat', methods=['POST'])
 def heartbeat():
@@ -43,6 +50,14 @@ def heartbeat():
 
     # expire every 10 seconds
     redis.setex('/heartbeat/{name}'.format(name=request.form['name']),request.form['status'],10)
+
+    up = redis.get('/uptime/{name}'.format(name=request.form['name'])
+
+    if up is None:
+        redis.setex('/uptime/{name}'.format(name=request.form['name']),int(time.time()),10)
+    else:
+        # still running, update expiration
+        redis.expire('/uptime/{name}'.format(name=request.form['name']),10)
 
     return 'ok\n'
 
