@@ -4,6 +4,7 @@ import urllib2
 import base64
 import threading
 import logging
+import socket
 
 NOTIFY = {'notify': True}
 
