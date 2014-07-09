@@ -52,8 +52,8 @@ def view_log(name):
 
 @app.route('/log', methods=['POST'])
 def log():
-    """Forward a POST request to the log server at port 50001."""
-    resp = requests.post('http://127.0.0.1:50001', headers=request.headers, data=request.form)
+    """Forward a POST request to the log server at port 8081."""
+    resp = requests.post('http://127.0.0.1:8081', headers=request.headers, data=request.form)
     return resp.content, resp.status_code, resp.headers.items()
 
 @app.route('/tail')
