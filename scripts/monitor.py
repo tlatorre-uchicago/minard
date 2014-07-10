@@ -85,10 +85,10 @@ class HTTPHandler(logging.Handler):
 
 def post_heartbeat(host, name, auth=None):
     """
-    Sends a POST request every five seconds to the monitoring server
+    Sends a POST request every second to the monitoring server
     indicating that the process is still running.
     """
-    timer = threading.Timer(5.0, post_heartbeat, args=(host, name, auth))
+    timer = threading.Timer(1.0, post_heartbeat, args=(host, name, auth))
     # set the thread as a daemon to exit the program cleanly
     # when the main thread finishes
     timer.daemon = True
