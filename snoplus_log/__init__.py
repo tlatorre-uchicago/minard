@@ -12,4 +12,4 @@ if not app.debug:
     handler.setLevel(logging.WARNING)
     app.logger.addHandler(handler)
 
-import logger.views
+import snoplus_log.views

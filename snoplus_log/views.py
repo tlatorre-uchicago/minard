@@ -1,12 +1,12 @@
 import logging
 import logging.handlers
+from snoplus_log import app
 from flask import request
 from datetime import datetime
 from redis import Redis
 import json
 from os.path import join
 from minard.views import PROGRAMS
-from snoplus_log import app
 
 logging.addLevelName(21, 'SUCCESS')
 
@@ -63,7 +63,3 @@ def log():
         redis.setex('/alarms/{id}'.format(id=id), json.dumps(alarm), 24*60*60)
 
     return 'ok\n'
-
-if __name__ == '__main__':
-    # just for testing
-    app.run(port=50001,debug=True)
