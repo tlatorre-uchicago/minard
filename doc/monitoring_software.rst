@@ -26,6 +26,7 @@ redis
 
 * **Command**: ``redis``
 * **Runs as**: root
+* **Configuration file**: ``/etc/redis/6379.conf``
 * **Ports**: 6379
 * **Started by**: ``/etc/init.d/redis_6379``
 * **Log File**: ``/var/log/redis.log``
@@ -56,6 +57,7 @@ nginx
 
 * **Command**: ``nginx -c /etc/nginx/nginx.conf``
 * **Run as** : root (drops to nginx)
+* **Configuration file**: ``/etc/nginx/nginx.conf``
 * **Ports**: 50000
 * **Started by**: ``/etc/init.d/nginx``
 * **Log File**: ``/var/log/nginx.log``
@@ -90,4 +92,15 @@ orca_consumer_base
 * **Started by**: supervisord
 * **Log File**: ``/var/log/orca_consumer_base.log``
 * **Description**: Reads base currents from a ZMQ push/pull socket and writes to the redis database.
+
+supervisord
+-----------
+
+* **Command**: ``supervisord -c /etc/supervisord.conf``
+* **Run as**: root
+* **Configuration file**: ``/etc/supervisord.conf``
+* **Ports**: 9001
+* **Started by**: ``/etc/init.d/supervisord``
+* **Log File**: ``/var/log/supervisord.log``
+* **Description**: Starts and manages many of the monitoring processes.
 
