@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e; sudo -v || exit
 
+if ! hash git 2>/dev/null; then echo "Please install git."; fi
+if ! hash virtualenv 2>/dev/null; then echo "Please install virtualenv."; fi
+if ! hash gcc 2>/dev/null; then echo "Please install gcc."; fi
+
 add_service () {
     # adds an init script service to chkconfig or update-rc.d
     if [ -f /etc/debian_version ]; then

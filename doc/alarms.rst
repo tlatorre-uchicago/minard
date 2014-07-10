@@ -26,7 +26,7 @@ the monitoring page. For example::
 .. note::
 
     Alarms will expire from the monitoring site after 24 hours, although they will
-    still appear in the log file saved to disk.
+    still appear in the log file saved to disk (``/var/log/snoplus/[name].log``).
 
 Alarm levels >= 40 will automatically trigger an alarm.
 
