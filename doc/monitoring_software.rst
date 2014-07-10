@@ -5,6 +5,7 @@ minard_dispatch_push
 --------------------
 
 * **Command**: ``minard_dispatch push [--host HOST]``
+* **Runs as**: snoplusmon
 * **Ports**: 5560
 * **Started by**: supervisord
 * **Log File**: ``/var/log/minard_dispatch_push.log``
@@ -14,6 +15,7 @@ minard_dispatch_pull
 --------------------
 
 * **Command**: ``minard_dispatch pull``
+* **Runs as**: snoplusmon
 * **Ports**: 5560
 * **Started by**: supervisord
 * **Log File**: ``/var/log/minard_dispatch_pull.log``
@@ -23,6 +25,7 @@ redis
 -----
 
 * **Command**: ``redis``
+* **Runs as**: root
 * **Ports**: 6379
 * **Started by**: ``/etc/init.d/redis_6379``
 * **Log File**: ``/var/log/redis.log``
@@ -35,7 +38,7 @@ gunicorn
 * **Run as** : root (drops to gunicorn)
 * **Ports**: 8080
 * **Started by**: ``/etc/init.d/gunicorn``
-* **Log File**: ``/var/log/gunicorn.log``
+* **Log File**: ``/tmp/minard.log`` and ``/var/log/gunicorn.log``
 * **Description**: Gunicorn web server which serves the main site.
 
 gunicorn (logging server)
@@ -45,7 +48,7 @@ gunicorn (logging server)
 * **Run as** : root (drops to gunicorn)
 * **Ports**: 8081
 * **Started by**: supervisord
-* **Log File**: ``/var/log/snoplus_log.log``
+* **Log File**: ``/tmp/snoplus_log.log`` and ``/var/log/gunicorn_log.log``
 * **Description**: Gunicorn web server for logging.
 
 nginx

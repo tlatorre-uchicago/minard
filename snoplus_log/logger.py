@@ -1,12 +1,12 @@
 import logging
 import logging.handlers
-from flask import Flask, request
-app = Flask(__name__)
+from flask import request
 from datetime import datetime
 from redis import Redis
 import json
 from os.path import join
 from minard.views import PROGRAMS
+from snoplus_log import app
 
 logging.addLevelName(21, 'SUCCESS')
 
