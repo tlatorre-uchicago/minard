@@ -269,18 +269,8 @@ def metric():
     start -= dt
     stop -= dt
 
-    if step > 3600:
-        t = 3600
-    elif step > 60:
-        t = 60
-    else:
-        t = 1
-
     if expr in ('gtid', 'run', 'subrun', 'heartbeat','l2-heartbeat'):
-        p = redis.pipeline()
-        for i in range(start,stop,step):
-            p.get('stream/int:{0:d}:id:{1:d}:name:{2}'.format(t,i//t,expr))
-        values = p.execute()
+        values = get_timeseries(expr,start,stop,step)
         return jsonify(values=values)
 
     try:
@@ -289,19 +279,13 @@ def metric():
         trig = expr
         type = None
 
-    p = redis.pipeline()
-    for i in range(start,stop,step):
-        if type is None:
-            p.get('stream/int:{0:d}:id:{1:d}:name:{2}'.format(t,i//t,trig))
-        else:
-            p.get('stream/int:{0:d}:id:{1:d}:name:{2}:{3}'.format(t,i//t,trig,type))
-    values = p.execute()
+    if type is None:
+        values = get_timeseries(trig,start,stop,step)
+    else:
+        values = get_timeseries(type,start,stop,step)
 
     if type is not None:
-        p = redis.pipeline()
-        for i in range(start,stop,step):
-            p.get('stream/int:{0:d}:id:{1:d}:name:{2}'.format(t,i//t,trig))
-        counts = p.execute()
+        counts = get_timeseries(trig,start,stop,step)
         values = [float(a)/int(b) if a or b else 0 for a, b in zip(values,counts)]
     else:
         values = map(lambda x: int(x)/t if x else 0, values)

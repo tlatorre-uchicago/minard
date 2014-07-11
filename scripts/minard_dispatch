@@ -6,6 +6,7 @@ from dispatch import Dispatch, unpack_trigger_type, unpack_header, unpack_pmt_re
 from collections import defaultdict
 import zmq
 import threading
+from minard.timeseries import INTERVALS, EXPIRE
 
 redis = Redis()
 
@@ -95,15 +96,15 @@ def pull():
 
             t = then
             for key, value in cache.items():
-                for interval in [1,60,3600]:
+                for interval in INTERVALS:
                     redis_key = STREAM_KEY_STR.format(interval=interval,id=t//interval,name=key)
                     p.incrby(redis_key,value)
-                    p.expire(redis_key,interval*250000)
+                    p.expire(redis_key,interval*EXPIRE)
 
             for key, value in cache_set.items():
-                for interval in [1,60,3600]:
+                for interval in INTERVALS:
                     redis_key = STREAM_KEY_STR.format(interval=interval,id=t//interval,name=key)
-                    p.setex(redis_key,value,interval*250000)
+                    p.setex(redis_key,value,interval*EXPIRE)
 
             for key, value in event_cache.items():
                 redis_key = EVENT_KEY_STR.format(id=t//60,name=key)
@@ -121,10 +122,10 @@ def pull():
 
             # int:{interval}:id:{timestamp}:name:{name}
             key = 'stream/int:{0:d}:id:{1:d}:name:{2:s}'
-            for t in [1,60,3600]:
+            for t in INTERVALS:
                 id = now//t
                 # expire in 100,000*[time interval]
-                p.setex(key.format(t,id,'heartbeat'),1,t*250000)
+                p.setex(key.format(t,id,'heartbeat'),1,t*EXPIRE)
 
             cache.clear()
             cache_set.clear()

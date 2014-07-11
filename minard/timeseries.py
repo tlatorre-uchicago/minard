@@ -16,6 +16,7 @@ redis = Redis()
 # The optimal number of intervals N is actually somewhere around 20,
 # but you get diminishing returns after 10, so this is easier.
 INTERVALS = [1,3,9,29,90,280,867,2677,8267,25531]
+EXPIRE = 3*4000
 
 def get_timeseries(name, start, stop, step, type=None):
     """
