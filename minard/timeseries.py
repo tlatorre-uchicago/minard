@@ -17,19 +17,20 @@ redis = Redis()
 # but you get diminishing returns after 10, so this is easier.
 INTERVALS = [1,3,9,29,90,280,867,2677,8267,25531]
 
-def get_timeseries(name, start, stop, step, convert_none=False):
+def get_timeseries(name, start, stop, step, type=None):
     """
     Returns the time series for `name` from start to stop in increments of
     step. start, stop, and step should all be UNIX timestamps.
     """
-    interval = INTERVALS[bisect.bisect_right(INTERVALS,step)]
+    interval = INTERVALS[bisect.bisect_right(INTERVALS,step)-1]
 
     p = redis.pipeline()
     for i in range(start, stop, step):
-        p.get('stream/int:{}:id:{}:name:{}'.format(interval,i//interval,name))
+        p.get('stream/int:{0}:id:{1}:name:{2}'.format(interval,i//interval,name))
     values = p.execute()
 
-    if convert_none:
-        values = [v if v is None else 0 for v in values]
+    if type is None:
+        return values
 
-    return values
+    return map(type, values)
+
