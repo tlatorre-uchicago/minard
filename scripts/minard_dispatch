@@ -95,10 +95,6 @@ def pull():
 
             t = then
             for key, value in cache.items():
-                if value == 0:
-                    # don't save keys if value is zero
-                    # this is a big memory saver
-                    continue
                 for interval in [1,60,3600]:
                     redis_key = STREAM_KEY_STR.format(interval=interval,id=t//interval,name=key)
                     p.incrby(redis_key,value)
