@@ -88,44 +88,38 @@ def pull():
         # unix timestamp
         now = int(time.time())
 
-        STREAM_KEY_STR = 'stream/int:{interval}:id:{id}:name:{name}'
-        EVENT_KEY_STR = 'events/id:{id}:channel:{name}'
         if now > then:
             # for docs on redis pipeline see http://redis.io/topics/pipelining
             p = redis.pipeline(transaction=False)
 
-            t = then
+            ts = then
             for key, value in cache.items():
                 for interval in INTERVALS:
-                    redis_key = STREAM_KEY_STR.format(interval=interval,id=t//interval,name=key)
+                    redis_key = 'ts:{interval}:{timestamp}:{name}'.format(interval=interval,timestamp=ts//interval,name=key)
                     p.incrby(redis_key,value)
                     p.expire(redis_key,interval*EXPIRE)
 
             for key, value in cache_set.items():
                 for interval in INTERVALS:
-                    redis_key = STREAM_KEY_STR.format(interval=interval,id=t//interval,name=key)
+                    redis_key = 'ts:{interval}:{timestamp}:{name}'.format(interval=interval,timestamp=ts//interval,name=key)
                     p.setex(redis_key,value,interval*EXPIRE)
 
             for key, value in event_cache.items():
-                redis_key = EVENT_KEY_STR.format(id=t//60,name=key)
+                redis_key = 'ev:{interval}:{timestamp}:pmt:{name}'.format(interval=60,timestamp=ts//60,name=key)
                 p.incrby(redis_key,value)
                 p.expire(redis_key,600)
 
-            p.incrby('events/id:{id}:count'.format(id=t//60),cache['TOTAL'])
-            p.expire('events/id:{id}:count'.format(id=t//60),600)
+            p.incrby('ev:60:{timestamp}:count'.format(timestamp=ts//60),cache['TOTAL'])
+            p.expire('ev:60:{timestamp}:count'.format(timestamp=ts//60),600)
 
             if len(nhit_cache) > 0:
                 # nhit distribution
                 # see http://flask.pocoo.org/snippets/71/ for this design pattern
-                p.lpush('events/id:{id}:name:nhit'.format(id=t),*nhit_cache)
-                p.expire('events/id:{id}:name:nhit'.format(id=t),3600)
+                p.lpush('ev:1:{timestamp}:nhit'.format(timestamp=ts),*nhit_cache)
+                p.expire('ev:1:{timestamp}:nhit'.format(timestamp=ts),3600)
 
-            # int:{interval}:id:{timestamp}:name:{name}
-            key = 'stream/int:{0:d}:id:{1:d}:name:{2:s}'
-            for t in INTERVALS:
-                id = now//t
-                # expire in 100,000*[time interval]
-                p.setex(key.format(t,id,'heartbeat'),1,t*EXPIRE)
+            for interval in INTERVALS:
+                p.setex('ts:{interval}:{timestamp}:heartbeat'.format(interval=interval,timestamp=ts//interval),1,interval*EXPIRE)
 
             cache.clear()
             cache_set.clear()

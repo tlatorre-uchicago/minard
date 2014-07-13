@@ -10,6 +10,7 @@ import json
 from tools import total_seconds, parseiso
 import requests
 from collections import deque, namedtuple
+from timeseries import get_timeseries, get_interval
 
 Program = namedtuple('Program', ['name', 'machine', 'link'])
 
@@ -194,7 +195,7 @@ def query():
 
         p = redis.pipeline()
         for i in range(start,now):
-            p.lrange('events/id:{0:d}:name:nhit'.format(i),0,-1)
+            p.lrange('ev:1:{ts}:nhit'.format(ts=i),0,-1)
         nhit = sum(p.execute(),[])
         return jsonify(value=nhit)
 
@@ -204,10 +205,10 @@ def query():
         occ = []
         p = redis.pipeline()
         for channel in CHANNELS:
-            p.get('events/id:{0:d}:channel:{1:d}'.format(now//60-1,channel))
+            p.get('ev:60:{0:d}:pmt:{1:d}'.format(now//60-1,channel))
         occ = p.execute()
 
-        count = redis.get('events/id:{0:d}:count'.format(now//60-1))
+        count = redis.get('ev:60:{0:d}:count'.format(now//60-1))
 
         if count is not None:
             count = int(count)
@@ -282,13 +283,14 @@ def metric():
     if type is None:
         values = get_timeseries(trig,start,stop,step)
     else:
-        values = get_timeseries(type,start,stop,step)
+        values = get_timeseries('%s:%s' % (trig,type),start,stop,step)
 
     if type is not None:
         counts = get_timeseries(trig,start,stop,step)
         values = [float(a)/int(b) if a or b else 0 for a, b in zip(values,counts)]
     else:
-        values = map(lambda x: int(x)/t if x else 0, values)
+        interval = get_interval(step)
+        values = map(lambda x: int(x)/interval if x else 0, values)
 
     return jsonify(values=values)
 
