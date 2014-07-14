@@ -33,7 +33,7 @@
         <p>Sudbury Time: <span id='sudbury-time'></span>
       </div>
       <div class="col-md-6">
-        <p class="pull-right">Time: 
+        <p class="pull-right">
         <select id="step-menu">
             {% for i, text in [(1,"15 min"), (3, "1 hour"), (9, "3 hours"), (29, "9 hours"), (90, "1 day"), (280, "3 days"), (867, "1 week"), (2677, "1 month"), (8267, "3 months"), (25531, "1 year"), (255310, "10 years")] %}
             <option {% if step == i %}selected="selected" {% endif %}value="{{ i }}">{{ text }}</option>
@@ -81,8 +81,10 @@ d3.select("#main").append("div")
 
 var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB','ESUML','ESUMH',
   'OWLN','OWLEL','OWLEH','PULGT','PRESCL', 'PED','PONG','SYNC','EXTA',
-  //'EXT2','EXT3','EXT4','EXT5','EXT6','EXT7',
-  'EXT8','SRAW','NCD', 'SOFGT','MISS']
+  //'EXT2','EXT3','EXT4','EXT5','EXT6','EXT7', 'EXT8','SRAW','NCD', 'SOFGT','MISS'
+  ]
+
+var L2_STREAMS = ['L1','L2','ORPHANS','BURSTS'];
 
 var si_format = d3.format('.2s');
 
@@ -124,7 +126,9 @@ function add_horizon(expressions, format, colors, extent)
         .call(horizon);
 }
 
-add_horizon(TRIGGER_NAMES,my_format);
+add_horizon(TRIGGER_NAMES.slice(0,1),my_format);
+add_horizon(L2_STREAMS,my_format);
+add_horizon(TRIGGER_NAMES.slice(1),my_format);
 add_horizon(["0\u03bd\u03b2\u03b2"],my_format);
 add_horizon(["TOTAL-nhit","TOTAL-charge","PULGT-nhit","PULGT-charge"]);
 add_horizon(["gtid"],d3.format('#0xx'),[]);

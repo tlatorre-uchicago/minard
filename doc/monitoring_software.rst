@@ -26,6 +26,7 @@ redis
 
 * **Command**: ``redis``
 * **Runs as**: root
+* **Snapshot**: ``/opt/redis/dump.rdb``
 * **Configuration file**: ``/etc/redis/6379.conf``
 * **Ports**: 6379
 * **Started by**: ``/etc/init.d/redis_6379``
