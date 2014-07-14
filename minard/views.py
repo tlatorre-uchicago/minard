@@ -257,7 +257,7 @@ def metric():
     """Returns the time series for argument `expr` as a JSON list."""
     args = request.args
 
-    expr = args.get('expr',type=str)
+    expr = args['expr']
     start = args.get('start',type=parseiso)
     stop = args.get('stop',type=parseiso)
     now_client = args.get('now',type=parseiso)
@@ -274,6 +274,12 @@ def metric():
         values = get_timeseries(expr,start,stop,step)
         return jsonify(values=values)
 
+    if expr == u"0\u03bd\u03b2\u03b2":
+        import random
+        total = get_timeseries('TOTAL',start,stop,step)
+        values = [int(random.random() < step/3153600) if i else 0 for i in total]
+        return jsonify(values=values)
+
     if '-' in expr:
         # e.g. PULGT-nhit, which means the average nhit for PULGT triggers
         # this is not a rate, so we divide by the # of PULGT triggers for
@@ -281,7 +287,7 @@ def metric():
         trig, _ = expr.split('-')
         values = get_timeseries(expr,start,stop,step)
         counts = get_timeseries(trig,start,stop,step)
-        values = [float(a)/int(b) if a or b else 0 for a, b in zip(values,counts)]
+        values = [float(a)/int(b) if a and b else 0 for a, b in zip(values,counts)]
     else:
         values = get_timeseries(expr,start,stop,step)
         interval = get_interval(step)
