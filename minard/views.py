@@ -254,14 +254,14 @@ def get_alarm():
 
 @app.route('/metric')
 def metric():
+    """Returns the time series for argument `expr` as a JSON list."""
     args = request.args
 
     expr = args.get('expr',type=str)
     start = args.get('start',type=parseiso)
     stop = args.get('stop',type=parseiso)
     now_client = args.get('now',type=parseiso)
-    # convert ms -> sec
-    step = args.get('step',type=int)//1000
+    step = args.get('step',type=int)
 
     now = int(time.time())
 
@@ -274,21 +274,16 @@ def metric():
         values = get_timeseries(expr,start,stop,step)
         return jsonify(values=values)
 
-    try:
-        trig, type = expr.split('-')
-    except ValueError:
-        trig = expr
-        type = None
-
-    if type is None:
-        values = get_timeseries(trig,start,stop,step)
-    else:
-        values = get_timeseries('%s:%s' % (trig,type),start,stop,step)
-
-    if type is not None:
+    if '-' in expr:
+        # e.g. PULGT-nhit, which means the average nhit for PULGT triggers
+        # this is not a rate, so we divide by the # of PULGT triggers for
+        # the interval instead of the interval length
+        trig, _ = expr.split('-')
+        values = get_timeseries(expr,start,stop,step)
         counts = get_timeseries(trig,start,stop,step)
         values = [float(a)/int(b) if a or b else 0 for a, b in zip(values,counts)]
     else:
+        values = get_timeseries(expr,start,stop,step)
         interval = get_interval(step)
         values = map(lambda x: int(x)/interval if x else 0, values)
 

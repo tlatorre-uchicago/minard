@@ -145,7 +145,7 @@ function metric(name) {
             '&start=' + start.toISOString() +
             '&stop=' + stop.toISOString() +
             '&now=' + new Date().toISOString() +
-            '&step=' + step, function(data) {
+            '&step=' + Math.floor(step/1000), function(data) {
               if (!data) return callback(new Error('unable to load data'));
               return callback(null,data.values);
     });
