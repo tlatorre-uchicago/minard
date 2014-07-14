@@ -277,7 +277,7 @@ def metric():
     if expr == u"0\u03bd\u03b2\u03b2":
         import random
         total = get_timeseries('TOTAL',start,stop,step)
-        values = [int(random.random() < step/3153600) if i else 0 for i in total]
+        values = [int(random.random() < step/315360) if i else 0 for i in total]
         return jsonify(values=values)
 
     if '-' in expr:
