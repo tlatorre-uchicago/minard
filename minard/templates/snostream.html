@@ -125,6 +125,7 @@ function add_horizon(expressions, format, colors, extent)
 }
 
 add_horizon(TRIGGER_NAMES,my_format);
+add_horizon(["0\u03bd\u03b2\u03b2"],my_format);
 add_horizon(["TOTAL-nhit","TOTAL-charge","PULGT-nhit","PULGT-charge"]);
 add_horizon(["gtid"],d3.format('#0xx'),[]);
 add_horizon(["run"],d3.format(),[]);
