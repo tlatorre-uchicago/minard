@@ -42,11 +42,12 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-md-12" style="padding:0" id="demo"></div>
+      <div class="col-md-12" style="padding:0" id="main"></div>
     </div>
   </div>
-<script>
 
+<script>
+(function () {
   $("#step-menu").on("change", function() {
       window.location.replace("{{ url_for('snostream') }}?step=" + this.value + "&height={{ height }}");
   });
@@ -61,97 +62,80 @@
     $('#sudbury-time').text(moment().tz('America/Toronto').format('h:mm:ss'));
   },1000);
 
-var size = $('#demo').width();
+var size = $('#main').width();
 var context = cubism.context()
     .serverDelay(1e3)
     .clientDelay(1e3)
     .step({{ step }}*1000)
     .size(size);
 
-d3.select("#demo").selectAll(".axis")
+d3.select("#main").selectAll(".axis")
     .data(["top", "bottom"])
   .enter().append("div")
     .attr("class", function(d) { return d + " axis"; })
     .each(function(d) { d3.select(this).call(context.axis().ticks(12).orient(d)); });
 
-d3.select("#demo").append("div")
+d3.select("#main").append("div")
     .attr("class", "rule")
     .call(context.rule());
 
-  var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB','ESUML','ESUMH',
+var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB','ESUML','ESUMH',
   'OWLN','OWLEL','OWLEH','PULGT','PRESCL', 'PED','PONG','SYNC','EXTA',
   //'EXT2','EXT3','EXT4','EXT5','EXT6','EXT7',
   'EXT8','SRAW','NCD', 'SOFGT','MISS']
 
 var si_format = d3.format('.2s');
 
-var my_format = function(n) {
-  if (n < 100 && n % 1 === 0)
-    return n.toString();
-  else
-    return si_format(n);
+var my_format = function(n)
+{
+    if (n < 100 && n % 1 === 0)
+        return n.toString();
+    else
+        return si_format(n);
 }
 
-d3.select("#demo").selectAll(".horizon")
-  .data(TRIGGER_NAMES.map(metric))
-  .enter().insert("div", ".bottom")
-    .attr("class", "horizon")
-  .call(context.horizon().height({{ height }}).format(my_format));
+function metric(name) {
+    var format = d3.time.format("%d-%b-%y");
+    return context.metric(function(start, stop, step, callback) {
+        d3.json($SCRIPT_ROOT + '/metric' + 
+                '?expr=' + name +
+                '&start=' + start.toISOString() +
+                '&stop=' + stop.toISOString() +
+                '&now=' + new Date().toISOString() +
+                '&step=' + Math.floor(step/1000), function(data) {
+                if (!data) return callback(new Error('unable to load data'));
+                return callback(null,data.values);
+        });
+    }, name);
+}
 
-d3.select("#demo").selectAll("#nhit")
-  .data(["TOTAL-nhit","TOTAL-charge","PULGT-nhit","PULGT-charge"].map(metric))
-  .enter().insert("div", ".bottom")
-    .attr("id","nhit")
-    .attr("class", "horizon")
-  .call(context.horizon().height({{ height }}));
+function add_horizon(expressions, format, colors, extent)
+{
+    var horizon = context.horizon().height({{ height }});
 
-d3.select("#demo").selectAll("#gtid")
-    .data(["gtid"].map(metric))
-  .enter().insert("div", ".bottom")
-    .attr("id","gtid")
-    .attr("class", "horizon")
-  .call(context.horizon().height({{ height }}).format(d3.format('#0xx')).colors([]));
+    if (typeof format != "undefined") horizon = horizon.format(format);
+    if (typeof colors != "undefined" && colors) horizon = horizon.colors(colors);
+    if (typeof extent != "undefined") horizon = horizon.extent(extent);
 
-d3.select("#demo").selectAll("#run")
-    .data(["run"].map(metric))
-  .enter().insert("div", ".bottom")
-    .attr("id","run")
-    .attr("class", "horizon")
-  .call(context.horizon().height({{ height }}).format(d3.format()).colors([]));
+    d3.select('#main').selectAll('.horizon')
+        .data(expressions.map(metric), String)
+      .enter().insert('div','.bottom')
+        .attr('class', 'horizon')
+        .call(horizon);
+}
 
-d3.select("#demo").selectAll("#subrun")
-    .data(["subrun"].map(metric))
-  .enter().insert("div", ".bottom")
-    .attr("id","subrun")
-    .attr("class", "horizon")
-  .call(context.horizon().height({{ height }}).format(d3.format()).extent([0,100]));
-
-d3.select("#demo").selectAll("#heartbeat")
-    .data(["heartbeat"].map(metric))
-  .enter().insert("div", ".bottom")
-    .attr("id","heartbeat")
-    .attr("class", "horizon")
-  .call(context.horizon().height({{ height }}).extent([0,4]));
+add_horizon(TRIGGER_NAMES,my_format);
+add_horizon(["TOTAL-nhit","TOTAL-charge","PULGT-nhit","PULGT-charge"]);
+add_horizon(["gtid"],d3.format('#0xx'),[]);
+add_horizon(["run"],d3.format(),[]);
+add_horizon(["subrun"],d3.format(),[],[0,100]);
+add_horizon(["heartbeat"],d3.format(),null,[0,4]);
 
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
 });
 
-function metric(name) {
-  var format = d3.time.format("%d-%b-%y");
-  return context.metric(function(start, stop, step, callback) {
-    d3.json($SCRIPT_ROOT + '/metric' + 
-            '?expr=' + name +
-            '&start=' + start.toISOString() +
-            '&stop=' + stop.toISOString() +
-            '&now=' + new Date().toISOString() +
-            '&step=' + Math.floor(step/1000), function(data) {
-              if (!data) return callback(new Error('unable to load data'));
-              return callback(null,data.values);
-    });
-  }, name);
-}
-
 $("#nav-snostream").attr("class","active");
+})()
 </script>
 {% endblock %}
