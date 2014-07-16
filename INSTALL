@@ -153,6 +153,9 @@ add_service nginx
 
 sudo cp etc/nginx.conf /etc/nginx/nginx.conf
 
+sudo mkdir -p /var/log/nginx
+sudo chown -R nginx:nginx /var/log/nginx
+
 # install redis init script
 sudo cp init/redis_6379 /etc/init.d/redis_6379
 
