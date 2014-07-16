@@ -128,7 +128,7 @@ var chart = histogram()
     .on_scale_change(callback)
     .color_scale(color_scale)
     .bins(50)
-    .domain([0,3e-4]);
+    .domain([0,2e-3]);
 
 var options = [
 {name: "Aitoff", projection: d3.geo.aitoff()},
@@ -190,7 +190,7 @@ options.forEach(function(o) {
 
 var selection = d3.select(element.get());
 
-var pmtinfo = {% include 'airfill2.json' %};
+var pmtinfo = {% include 'pmtinfo.json' %};
 
 var coords = [];
 for (var i=0; i < pmtinfo['x'].length; i++) {

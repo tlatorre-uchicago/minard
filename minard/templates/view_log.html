@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block title %}{{ name }} Log{% endblock %}
+{% block head %}
+{{ super() }}
+<style>
+    .word-wrap {
+        word-wrap: break-word;
+    }
+
+    .monospace {
+        font-family:monospace;
+    }
+</style>
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="col-md-12">
+    <div class="container word-wrap monospace well well-sm" id="log"></div>
+</div>
+
+<script>
+function update_log(seek)
+{
+    if (typeof(seek) === 'undefined') seek = null;
+
+    $.getJSON($SCRIPT_ROOT + '/tail?name={{ name }}&seek=' + seek).done(function(obj) {
+        for (var i=0; i < obj.lines.length; i++)
+        {
+            $('#log').prepend('<p>' + obj.lines[i]);
+        }
+        $("#log p").slice(1000).remove();
+        setTimeout(function() { update_log(obj.seek) },1000); // 1 second
+    });
+}
+
+update_log()
+</script>
+
+<script>$('#nav-view_log').attr('class','active');</script>
+{% endblock %}

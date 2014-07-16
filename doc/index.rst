@@ -17,8 +17,8 @@ Contents:
    dispatch_local
    mimic_orca
    alarms
-   api
    production
+   monitoring_software
    links
 
 Indices and tables

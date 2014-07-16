@@ -4,37 +4,22 @@ Dispatching Locally
 Installation
 ^^^^^^^^^^^^
 
-Installing ratzdab
-******************
-
-Follow the instructions to `install RAT
-<http://snopl.us/docs/rat/installation.html>`_. You can install ratzdab by
-running the following commands::
-
-    $ source [path/to/virtual-env]/bin/activate
-    $ cd $VIRTUAL_ENV/src
-    $ git clone git@github.com:tlatorre-uchicago/rat-tools.git
-    $ cd rat-tools/ratzdab
-    $ make
-    $ echo "source $VIRTUAL_ENV/src/rat-tools/ratzdab/env.sh" >> $VIRTUAL_ENV/bin/activate
-
-You can test that everything has worked by trying to import `ratzdab` in
-python::
-
-    $ python
-    ...
-    >>> import ratzdab
-    RAT: Libraries loaded.
-
 Installing the Dispatcher
 *************************
 
 ::
 
     $ cd $VIRTUAL_ENV/src
-    $ git clone git@github.com:tlatorre-uchicago/disp.git
-    $ cd disp/src
+    $ git clone git@github.com:snoplus/disp.git
+    $ cd disp
     $ make
+
+To read events from the dispatch stream using the python module
+`dispatch.py`, add the following line to your `.bashrc` or 
+virtualenv `activate` script::
+
+    export PYTHONPATH=[/path/to/disp]/python:$PYTHONPATH
+    export LD_LIBRARY_PATH=[/path/to/disp]/lib:$LD_LIBRARY_PATH
 
 Installing the Redispatcher
 ***************************
@@ -44,7 +29,7 @@ The redispatcher is bundled with xsnoed. So we should install xsnoed::
     $ cd $VIRTUAL_ENV/src
     $ git clone git@github.com:snoplus/xsnoed.git
     $ cd xsnoed
-    $ make
+    $ make redispatch
 
 Testing
 ^^^^^^^
@@ -58,17 +43,19 @@ Now we can dispatch events from a zdab file::
 
 Now, we can read the events from python::
 
-    $ source [/path/to/virtual-env]/bin/activate
-    $ python
-    Python 2.6.6 (r266:84292, Nov 21 2013, 12:39:37) 
-    [GCC 4.4.7 20120313 (Red Hat 4.4.7-3)] on linux2
-    Type "help", "copyright", "credits" or "license" for more information.
-    >>> import ratzdab
-    RAT: Libraries loaded.
-    TClass::TClass:0: RuntimeWarning: no dictionary for class
-    simple_ptr_nocopy<RAT::DBTable> is available
-    >>> dispatch = ratzdab.dispatch('127.0.0.1')
-    >>> o = dispatch.next(False)
-    >>> ev = o.GetEV(0)
-    >>> ev.eventID
-    639783
+    >>> from dispatch import *
+    >>> d = Dispatch('localhost')
+    >>> record = d.recv()
+    >>> id, record = unpack_header(record)
+    >>> id == RECORD_IDS['PMT_RECORD']
+    True
+    >>> pmt_record_gen = unpack_pmt_record(record)
+    >>> pmt_event_record = next(pmt_record_gen)
+    >>> pmt_event_record.NPmtHit
+    20
+    >>> for uncal_pmt in pmt_record_gen:
+    ...     print uncal_pmt.BoardID
+    ... 
+    11
+    3
+

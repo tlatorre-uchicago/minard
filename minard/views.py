@@ -2,17 +2,125 @@ from __future__ import division
 from __future__ import print_function
 from minard import app
 from flask import render_template, jsonify, request, redirect, url_for
-from datetime import datetime
 from itertools import product
 import time
 from redis import Redis
-import sys
 from os.path import join
 import json
 from tools import total_seconds, parseiso
 import requests
+from collections import deque, namedtuple
+from timeseries import get_timeseries, get_interval
+
+Program = namedtuple('Program', ['name', 'machine', 'link'])
 
 redis = Redis()
+
+PROGRAMS = [Program('builder','builder1.sp.snolab.ca',None),
+            Program('L2','buffer1.sp.snolab.ca',None),
+            Program('dataflow',None,
+            'http://snoplus.westgrid.ca:5984/buffer/_design/buffer/index.html'),
+            Program('PMT-noiserate',None,None)]
+
+@app.route('/status')
+def status():
+    return render_template('status.html', programs=PROGRAMS)
+
+@app.route('/get_status')
+def get_status():
+    if 'name' not in request.args:
+        return 'must specify name', 400
+
+    name = request.args['name']
+
+    up = redis.get('/uptime/{name}'.format(name=name))
+
+    if up is None:
+        uptime = None
+    else:
+        uptime = int(time.time()) - int(up)
+
+    return jsonify(status=redis.get('/heartbeat/{name}'.format(name=name)),uptime=uptime)
+
+@app.route('/heartbeat', methods=['POST'])
+def heartbeat():
+    """Log heartbeat."""
+    if 'name' not in request.form:
+        return 'must specify name', 400
+
+    name = request.form['name']
+
+    if 'status' not in request.form:
+        return 'must specify status', 400
+
+    status = request.form['status']
+
+    # expire every 10 seconds
+    redis.setex('/heartbeat/{name}'.format(name=name),status,10)
+
+    up = redis.get('/uptime/{name}'.format(name=name))
+
+    if up is None:
+        redis.setex('/uptime/{name}'.format(name=name),int(time.time()),10)
+    else:
+        # still running, update expiration
+        redis.expire('/uptime/{name}'.format(name=name),10)
+
+    return 'ok\n'
+
+@app.route('/view_log/<name>')
+def view_log(name):
+    return render_template('view_log.html', name=name)
+
+@app.route('/log', methods=['POST'])
+def log():
+    """Forward a POST request to the log server at port 8081."""
+    resp = requests.post('http://127.0.0.1:8081', headers=request.headers, data=request.form)
+    return resp.content, resp.status_code, resp.headers.items()
+
+@app.route('/tail')
+def tail():
+    name = request.args.get('name', None)
+
+    if name is None:
+        return 'must specify name', 400
+
+    seek = request.args.get('seek', None, type=int)
+
+    filename = join('/var/log/snoplus', name + '.log')
+
+    try:
+        f = open(filename)
+    except IOError:
+        return "couldn't find log file {filename}".format(filename=filename), 400
+
+    if seek is None:
+        # return last 100 lines
+        lines = deque(f, maxlen=100)
+    else:
+        pos = f.tell()
+        f.seek(0,2)
+        end = f.tell()
+        f.seek(pos)
+
+        if seek > end:
+            # log file rolled over
+            try:
+                prev_logfile = open(filename + '.1')
+                prev_logfile.seek(seek)
+                # add previous log file lines
+                lines = prev_logfile.readlines()
+            except IOError:
+                return 'seek > log file length', 400
+
+            # add new lines
+            lines.extend(f.readlines())
+        else:
+            # seek to last position and readlines
+            f.seek(seek)
+            lines = f.readlines()
+
+    return jsonify(seek=f.tell(), lines=list(lines))
 
 @app.route('/')
 def index():
@@ -70,10 +178,6 @@ def channels(name):
 def alarms():
     return render_template('alarms.html')
 
-@app.route('/builder')
-def builder():
-    return render_template('builder.html')
-
 CHANNELS = [crate << 9 | card << 5 | channel \
             for crate, card, channel in product(range(20),range(16),range(32))]
 
@@ -91,22 +195,9 @@ def query():
 
         p = redis.pipeline()
         for i in range(start,now):
-            p.lrange('events/id:{0:d}:name:nhit'.format(i),0,-1)
+            p.lrange('ev:1:{ts}:nhit'.format(ts=i),0,-1)
         nhit = sum(p.execute(),[])
         return jsonify(value=nhit)
-
-    if name == 'tail_log':
-        start = request.args.get('id',None,type=int)
-        stop = int(redis.get('builder/global:next'))
-
-        if start is None or start > stop:
-            start = stop - 100
-
-        p = redis.pipeline()
-        for i in range(start,stop):
-            p.get('builder/id:%i:msg' % i)
-        value = map(lambda x: x if x is not None else '',p.execute())
-        return jsonify(value=value,id=stop)
 
     if name == 'occupancy':
         now = int(time.time())
@@ -114,10 +205,10 @@ def query():
         occ = []
         p = redis.pipeline()
         for channel in CHANNELS:
-            p.get('events/id:{0:d}:channel:{1:d}'.format(now//60-1,channel))
+            p.get('ev:60:{0:d}:pmt:{1:d}'.format(now//60-1,channel))
         occ = p.execute()
 
-        count = redis.get('events/id:{0:d}:count'.format(now//60-1))
+        count = redis.get('ev:60:{0:d}:count'.format(now//60-1))
 
         if count is not None:
             count = int(count)
@@ -139,60 +230,38 @@ def query():
 @app.route('/get_alarm')
 def get_alarm():
     try:
-        latest = int(redis.get('/alarms/count'))
+        count = int(redis.get('/alarms/count'))
     except TypeError:
-        return jsonify(alarms=[])
+        redis.set('/alarms/count',0)
+        return jsonify(alarms=[],latest=-1)
 
     if 'start' in request.args:
         start = request.args.get('start',type=int)
 
         if start < 0:
-            start = latest - 1
+            start = max(0,count + start)
     else:
-        start = max(latest-100,0)
+        start = max(count-100,0)
 
     alarms = []
-    for i in range(start,latest):
+    for i in range(start,count):
         value = redis.get('/alarms/{0:d}'.format(i))
 
         if value:
             alarms.append(json.loads(value))
 
-    return jsonify(alarms=alarms)
-
-@app.route('/set_alarm', methods=['POST'])
-def set_alarm():
-    lvl = int(request.form['level'])
-    msg = request.form['message']
-    now = datetime.now().isoformat()
-
-    if not 0 <= lvl <= 3:
-        return 'level must be in [0,3]\n', 400
-
-    id = redis.incr('/alarms/count')-1
-
-    if len(msg) > 1024:
-        msg = msg[:1024] + '...'
-
-    alarm = {'id': id, 'level': lvl, 'message': msg, 'time': now}
-
-    key = '/alarms/{0:d}'.format(id)
-    redis.set(key, json.dumps(alarm))
-    # expire alarms after 24 hours
-    redis.expire(key, 24*60*60)
-
-    return 'ok\n'
+    return jsonify(alarms=alarms,latest=count-1)
 
 @app.route('/metric')
 def metric():
+    """Returns the time series for argument `expr` as a JSON list."""
     args = request.args
 
-    expr = args.get('expr',type=str)
+    expr = args['expr']
     start = args.get('start',type=parseiso)
     stop = args.get('stop',type=parseiso)
     now_client = args.get('now',type=parseiso)
-    # convert ms -> sec
-    step = args.get('step',type=int)//1000
+    step = args.get('step',type=int)
 
     now = int(time.time())
 
@@ -201,42 +270,28 @@ def metric():
     start -= dt
     stop -= dt
 
-    if step > 3600:
-        t = 3600
-    elif step > 60:
-        t = 60
-    else:
-        t = 1
-
     if expr in ('gtid', 'run', 'subrun', 'heartbeat','l2-heartbeat'):
-        p = redis.pipeline()
-        for i in range(start,stop,step):
-            p.get('stream/int:{0:d}:id:{1:d}:name:{2}'.format(t,i//t,expr))
-        values = p.execute()
+        values = get_timeseries(expr,start,stop,step)
         return jsonify(values=values)
 
-    try:
-        trig, type = expr.split('-')
-    except ValueError:
-        trig = expr
-        type = None
+    if expr == u"0\u03bd\u03b2\u03b2":
+        import random
+        total = get_timeseries('TOTAL',start,stop,step)
+        values = [int(random.random() < step/315360) if i else 0 for i in total]
+        return jsonify(values=values)
 
-    p = redis.pipeline()
-    for i in range(start,stop,step):
-        if type is None:
-            p.get('stream/int:{0:d}:id:{1:d}:name:{2}'.format(t,i//t,trig))
-        else:
-            p.get('stream/int:{0:d}:id:{1:d}:name:{2}:{3}'.format(t,i//t,trig,type))
-    values = p.execute()
-
-    if type is not None:
-        p = redis.pipeline()
-        for i in range(start,stop,step):
-            p.get('stream/int:{0:d}:id:{1:d}:name:{2}'.format(t,i//t,trig))
-        counts = p.execute()
-        values = [float(a)/int(b) if a or b else 0 for a, b in zip(values,counts)]
+    if '-' in expr:
+        # e.g. PULGT-nhit, which means the average nhit for PULGT triggers
+        # this is not a rate, so we divide by the # of PULGT triggers for
+        # the interval instead of the interval length
+        trig, _ = expr.split('-')
+        values = get_timeseries(expr,start,stop,step)
+        counts = get_timeseries(trig,start,stop,step)
+        values = [float(a)/int(b) if a and b else 0 for a, b in zip(values,counts)]
     else:
-        values = map(lambda x: int(x)/t if x else 0, values)
+        values = get_timeseries(expr,start,stop,step)
+        interval = get_interval(step)
+        values = map(lambda x: int(x)/interval if x else 0, values)
 
     return jsonify(values=values)
 

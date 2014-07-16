@@ -2,10 +2,11 @@
 from __future__ import print_function
 import time
 from redis import Redis
-import sys
-from dispatch import Dispatch, iter_pmt_hits, get_trigger_type
+from dispatch import Dispatch, unpack_trigger_type, unpack_header, unpack_pmt_record, RECORD_IDS
 from collections import defaultdict
-import traceback
+import zmq
+import threading
+from minard.timeseries import INTERVALS, EXPIRE
 
 redis = Redis()
 
@@ -42,112 +43,124 @@ TRIGGER_NAMES = \
  'SOFGT',
  'MISS']
 
-def main(host):
-    """Connects to a dispatcher at ip address `host` and processes the dispatch stream."""
+def post(host):
+    """Posts the dispatcher name to redis every 20 seconds."""
+    timer = threading.Timer(20.0, post, args=[host])
+    timer.daemon = True
+    timer.start()
+    redis.setex('dispatcher',host,60)
+
+def push(host):
+    """
+    Connects to a dispatcher at ip address `host` and pushes the records to
+    a ZMQ socket.
+    """
     dispatcher = Dispatch(host)
+
+    post(host)
+
+    context = zmq.Context()
+    zmq_socket = context.socket(zmq.PUSH)
+    zmq_socket.bind('tcp://127.0.0.1:5560')
+
+    for record in dispatcher:
+        zmq_socket.send(record)
+
+def pull():
+    """Connects to a ZMQ socket and processes the dispatch stream."""
+    context = zmq.Context()
+    zmq_socket = context.socket(zmq.PULL)
+    zmq_socket.connect('tcp://127.0.0.1:5560')
+
     cache = defaultdict(int)
     cache_set = {}
-    cache['time'] = int(time.time())
     nhit_cache = []
     event_cache = defaultdict(int)
 
+    then = int(time.time())
+
     while True:
         try:
-            pev = dispatcher.next(block=False)
-        except (NotImplementedError, ValueError):
-            pass
-        except Exception as e:
-            print(traceback.format_exc(), file=sys.stderr)
-            continue
+            record = zmq_socket.recv(zmq.NOBLOCK)
+        except zmq.ZMQError:
+            record = None
 
         # unix timestamp
         now = int(time.time())
 
-        STREAM_KEY_STR = 'stream/int:{interval}:id:{id}:name:{name}'
-        EVENT_KEY_STR = 'events/id:{id}:channel:{name}'
-        if now > cache['time']:
+        if now > then:
             # for docs on redis pipeline see http://redis.io/topics/pipelining
             p = redis.pipeline(transaction=False)
 
-            t = cache['time']
+            ts = then
             for key, value in cache.items():
-                for interval in [1,60,3600]:
-                    redis_key = STREAM_KEY_STR.format(interval=interval,id=t//interval,name=key)
+                for interval in INTERVALS:
+                    redis_key = 'ts:%i:%i:%s' % (interval, ts//interval, key)
                     p.incrby(redis_key,value)
-                    p.expire(redis_key,interval*100000)
+                    p.expire(redis_key,interval*EXPIRE)
 
             for key, value in cache_set.items():
-                for interval in [1,60,3600]:
-                    redis_key = STREAM_KEY_STR.format(interval=interval,id=t//interval,name=key)
-                    p.set(redis_key,value)
-                    p.expire(redis_key,interval*100000)
+                for interval in INTERVALS:
+                    redis_key = 'ts:%i:%i:%s' % (interval, ts//interval, key)
+                    p.setex(redis_key,value,interval*EXPIRE)
 
             for key, value in event_cache.items():
-                redis_key = EVENT_KEY_STR.format(id=t//60,name=key)
+                redis_key = 'ev:60:%i:pmt:%s' % (ts//60,key)
                 p.incrby(redis_key,value)
                 p.expire(redis_key,600)
 
-            p.incrby('events/id:{id}:count'.format(id=t//60),cache['TOTAL'])
-            p.expire('events/id:{id}:count'.format(id=t//60),600)
+            p.incrby('ev:60:%i:count' % (ts//60),cache['TOTAL'])
+            p.expire('ev:60:%i:count' % (ts//60),600)
 
             if len(nhit_cache) > 0:
-                p.lpush('events/id:{id}:name:nhit'.format(id=t),*nhit_cache)
-                p.expire('events/id:{id}:name:nhit'.format(id=t),3600)
+                # nhit distribution
+                # see http://flask.pocoo.org/snippets/71/ for this design pattern
+                p.lpush('ev:1:%i:nhit' % ts,*nhit_cache)
+                p.expire('ev:1:%i:nhit' % ts,3600)
 
-            # heartbeat information
-            p.set('dispatcher',host)
-            p.expire('dispatcher',60)
-
-            # int:{interval}:id:{timestamp}:name:{name}
-            key = 'stream/int:{0:d}:id:{1:d}:name:{2:s}'
-            for t in [1,60,3600]:
-                id = now//t
-                # expire in 100,000*[time interval]
-                expire = t*100000
-                p.set(key.format(t,id,'heartbeat'),1)
-                p.expire(key.format(t,id,'heartbeat'),expire)
+            for interval in INTERVALS:
+                p.setex('ts:%i:%i:heartbeat' % (interval, ts//interval),1,interval*EXPIRE)
 
             cache.clear()
             cache_set.clear()
             nhit_cache = []
             event_cache.clear()
-            cache['time'] = now
+            then = now
 
             p.execute()
                 
-        if not pev:
+        if record is None:
+            # nothing to process, take a break
             time.sleep(0.01)
             continue
 
-        run = pev.RunNumber
-        gtid = pev.TriggerCardData.BcGT
+        record_id, data = unpack_header(record)
 
-        event_key = '{0:d}:{1:d}'.format(run,gtid)
-        if not redis.zadd('gtids',event_key,-now):
-            # event is already processed
+        if record_id != RECORD_IDS['PMT_RECORD']:
             continue
 
-        # trim gtid list to 10,000 elements
-        redis.zremrangebyrank('gtids',10000,-1)
+        pmt_gen = unpack_pmt_record(data)
 
+        pev = next(pmt_gen)
+
+        run = pev.RunNumber
+        gtid = pev.TriggerCardData.BcGT
         nhit = pev.NPmtHit
         subrun = pev.DaqStatus # seriously :)
-        trig = get_trigger_type(pev)
+        trig = unpack_trigger_type(pev)
 
-        # nhit distribution
-        # see http://flask.pocoo.org/snippets/71/ for this design pattern
         nhit_cache += [nhit]
 
         qhs_sum = 0
-        for pmt in iter_pmt_hits(pev):
+        for pmt in pmt_gen:
             id = 16*32*pmt.CrateID + 32*pmt.BoardID + pmt.ChannelID
             event_cache[id] += 1
 
             qhs_sum += pmt.Qhs
 
         cache['TOTAL'] += 1
-        cache['TOTAL:nhit'] += nhit
-        cache['TOTAL:charge'] += qhs_sum
+        cache['TOTAL-nhit'] += nhit
+        cache['TOTAL-charge'] += qhs_sum
         cache_set['run'] = run
         cache_set['subrun'] = subrun
         cache_set['gtid'] = gtid
@@ -155,14 +168,18 @@ def main(host):
         for i, name in enumerate(TRIGGER_NAMES):
             if trig & (1 << i):
                 cache[name] += 1
-                cache[name + ':nhit'] += nhit
-                cache[name + ':charge'] += qhs_sum
+                cache[name + '-nhit'] += nhit
+                cache[name + '-charge'] += qhs_sum
 
 if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='Process SNO+ events from a dispatch stream')
-    parser.add_argument('--host',default='builder1.sp.snolab.ca', help='hostname of the dispatcher')
+    parser.add_argument('action', help='push/pull')
+    parser.add_argument('--host', default='builder1.sp.snolab.ca', help='hostname of the dispatcher')
     args = parser.parse_args()
 
-    main(args.host)
+    if args.action == 'push':
+        push(args.host)
+    else:
+        pull()

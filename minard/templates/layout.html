@@ -27,44 +27,43 @@
 
         ALARM_AUDIO = '<audio autoplay loop> \
         <source src="{{ url_for('static', filename='audio/0096.ogg') }}", type="audio/ogg"> \
-        <source src="{{ url_for('static', filename='audio/0096.mp3') }}", type="audio/mp3"> \
+        <source src="{{ url_for('static', filename='audio/0096.mp3') }}", type="audio/mpeg"> \
         <source src="{{ url_for('static', filename='audio/0096.wav') }}", type="audio/wav"> \
         </audio>'
 
-            // global variable to keep track of the most recent alarm id
-            var latest_alarm;
-
             // convert alarm level -> string
-            var alarm_level_map = {0: 'success', 1: 'info', 2: 'warning', 3: 'error'};
+            var alarm_level_map = {21: 'success', 20: 'info', 30: 'warning', 40: 'error'};
 
-            function update_toastr()
+            function update_toastr(latest)
             {
-                next = latest_alarm + 1;
+                next = latest + 1;
                 $.getJSON($SCRIPT_ROOT + '/get_alarm?start=' + next).done(function(obj) {
                     for (var i=0; i < obj.alarms.length; i++)
                     {
                         alarm = obj.alarms[i];
 
-                        if (alarm.level == 3) {
+                        var level_string;
+                        if (alarm.level >= 40) {
                             alarm.message += ALARM_AUDIO;
                             toastr.options = {'timeOut': 0, 'extendedTimeOut': 0, 'closeButton': true};
+                            level_string = "error";
                         } else {
                             toastr.options = {'timeOut': 20000};
+                            level_string = alarm_level_map[alarm.level] || "info";
                         }
 
-                        toastr[alarm_level_map[alarm.level]](alarm.message);
+                        toastr[level_string](alarm.message);
 
-                        // update latest_alarm id
-                        latest_alarm = Math.max(latest_alarm,alarm.id);
+                        // update latest alarm id
+                        latest = Math.max(latest,alarm.id);
                     }
                 });
 
-                setTimeout(update_toastr,1000);
+                setTimeout(function() { update_toastr(latest); },1000);
             }
 
             $.getJSON($SCRIPT_ROOT + '/get_alarm?start=-1').done(function(obj) {
-                latest_alarm = obj.alarms[0].id;
-                update_toastr();
+                update_toastr(obj.latest);
             });
         </script>
         {% block body %}
@@ -80,10 +79,9 @@
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
+                        <li id='nav-status'><a href="{{ url_for('status') }}">Status</a></li>
                         <li id='nav-snostream'><a href="{{ url_for('snostream') }}">Stream</a></li>
-                        <li id='nav-l2-home'><a href="{{ url_for('l2_filter') }}">L2 Filter</a></li>
                         <li id='nav-detector'><a href="{{ url_for('detector') }}">Detector</a></li>
-                        <li id='nav-builder'><a href="{{ url_for('builder') }}">Builder Log</a></li>
 
                         <!-- Dropdown DAQ -->
                         <li class='dropdown'>

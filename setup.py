@@ -3,12 +3,12 @@ from distutils.core import setup
 from glob import glob
 
 setup(name='minard',
-      version='0.1',
+      version='0.2',
       description='Web App Monitoring Tools',
       author='Anthony LaTorre',
       author_email='tlatorre@uchicago.edu',
       url='snopl.us',
-      packages=['minard'],
+      packages=['minard','snoplus_log'],
       scripts=glob('scripts/*'),
       data_files = [# static files
                     ('www/static/css',    glob('minard/static/css/*')),
