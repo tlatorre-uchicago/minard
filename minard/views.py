@@ -222,7 +222,7 @@ def query():
     if name == 'cmos' or name == 'base':
         p = redis.pipeline()
         for index in CHANNELS:
-            p.get('%s/index:%i:value' % (name,index))
+            p.get('%s:%i:value' % (name,index))
         values = p.execute()
 
         return jsonify(value=values)

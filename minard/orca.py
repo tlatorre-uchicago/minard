@@ -69,23 +69,20 @@ def orca_consumer(port):
 
                     index = crate << 9 | slot << 5 | j
 
-                    prev_count = redis.get('cmos/index:%i:count' % index)
+                    prev_count = redis.get('cmos:%i:count' % index)
 
                     if prev_count is not None:
-                        prev_timestamp = strpiso(redis.get('cmos/index:%i:time' % index))
+                        prev_timestamp = strpiso(redis.get('cmos:%i:time' % index))
                         prev_count = int(prev_count)
                         try:
                             rate = (value-prev_count)/total_seconds(timestamp-prev_timestamp)
                         except ZeroDivisionError as e:
                             print 'ZeroDivisonError %s' % e
                             continue
-                        p.set('cmos/index:%i:value' % index, int(rate))
-                        p.expire('cmos/index:%i:value' % index,EXPIRE)
+                        p.setex('cmos:%i:value' % index, int(rate), EXPIRE)
 
-                    p.set('cmos/index:%i:count' % index, value)
-                    p.expire('cmos/index:%i:count' % index, EXPIRE)
-                    p.set('cmos/index:%i:time' % index, timestamp.isoformat())
-                    p.expire('cmos/index:%i:time' % index, EXPIRE)
+                    p.setex('cmos:%i:count' % index, value, EXPIRE)
+                    p.setex('cmos:%i:time' % index, timestamp.isoformat(), EXPIRE)
             p.execute()
 
         elif id == BASE_ID:
@@ -100,9 +97,7 @@ def orca_consumer(port):
 
                     index = crate << 9 | slot << 5 | j
 
-                    expire = int(time.time() + 10*60)
-                    p.set('base/index:%i:value' % index, value-127)
-                    p.expire('base/index:%i:value' % index, EXPIRE)
+                    p.setex('base:%i:value' % index, value-127, EXPIRE)
             p.execute()
 
 def grouper(iterable, n, fillvalue=None):
