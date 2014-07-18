@@ -7,30 +7,30 @@
   <script src="{{ url_for('static', filename='js/histogram.js') }}"></script>
 {% endblock %}
 {% block body %}
-  {{ super() }}
+{{ super() }}
 
-  <div class="container">
+<div class="container">
     <div class="row">
-      <div class="col-md-12" id="test1">
-        <h2>NHit (60 seconds)</h2>
-      </div>
+        <div class="col-md-12" id="nhit">
+            <h2>NHit (60 seconds)</h2>
+        </div>
     </div>
-  </div>
+</div>
 
-  <script>
+<script>
     var chart = histogram().xlabel('NHit').margin({'left': 50}).bins(100);
 
-    function add_chart(selector, start, interval) {
-      function update_chart(reply) {
-        d3.select(selector).datum(reply.value).call(chart);
-      }
-      function get_json() {
-        $.getJSON($SCRIPT_ROOT + '/query', {'name': 'nhit', 'start': (new Date(Date.now()-1000*start)).toISOString()}, function(reply) {
-          update_chart(reply); });
-      }
-      get_json();
-      setInterval(get_json,interval*1000);
+    function update_chart()
+    {
+        var start = (new Date(Date.now()-1000*60)).toISOString();
+        $.getJSON($SCRIPT_ROOT + '/query', {'name': 'nhit', 'start': start}, function(reply) {
+            d3.select('#nhit').datum(reply.value).call(chart);
+        });
+        setTimeout(function() { update_chart(); }, 10000);
     }
-  add_chart('#test1',60,10);
-  </script>
+
+    update_chart();
+
+    $("#nav-nhit").attr("class","active");
+</script>
 {% endblock %}
