@@ -61,7 +61,7 @@ nginx
 * **Configuration file**: ``/etc/nginx/nginx.conf``
 * **Ports**: 50000
 * **Started by**: ``/etc/init.d/nginx``
-* **Log File**: ``/var/log/nginx.log``
+* **Log File**: ``/var/log/nginx/error.log`` and ``/var/log/nginx/access.log``
 * **Description**: nginx web server which serves static files and slow clients for the main site.
 
 orca_producer
