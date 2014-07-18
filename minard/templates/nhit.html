@@ -18,7 +18,7 @@
   </div>
 
   <script>
-    var chart = histogram().xlabel('NHit').margin({'left': 50});
+    var chart = histogram().xlabel('NHit').margin({'left': 50}).bins(100);
 
     function add_chart(selector, start, interval) {
       function update_chart(reply) {
@@ -31,10 +31,6 @@
       get_json();
       setInterval(get_json,interval*1000);
     }
-  //update();
-  //setInterval(update,10*1000);
   add_chart('#test1',60,10);
-  //add_chart('#test2',10,1);
-  //add_chart('#test3',3600,60);
   </script>
 {% endblock %}
