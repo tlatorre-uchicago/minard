@@ -30,7 +30,7 @@
         {% for group in programs|groupby('group') %}
             {% if group.grouper %}
             <tbody>
-                <tr data-toggle="collapse" data-target=".group-{{ group.grouper }}">
+                <tr id="{{ group.grouper }}" data-toggle="collapse" data-target=".group-{{ group.grouper }}">
                     <td id="status" />
                     <td id="uptime" />
                     <td>{{ group.grouper }}</td>
@@ -60,9 +60,9 @@
 </div>
 
 <script>
-function update_status(name)
+function update_status(name, group)
 {
-    if (typeof(seek) === 'undefined') seek = null;
+    if (typeof(group) === 'undefined') group = null;
 
     $.getJSON($SCRIPT_ROOT + '/get_status?name=' + name).done(function(obj) {
         if (obj.status == "ok")
@@ -82,12 +82,27 @@ function update_status(name)
         $('#' + name + ' #status').text(obj.status);
         $('#' + name + ' #uptime').text(obj.uptime ? moment().subtract('seconds',obj.uptime).fromNow(true): "");
 
-        setTimeout(function() { update_status(name) },2000); // 2 seconds
+        if (group)
+        {
+            $.each(['danger','warning','success'], function(_, label)
+            {
+                if ($('.group-' + group + ' tr.' + label).size() > 0)
+                {
+                    $('#' + group).attr("class",label);
+                    // set group status as status of first process that matches
+                    // the label
+                    $('#' + group + ' #status').text($('.group-' + group + ' tr.' + label + ' #status').first().text());
+                    return false;
+                }
+            });
+        }
+
+        setTimeout(function() { update_status(name,group) },2000); // 2 seconds
     });
 }
 
 {% for program in programs %}
-    update_status('{{ program.name }}');
+    update_status('{{ program.name }}'{% if program.group %}, '{{ program.group }}'{% endif %});
 {% endfor %}
 
 $('#nav-status').attr('class','active');
