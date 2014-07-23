@@ -81,9 +81,14 @@ function update_status(name, group)
 
         $('#' + name + ' #status').text(obj.status);
         $('#' + name + ' #uptime').text(obj.uptime ? moment().subtract('seconds',obj.uptime).fromNow(true): "");
+        $('#' + name).data('uptime', obj.uptime ? obj.uptime : -1);
 
         if (group)
         {
+            // omg, javascript is ugly
+            var uptime = Math.min.apply(Math,$('.group-' + group + ' tr').map(function() {
+                return $(this).data('uptime'); }).get());
+            $('#' + group + ' #uptime').text(uptime >= 0 ? moment().subtract('seconds',uptime).fromNow(true): "");
             $.each(['danger','warning','success'], function(_, label)
             {
                 if ($('.group-' + group + ' tr.' + label).size() > 0)
