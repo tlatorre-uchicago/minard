@@ -17,26 +17,44 @@
 {{ super() }}
 <div class="col-md-10 col-md-offset-1">
     <table class="table table-bordered table-condensed">
-        <tr>
-            <th>Status</th>
-            <th>Uptime</th>
-            <th>Name</th>
-            <th>Machine</th>
-            <th>Log</th>
-            <th>Link</th>
-        </tr>
-        {% for program in programs %}
-        <tr id="{{ program.name }}">
-            <td id="status" />
-            <td id="uptime" />
-            <td>{{ program.name }}</td>
-            <td>{{ program.machine }}</td>
-            <td><a href="{{ url_for('view_log', name=program.name) }}">Tail -f</a></td>
-            <td>
-                {% if program.link %}
-                    <a href="{{ program.link }}" target="_blank">{{ program.link }}</a></td>
-                {% endif %}
-        </tr>
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>Uptime</th>
+                <th>Name</th>
+                <th>Machine</th>
+                <th>Log</th>
+                <th>Link</th>
+            </tr>
+        </thead>
+        {% for group in programs|groupby('group') %}
+            {% if group.grouper %}
+            <tbody>
+                <tr data-toggle="collapse" data-target=".group-{{ group.grouper }}">
+                    <td id="status" />
+                    <td id="uptime" />
+                    <td>{{ group.grouper }}</td>
+                    <td></td>
+                    <td><a href="{{ url_for('view_log', name=group.grouper) }}">Tail -f</a></td>
+                    <td></td>
+                </tr>
+            </tbody>
+            {% endif %}
+            <tbody  {% if group.grouper %}class="collapse group-{{ group.grouper }}"{% endif %}>
+                {% for program in group.list %}
+                <tr id="{{ program.name }}">
+                    <td id="status" />
+                    <td id="uptime" />
+                    <td>{{ program.name }}</td>
+                    <td>{{ program.machine }}</td>
+                    <td><a href="{{ url_for('view_log', name=program.name) }}">Tail -f</a></td>
+                    <td>
+                        {% if program.link %}
+                            <a href="{{ program.link }}" target="_blank">{{ program.link }}</a></td>
+                        {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
         {% endfor %}
     </table>
 </div>
