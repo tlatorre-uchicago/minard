@@ -2,13 +2,56 @@
 from __future__ import print_function
 import urllib
 import urllib2
-import base64
+from base64 import b64encode
 import threading
 import logging
 import socket
 from itertools import starmap, repeat
+from functools import wraps
 
 NOTIFY = {'notify': True}
+
+def retry(ExceptionToCheck, tries=4, delay=3, backoff=2, logger=None):
+    """Retry calling the decorated function using an exponential backoff.
+
+    http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/
+    original from: http://wiki.python.org/moin/PythonDecoratorLibrary#Retry
+
+    :param ExceptionToCheck: the exception to check. may be a tuple of
+        exceptions to check
+    :type ExceptionToCheck: Exception or tuple
+    :param tries: number of times to try (not retry) before giving up
+    :type tries: int
+    :param delay: initial delay between retries in seconds
+    :type delay: int
+    :param backoff: backoff multiplier e.g. value of 2 will double the delay
+        each retry
+    :type backoff: int
+    :param logger: logger to use. If None, print
+    :type logger: logging.Logger instance
+    """
+    def deco_retry(f):
+
+        @wraps(f)
+        def f_retry(*args, **kwargs):
+            mtries, mdelay = tries, delay
+            while mtries > 1:
+                try:
+                    return f(*args, **kwargs)
+                except ExceptionToCheck, e:
+                    msg = "%s, Retrying in %d seconds..." % (str(e), mdelay)
+                    if logger:
+                        logger.warning(msg)
+                    else:
+                        print(msg)
+                    time.sleep(mdelay)
+                    mtries -= 1
+                    mdelay *= backoff
+            return f(*args, **kwargs)
+
+        return f_retry  # true decorator
+
+    return deco_retry
 
 def repeatfunc(func, times=None, *args):
     """Repeat calls to func with specified arguments.
@@ -19,6 +62,7 @@ def repeatfunc(func, times=None, *args):
         return starmap(func, repeat(args))
     return starmap(func, repeat(args, times))
 
+@retry((urllib2.URLError,socket.timeout), tries=4, delay=1, backoff=1)
 def post(url, data, auth=None, retries=10):
     """
     Sends a POST request containing `data` to url. `auth` should be a
@@ -29,34 +73,11 @@ def post(url, data, auth=None, retries=10):
 
     request = urllib2.Request(url)
     if auth:
-        base64string = base64.encodestring('%s:%s' % auth).replace('\n','')
-        request.add_header('Authorization', 'Basic %s' % base64string)
+        request.add_header('Authorization', 'Basic %s' % b64encode('%s:%s' % auth))
 
     params = urllib.urlencode(data)
-    for i in range(retries):
-        try:
-            response = urllib2.urlopen(request, params)
-        except urllib2.URLError, e:
-            # python 2.6
-            if i < retries-1:
-                if isinstance(e, socket.timeout):
-                    # try again
-                    continue
-                else:
-                    # not timeout exception
-                    raise
-            else:
-                # raise exception on last iteration
-                raise
-        except socket.timeout, e:
-            # python 2.7
-            if i < retries-1:
-                continue
-            else:
-                # raise exception on last iteration
-                raise
-
-        return response.read()
+    response = urllib2.urlopen(request, params)
+    return response.read()
 
 class HTTPHandler(logging.Handler):
     """
