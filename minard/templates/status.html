@@ -16,9 +16,10 @@
 {% block body %}
 {{ super() }}
 <div class="col-md-10 col-md-offset-1">
-    <table class="table table-bordered table-condensed">
+    <table class="table table-condensed">
         <thead>
             <tr>
+                <th></th>
                 <th>Status</th>
                 <th>Uptime</th>
                 <th>Name</th>
@@ -31,18 +32,29 @@
             {% if group.grouper %}
             <tbody>
                 <tr id="{{ group.grouper }}" data-toggle="collapse" data-target=".group-{{ group.grouper }}">
+                    <td><span id="{{ group.grouper }}-chevron" class="glyphicon glyphicon-chevron-right pull-right"></span></td>
                     <td id="status" />
                     <td id="uptime" />
-                    <td>{{ group.grouper }}</td>
-                    <td></td>
-                    <td><a href="{{ url_for('view_log', name=group.grouper) }}">Tail -f</a></td>
-                    <td></td>
+                    <td colspan="4">{{ group.grouper }}</td>
                 </tr>
             </tbody>
             {% endif %}
-            <tbody  {% if group.grouper %}class="collapse group-{{ group.grouper }}"{% endif %}>
+            {% if group.grouper %}
+                <tbody class="collapse group-{{ group.grouper }}">
+                <script>
+                    $('.group-{{ group.grouper }}').on('hidden.bs.collapse', function () {
+                        $('#{{ group.grouper }}-chevron').toggleClass('glyphicon-chevron-right glyphicon-chevron-down');
+                    });
+                    $('.group-{{ group.grouper }}').on('shown.bs.collapse', function () {
+                        $('#{{ group.grouper }}-chevron').toggleClass('glyphicon-chevron-right glyphicon-chevron-down');
+                    });
+                </script>
+            {% else %}
+                <tbody>
+            {% endif %}
                 {% for program in group.list %}
                 <tr id="{{ program.name }}">
+                    <td></td>
                     <td id="status" />
                     <td id="uptime" />
                     <td>{{ program.name }}</td>
