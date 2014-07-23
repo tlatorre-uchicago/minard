@@ -36,14 +36,14 @@ def get_status():
 
     name = request.args['name']
 
-    up = redis.get('/uptime/{name}'.format(name=name))
+    up = redis.get('uptime:{name}'.format(name=name))
 
     if up is None:
         uptime = None
     else:
         uptime = int(time.time()) - int(up)
 
-    return jsonify(status=redis.get('/heartbeat/{name}'.format(name=name)),uptime=uptime)
+    return jsonify(status=redis.get('heartbeat:{name}'.format(name=name)),uptime=uptime)
 
 @app.route('/heartbeat', methods=['POST'])
 def heartbeat():
@@ -59,15 +59,15 @@ def heartbeat():
     status = request.form['status']
 
     # expire every 10 seconds
-    redis.setex('/heartbeat/{name}'.format(name=name),status,10)
+    redis.setex('heartbeat:{name}'.format(name=name),status,10)
 
-    up = redis.get('/uptime/{name}'.format(name=name))
+    up = redis.get('uptime:{name}'.format(name=name))
 
     if up is None:
-        redis.setex('/uptime/{name}'.format(name=name),int(time.time()),10)
+        redis.setex('uptime:{name}'.format(name=name),int(time.time()),10)
     else:
         # still running, update expiration
-        redis.expire('/uptime/{name}'.format(name=name),10)
+        redis.expire('uptime:{name}'.format(name=name),10)
 
     return 'ok\n'
 
@@ -233,9 +233,9 @@ def query():
 @app.route('/get_alarm')
 def get_alarm():
     try:
-        count = int(redis.get('/alarms/count'))
+        count = int(redis.get('alarms:count'))
     except TypeError:
-        redis.set('/alarms/count',0)
+        redis.set('alarms:count',0)
         return jsonify(alarms=[],latest=-1)
 
     if 'start' in request.args:
@@ -248,7 +248,7 @@ def get_alarm():
 
     alarms = []
     for i in range(start,count):
-        value = redis.get('/alarms/{0:d}'.format(i))
+        value = redis.get('alarms:{0:d}'.format(i))
 
         if value:
             alarms.append(json.loads(value))

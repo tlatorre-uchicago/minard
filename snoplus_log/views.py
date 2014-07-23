@@ -53,13 +53,13 @@ def log():
 
     if 'notify' in request.form or lvl >= 40:
         # post to redis
-        id = redis.incr('/alarms/count') - 1
+        id = redis.incr('alarms:count') - 1
 
         alarm = {'id'     : id,
                  'level'  : lvl,
                  'message': msg,
                  'time'   : datetime.now().isoformat()}
 
-        redis.setex('/alarms/{id}'.format(id=id), json.dumps(alarm), 24*60*60)
+        redis.setex('alarms:{id}'.format(id=id), json.dumps(alarm), 24*60*60)
 
     return 'ok\n'
