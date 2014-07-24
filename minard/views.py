@@ -41,7 +41,8 @@ PROGRAMS = [Program('builder','builder1.sp.snolab.ca',
             Program('builder_delete', 'buffer1.sp.snolab.ca',
                     description="builder deletion script"),
             Program('PCA','nino.physics.berkeley.edu',
-                    link='http://snopluspmts.physics.berkeley.edu/pca')]
+                    link='http://snopluspmts.physics.berkeley.edu/pca',
+                    description="monitor PCA data")]
 
 PROGRAM_DICT = dict((p.name, p) for p in PROGRAMS)
 
