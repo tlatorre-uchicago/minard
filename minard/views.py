@@ -24,15 +24,20 @@ redis = Redis()
 
 PROGRAMS = [Program('builder','builder1.sp.snolab.ca',
                     description="event builder"),
-            Program('L2','buffer1.sp.snolab.ca', description="level 2 trigger"),
+            Program('L2-server','builder1.sp.snolab.ca',
+                    description="builder -> buffer transfer"),
+            Program('L2-client','buffer1.sp.snolab.ca',
+                    description="L2 processor"),
+            Program('L2-convert','buffer1.sp.snolab.ca',
+                    description="zdab -> ROOT conversion"),
+            Program('dataflow',
+                    link='http://snoplus.westgrid.ca:5984/buffer/_design/buffer/index.html'),
             Program('builder_copy', 'buffer1.sp.snolab.ca',
                     description="builder -> buffer transfer"),
             Program('buffer_copy', 'buffer1.sp.snolab.ca',
                     description="buffer -> grid transfer"),
             Program('builder_delete', 'buffer1.sp.snolab.ca',
                     description="builder deletion script"),
-            Program('dataflow',
-                    link='http://snoplus.westgrid.ca:5984/buffer/_design/buffer/index.html'),
             Program('PCA','nino.physics.berkeley.edu',
                     link='http://snopluspmts.physics.berkeley.edu/pca')]
 
