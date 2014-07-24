@@ -180,7 +180,7 @@ if __name__ == '__main__':
             elif level == 'DEBUG':
                 logging.debug(message)
             else:
-                logging.info(message)
+                logging.info(line)
         except urllib2.URLError, e:
             print(e, file=sys.stderr)
             continue
