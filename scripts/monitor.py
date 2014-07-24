@@ -159,19 +159,28 @@ if __name__ == '__main__':
             break
         # remove trailing \n
         line = line.strip()
+
         try:
-            if 'ERROR' in line:
-                logging.error(line)
-            elif 'WARNING' in line:
-                logging.warning(line)
-            elif 'SUCCESS' in line:
-                logging.log(21, line, extra=NOTIFY)
-            elif 'INFO' in line:
-                logging.info(line)
-            elif 'DEBUG' in line:
-                logging.debug(line)
+            level, message = line.split('-', 1)
+            # remove whitespace
+            level = level.strip()
+        except ValueError:
+            level = None
+            message = line
+
+        try:
+            if level == 'ERROR':
+                logging.error(message)
+            elif level == 'WARNING':
+                logging.warning(message)
+            elif level == 'SUCCESS':
+                logging.log(21, message, extra=NOTIFY)
+            elif level == 'INFO':
+                logging.info(message)
+            elif level == 'DEBUG':
+                logging.debug(message)
             else:
-                logging.info(line)
+                logging.info(message)
         except urllib2.URLError, e:
             print(e, file=sys.stderr)
             continue
