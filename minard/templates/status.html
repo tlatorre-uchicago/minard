@@ -16,65 +16,35 @@
 {% block body %}
 {{ super() }}
 <div class="col-md-10 col-md-offset-1">
-    <table class="table table-condensed">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Status</th>
-                <th>Uptime</th>
-                <th>Name</th>
-                <th>Machine</th>
-                <th>Log</th>
-                <th>Link</th>
-            </tr>
-        </thead>
-        {% for group in programs|groupby('group') %}
-            {% if group.grouper %}
-            <tbody>
-                <tr id="{{ group.grouper }}" data-toggle="collapse" data-target=".group-{{ group.grouper }}">
-                    <td><span id="{{ group.grouper }}-chevron" class="glyphicon glyphicon-chevron-right pull-right"></span></td>
-                    <td id="status" />
-                    <td id="uptime" />
-                    <td colspan="4">{{ group.grouper }}</td>
-                </tr>
-            </tbody>
-            {% endif %}
-            {% if group.grouper %}
-                <tbody class="collapse group-{{ group.grouper }}">
-                <script>
-                    $('.group-{{ group.grouper }}').on('hidden.bs.collapse', function () {
-                        $('#{{ group.grouper }}-chevron').toggleClass('glyphicon-chevron-right glyphicon-chevron-down');
-                    });
-                    $('.group-{{ group.grouper }}').on('shown.bs.collapse', function () {
-                        $('#{{ group.grouper }}-chevron').toggleClass('glyphicon-chevron-right glyphicon-chevron-down');
-                    });
-                </script>
-            {% else %}
-                <tbody>
-            {% endif %}
-                {% for program in group.list %}
-                <tr id="{{ program.name }}">
-                    <td></td>
-                    <td id="status" />
-                    <td id="uptime" />
-                    <td>{{ program.name }}</td>
-                    <td>{{ program.machine }}</td>
-                    <td><a href="{{ url_for('view_log', name=program.name) }}">Tail -f</a></td>
-                    <td>
-                        {% if program.link %}
-                            <a href="{{ program.link }}" target="_blank">{{ program.link }}</a></td>
-                        {% endif %}
-                </tr>
-                {% endfor %}
-            </tbody>
+    <table class="table table-bordered table-condensed">
+        <tr>
+            <th>Status</th>
+            <th>Uptime</th>
+            <th>Name</th>
+            <th>Machine</th>
+            <th>Log</th>
+            <th>Link</th>
+        </tr>
+        {% for program in programs %}
+        <tr id="{{ program.name }}">
+            <td id="status" />
+            <td id="uptime" />
+            <td>{{ program.name }}</td>
+            <td>{{ program.machine }}</td>
+            <td><a href="{{ url_for('view_log', name=program.name) }}">Tail -f</a></td>
+            <td>
+                {% if program.link %}
+                    <a href="{{ program.link }}" target="_blank">{{ program.link }}</a></td>
+                {% endif %}
+        </tr>
         {% endfor %}
     </table>
 </div>
 
 <script>
-function update_status(name, group)
+function update_status(name)
 {
-    if (typeof(group) === 'undefined') group = null;
+    if (typeof(seek) === 'undefined') seek = null;
 
     $.getJSON($SCRIPT_ROOT + '/get_status?name=' + name).done(function(obj) {
         if (obj.status == "ok")
@@ -93,33 +63,13 @@ function update_status(name, group)
 
         $('#' + name + ' #status').text(obj.status);
         $('#' + name + ' #uptime').text(obj.uptime ? moment().subtract('seconds',obj.uptime).fromNow(true): "");
-        $('#' + name).data('uptime', obj.uptime ? obj.uptime : -1);
 
-        if (group)
-        {
-            // omg, javascript is ugly
-            var uptime = Math.min.apply(Math,$('.group-' + group + ' tr').map(function() {
-                return $(this).data('uptime'); }).get());
-            $('#' + group + ' #uptime').text(uptime >= 0 ? moment().subtract('seconds',uptime).fromNow(true): "");
-            $.each(['danger','warning','success'], function(_, label)
-            {
-                if ($('.group-' + group + ' tr.' + label).size() > 0)
-                {
-                    $('#' + group).attr("class",label);
-                    // set group status as status of first process that matches
-                    // the label
-                    $('#' + group + ' #status').text($('.group-' + group + ' tr.' + label + ' #status').first().text());
-                    return false;
-                }
-            });
-        }
-
-        setTimeout(function() { update_status(name,group) },2000); // 2 seconds
+        setTimeout(function() { update_status(name) },2000); // 2 seconds
     });
 }
 
 {% for program in programs %}
-    update_status('{{ program.name }}'{% if program.group %}, '{{ program.group }}'{% endif %});
+    update_status('{{ program.name }}');
 {% endfor %}
 
 $('#nav-status').attr('class','active');

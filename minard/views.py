@@ -12,16 +12,18 @@ import requests
 from collections import deque, namedtuple
 from timeseries import get_timeseries, get_interval
 
-Program = namedtuple('Program', ['name', 'machine', 'link','group'])
+Program = namedtuple('Program', ['name', 'machine', 'link'])
 
 redis = Redis()
 
-PROGRAMS = [Program('builder','builder1.sp.snolab.ca',None,None),
-            Program('L2','buffer1.sp.snolab.ca',None,None),
-            Program('builder_copy', 'buffer1.sp.snolab.ca',None,'dataflow'),
-            Program('buffer_copy', 'buffer1.sp.snolab.ca',None,'dataflow'),
-            Program('builder_delete', 'buffer1.sp.snolab.ca',None,'dataflow'),
-            Program('PCA','nino.physics.berkeley.edu','http://snopluspmts.physics.berkeley.edu/pca',None)]
+PROGRAMS = [Program('builder','builder1.sp.snolab.ca',None),
+            Program('L2','buffer1.sp.snolab.ca',None),
+            Program('builder_copy', 'buffer1.sp.snolab.ca',None),
+            Program('buffer_copy', 'buffer1.sp.snolab.ca',None),
+            Program('builder_delete', 'buffer1.sp.snolab.ca',None),
+            Program('dataflow',None,
+            'http://snoplus.westgrid.ca:5984/buffer/_design/buffer/index.html'),
+            Program('PCA','nino.physics.berkeley.edu','http://snopluspmts.physics.berkeley.edu/pca')]
 
 @app.route('/status')
 def status():
