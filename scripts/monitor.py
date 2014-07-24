@@ -157,8 +157,21 @@ if __name__ == '__main__':
     for line in repeatfunc(sys.stdin.readline):
         if not line:
             break
+        # remove trailing \n
+        line = line.strip()
         try:
-            logging.info(line.strip())
+            if 'ERROR' in line:
+                logging.error(line)
+            elif 'WARNING' in line:
+                logging.warning(line)
+            elif 'SUCCESS' in line:
+                logging.log(21, line, extra=NOTIFY)
+            elif 'INFO' in line:
+                logging.info(line)
+            elif 'DEBUG' in line:
+                logging.debug(line)
+            else:
+                logging.info(line)
         except urllib2.URLError, e:
-            print(traceback.format_exc(), file=sys.stderr)
+            print(e, file=sys.stderr)
             continue
