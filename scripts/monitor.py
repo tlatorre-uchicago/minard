@@ -132,6 +132,7 @@ if __name__ == '__main__':
     import optparse
     import sys
     import traceback
+    import re
 
     parser = optparse.OptionParser()
     parser.add_option('--local', action='store_true', dest='local',
@@ -154,33 +155,34 @@ if __name__ == '__main__':
     post_heartbeat(host, name, auth)
     set_up_root_logger(host, name, auth)
 
+    p = re.compile('(ERROR|WARNING|INFO|SUCCESS|DEBUG)\s*-\s*(.*)')
+
     for line in repeatfunc(sys.stdin.readline):
         if not line:
             break
-        # remove trailing \n
-        line = line.strip()
 
-        try:
-            level, message = line.split('-', 1)
-            # remove whitespace
-            level = level.strip()
-        except ValueError:
-            level = None
-            message = line
+        match = p.match(line)
 
-        try:
-            if level == 'ERROR':
-                logging.error(message)
-            elif level == 'WARNING':
-                logging.warning(message)
-            elif level == 'SUCCESS':
-                logging.log(21, message, extra=NOTIFY)
-            elif level == 'INFO':
-                logging.info(message)
-            elif level == 'DEBUG':
-                logging.debug(message)
-            else:
-                logging.info(line)
-        except urllib2.URLError, e:
-            print(e, file=sys.stderr)
-            continue
+        if match is None:
+            try:
+                logging.info(line.strip())
+            except urllib2.URLError, e:
+                print(e, file=sys.stderr)
+        else:
+            level, message = match.groups()
+
+            try:
+                if level == 'ERROR':
+                    logging.error(message)
+                elif level == 'WARNING':
+                    logging.warning(message)
+                elif level == 'SUCCESS':
+                    logging.log(21, message, extra=NOTIFY)
+                elif level == 'INFO':
+                    logging.info(message)
+                elif level == 'DEBUG':
+                    logging.debug(message)
+                else:
+                    logging.info(line)
+            except urllib2.URLError, e:
+                print(e, file=sys.stderr)
