@@ -12,18 +12,31 @@ import requests
 from collections import deque, namedtuple
 from timeseries import get_timeseries, get_interval
 
-Program = namedtuple('Program', ['name', 'machine', 'link'])
+class Program(object):
+    def __init__(self, name, machine=None, link=None, description=None, expire=10):
+        self.name = name
+        self.machine = machine
+        self.link = link
+        self.description = description
+        self.expire = expire
 
 redis = Redis()
 
-PROGRAMS = [Program('builder','builder1.sp.snolab.ca',None),
-            Program('L2','buffer1.sp.snolab.ca',None),
-            Program('builder_copy', 'buffer1.sp.snolab.ca',None),
-            Program('buffer_copy', 'buffer1.sp.snolab.ca',None),
-            Program('builder_delete', 'buffer1.sp.snolab.ca',None),
-            Program('dataflow',None,
-            'http://snoplus.westgrid.ca:5984/buffer/_design/buffer/index.html'),
-            Program('PCA','nino.physics.berkeley.edu','http://snopluspmts.physics.berkeley.edu/pca')]
+PROGRAMS = [Program('builder','builder1.sp.snolab.ca',
+                    description="event builder"),
+            Program('L2','buffer1.sp.snolab.ca', description="level 2 trigger"),
+            Program('builder_copy', 'buffer1.sp.snolab.ca',
+                    description="builder -> buffer transfer"),
+            Program('buffer_copy', 'buffer1.sp.snolab.ca',
+                    description="buffer -> grid transfer"),
+            Program('builder_delete', 'buffer1.sp.snolab.ca',
+                    description="builder deletion script"),
+            Program('dataflow',
+                    link='http://snoplus.westgrid.ca:5984/buffer/_design/buffer/index.html'),
+            Program('PCA','nino.physics.berkeley.edu',
+                    link='http://snopluspmts.physics.berkeley.edu/pca')]
+
+PROGRAM_DICT = dict((p.name, p) for p in PROGRAMS)
 
 @app.route('/status')
 def status():
@@ -49,25 +62,30 @@ def get_status():
 def heartbeat():
     """Log heartbeat."""
     if 'name' not in request.form:
-        return 'must specify name', 400
+        return "must specify name\n", 400
 
     name = request.form['name']
 
     if 'status' not in request.form:
-        return 'must specify status', 400
+        return "must specify status\n", 400
 
     status = request.form['status']
 
-    # expire every 10 seconds
-    redis.setex('heartbeat:{name}'.format(name=name),status,10)
+    try:
+        expire = PROGRAM_DICT[name].expire
+    except KeyError:
+        return "unknown name\n", 400
+
+    # expire every expire seconds
+    redis.setex('heartbeat:{name}'.format(name=name),status,expire)
 
     up = redis.get('uptime:{name}'.format(name=name))
 
     if up is None:
-        redis.setex('uptime:{name}'.format(name=name),int(time.time()),10)
+        redis.setex('uptime:{name}'.format(name=name),int(time.time()),expire)
     else:
         # still running, update expiration
-        redis.expire('uptime:{name}'.format(name=name),10)
+        redis.expire('uptime:{name}'.format(name=name),expire)
 
     return 'ok\n'
 

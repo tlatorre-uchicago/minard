@@ -22,8 +22,9 @@
             <th>Uptime</th>
             <th>Name</th>
             <th>Machine</th>
-            <th>Log</th>
-            <th>Link</th>
+            <th style="text-align:center">Log</th>
+            <th style="text-align:center">Link</th>
+            <th>Description</th>
         </tr>
         {% for program in programs %}
         <tr id="{{ program.name }}">
@@ -31,11 +32,15 @@
             <td id="uptime" />
             <td>{{ program.name }}</td>
             <td>{{ program.machine }}</td>
-            <td><a href="{{ url_for('view_log', name=program.name) }}">Tail -f</a></td>
-            <td>
+            <td style="text-align:center">
+                <a href="{{ url_for('view_log', name=program.name) }}">Tail -f</a>
+            </td>
+            <td style="text-align:center">
                 {% if program.link %}
-                    <a href="{{ program.link }}" target="_blank">{{ program.link }}</a></td>
+                    <a href="{{ program.link }}" target="_blank">Link</a>
                 {% endif %}
+            </td>
+            <td>{% if program.description %}{{ program.description }}{% endif %}</td>
         </tr>
         {% endfor %}
     </table>
