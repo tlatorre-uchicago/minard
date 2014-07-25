@@ -304,6 +304,10 @@ function setup()
         .attr('cy', function(d) { return d ? d[1]: null; })
         .attr('r', 2);
 
+    d3.select('#hist').datum([]).call(chart);
+
+    $('.collapse').collapse();
+
     // set up crate view
     d3.select("#crate").datum([]).call(crate);
     // line break after crate 9 to get
