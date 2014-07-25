@@ -85,14 +85,6 @@ function linspace(min, max, N)
   return a;
 }
 
-var xmin = 0,
-    xmax = 1e-3;
-
-function callback()
-{
-    draw();
-}
-
 var xsnoed1 = ["#4876ff","#32cd32","#ffff00","#ffa500","#ff0000"],
     xsnoed2 = ["#3a5fcd","#2e8b57","#cd9b1d","#ffa500","#ff0000"];
 
@@ -107,7 +99,7 @@ color_scales = d3.entries(color_scales);
 function change_color_scale()
 {
   chart.color_scale().range(color_scales[this.selectedIndex].value);
-  draw();
+  redraw();
 }
 
 var color_menu = d3.select("#color-scale-menu")
@@ -121,11 +113,11 @@ color_menu.selectAll("option")
 color_menu.property("selectedIndex", 12);
 
 var color_scale = d3.scale.linear()
-    .domain(linspace(xmin,xmax,5))
+    .domain(linspace(0,1e-3,5))
     .range(color_scales[12].value);
 
 var chart = histogram()
-    .on_scale_change(callback)
+    .on_scale_change(redraw)
     .color_scale(color_scale)
     .bins(50)
     .domain([0,2e-3]);
@@ -188,8 +180,6 @@ options.forEach(function(o) {
             .precision(.1);
         });
 
-var selection = d3.select(element.get());
-
 var pmtinfo = {% include 'pmtinfo.json' %};
 
 var coords = [];
@@ -212,7 +202,7 @@ var path = d3.geo.path().projection(projection);
 
 var graticule = d3.geo.graticule();
 
-var svg = d3.select(element[0]).append("svg")
+var svg = d3.select('#hero').append("svg")
     .attr("width", width)
     .attr("height", height);
 
@@ -222,10 +212,6 @@ svg.append("path")
     .attr("d", path);
 
 d3.select(self.frameElement).style("height", height + "px");
-
-function update() {
-    return $.getJSON($SCRIPT_ROOT + '/query', { name: 'occupancy' });
-}
 
 pos = []
 for (var i=0; i < coords.length; i++)
@@ -245,19 +231,9 @@ menu.selectAll("option")
 
 menu.property("selectedIndex", 16);
 
-function loop() {
-    var j = Math.floor(Math.random() * n);
-    menu.property("selectedIndex", i = j + (j >= i));
-    update(options[i]);
-}
-
 function change() {
-    //clearInterval(interval);
     update_projection(options[this.selectedIndex]);
 }
-
-
-//update_projection(d3.geo.orthographic());
 
 function update_projection(option) {
     svg.selectAll("path").transition()
@@ -304,7 +280,7 @@ var crate = crate_view().caption(false).scale(color_scale);
 d3.select("#crate").datum([]).call(crate);
 $("#crate9").after("<br>");
 
-function draw()
+function redraw()
 {
     d3.select("#hist").call(chart);
     d3.select("#crate").call(crate);
@@ -314,31 +290,35 @@ function draw()
  
 }
 
-function on_done(result){
-    values = result.values;
-
-    d3.select('#hist').datum(values).call(chart);
-
-    var circle = svg.selectAll('circle').data(values);
-
-    circle.style('fill',function(d, i) { return d ? color_scale(d) : "#e0e0e0";})
-
-    circle.enter().append('circle')
-        .style('fill',function(d, i) { return d ? color_scale(d) : "#e0e0e0";})
-        .attr('cx',function(d, i) { return pos[i]?pos[i][0]:null; })
-        .attr('cy',function(d, i) { return pos[i]?pos[i][1]:null; })
+function setup()
+{
+    svg.selectAll('circle').data(pos)
+      .enter().append('circle')
+        .style('fill', '#e0e0e0')
+        .attr('cx', function(d) { return d ? d[0]: null; })
+        .attr('cy', function(d) { return d ? d[1]: null; })
         .attr('r', 2);
-
-    circle.exit().remove();
-    
-    d3.select('#crate').datum(values).call(crate);
 }
 
-update().done(on_done);
+function update(result){
+    $.getJSON($SCRIPT_ROOT + '/query', { name: 'occupancy' }).done(function(result) {
+        values = result.values;
 
-setInterval(function() { update().done(on_done);},10000);
+        d3.select('#hist').datum(values);
+
+        svg.selectAll('circle').data(values);
+
+        d3.select('#crate').datum(values);
+
+        redraw();
+
+        setTimeout(update,10000);
+    });
+}
+
+setup();
+update();
 </script>
-
 
 <script>$('#nav-detector').attr('class','active');</script>
 
