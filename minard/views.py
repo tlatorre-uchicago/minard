@@ -230,7 +230,6 @@ def get_alarm():
     try:
         count = int(redis.get('alarms:count'))
     except TypeError:
-        redis.set('alarms:count',0)
         return jsonify(alarms=[],latest=-1)
 
     if 'start' in request.args:
