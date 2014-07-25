@@ -56,9 +56,6 @@
     <div class="col-md-10 col-md-offset-1" id="hero">
       <select id="projection-menu"></select>
     </div>
-    <div class="col-md-1">
-      <select id="color-scale-menu"></select>
-    </div>
   </div>
   <div class="row">
     <div class="col-md-10 col-md-offset-1">
@@ -67,12 +64,13 @@
           <div class="panel-heading">
             <h4 class="panel-title">
               <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-                Histogram
+                Histogram 
               </a>
             </h4>
           </div>
           <div id="collapseOne" class="panel-collapse collapse in">
             <div class="panel-body" id="hist">
+                <select class="pull-right" id="color-scale-menu"></select>
             </div>
           </div>
         </div>
@@ -304,8 +302,10 @@ function setup()
         .attr('cy', function(d) { return d ? d[1]: null; })
         .attr('r', 2);
 
+    // set up histogram
     d3.select('#hist').datum([]).call(chart);
 
+    // collapse histogram panel
     $('.collapse').collapse();
 
     // set up crate view
