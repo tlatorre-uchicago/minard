@@ -218,13 +218,13 @@ def query():
         return jsonify(name=redis.get('dispatcher'))
 
     if name == 'nhit':
-        start = request.args.get('start',type=parseiso)
+        seconds = request.args.get('seconds',type=int)
 
         now = int(time.time())
 
         p = redis.pipeline()
-        for i in range(start,now):
-            p.lrange('ev:1:{ts}:nhit'.format(ts=i),0,-1)
+        for i in range(seconds):
+            p.lrange('ev:1:{ts}:nhit'.format(ts=now-i),0,-1)
         nhit = sum(p.execute(),[])
         return jsonify(value=nhit)
 
