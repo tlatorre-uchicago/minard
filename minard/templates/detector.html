@@ -54,7 +54,6 @@
 <div class="container">
   <div class="row">
     <div class="col-md-10 col-md-offset-1" id="hero">
-      <h2>Occupancy</h2>
       <select id="projection-menu"></select>
     </div>
     <div class="col-md-1">
@@ -62,10 +61,26 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-md-10 col-md-offset-1" id="crate" style="text-align:center"></div>
+    <div class="col-md-10 col-md-offset-1">
+      <div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="panel-title">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                Histogram
+              </a>
+            </h4>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse in">
+            <div class="panel-body" id="hist">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="row">
-    <div class="col-md-10 col-md-offset-1" id="hist"></div>
+    <div class="col-md-10 col-md-offset-1" id="crate" style="text-align:center"></div>
   </div>
 </div>
 <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
