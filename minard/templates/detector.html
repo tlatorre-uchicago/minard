@@ -137,6 +137,16 @@ var chart = histogram()
     .bins(50)
     .domain([0,2e-3]);
 
+var crate = crate_view().caption(false).scale(color_scale);
+
+var element = $('#hero');
+var width   = element.width();
+var height  = width/2.0;
+
+var svg = d3.select('#hero').append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
 var options = [
 {name: "Aitoff", projection: d3.geo.aitoff()},
 {name: "Albers", projection: d3.geo.albers().scale(145).parallels([20, 50])},
@@ -184,10 +194,6 @@ var options = [
 {name: "Winkel Tripel", projection: d3.geo.winkel3()}
 ];
 
-var element = $('#hero');
-var width   = element.width();
-var height  = width/2.0;
-
 options.forEach(function(o) {
         o.projection.rotate([0, 0]).center([0, 0])
             .scale((width + 1) / 2 / Math.PI)
@@ -213,42 +219,15 @@ for (var i=0; i < pmtinfo['x'].length; i++) {
 
 var projection = options[16].projection;
 
-var path = d3.geo.path().projection(projection);
-
-var graticule = d3.geo.graticule();
-
-var svg = d3.select('#hero').append("svg")
-    .attr("width", width)
-    .attr("height", height);
-
-svg.append("path")
-    .datum(graticule)
-    .attr("class", "graticule")
-    .attr("d", path);
-
-d3.select(self.frameElement).style("height", height + "px");
-
-pos = []
-for (var i=0; i < coords.length; i++)
-    pos[i] = projection(coords[i]);
-
-var z = d3.scale.linear()
-    .domain([0,1e-5,1e-4,1e-3])
-    .range(colorbrewer.Spectral[4].reverse());
-
 var menu = d3.select("#projection-menu")
-    .on("change", change);
+    .on("change", function() { update_projection(options[this.selectedIndex]); });
 
 menu.selectAll("option")
     .data(options)
   .enter().append("option")
     .text(function(d) { return d.name; });
 
-menu.property("selectedIndex", 16);
-
-function change() {
-    update_projection(options[this.selectedIndex]);
-}
+menu.property("selectedIndex", 16)
 
 function update_projection(option) {
     svg.selectAll("path").transition()
@@ -290,11 +269,6 @@ function projectionTween(projection0, projection1) {
     };
 }
 
-var crate = crate_view().caption(false).scale(color_scale);
-
-d3.select("#crate").datum([]).call(crate);
-$("#crate9").after("<br>");
-
 function redraw()
 {
     d3.select("#hist").call(chart);
@@ -307,12 +281,34 @@ function redraw()
 
 function setup()
 {
+    // set up projection
+    var path = d3.geo.path().projection(projection);
+
+    var graticule = d3.geo.graticule();
+
+    svg.append("path")
+        .datum(graticule)
+        .attr("class", "graticule")
+        .attr("d", path);
+
+    d3.select(self.frameElement).style("height", height + "px");
+
+    pos = []
+    for (var i=0; i < coords.length; i++)
+        pos[i] = projection(coords[i]);
+
     svg.selectAll('circle').data(pos)
       .enter().append('circle')
         .style('fill', '#e0e0e0')
         .attr('cx', function(d) { return d ? d[0]: null; })
         .attr('cy', function(d) { return d ? d[1]: null; })
         .attr('r', 2);
+
+    // set up crate view
+    d3.select("#crate").datum([]).call(crate);
+    // line break after crate 9 to get
+    // XSNOED style
+    $("#crate9").after("<br>");
 }
 
 function update(result){
