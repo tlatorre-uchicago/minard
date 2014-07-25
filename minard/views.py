@@ -46,8 +46,6 @@ PROGRAMS = [Program('builder','builder1.sp.snolab.ca',
                     link='http://snopluspmts.physics.berkeley.edu/pca',
                     description="monitor PCA data")]
 
-PROGRAM_DICT = dict((p.name, p) for p in PROGRAMS)
-
 @app.route('/status')
 def status():
     return render_template('status.html', programs=PROGRAMS)
@@ -67,37 +65,6 @@ def get_status():
         uptime = int(time.time()) - int(up)
 
     return jsonify(status=redis.get('heartbeat:{name}'.format(name=name)),uptime=uptime)
-
-@app.route('/heartbeat', methods=['POST'])
-def heartbeat():
-    """Log heartbeat."""
-    if 'name' not in request.form:
-        return "must specify name\n", 400
-
-    name = request.form['name']
-
-    if 'status' not in request.form:
-        return "must specify status\n", 400
-
-    status = request.form['status']
-
-    try:
-        expire = PROGRAM_DICT[name].expire
-    except KeyError:
-        return "unknown name\n", 400
-
-    # expire every expire seconds
-    redis.setex('heartbeat:{name}'.format(name=name),status,expire)
-
-    up = redis.get('uptime:{name}'.format(name=name))
-
-    if up is None:
-        redis.setex('uptime:{name}'.format(name=name),int(time.time()),expire)
-    else:
-        # still running, update expiration
-        redis.expire('uptime:{name}'.format(name=name),expire)
-
-    return 'ok\n'
 
 @app.route('/view_log/<name>')
 def view_log(name):
