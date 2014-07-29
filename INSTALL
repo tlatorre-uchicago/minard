@@ -28,6 +28,10 @@ while true; do
             redis_conf=redis.conf;
             supervisord_conf=supervisord.conf;
             nginx_conf=nginx.conf;
+            # create conf file for minard
+            temp=$(mktemp)
+            echo "SUPERVISOR = True" > $temp
+            sudo install -m 644 $temp /etc/minard.conf
             break;;
         b)
             redis_conf=redis.conf;
@@ -146,7 +150,7 @@ fi
 if [ $mb == 'b' ]; then
     temp=$(mktemp)
     echo "* * * * * snoplusmon flock -n /tmp/rsync.lck rsync -av $host:/var/log/snoplus/ /var/log/snoplus" > $temp
-    sudo cp $temp /etc/cron.d/rsync
+    sudo install -m 644 $temp /etc/cron.d/rsync
 
     # test password less SSH
     sudo -u snoplusmon -H bash -c "ssh -o StrictHostKeyChecking=no -o NumberOfPasswordPrompts=0 $host echo hello"
@@ -191,16 +195,12 @@ sudo cp init/gunicorn /etc/init.d/gunicorn
 # add gunicorn service
 add_service gunicorn
 
-if [[ ! -z "$supervisord_conf" ]]; then
+if [ $mb == 'm' ]; then
     # only install supervisord init if this is installed
     # as master
     sudo cp init/$supervisord_init /etc/init.d/supervisord
     add_service supervisord
     sudo cp etc/$supervisord_conf /etc/supervisord.conf
-else
-    temp=$(mktemp)
-    echo "* * * * * snoplusmon flock -n /tmp/rsync.lck rsync -av $host:/var/log/snoplus/ /var/log/snoplus" > $temp
-    sudo cp $temp /etc/cron.d/rsync
 fi
 
 sudo cp init/$nginx_init /etc/init.d/nginx
