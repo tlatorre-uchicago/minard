@@ -156,9 +156,9 @@ if [ $mb == 'b']; then
                 set +e
                 sudo -u snoplusmon -H bash -c "ssh-keygen"
                 sudo -u snoplusmon -H bash -c "ssh-copy-id $host"
-                set -e
+                set -e;;
             [Nn]*)
-                break;
+                break;;
             *)
                 echo "Please answer yes or no.";;
         esac
