@@ -32,6 +32,7 @@ while true; do
         [Bb]* )
             redis_conf=redis_backup.conf;
             nginx_conf=nginx_backup.conf;
+            read -p "Hostname of master install: " host
             break;;
         *) echo "Please answer m or b.";;
     esac
@@ -136,13 +137,16 @@ fi
 # make sure snoplusmon user exists
 if ! id -u snoplusmon >/dev/null; then
     echo "Adding snoplusmon user..."
-    sudo useradd -d snoplusmon
+    sudo useradd -d /home/snoplusmon snoplusmon
     if [ $mb == 'm' ] || [ $mb == 'M' ]; then
         sudo passwd snoplusmon
     else
         # set up password less SSH login for rsync
-        sudo -u snoplusmon -H -c 'yes "" | ssh-keygen'
-        sudo -u snoplusmon -H -c 'ssh-copy-id snotpenn01.sp.snolab.ca'
+        sudo -u snoplusmon -H bash -c "ssh-keygen"
+        sudo -u snoplusmon -H bash -c "ssh-copy-id $host"
+        temp=$(mktemp)
+        echo "* * * * * snoplusmon flock -n /tmp/rsync.lck rsync -av $host:/var/log/snoplus/ /var/log/snoplus" > $temp
+        sudo cp $temp /etc/cron.d/rsync
     fi
 fi
 
@@ -170,6 +174,10 @@ if [[ ! -z "$supervisord_conf" ]]; then
     sudo cp init/$supervisord_init /etc/init.d/supervisord
     add_service supervisord
     sudo cp etc/$supervisord_conf /etc/supervisord.conf
+else
+    temp=$(mktemp)
+    echo "* * * * * snoplusmon flock -n /tmp/rsync.lck rsync -av $host:/var/log/snoplus/ /var/log/snoplus" > $temp
+    sudo cp $temp /etc/cron.d/rsync
 fi
 
 sudo cp init/$nginx_init /etc/init.d/nginx
