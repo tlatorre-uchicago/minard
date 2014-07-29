@@ -30,7 +30,7 @@ while true; do
             nginx_conf=nginx.conf;
             break;;
         b)
-            redis_conf=redis_backup.conf;
+            redis_conf=redis.conf;
             nginx_conf=nginx_backup.conf;
             read -p "Hostname of master install: " host
             break;;
@@ -148,6 +148,7 @@ if [ $mb == 'b' ]; then
     echo "* * * * * snoplusmon flock -n /tmp/rsync.lck rsync -av $host:/var/log/snoplus/ /var/log/snoplus" > $temp
     sudo cp $temp /etc/cron.d/rsync
 
+    # test password less SSH
     sudo -u snoplusmon -H bash -c "ssh -o StrictHostKeyChecking=no -o NumberOfPasswordPrompts=0 $host echo hello"
 
     if [ $? -ne 0 ]; then
@@ -213,6 +214,10 @@ sudo chown -R nginx:nginx /var/log/nginx
 # install redis init script
 sudo cp init/redis_6379 /etc/init.d/redis_6379
 
+if [ $mb == 'b' ]; then
+    sed "s/# slaveof <masterip> <masterport>/slaveof $host 6379/g" etc/$redis_conf -i
+fi
+
 # redis configuration file
 # this is where, for example, the location of the backup image is configured
 sudo cp etc/$redis_conf /etc/redis/6379.conf
@@ -224,6 +229,8 @@ if [ $mb == 'm' ] || [ $mb == 'M' ]; then
     # echo commands from here
     set -x
 
+    sudo /etc/init.d/redis_6379 stop
+    sudo /etc/init.d/redis_6379 start
     sudo /etc/init.d/nginx restart
     sudo /etc/init.d/gunicorn restart
     sudo /etc/init.d/supervisord restart
@@ -231,6 +238,8 @@ else
     # echo commands from here
     set -x
 
+    sudo /etc/init.d/redis_6379 stop
+    sudo /etc/init.d/redis_6379 start
     sudo /etc/init.d/nginx restart
     sudo /etc/init.d/gunicorn restart
 fi
