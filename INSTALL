@@ -24,12 +24,12 @@ fi
 while true; do
     read -p "Install master or backup [m/b]? " mb
     case $mb in
-        [Mm]* )
+        m)
             redis_conf=redis.conf;
             supervisord_conf=supervisord.conf;
             nginx_conf=nginx.conf;
             break;;
-        [Bb]* )
+        b)
             redis_conf=redis_backup.conf;
             nginx_conf=nginx_backup.conf;
             read -p "Hostname of master install: " host
@@ -138,16 +138,31 @@ fi
 if ! id -u snoplusmon >/dev/null; then
     echo "Adding snoplusmon user..."
     sudo useradd -d /home/snoplusmon snoplusmon
-    if [ $mb == 'm' ] || [ $mb == 'M' ]; then
+    if [ $mb == 'm' ]; then
         sudo passwd snoplusmon
-    else
-        # set up password less SSH login for rsync
-        sudo -u snoplusmon -H bash -c "ssh-keygen"
-        sudo -u snoplusmon -H bash -c "ssh-copy-id $host"
-        temp=$(mktemp)
-        echo "* * * * * snoplusmon flock -n /tmp/rsync.lck rsync -av $host:/var/log/snoplus/ /var/log/snoplus" > $temp
-        sudo cp $temp /etc/cron.d/rsync
     fi
+fi
+
+if [ $mb == 'b']; then
+    temp=$(mktemp)
+    echo "* * * * * snoplusmon flock -n /tmp/rsync.lck rsync -av $host:/var/log/snoplus/ /var/log/snoplus" > $temp
+    sudo cp $temp /etc/cron.d/rsync
+
+    while true; do
+        read -p "Set up SSH key now (y/n)? " yn
+        case $yn in
+            [Yy]*)
+                # set up password less SSH login for rsync
+                set +e
+                sudo -u snoplusmon -H bash -c "ssh-keygen"
+                sudo -u snoplusmon -H bash -c "ssh-copy-id $host"
+                set -e
+            [Nn]*)
+                break;
+            *)
+                echo "Please answer yes or no.";;
+        esac
+    done
 fi
 
 # make sure nginx user exists
