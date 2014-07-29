@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -e; sudo -v || exit
 
-if ! hash git 2>/dev/null; then echo "Please install git."; fi
-if ! hash virtualenv 2>/dev/null; then echo "Please install virtualenv."; fi
-if ! hash gcc 2>/dev/null; then echo "Please install gcc."; fi
+if ! hash git 2>/dev/null; then echo "Please install git."; exit 1; fi
+if ! hash virtualenv 2>/dev/null; then echo "Please install virtualenv."; exit 1; fi
+if ! hash gcc 2>/dev/null; then echo "Please install gcc."; exit 1; fi
+if ! hash nginx 2>/dev/null; then echo "Please install nginx."; exit 1; fi
 
 if [ -f /etc/debian_version ]; then
     supervisord_init=supervisord_debian
@@ -132,7 +133,14 @@ fi
 # make sure snoplusmon user exists
 if ! id -u snoplusmon >/dev/null; then
     echo "Adding snoplusmon user..."
-    sudo useradd snoplusmon
+    sudo useradd -d snoplusmon
+    if [ $mb == 'm' ] || [ $mb == 'M' ]; then
+        sudo passwd snoplusmon
+    else
+        # set up password less SSH login for rsync
+        sudo -u snoplusmon -H -c 'yes "" | ssh-keygen'
+        sudo -u snoplusmon -H -c 'ssh-copy-id snotpenn01.sp.snolab.ca'
+    fi
 fi
 
 # make sure nginx user exists
@@ -163,6 +171,7 @@ fi
 
 sudo cp init/$nginx_init /etc/init.d/nginx
 add_service nginx
+sudo mkdir -p /etc/nginx
 sudo cp etc/$nginx_conf /etc/nginx/nginx.conf
 
 sudo mkdir -p /var/log/nginx
@@ -178,11 +187,17 @@ sudo cp etc/$redis_conf /etc/redis/6379.conf
 # add redis service
 add_service redis_6379
 
-# echo commands from here
-set -x
+if [ $mb == 'm' ] || [ $mb == 'M' ]; then
+    # echo commands from here
+    set -x
 
-sudo /etc/init.d/nginx restart
-sudo /etc/init.d/gunicorn restart
-if [[ ! -z "$supervisord_conf" ]]; then
+    sudo /etc/init.d/nginx restart
+    sudo /etc/init.d/gunicorn restart
     sudo /etc/init.d/supervisord restart
+else
+    # echo commands from here
+    set -x
+
+    sudo /etc/init.d/nginx restart
+    sudo /etc/init.d/gunicorn restart
 fi

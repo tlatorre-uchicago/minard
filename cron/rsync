@@ -1,1 +1,1 @@
-* * * * * snoplusmon flock -n /tmp/rsync.lck rsync -av snoplusmon@snotpenn01.sp.snolab.ca:/var/log/snoplus /var/log/snoplus
+* * * * * snoplusmon flock -n /tmp/rsync.lck rsync -av snoplusmon@snotpenn01.sp.snolab.ca:/var/log/snoplus/ /var/log/snoplus
