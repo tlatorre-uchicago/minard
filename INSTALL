@@ -21,12 +21,13 @@ else
     exit 1
 fi
 
+redis_conf=redis.conf;
+supervisord_conf=supervisord.conf;
+
 while true; do
     read -p "Install master or backup [m/b]? " mb
     case $mb in
         m)
-            redis_conf=redis.conf;
-            supervisord_conf=supervisord.conf;
             nginx_conf=nginx.conf;
             # create conf file for minard
             temp=$(mktemp)
@@ -34,7 +35,6 @@ while true; do
             sudo install -m 644 $temp /etc/minard.conf
             break;;
         b)
-            redis_conf=redis.conf;
             nginx_conf=nginx_backup.conf;
             read -p "Hostname of master install: " host
             break;;
