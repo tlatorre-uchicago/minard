@@ -5,13 +5,16 @@ if ! hash git 2>/dev/null; then echo "Please install git."; exit 1; fi
 if ! hash virtualenv 2>/dev/null; then echo "Please install virtualenv."; exit 1; fi
 if ! hash gcc 2>/dev/null; then echo "Please install gcc."; exit 1; fi
 if ! hash nginx 2>/dev/null; then echo "Please install nginx."; exit 1; fi
+if ! hash ntpd 2>/dev/null; then echo "Please install ntpd."; exit 1; fi
 
 if [ -f /etc/debian_version ]; then
     supervisord_init=supervisord_debian
     nginx_init=nginx_debian
+    # ntpd should already be running
 elif [ -f /etc/redhat-release ]; then
     supervisord_init=supervisord_redhat
     nginx_init=nginx_redhat
+    sudo chkconfig ntpd on
 else
     echo "Error! Couldn't determine Linux distribution!"
     echo "no /etc/debian_version or /etc/redhat-release file"
