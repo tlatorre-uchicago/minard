@@ -110,15 +110,20 @@ def post_heartbeat(host, name, auth=None):
     Sends a POST request every second to the monitoring server
     indicating that the process is still running.
     """
+    data = {'name': name, 'status': 'ok'}
+    try:
+        response = post('{host}/monitoring/heartbeat'.format(host=host), data, auth)
+    except urllib2.URLError:
+        print("Failed to send heartbeat.", file=sys.stderr)
+    else:
+        if response.strip() != 'ok':
+            print('POST got response {response}'.format(response=response), file=sys.stderr)
+
     timer = threading.Timer(1.0, post_heartbeat, args=(host, name, auth))
     # set the thread as a daemon to exit the program cleanly
     # when the main thread finishes
     timer.daemon = True
     timer.start()
-    data = {'name': name, 'status': 'ok'}
-    response = post('{host}/monitoring/heartbeat'.format(host=host), data, auth)
-    if response.strip() != 'ok':
-        raise Exception('POST got response {response}'.format(response=response))
 
 def set_up_root_logger(host, name, auth=None):
     """Sets up the root logger to send log messages to the monitoring server."""
