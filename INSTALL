@@ -143,7 +143,7 @@ if ! id -u snoplusmon >/dev/null; then
     fi
 fi
 
-if [ $mb == 'b']; then
+if [ $mb == 'b' ]; then
     temp=$(mktemp)
     echo "* * * * * snoplusmon flock -n /tmp/rsync.lck rsync -av $host:/var/log/snoplus/ /var/log/snoplus" > $temp
     sudo cp $temp /etc/cron.d/rsync
