@@ -63,7 +63,7 @@ def repeatfunc(func, times=None, *args):
         return starmap(func, repeat(args))
     return starmap(func, repeat(args, times))
 
-@retry((urllib2.URLError,socket.timeout), tries=4, delay=1, backoff=1)
+@retry((urllib2.URLError,socket.timeout), tries=10, delay=1, backoff=1)
 def post(url, data, auth=None, retries=10):
     """
     Sends a POST request containing `data` to url. `auth` should be a
@@ -103,7 +103,7 @@ class HTTPHandler(logging.Handler):
             data['notify'] = True
         response = post('{host}/monitoring/log'.format(host=self.host), data, self.auth)
         if response.strip() != 'ok':
-            raise Exception('POST got response {response}'.format(response=response))
+            raise RuntimeError('POST got response {response}'.format(response=response))
 
 def post_heartbeat(host, name, auth=None):
     """
