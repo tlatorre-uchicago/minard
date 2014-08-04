@@ -1,11 +1,31 @@
 #!/usr/bin/env bash
 set -e; sudo -v || exit
 
-if ! hash git 2>/dev/null; then echo "Please install git."; exit 1; fi
-if ! hash virtualenv 2>/dev/null; then echo "Please install virtualenv."; exit 1; fi
-if ! hash gcc 2>/dev/null; then echo "Please install gcc."; exit 1; fi
-if ! hash nginx 2>/dev/null; then echo "Please install nginx."; exit 1; fi
-if ! hash ntpd 2>/dev/null; then echo "Please install ntpd."; exit 1; fi
+check_install () {
+    for prog in $@
+    do
+        if ! hash $prog 2>/dev/null; then
+            echo "Please install $prog."
+            exit 1
+        fi
+    done
+}
+
+add_service () {
+    # adds an init script service to chkconfig or update-rc.d
+    if [ -f /etc/debian_version ]; then
+        sudo update-rc.d $1 defaults
+    elif [ -f /etc/redhat-release ]; then
+        sudo chkconfig --add $1
+        sudo chkconfig --level 2345 $1 on
+    else
+        echo "Error! Couldn't determine Linux distribution!"
+        echo "no /etc/debian_version or /etc/redhat-release file"
+        exit 1
+    fi
+}
+    
+check_install git virtualenv gcc nginx ntpd
 
 if [ -f /etc/debian_version ]; then
     supervisord_init=supervisord_debian
@@ -42,20 +62,6 @@ while true; do
     esac
 done
 
-add_service () {
-    # adds an init script service to chkconfig or update-rc.d
-    if [ -f /etc/debian_version ]; then
-        sudo update-rc.d $1 defaults
-    elif [ -f /etc/redhat-release ]; then
-        sudo chkconfig --add $1
-        sudo chkconfig --level 2345 $1 on
-    else
-        echo "Error! Couldn't determine Linux distribution!"
-        echo "no /etc/debian_version or /etc/redhat-release file"
-        exit 1
-    fi
-}
-    
 if [ ! -f /usr/local/bin/redis-server ]; then
     # install redis to /usr/local
     printf "Installing redis..."
@@ -152,7 +158,7 @@ if [ $mb == 'b' ]; then
     echo "* * * * * snoplusmon flock -n /tmp/rsync.lck rsync -av $host:/var/log/snoplus/ /var/log/snoplus" > $temp
     sudo install -m 644 $temp /etc/cron.d/rsync
 
-    # test password less SSH
+    # test password-less SSH
     sudo -u snoplusmon -H bash -c "ssh -o StrictHostKeyChecking=no -o NumberOfPasswordPrompts=0 $host echo hello"
 
     if [ $? -ne 0 ]; then
