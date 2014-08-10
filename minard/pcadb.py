@@ -165,5 +165,4 @@ def del_run_from_db(redis, run_number):
     p.zrem(RUN_INDEX, key)
     p.zrem(TIME_INDEX, key)
     return p.execute()
-
        

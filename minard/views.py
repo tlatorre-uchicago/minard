@@ -377,7 +377,4 @@ def pcatellie():
 def pca_run_detail(run_number):
     
     return render_template('pca_run_detail.html',
-                            run_number=run_number)      
-
-  
-     
+                            run_number=run_number)
