@@ -128,12 +128,16 @@ def add_run_to_db(redis, run_dict):
     key = 'pca-tellie-run-%s' % run_dict['run_number']
     p = redis.pipeline()
     p.hmset(key, run_dict)
+    p.expire(key, 604800)
     p.zadd(RUN_INDEX, key, float(run_dict['run_number']))
     p.zadd(TIME_INDEX, key, float(run_dict['run_time']))
     return p.execute()  
     
 def runs_after_time(redis, time, maxtime = '+inf'):
-    
+    '''
+    Returns Redis entries for all runs between time and maxtime. 
+    Requires Redis instance, start-time and maximum time.
+    '''
     keys = redis.zrangebyscore(TIME_INDEX, time, maxtime)
     p = redis.pipeline()
     for key in keys:
@@ -141,7 +145,10 @@ def runs_after_time(redis, time, maxtime = '+inf'):
     return p.execute()    
         
 def runs_after_run(redis, run, maxrun = '+inf'):
-    
+    '''
+    Returns Redis entries for all runs between run and maxrun. 
+    Requires Redis instance, start-run and maximum run.
+    '''
     keys = redis.zrangebyscore(RUN_INDEX, run, maxrun)
     p = redis.pipeline()
     for key in keys:
@@ -149,7 +156,9 @@ def runs_after_run(redis, run, maxrun = '+inf'):
     return p.execute()    
     
 def del_run_from_db(redis, run_number):
-    
+    '''
+    Delete run from Redis. Requires Redis instance and run number. 
+    '''
     key = 'pca-tellie-run-%s' % run_number
     p = redis.pipeline()
     p.delete(key)
