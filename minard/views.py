@@ -30,6 +30,12 @@ PROGRAMS = [Program('builder','builder1.sp.snolab.ca',None),
 def status():
     return render_template('status.html', programs=PROGRAMS)
 
+@app.route('/test_ajax')
+def test_ajax():
+    import sys
+    print("Hello world!",file=sys.stderr)
+    return jsonify(value='world',key='blah',this='that')
+
 @app.route('/get_status')
 def get_status():
     if 'name' not in request.args:
@@ -301,8 +307,15 @@ def metric():
 
 @app.route('/eca')
 def eca():
-    return render_template('eca.html')
+    return render_template('eca.html',runs=[(1000,'12:12','12:14', 'PDST', 'pass'), (2000,'13:02','13:10', 'TSLP', 'fail')])
  
+@app.route('/eca_run_detail')
+@app.route('/eca_run_detail/<run_number>')
+def eca_run_detail(run_number=1000):
+    
+    return render_template('eca_run_detail.html',
+                            run_number=run_number)      
+
 @app.route('/pcatellie', methods=['GET'])
 def pcatellie():
     

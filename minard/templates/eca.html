@@ -5,5 +5,42 @@
 {% endblock %}
 {% block body %}
     {{ super() }}
-    <h1>Coming soon!</h1>
+
+    <div class="container">
+    <table class="table">
+	<tr><th>Run Number</th><th>Run Time</th><th>Analysis Time</th><th>Type</th><th>Status</th></tr>
+	{% for num, runt,anat,type, status in runs %}
+	    <tr>
+		<td><a href="{{url_for("eca_run_detail",run=num)}}">{{ num }}</a></td>
+		<td>{{ runt }}</td>
+		<td>{{ anat }}</td>
+		<td>{{ type }}</td>
+		<td class="status">{{status}}</td>
+	    </tr>
+	{% endfor %}
+    </table>
+    </div>
+
+
+    <script>
+
+    function process_result(result)
+    {
+	alert(result['this']);
+    }
+
+    //$.getJSON($SCRIPT_ROOT + '/test_ajax', {'name': 'hello'}).done(process_result);
+
+    $(".status").each(function() {
+        if($(this).text() == 'pass') {
+		$(this).addClass("success");}
+        if($(this).text() == 'fail') {
+		$(this).addClass("danger");}
+	});
+
+    </script>
+
+
+
+
 {% endblock %}

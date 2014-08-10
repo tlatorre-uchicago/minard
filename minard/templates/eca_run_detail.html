@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+{% block title %}Channels{% endblock %}
+{% block head %}
+{{ super() }}
+<style>
+    #card table tr td {
+        font-size: 10px;
+        text-align: right;
+        width: 25px;
+        height: 18px;
+    }
+
+    #crate table tr td {
+        padding:2px;
+    }
+
+    .card-label-row {
+      padding-right: 5px;
+    }
+
+    .card-label-col {
+      text-align:center !important;
+    }
+</style>
+<meta charset="UTF-8">
+<script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bar-chart.js') }}"></script>
+<script src="{{ url_for('static', filename='js/crate.js') }}"></script>
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12" id="crate">
+            <h4>Crate View - Run {{ run_number }}</h4>
+        </div>
+    </div>
+</div>
+<script>
+    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
+
+    var crate = crate_view().scale(function() {return "#ff0";});
+    crate.click(function(d, i) {
+        card.crate(i);
+        d3.select('#card').call(card);
+        $('#card h4 small').text('Crate ' + i);
+    });
+
+
+
+    function update() {
+        $.getJSON($SCRIPT_ROOT + '/query', {name: '{{ name }}', stats: $('#stats').val()})
+            .done(function(result) {
+                d3.select('#crate').datum(result.value).call(crate);
+                d3.select('#card').datum(result.value).call(card);
+                success()
+            });
+    }
+
+    d3.select('#crate').datum([]).call(crate);
+    $("#crate9").after("<br>");
+    update();
+
+</script>
+<script>$('#nav-{{ name }}').attr('class','active');</script>
+{% endblock %}
