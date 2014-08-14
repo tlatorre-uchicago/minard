@@ -118,14 +118,14 @@
             <tbody>
                 {% for run in runs %}
                 <tr class="{{ boolclass(run["pca_status"]) }}">
-                    <td><a href="/monitoring/pca_run_detail/{{ run["run_number"] }}">{{ run["run_number"] }}</a></td>
+                    <td><a href="{{ url_for('pca_run_detail',run_number=run["run_number"]) }}">{{ run["run_number"] }}</a></td>
                     <td>{{ timefmt(run["run_time"]) }}</td>
                     <td>{{ timefmt(run["analyze_time"]) }}</td>
                     <td>{{ run["channel"] }}</td>
                     <td>{{ run["fiber_number"] }}</td>
-                    <td>{{ run["number_events"] }}</td>
-                    <td>{{ valuefmt(run["nhit"]) }}</td>
-                    <td>{{ valuefmt(run["av_hit"]) }}</td>
+                    <td>{{ run["number_events"]|int() }}</td>
+                    <td>{{ '%.2f' % run["nhit"]|float() }}</td>
+                    <td>{{ '%.2f' % run["av_hit"]|float() }}</td>
                     <td>{{  boolfmt(run["pca_status"]) }}</td>
                 </tr>
                 {% endfor %}

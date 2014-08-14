@@ -306,10 +306,6 @@ def eca():
 @app.route('/pcatellie', methods=['GET'])
 def pcatellie():
     
-    def valuefmt(value_string):
-        value = float(value_string)
-        return '%.2f' % value
-    
     def timefmt(time_string):
         return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(float(time_string)))
     
@@ -370,7 +366,6 @@ def pcatellie():
                            fiber_css_class=fiber_css_class,
                            start_run=start_run,
                            installed_only=installed_only,
-                           valuefmt=valuefmt
     )    
     
 @app.route('/pca_run_detail/<run_number>')
