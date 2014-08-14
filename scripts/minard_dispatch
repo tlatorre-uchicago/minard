@@ -45,10 +45,10 @@ TRIGGER_NAMES = \
 
 def post(host):
     """Posts the dispatcher name to redis every 20 seconds."""
+    redis.setex('dispatcher',host,60)
     timer = threading.Timer(20.0, post, args=[host])
     timer.daemon = True
     timer.start()
-    redis.setex('dispatcher',host,60)
 
 def push(host):
     """
