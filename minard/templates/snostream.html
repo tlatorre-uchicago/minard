@@ -127,7 +127,11 @@ function add_horizon(expressions, format, colors, extent)
         .data(expressions.map(metric), String)
       .enter().insert('div','.bottom')
         .attr('class', 'horizon')
-        .call(horizon);
+        .call(horizon)
+        .on('click', function(d, i) {
+            var domain = context.scale.domain();
+             window.open("{{ url_for('graph') }}?start=" + domain[0] + "&stop=" + domain[domain.length-1] + "&step=" + Math.floor(context.step/1000) + "&name=" + expressions[i],'_self');
+        });
 }
 
 add_horizon(TRIGGER_NAMES.slice(0,1),my_format);
