@@ -130,11 +130,13 @@ function add_horizon(expressions, format, colors, extent)
         .call(horizon)
         .on('click', function(d, i) {
             var domain = context.scale.domain();
-            var params = {start: domain[0].toISOString(),
-                          stop: domain[domain.length-1].toISOString(),
-                          step: Math.floor(context.step()/1000),
-                          name: expressions[i]}
-             window.open("{{ url_for('graph') }}?" + $.param(params), '_self');
+            var params = {
+                name: expressions[i],
+                start: domain[0].toISOString(),
+                stop: domain[domain.length-1].toISOString(),
+                step: Math.floor(context.step()/1000)
+            }
+            window.open("{{ url_for('graph') }}?" + $.param(params), '_self');
         });
 }
 
