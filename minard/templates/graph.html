@@ -38,17 +38,20 @@
                 '&now=' + new Date().toISOString() +
                 '&step=' + Math.floor(step),
                 function(data) {
-                //if (!data) return callback(new Error('unable to load data'));
-                //return callback(null,data.values);
-                //alert(format_data(data.values,start,stop,step)[0]['value']);
+                    if (!data) console.log('unable to load data');
+
+                    var data = format_data(data.values,start,stop,step);
+                    var dates = data.map(function(d) { return d['date']; });
+                    var scale = d3.time.scale().domain(dates);
                     moz_chart({
                         title: name,
                         area: false,
-                        data: format_data(data.values,start,stop,step),
+                        data: data,
                         width: $('#main').width(),
                         height: 250,
                         show_years: false,
                         xax_tick: 0,
+                        xax_format: scale.tickFormat(data.length),
                         y_extended_ticks: true,
                         target: "#main",
                         x_accessor:'date',
