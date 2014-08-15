@@ -52,7 +52,11 @@ def status():
 
 @app.route('/graph')
 def graph():
-    return render_template('graph.html')
+    name = request.args.get('name')
+    start = request.args.get('start')
+    stop = request.args.get('stop')
+    step = request.args.get('step',1,type=int)
+    return render_template('graph.html',name=name,start=start,stop=stop,step=step)
 
 @app.route('/get_status')
 def get_status():

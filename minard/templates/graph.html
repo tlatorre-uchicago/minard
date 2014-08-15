@@ -3,14 +3,66 @@
 {% block head %}
 {{ super() }}
 <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/metrics-graphics.css') }}">
-<script src="{{ url_for('static', filename='js/metrics-graphics.js') }}"></script>
+<script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+<script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
 {% endblock %}
 {% block body %}
 {{ super() }}
+<script src="{{ url_for('static', filename='js/metrics-graphics.js') }}"></script>
 <div class="container">
     <div class="row">
-        <div class="col-md-12" id="main">
+        <div class="col-md-12">
+            <div id="main"></div>
         </div>
     </div>
 </div>
+<script>
+    function format_data(values, start, stop, step)
+    {
+        var data = new Array();
+        for (var i=0; i < values.length; i++)
+        {
+            var date = moment(start);
+            date.add('seconds', step*i);
+            data.push({'date': date.toDate(), 'value': values[i]});
+        }
+        return data;
+    }
+
+    function add_graph(name, start, stop, step)
+    {
+        d3.json($SCRIPT_ROOT + '/metric' + 
+                '?expr=' + name +
+                '&start=' + start.toISOString() +
+                '&stop=' + stop.toISOString() +
+                '&now=' + new Date().toISOString() +
+                '&step=' + Math.floor(step),
+                function(data) {
+                //if (!data) return callback(new Error('unable to load data'));
+                //return callback(null,data.values);
+                //alert(format_data(data.values,start,stop,step)[0]['value']);
+                    moz_chart({
+                        title: name,
+                        area: false,
+                        data: format_data(data.values,start,stop,step),
+                        width: $('#main').width(),
+                        height: 250,
+                        show_years: false,
+                        xax_tick: 0,
+                        y_extended_ticks: true,
+                        target: "#main",
+                        x_accessor:'date',
+                        y_accessor:'value',
+                    });
+                });
+    }
+    moz_chart({title:"test",
+        data:[{'date':new Date(),'value':10}],
+        x_accessor:'date',
+        y_accessor:'value',
+        target:'#test',
+        width:600,
+        height:250});
+    add_graph("{{ name }}", moment("{{ start }}"), moment("{{ stop }}"), {{ step }});
+</script>
 {% endblock %}
