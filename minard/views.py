@@ -50,6 +50,10 @@ PROGRAMS = [Program('builder','builder1.sp.snolab.ca',
 def status():
     return render_template('status.html', programs=PROGRAMS)
 
+@app.route('/graph')
+def graph():
+    return render_template('graph.html')
+
 @app.route('/get_status')
 def get_status():
     if 'name' not in request.args:

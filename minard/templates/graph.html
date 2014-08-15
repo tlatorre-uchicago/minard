@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block title %}{% endblock %}
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/metrics-graphics.css') }}">
+<script src="{{ url_for('static', filename='js/metrics-graphics.js') }}"></script>
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12" id="main">
+        </div>
+    </div>
+</div>
+{% endblock %}
