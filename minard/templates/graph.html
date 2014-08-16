@@ -14,6 +14,8 @@
         <div class="col-md-12">
             <div id="main"></div>
         </div>
+        <div class="col-md-6"></div>
+        <div class="col-md-6" id="hist"></div>
     </div>
 </div>
 <script>
@@ -40,7 +42,8 @@
                 function(data) {
                     if (!data) console.log('unable to load data');
 
-                    var data = format_data(data.values,start,stop,step);
+                    var values = data.values;
+                    var data = format_data(values,start,stop,step);
                     var dates = data.map(function(d) { return d['date']; });
                     var scale = d3.time.scale().domain(dates);
                     moz_chart({
@@ -56,6 +59,18 @@
                         target: "#main",
                         x_accessor:'date',
                         y_accessor:'value',
+                    });
+
+                    var width = $('#hist').width();
+
+                    moz_chart({
+                        data: values,
+                        chart_type: 'histogram',
+                        width: width,
+                        height: width/1.6,
+                        bins: 50,
+                        bar_margin: 1,
+                        target: '#hist',
                     });
                 });
     }
