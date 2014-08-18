@@ -27,15 +27,24 @@ function histogram() {
 
             var svg = d3.select(this).selectAll("svg").data([1]);
 
-            svg.attr('opacity', values.length ? 1 : 0.5);
+            var genter = svg.enter().append('svg')
+                    .attr('width', width + margin.left + margin.right)
+                    .attr('height', height + margin.top + margin.bottom)
+                    .attr('pointer-events','all')
+                  .append('g')
+                    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            svg.selectAll('g').attr('opacity', values.length ? 1 : 0.25);
 
             if (values.length == 0)
             {
+                // no data available
                 var text = svg.selectAll('.missing-text').data([null]);
 
                 text.enter().append('text')
                     .attr('x', width/2)
                     .attr('y', height/2)
+                    .attr('opacity', 1.0)
                     .attr('text-anchor', 'middle')
                     .attr('dy', '0.5em')
                     .attr('class', 'missing-text')
@@ -46,23 +55,20 @@ function histogram() {
 
             svg.selectAll('.missing-text').remove();
 
-            var genter = svg.enter().append('svg')
-                    .attr('width', width + margin.left + margin.right)
-                    .attr('height', height + margin.top + margin.bottom)
-                    .attr('pointer-events','all')
-                  .append('g')
-                    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
+            // background rectangle
             genter.append("rect")
                 .attr("opacity",0)
                 .attr("width",width)
                 .attr("height",height);
 
+            // x-axis
             genter.append('g').attr('class', 'x axis').attr('id','x-axis')
                 .attr('transform', 'translate(0,' + height + ')');
 
+            // y-axis
             genter.append('g').attr('class', 'y axis').attr('id','y-axis');
 
+            // x label
             genter.append('text')
                 .attr('class', 'x label')
                 .attr('text-anchor', 'middle')
@@ -70,6 +76,7 @@ function histogram() {
                 .attr('y', height + margin.bottom)
                 .text(xlabel);
 
+            // y label
             genter.append('text')
                 .attr('class', 'y label')
                 .attr('text-anchor', 'end')
@@ -78,6 +85,9 @@ function histogram() {
                 .attr('transform', 'rotate(-90)')
                 .text(ylabel);
 
+            // save the dom element to access it later.
+            // The x scale is stored as element.__x to maintain state between updates.
+            // This is kinda hacky but I'm not sure of a better way.
             var element = this;
 
             draw();
@@ -132,6 +142,7 @@ function histogram() {
                 var x;
                 if (typeof element.__x === "undefined")
                 {
+                    // x scale doesn't exist yet, so create it
                     x = d3.scale.linear()
                         .range([0,width]);
 
@@ -144,6 +155,7 @@ function histogram() {
                     x = element.__x;
                 }
 
+                // bin the data
                 var data = d3.layout.histogram()
                     .bins(x.ticks(bins))
                     (values);
