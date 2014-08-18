@@ -12,6 +12,36 @@ import requests
 from collections import deque, namedtuple
 from timeseries import get_timeseries, get_interval
 
+TRIGGER_NAMES = \
+['100L',
+ '100M',
+ '100H',
+ '20',
+ '20LB',
+ 'ESUML',
+ 'ESUMH',
+ 'OWLN',
+ 'OWLEL',
+ 'OWLEH',
+ 'PULGT',
+ 'PRESCL',
+ 'PED',
+ 'PONG',
+ 'SYNC',
+ 'EXTA',
+ 'EXT2',
+ 'EXT3',
+ 'EXT4',
+ 'EXT5',
+ 'EXT6',
+ 'EXT7',
+ 'EXT8',
+ 'SRAW',
+ 'NCD',
+ 'SOFGT',
+ 'MISS']
+
+
 class Program(object):
     def __init__(self, name, machine=None, link=None, description=None, expire=10):
         self.name = name
@@ -292,11 +322,15 @@ def metric():
         trig, _ = expr.split('-')
         values = get_timeseries(expr,start,stop,step)
         counts = get_timeseries(trig,start,stop,step)
-        values = [float(a)/int(b) if a and b else 0 for a, b in zip(values,counts)]
+        values = [float(a)/int(b) if a and b else None for a, b in zip(values,counts)]
     else:
         values = get_timeseries(expr,start,stop,step)
         interval = get_interval(step)
-        values = map(lambda x: int(x)/interval if x else 0, values)
+        if expr in TRIGGER_NAMES:
+            # trigger counts are zero by default
+            values = map(lambda x: int(x)/interval if x else 0, values)
+        else:
+            values = map(lambda x: int(x)/interval if x else None, values)
 
     return jsonify(values=values)
 
