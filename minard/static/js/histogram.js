@@ -39,6 +39,13 @@ function histogram() {
             if (values.length == 0)
             {
                 // no data available
+                if (typeof(this.__x) == 'undefined')
+                {
+                    // no chart exists, add missing class
+                    // to display picture
+                    svg.classed('missing', true);
+                }
+
                 var text = svg.selectAll('.missing-text').data([null]);
 
                 text.enter().append('text')
@@ -53,6 +60,7 @@ function histogram() {
                 return;
             }
 
+            svg.classed('missing', false);
             svg.selectAll('.missing-text').remove();
 
             // background rectangle
