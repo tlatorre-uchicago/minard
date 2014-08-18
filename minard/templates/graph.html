@@ -19,6 +19,11 @@
     </div>
 </div>
 <script>
+    function isNumber(x)
+    {
+        return !isNaN(x) && (x != null);
+    }
+
     function format_data(values, start, stop, step)
     {
         var data = new Array();
@@ -43,13 +48,17 @@
                     if (!data) console.log('unable to load data');
 
                     var values = data.values;
-                    var data = format_data(values,start,stop,step);
-                    var dates = data.map(function(d) { return d['date']; });
+                    var chart_data = format_data(values,start,stop,step);
+                    var dates = chart_data.map(function(d) { return d['date']; });
                     var scale = d3.time.scale().domain(dates);
+
+                    var valid = values.filter(isNumber);
+
                     moz_chart({
                         title: name,
+                        chart_type: valid.length ? 'line' : 'missing-data',
                         area: false,
-                        data: data,
+                        data: chart_data,
                         interpolate: 'linear',
                         width: $('#main').width(),
                         height: 250,
@@ -66,7 +75,7 @@
 
                     moz_chart({
                         data: values,
-                        chart_type: 'histogram',
+                        chart_type: valid.length ? 'histogram' : 'missing-data',
                         width: width,
                         height: width/1.6,
                         bins: 50,
