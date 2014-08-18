@@ -25,39 +25,26 @@ function histogram() {
             if (height === null)
                 height = Math.round(width/1.6) - margin.top - margin.bottom;
 
-            if (typeof this.x === "undefined")
-            {
-                var x = d3.scale.linear()
-                .range([0,width]);
+            var svg = d3.select(this).selectAll("svg").data([1]);
 
-                if (domain !== null)
-                    x.domain(domain)
-                else
-                    x.domain([d3.min(values), d3.max(values)])
-                this.x = x;
+            svg.attr('opacity', values.length ? 1 : 0.5);
+
+            if (values.length == 0)
+            {
+                var text = svg.selectAll('.missing-text').data([null]);
+
+                text.enter().append('text')
+                    .attr('x', width/2)
+                    .attr('y', height/2)
+                    .attr('text-anchor', 'middle')
+                    .attr('dy', '0.5em')
+                    .attr('class', 'missing-text')
+                    .text("Data missing or currently unavailable.");
+
+                return;
             }
 
-            x = this.x;
-
-            var data = d3.layout.histogram()
-                .bins(x.ticks(bins))
-                (values);
-
-            var y = d3.scale.linear()
-                .domain([0,d3.max(data, function(d) { return d.y; })])
-                .range([height,0]);
-
-            this.y = y;
-
-            var x_axis = d3.svg.axis()
-                .scale(x)
-                .orient("bottom");
-
-            var y_axis = d3.svg.axis()
-                .scale(y)
-                .orient("left");
-
-            var svg = d3.select(this).selectAll("svg").data([1]);
+            svg.selectAll('.missing-text').remove();
 
             var genter = svg.enter().append('svg')
                     .attr('width', width + margin.left + margin.right)
@@ -66,19 +53,15 @@ function histogram() {
                   .append('g')
                     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            var element = this;
-
             genter.append("rect")
-                .attr("fill","white")
+                .attr("opacity",0)
                 .attr("width",width)
                 .attr("height",height);
 
             genter.append('g').attr('class', 'x axis').attr('id','x-axis')
-                .attr('transform', 'translate(0,' + height + ')')
-                .call(x_axis);
+                .attr('transform', 'translate(0,' + height + ')');
 
-            genter.append('g').attr('class', 'y axis').attr('id','y-axis')
-                .call(y_axis);
+            genter.append('g').attr('class', 'y axis').attr('id','y-axis');
 
             genter.append('text')
                 .attr('class', 'x label')
@@ -95,12 +78,14 @@ function histogram() {
                 .attr('transform', 'rotate(-90)')
                 .text(ylabel);
 
+            var element = this;
+
             draw();
 
             svg.selectAll('g').selectAll('rect,#x-axis,#y-axis')
                 .on('mousedown', function(d) { 
                     mouse_down = d3.mouse(element);
-                    var x_down = d3.scale.linear().domain(x.domain()).range([0,width]);
+                    var x_down = d3.scale.linear().domain(element.__x.domain()).range([0,width]);
 
                     var id = this.id;
 
@@ -112,10 +97,10 @@ function histogram() {
                                 var mouse = d3.mouse(element);
                                 if (id == 'x-axis') {
                                     var scale = (x_down(mouse_down[0])/x_down(mouse[0]))
-                                    x.domain([x_down.domain()[0],x_down.domain()[1]*scale]);
+                                    element.__x.domain([x_down.domain()[0],x_down.domain()[1]*scale]);
                                 } else {
                                     var dx = x_down.invert(mouse_down[0]) - x_down.invert(mouse[0]);
-                                    x.domain([x_down.domain()[0] + dx, x_down.domain()[1] + dx])
+                                    element.__x.domain([x_down.domain()[0] + dx, x_down.domain()[1] + dx])
                                 }
                                 draw();
                             }
@@ -126,10 +111,10 @@ function histogram() {
                                 var mouse = d3.mouse(element);
                                 if (id == 'x-axis') {
                                     var scale = (x_down(mouse_down[0])/x_down(mouse[0]))
-                                    x.domain([x_down.domain()[0],x_down.domain()[1]*scale]);
+                                    element.__x.domain([x_down.domain()[0],x_down.domain()[1]*scale]);
                                 } else {
                                     var dx = x_down.invert(mouse_down[0]) - x_down.invert(mouse[0]);
-                                    x.domain([x_down.domain()[0] + dx, x_down.domain()[1] + dx])
+                                    element.__x.domain([x_down.domain()[0] + dx, x_down.domain()[1] + dx])
                                 }
 
                                 if (on_scale_change !== null)
@@ -144,14 +129,24 @@ function histogram() {
                 });
 
             function draw() {
-                color_scale.domain(linspace(x.domain()[0],x.domain()[1],color_scale.range().length));
+                var x;
+                if (typeof element.__x === "undefined")
+                {
+                    x = d3.scale.linear()
+                        .range([0,width]);
 
+                    if (domain !== null)
+                        x.domain(domain)
+                    else
+                        x.domain([d3.min(values), d3.max(values)])
+                    element.__x = x;
+                } else {
+                    x = element.__x;
+                }
 
                 var data = d3.layout.histogram()
                     .bins(x.ticks(bins))
                     (values);
-
-                var bin_width = Math.floor(data[0].dx*(x.range()[1]-x.range()[0])/(x.domain()[1] - x.domain()[0])) - 1;
 
                 var y = d3.scale.linear()
                     .domain([0,d3.max(data, function(d) { return d.y; })])
@@ -164,6 +159,10 @@ function histogram() {
                 var y_axis = d3.svg.axis()
                     .scale(y)
                     .orient("left");
+
+                color_scale.domain(linspace(x.domain()[0],x.domain()[1],color_scale.range().length));
+
+                var bin_width = Math.floor(data[0].dx*(x.range()[1]-x.range()[0])/(x.domain()[1] - x.domain()[0])) - 1;
 
                 var g = svg.select('g')
 

@@ -11,7 +11,10 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-md-12" id="nhit">
+        <div class="col-md-6" id="nhit10">
+            <h2>NHit (10 seconds)</h2>
+        </div>
+        <div class="col-md-6" id="nhit60">
             <h2>NHit (60 seconds)</h2>
         </div>
     </div>
@@ -20,15 +23,16 @@
 <script>
     var chart = histogram().xlabel('NHit').margin({'left': 50}).bins(100);
 
-    function update_chart()
+    function update_chart(selector, seconds, update)
     {
-        $.getJSON($SCRIPT_ROOT + '/query', {'name': 'nhit', 'seconds': 60}, function(reply) {
-            d3.select('#nhit').datum(reply.value).call(chart);
+        $.getJSON($SCRIPT_ROOT + '/query', {'name': 'nhit', 'seconds': seconds}, function(reply) {
+            d3.select(selector).datum(reply.value).call(chart);
         });
-        setTimeout(function() { update_chart(); }, 10000);
+        setTimeout(function() { update_chart(selector, seconds, update); }, update*1000);
     }
 
-    update_chart();
+    update_chart('#nhit10', 10, 2);
+    update_chart('#nhit60', 60, 10);
 
     $("#nav-nhit").attr("class","active");
 </script>
