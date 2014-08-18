@@ -25,14 +25,12 @@ function histogram() {
             if (height === null)
                 height = Math.round(width/1.6) - margin.top - margin.bottom;
 
-            var svg = d3.select(this).selectAll("svg").data([1]);
+            var svg = d3.select(this).selectAll("svg").data([values]);
 
             var genter = svg.enter().append('svg')
                     .attr('width', width + margin.left + margin.right)
                     .attr('height', height + margin.top + margin.bottom)
-                    .attr('pointer-events','all')
-                  .append('g')
-                    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                    .attr('pointer-events','all');
 
             svg.selectAll('g').attr('opacity', values.length ? 1 : 0.25);
 
@@ -49,8 +47,8 @@ function histogram() {
                 var text = svg.selectAll('.missing-text').data([null]);
 
                 text.enter().append('text')
-                    .attr('x', width/2)
-                    .attr('y', height/2)
+                    .attr('x', width/2 + margin.left)
+                    .attr('y', height/2 + margin.top)
                     .attr('opacity', 1.0)
                     .attr('text-anchor', 'middle')
                     .attr('dy', '0.5em')
@@ -62,6 +60,9 @@ function histogram() {
 
             svg.classed('missing', false);
             svg.selectAll('.missing-text').remove();
+
+            var genter = svg.selectAll('g').data([values]).enter().append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             // background rectangle
             genter.append("rect")
