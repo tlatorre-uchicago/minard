@@ -8,6 +8,7 @@ function linspace(start, stop, num)
 
 function histogram() {
     var margin = {top: 20, right: 25, bottom: 50, left: 50},
+        log = false,
         width = null,
         height = null,
         xlabel = '',
@@ -104,7 +105,7 @@ function histogram() {
 
             draw();
 
-            svg.selectAll('g').selectAll('rect,#x-axis,#y-axis')
+            svg.selectAll('g').selectAll('rect,#x-axis')
                 .on('mousedown', function(d) { 
                     mouse_down = d3.mouse(element);
                     var x_down = d3.scale.linear().domain(element.__x.domain()).range([0,width]);
@@ -119,7 +120,9 @@ function histogram() {
                                 var mouse = d3.mouse(element);
                                 if (id == 'x-axis') {
                                     var scale = (x_down(mouse_down[0])/x_down(mouse[0]))
+                                    if (scale > 0) {
                                     element.__x.domain([x_down.domain()[0],x_down.domain()[1]*scale]);
+                                    }
                                 } else {
                                     var dx = x_down.invert(mouse_down[0]) - x_down.invert(mouse[0]);
                                     element.__x.domain([x_down.domain()[0] + dx, x_down.domain()[1] + dx])
@@ -133,7 +136,9 @@ function histogram() {
                                 var mouse = d3.mouse(element);
                                 if (id == 'x-axis') {
                                     var scale = (x_down(mouse_down[0])/x_down(mouse[0]))
+                                    if (scale > 0) {
                                     element.__x.domain([x_down.domain()[0],x_down.domain()[1]*scale]);
+                                    }
                                 } else {
                                     var dx = x_down.invert(mouse_down[0]) - x_down.invert(mouse[0]);
                                     element.__x.domain([x_down.domain()[0] + dx, x_down.domain()[1] + dx])
@@ -172,9 +177,15 @@ function histogram() {
                     .bins(x.ticks(bins))
                     (values);
 
-                var y = d3.scale.linear()
-                    .domain([0,d3.max(data, function(d) { return d.y; })])
-                    .range([height,0]);
+                if (log) {
+                    var y = d3.scale.log()
+                        .domain([.1,d3.max(data, function(d) { return d.y; })])
+                        .range([height,0]);
+                } else {
+                    var y = d3.scale.linear()
+                        .domain([0,d3.max(data, function(d) { return d.y; })])
+                        .range([height,0]);
+                }
 
                 var x_axis = d3.svg.axis()
                     .scale(x)
@@ -183,6 +194,11 @@ function histogram() {
                 var y_axis = d3.svg.axis()
                     .scale(y)
                     .orient("left");
+
+                if (log) {
+                    y_axis.tickFormat(function (d) {
+                        return y.tickFormat(4,d3.format(',d'))(d); });
+                }
 
                 color_scale.domain(linspace(x.domain()[0],x.domain()[1],color_scale.range().length));
 
@@ -224,6 +240,12 @@ function histogram() {
     chart.domain = function(value) {
         if (!arguments.length) return domain;
         domain = value;
+        return chart;
+    }
+
+    chart.log = function(value) {
+        if (!arguments.length) return log;
+        log = value;
         return chart;
     }
 
