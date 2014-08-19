@@ -157,14 +157,21 @@ function xAxis(args) {
         min_x = d3.min(args.data[0], function(d){return d[args.x_accessor]});
     }
     else if (args.chart_type == 'histogram'){
-        // max_x = 1;
-        // min_x = 0;
-        max_x = d3.max(args.data[0], function(d){return d[args.x_accessor]});
         min_x = d3.min(args.data[0], function(d){return d[args.x_accessor]});
+        max_x = d3.max(args.data[0], function(d){return d[args.x_accessor]});
         
         //force override xax_format
-        //todo revisit to see if this makes sense
-        args.xax_format = function(d) { return d; };
+        //todo revisit to see if this makes sense        
+        args.xax_format = function(f) {
+            if (f < 1.0) {
+                //don't scale tiny values
+                return args.yax_units + d3.round(f, args.decimals);
+            }
+            else {
+                var pf = d3.formatPrefix(f);
+                return args.xax_units + pf.scale(f) + pf.symbol;
+            }
+        }
     }
 
     min_x = args.min_x ? args.min_x : min_x;
@@ -529,13 +536,10 @@ function process_histogram(args){
                 .map(function(d){ 
                     return d[args.x_accessor];
                 });
-        } else if (typeof(our_data[0]) == 'number'){
-            // we are dealing with a simple array of numbers. No extraction needed.
-            extracted_data = our_data;
-        } else if (typeof(our_data[0]) == 'string'){
-            // convert string -> number
-            extracted_data = our_data.map(function(d) { return +d; });
-        }
+        } else {
+            extracted_data = our_data.map(Number);
+        } 
+
         var hist = d3.layout.histogram()
         if (args.bins){
             hist = hist.bins(args.bins);
@@ -605,6 +609,13 @@ function init(args) {
                 .attr('width', args.width)
                 .attr('height', args.height);
     }
+
+    var svg = d3.select(args.target).selectAll('svg');
+
+    // remove missing class
+    svg.classed('missing', false);
+    // remove missing text
+    svg.selectAll('.missing-text').remove();
 
     //add chart title if it's different than existing one
     chart_title(args);
@@ -1268,8 +1279,8 @@ charts.histogram = function(args) {
             }
 
             //highlight active bar
-            $(args.target + ' svg .bar :eq(' + i + ')')
-                .css('opacity', 0.8);
+            d3.selectAll($(args.target + ' svg .bar :eq(' + i + ')'))
+                .classed('active', true);
 
             //update rollover text
             if (args.show_rollover_text) {
@@ -1300,10 +1311,10 @@ charts.histogram = function(args) {
         var svg = d3.select(args.target + ' svg');
 
         return function(d, i) {
-            //reset all bars' opacity
-            $('.histogram .bar rect')
-                .css('opacity', 1);
-
+            //reset active bar
+            d3.selectAll($(args.target + ' svg .bar :eq(' + i + ')'))
+                .classed('active', false);
+            
             //reset active data point text
             svg.select('.active_datapoint')
                 .text('');
@@ -1428,12 +1439,21 @@ charts.missing = function(args) {
     this.args = args;
 
     this.init = function(args) {
-        if($(args.target).is(':empty')){
-            chart_title(args);
-            var svg = d3.select(args.target)
-                .append('svg')
-                .attr('width', args.width)
-                .attr('height', args.height);
+        chart_title(args);
+
+        // create svg if one doesn't exist
+        d3.select(args.target).selectAll('svg').data([args])
+          .enter().append('svg')
+            .attr('width', args.width)
+            .attr('height', args.height);
+
+        // delete child elements
+        d3.select(args.target).selectAll('svg *').remove()
+
+        var svg = d3.select(args.target).select('svg')
+
+        // add missing class
+        svg.classed('missing', true);
 
         svg.append('rect')
             .attr('class', 'missing-pane')
@@ -1442,15 +1462,17 @@ charts.missing = function(args) {
             .attr('width', args.width - (args.left * 2))
             .attr('height', args.height - (args.top * 2));
 
-        svg.append('text')
+        var missing_text = 'Data currently missing or unavailable';
+
+        // add missing text
+        svg.selectAll('.missing_text').data([missing_text])
+          .enter().append('text')
+            .attr('class', 'missing-text')
             .attr('x', args.width / 2)
             .attr('y', args.height / 2)
             .attr('dy', '.50em')
             .attr('text-anchor', 'middle')
-            .text(function(d) {
-                return 'Data currently missing or unavailable';
-            })  
-        }
+            .text(missing_text)  
 
         return this;
     }
