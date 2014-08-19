@@ -326,7 +326,7 @@ def metric():
     else:
         values = get_timeseries(expr,start,stop,step)
         interval = get_interval(step)
-        if expr in TRIGGER_NAMES:
+        if expr in TRIGGER_NAMES or expr in ('TOTAL','L1','L2','ORPHANS','BURSTS'):
             # trigger counts are zero by default
             values = map(lambda x: int(x)/interval if x else 0, values)
         else:

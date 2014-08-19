@@ -94,12 +94,31 @@ var L2_STREAMS = ['L1','L2','ORPHANS','BURSTS'];
 
 var si_format = d3.format('.2s');
 
-var my_format = function(n)
+function format_rate(n)
 {
-    if (n < 100 && n % 1 === 0)
+    if (n == null) {
+        return '-';
+    } else if (n < 100 && n % 1 === 0) {
         return n.toString();
-    else
+    } else {
         return si_format(n);
+    }
+}
+
+function format_int(n)
+{
+    if (n == null) {
+        return '-';
+    } else {
+        return n.toString();
+    }
+}
+
+function format(str)
+{
+    var fmt = d3.format(str);
+
+    return function(n) { return (n == null) ? '-' : fmt(n); };
 }
 
 function metric(name) {
@@ -142,15 +161,15 @@ function add_horizon(expressions, format, colors, extent)
         });
 }
 
-add_horizon(TRIGGER_NAMES.slice(0,1),my_format);
-add_horizon(L2_STREAMS,my_format);
-add_horizon(TRIGGER_NAMES.slice(1),my_format);
-add_horizon(["0\u03bd\u03b2\u03b2"],my_format);
-add_horizon(["TOTAL-nhit","TOTAL-charge","PULGT-nhit","PULGT-charge"]);
-add_horizon(["gtid"],d3.format('#0xx'),[]);
-add_horizon(["run"],d3.format(),[]);
-add_horizon(["subrun"],d3.format(),[],[0,100]);
-add_horizon(["heartbeat"],d3.format(),null,[0,4]);
+add_horizon(TRIGGER_NAMES.slice(0,1),format_rate);
+add_horizon(L2_STREAMS,format_rate);
+add_horizon(TRIGGER_NAMES.slice(1),format_rate);
+add_horizon(["0\u03bd\u03b2\u03b2"],format_rate);
+add_horizon(["TOTAL-nhit","TOTAL-charge","PULGT-nhit","PULGT-charge"], format('.2s'));
+add_horizon(["gtid"],format('#0xx'),[]);
+add_horizon(["run"],format_int,[]);
+add_horizon(["subrun"],format_int,[],[0,100]);
+add_horizon(["heartbeat"],format_int,null,[0,4]);
 
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
