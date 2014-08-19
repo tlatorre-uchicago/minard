@@ -232,7 +232,7 @@ def query():
         p = redis.pipeline()
         for i in range(seconds):
             p.lrange('ev:1:{ts}:nhit'.format(ts=now-i),0,-1)
-        nhit = sum(p.execute(),[])
+        nhit = map(int,sum(p.execute(),[]))
         return jsonify(value=nhit)
 
     if name == 'occupancy':
