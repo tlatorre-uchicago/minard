@@ -58,6 +58,9 @@ function histogram() {
                 return;
             }
 
+            // convert values -> number
+            values = values.map(Number);
+
             svg.classed('missing', false);
             svg.selectAll('.missing-text').remove();
 
