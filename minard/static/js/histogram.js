@@ -163,10 +163,19 @@ function histogram() {
                     x = d3.scale.linear()
                         .range([0,width]);
 
-                    if (domain !== null)
+                    if (domain !== null) {
                         x.domain(domain)
-                    else
-                        x.domain([d3.min(values), d3.max(values)])
+                    } else {
+                        values.sort(d3.ascending);
+
+                        var xmax = values[values.length-1];
+                        var q2 = d3.quantile(values,0.5);
+                        var dq = d3.quantile(values,0.75) - q2;
+                        xmax = xmax > q2 + 10*dq ? q2 + 10*dq : xmax;
+
+                        x.domain([d3.min(values), xmax])
+                    }
+
                     element.__x = x;
                 } else {
                     x = element.__x;
