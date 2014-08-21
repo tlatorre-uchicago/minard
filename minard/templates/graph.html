@@ -14,7 +14,7 @@
         <div class="col-md-12">
             <div id="main"></div>
         </div>
-        <div class="col-md-6"></div>
+        <div class="col-md-6" id="hist-log"></div>
         <div class="col-md-6" id="hist"></div>
     </div>
 </div>
@@ -81,6 +81,18 @@
                         bins: 50,
                         bar_margin: 1,
                         target: '#hist',
+                    });
+
+                    // log
+                    moz_chart({
+                        data: valid,
+                        y_scale_type: 'log',
+                        chart_type: valid.length ? 'histogram' : 'missing-data',
+                        width: width,
+                        height: width/1.6,
+                        bins: 50,
+                        bar_margin: 1,
+                        target: '#hist-log',
                     });
                 });
     }
