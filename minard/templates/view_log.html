@@ -41,6 +41,7 @@ var level_labels = {
     'WARNING' : '<span class="label label-warning label-block">Warning</span>',
     'ERROR'   : '<span class="label label-danger label-block">Error</span>',
     'DEBUG'   : '<span class="label label-default label-block">Debug</span>',
+    'UNKNOWN' : '<span class="label label-default label-block">???</span>',
 }
 
 function same_day(a, b)
@@ -78,8 +79,17 @@ function update_log(seek)
 
             if (mom.isValid())
             {
+                var label;
+                var level = $.trim(toks[2]);
+                if (level in level_labels)
+                {
+                    label = level_labels[level];
+                } else {
+                    label = level_labels['UNKNOWN'];
+                }
+
                 var p = $('<p>')
-                    .append(level_labels[$.trim(toks[2])])
+                    .append(label)
                     .append(' ')
                     .append(mom.format('hh:mm:ss'))
                     .append(' ')
