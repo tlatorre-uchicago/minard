@@ -15,6 +15,11 @@
         display: inline-block;
         min-width: 60px;
     }
+
+    .line {
+        border-bottom: 1px solid black;
+        margin-bottom: 10px;
+    }
 </style>
   <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/moment-timezone.min.js') }}"></script>
@@ -38,6 +43,13 @@ var level_labels = {
     'DEBUG'   : '<span class="label label-default label-block">Debug</span>',
 }
 
+function same_day(a, b)
+{
+    return (a.date() == b.date()) && (a.month() == b.month()) && (a.year() == b.year());
+}
+
+var _last_date = null;
+
 function update_log(seek)
 {
     if (typeof(seek) === 'undefined') seek = null;
@@ -51,6 +63,18 @@ function update_log(seek)
             var toks = line.split(' - ');
 
             var mom = moment(toks[0], 'YYYY-MM-DD hh:mm:ss,SSS');
+
+            if (_last_date == null)
+            {
+                _last_date = mom;
+            } else
+            {
+                if (!same_day(_last_date, mom))
+                {
+                    $('#log').prepend('<div class="line text-center">' + _last_date.format('MM/DD/YYYY') + '</div>');
+                    _last_date = mom;
+                }
+            }
 
             if (mom.isValid())
             {
@@ -70,10 +94,9 @@ function update_log(seek)
         $("#log p").slice(1000).remove();
         setTimeout(function() { update_log(obj.seek) },1000); // 1 second
     });
-}
+};
 
-update_log()
+update_log();
 </script>
 
-<script>$('#nav-view_log').attr('class','active');</script>
 {% endblock %}
