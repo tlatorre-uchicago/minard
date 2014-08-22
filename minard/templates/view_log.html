@@ -10,23 +10,62 @@
     .monospace {
         font-family:monospace;
     }
+
+    .label-block {
+        display: inline-block;
+        min-width: 60px;
+    }
 </style>
+  <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/moment-timezone.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/moment-timezone-data.js') }}"></script>
 {% endblock %}
 {% block body %}
 {{ super() }}
 <div class="col-md-12">
-    <div class="container word-wrap monospace well well-sm" id="log"></div>
+    <div class="container word-wrap monospace panel">
+        <div class="panel-body" id="log"></div>
+    </div>
 </div>
 
 <script>
+
+var level_labels = {
+    'SUCCESS' : '<span class="label label-success label-block">Success</span>',
+    'INFO'    : '<span class="label label-info label-block">Info</span>',
+    'WARNING' : '<span class="label label-warning label-block">Warning</span>',
+    'ERROR'   : '<span class="label label-danger label-block">Error</span>',
+    'DEBUG'   : '<span class="label label-default label-block">Debug</span>',
+}
+
 function update_log(seek)
 {
     if (typeof(seek) === 'undefined') seek = null;
 
     $.getJSON($SCRIPT_ROOT + '/tail?name={{ name }}&seek=' + seek).done(function(obj) {
+        var now = moment().tz('America/Toronto');
+
         for (var i=0; i < obj.lines.length; i++)
         {
-            $('#log').prepend('<p>' + obj.lines[i]);
+            var line = obj.lines[i];
+            var toks = line.split(' - ');
+
+            var mom = moment(toks[0], 'YYYY-MM-DD hh:mm:ss,SSS');
+
+            if (mom.isValid())
+            {
+                var p = $('<p>')
+                    .append(level_labels[$.trim(toks[2])])
+                    .append(' ')
+                    .append(mom.format('hh:mm:ss'))
+                    .append(' ')
+                    .append(toks.slice(3).join(' - '));
+
+                $('#log').prepend(p);
+            } else {
+                // print whole message
+                $('#log').prepend('<p>' + line);
+            }
         }
         $("#log p").slice(1000).remove();
         setTimeout(function() { update_log(obj.seek) },1000); // 1 second

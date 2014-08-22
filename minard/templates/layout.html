@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
     <head>
-        {% block head %}{% endblock %}
+        {% block head %}
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="">
@@ -19,6 +19,7 @@
         <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+        {% endblock %}
     </head>
     <body>
         <!-- $SCRIPT_ROOT for app location -->
