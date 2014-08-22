@@ -1,8 +1,10 @@
 {% extends "layout.html" %}
 {% block title %}{{ name }}{% endblock %}
 {% block head %}
-{{ super() }}
+<!-- metrics-graphics stylesheet goes above super() because we want bootstrap's style
+(which is linked in super()) to override it. -->
 <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/metrics-graphics.css') }}">
+{{ super() }}
 <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
 <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
 {% endblock %}
