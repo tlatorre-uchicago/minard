@@ -27,10 +27,12 @@
 {% endblock %}
 {% block body %}
 {{ super() }}
-<div class="col-md-12">
-    <div class="container word-wrap monospace panel">
-        <div class="panel-body" id="log"></div>
+<div class="container">
+    <div class="page-header">
+        <h1>{{ name}} log</h1>
     </div>
+
+    <div class="word-wrap monospace" id="log"></div>
 </div>
 
 <script>
