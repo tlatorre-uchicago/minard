@@ -11,6 +11,10 @@ from tools import total_seconds, parseiso
 import requests
 from collections import deque, namedtuple
 from timeseries import get_timeseries, get_interval
+import random
+import operator
+
+import pcadb
 
 TRIGGER_NAMES = \
 ['100L',
@@ -334,3 +338,59 @@ def metric():
 
     return jsonify(values=values)
 
+@app.route('/eca')
+def eca():
+    return render_template('eca.html')
+ 
+@app.route('/pcatellie', methods=['GET'])
+def pcatellie():
+    
+    def timefmt(time_string):
+        return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(float(time_string)))
+    
+    def boolfmt(bool_string):
+        bool_value = bool_string == '1'
+        return "Pass" if not bool_value else "Fail"
+    
+    def boolclass(bool_string):
+        bool_value = bool_string == '1'
+        return "success" if not bool_value else "danger"
+    
+    start_run = request.args.get("start_run", 0)
+    installed_only = request.args.get("installed_only", False)    
+    runs = pcadb.runs_after_run(redis, start_run)      
+    fibers = list()
+    for fiber in pcadb.FIBER_POSITION:
+        runs_for_fiber = [run for run in runs 
+                          if int(run["fiber_number"]) == fiber[0]]
+        sorted_runs = sorted(runs_for_fiber, 
+                             key=lambda run: (run["pca_status"] == "True", int(run["run_number"])),
+                             reverse=True)
+        pca_run = sorted_runs[0]["run_number"] if sorted_runs else ""  
+        pca_result = sorted_runs[0]["pca_status"] if sorted_runs else ""                   
+        fibers.append({'fiber_number': fiber[0],
+                       'node': fiber[1], 
+                       'ab': fiber[2], 
+                       'is_installed': fiber[3], 
+                       'is_dead': fiber[4],
+                       'fiber_type': fiber[5],
+                       'pca_run': pca_run,
+                       'pca_result': pca_result})
+            
+    # ['Fiber', 'Node', 'AB', 'IsInstalled', 'IsDead', 'Type'],
+       
+    return render_template('pcatellie.html',
+                           runs=runs,
+                           timefmt=timefmt,
+                           boolfmt=boolfmt,
+                           boolclass=boolclass,
+                           fibers=fibers,
+                           start_run=start_run,
+                           installed_only=installed_only,
+    )    
+    
+@app.route('/pca_run_detail/<run_number>')
+def pca_run_detail(run_number):
+    
+    return render_template('pca_run_detail.html',
+                            run_number=run_number)
