@@ -100,7 +100,7 @@ fi
 if [ ! -d /opt/minard/src/minard ]; then
     printf "Installing minard..."
     cd $VIRTUAL_ENV/src
-    git clone -q git@github.com:tlatorre-uchicago/minard.git
+    git clone -q git@github.com:snoplus/minard.git
     pip install -qq ./minard
     cd minard/doc
     make html
@@ -109,7 +109,7 @@ if [ ! -d /opt/minard/src/minard ]; then
 else
     printf "Updating minard..."
     cd $VIRTUAL_ENV/src/minard
-    git pull
+    git pull git@github.com:snoplus/minard.git master
     cd doc
     make html &>/dev/null
     rm -rf /opt/minard/www/static/doc
