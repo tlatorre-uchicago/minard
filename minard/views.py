@@ -316,24 +316,7 @@ def pcatellie():
     def boolclass(bool_string):
         bool_value = bool_string == '1'
         return "success" if not bool_value else "danger"
-  
-    def fiber_css_class(fiber):
-        """  Returns a css class name appropriate for the fiber """
-        # DEAD = dead fiber
-        # VACANT = not installed yet
-        # INSTALLED = installed but no data
-        # FAIL = no successful PCA yet
-        # SUCCES = successful PCA run in tha pocket
-        if fiber["is_dead"]:
-            return "pca-fiber-dead"
-        elif not fiber["is_installed"]:
-            return "pca-fiber-vacant"
-        elif fiber["pca_run"]:
-            if fiber["pca_result"] == "1":
-                return "pca-fiber-fail"
-            else:
-                return "pca-fiber-success"
-        return "pca-fiber-installed"    
+    
     start_run = request.args.get("start_run", 0)
     installed_only = request.args.get("installed_only", False)    
     runs = pcadb.runs_after_run(redis, start_run)      
@@ -356,14 +339,13 @@ def pcatellie():
                        'pca_result': pca_result})
             
     # ['Fiber', 'Node', 'AB', 'IsInstalled', 'IsDead', 'Type'],
-    
+       
     return render_template('pcatellie.html',
                            runs=runs,
                            timefmt=timefmt,
                            boolfmt=boolfmt,
                            boolclass=boolclass,
                            fibers=fibers,
-                           fiber_css_class=fiber_css_class,
                            start_run=start_run,
                            installed_only=installed_only,
     )    
