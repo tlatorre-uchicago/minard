@@ -16,16 +16,18 @@
 {% block body %}
 {{ super() }}
 <div class="col-md-10 col-md-offset-1">
-    <table class="table table-bordered table-condensed">
-        <tr>
-            <th>Status</th>
-            <th>Uptime</th>
-            <th>Name</th>
-            <th>Machine</th>
-            <th style="text-align:center">Log</th>
-            <th style="text-align:center">Link</th>
-            <th>Description</th>
-        </tr>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>Uptime</th>
+                <th>Name</th>
+                <th>Machine</th>
+                <th style="text-align:center">Log</th>
+                <th style="text-align:center">Link</th>
+                <th>Description</th>
+            </tr>
+        </thead>
         {% for program in programs %}
         <tr id="{{ program.name }}">
             <td id="status" />
