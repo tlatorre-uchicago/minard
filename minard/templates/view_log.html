@@ -85,11 +85,6 @@ var level_labels = {
     'UNKNOWN' : '<span class="label label-default label-unknown label-block">???</span>',
 }
 
-function same_day(a, b)
-{
-    return (a.date() == b.date()) && (a.month() == b.month()) && (a.year() == b.year());
-}
-
 var _last_date = null;
 
 function update_log(seek)
@@ -113,7 +108,7 @@ function update_log(seek)
                     _last_date = mom;
                 } else
                 {
-                    if (!same_day(_last_date, mom))
+                    if (!mom.isSame(_last_date, 'day'))
                     {
                         $('#log').prepend('<div class="line text-center">' + _last_date.format('MM/DD/YYYY') + '</div>');
                         _last_date = mom;
@@ -138,7 +133,7 @@ function update_log(seek)
 
                 $('#log').prepend(p);
 
-                if ((i == obj.lines.length-1) && !same_day(now,mom))
+                if ((i == obj.lines.length-1) && !mom.isSame(now, 'day'))
                 {
                     $('#log').prepend('<div class="line text-center">' + mom.format('MM/DD/YYYY') + '</div>');
                     _last_date = now;
