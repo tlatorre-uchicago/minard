@@ -26,6 +26,9 @@ var tzscale = (function() {
     ]
 
     function get_step(start, stop, n) {
+        // get the appropriate tick step length for an interval
+        // starting at start and ending at stop
+        // start and stop should be javascript Date objects
         var secs = (stop.getTime() - start.getTime())/1000; // seconds
 
         for (var i=0; i < intervals.length; i++) {
@@ -58,10 +61,12 @@ var tzscale = (function() {
         return result.add(add,unit === 'date' ? 'days' : unit);
     }
 
-    function tzscale()
-    {
+    function tzscale(zone) {
+        // d3.time.scale like object which returns ticks
+        // spaced nicely in a given timezone.
+        // zone should be a string which can be passed
+        // to moment.tz. See http://momentjs.com/timezone/docs/#/using-timezones/.
         var _scale = d3.time.scale();
-        var zone = null;
 
         function scale(x) {
             return _scale(x);
