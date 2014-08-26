@@ -26,6 +26,7 @@
   <script src="{{ url_for('static', filename='js/cubism.v1.js') }}"></script>
   <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/tzscale.js') }}"></script>
 {% endblock %}
 {% block body %}
 {{ super() }}
@@ -67,18 +68,40 @@
     $('#sudbury-time').text(moment().tz('America/Toronto').format('h:mm:ss'));
   },1000);
 
+var scale = tzscale().zone('America/Toronto');
+
 var size = $('#main').width();
-var context = cubism.context()
+var context = cubism.context(scale)
     .serverDelay(1e3)
     .clientDelay(1e3)
     .step({{ step }}*1000)
     .size(size);
 
+function format_seconds(date) {
+    return moment.tz(date, 'America/Toronto').format('hh:mm:ss');
+}
+
+function format_minutes(date) {
+    return moment.tz(date, 'America/Toronto').format('hh:mm');
+}
+
+function format_day(date) {
+    return moment.tz(date, 'America/Toronto').format('MMMM DD');
+}
+
+if (context.step() < 6e4) {
+    focus_format = format_seconds;
+} else if (context.step() < 864e5) {
+    focus_format = format_minutes;
+} else {
+    focus_format = format_day;
+}
+
 d3.select("#main").selectAll(".axis")
     .data(["top", "bottom"])
   .enter().append("div")
     .attr("class", function(d) { return d + " axis"; })
-    .each(function(d) { d3.select(this).call(context.axis().ticks(12).orient(d)); });
+    .each(function(d) { d3.select(this).call(context.axis().ticks(12).orient(d).focusFormat(focus_format)); });
 
 d3.select("#main").append("div")
     .attr("class", "rule")
