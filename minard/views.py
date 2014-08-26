@@ -78,7 +78,10 @@ PROGRAMS = [Program('builder','builder1.sp.snolab.ca',
                     description="builder deletion script"),
             Program('PCA','nino.physics.berkeley.edu',
                     link='http://snopluspmts.physics.berkeley.edu/pca',
-                    description="monitor PCA data")]
+                    description="monitor PCA data"),
+            Program('ECA','nino.physics.berkeley.edu',
+                    link='http://snopluspmts.physics.berkeley.edu/eca',
+                    description="monitor ECA data")]
 
 @app.route('/status')
 def status():
