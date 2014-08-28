@@ -211,12 +211,9 @@ def l2_filter():
 def detector():
     return render_template('detector.html')
 
-@app.route('/daq/<name>')
-def channels(name):
-    if name == 'cmos':
-        return render_template('channels.html', name=name, threshold=5000)
-    elif name == 'base':
-        return render_template('channels.html', name=name, threshold=80)
+@app.route('/daq')
+def channels():
+    return render_template('channels.html')
 
 @app.route('/alarms')
 def alarms():
