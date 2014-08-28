@@ -111,9 +111,10 @@ def get_status():
 
     return jsonify(status=redis.get('heartbeat:{name}'.format(name=name)),uptime=uptime)
 
-@app.route('/view_log/<name>')
-def view_log(name):
-    return render_template('view_log.html', name=name)
+@app.route('/view_log')
+def view_log():
+    name = request.args.get('name', '???')
+    return render_template('view_log.html',name=name)
 
 @app.route('/log', methods=['POST'])
 def log():
