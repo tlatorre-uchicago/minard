@@ -212,8 +212,8 @@ def detector():
     return render_template('detector.html')
 
 @app.route('/daq')
-def channels():
-    return render_template('channels.html')
+def daq():
+    return render_template('daq.html')
 
 @app.route('/alarms')
 def alarms():

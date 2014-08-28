@@ -91,10 +91,10 @@
 			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>DAQ <b class='caret'></b></a>
                             <ul class='dropdown-menu'>
                                 <li id='nav-cmos'>
-                                    <a href="{{ url_for('channels',name='cmos', threshold=5000) }}">CMOS Rates</a>
+                                    <a href="{{ url_for('daq',name='cmos', threshold=5000) }}">CMOS Rates</a>
                                 </li>
                                 <li id='nav-base'>
-                                    <a href="{{ url_for('channels',name='base', threshold=80) }}">Base Currents</a>
+                                    <a href="{{ url_for('daq',name='base', threshold=80) }}">Base Currents</a>
                                 </li>
                                 
                             </ul><!-- Dropdown PMTcal -->
