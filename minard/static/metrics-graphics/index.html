@@ -5,9 +5,9 @@
     <meta property="og:description" content="MetricsGraphics.js is a library optimized 
         for visualizing and laying out time-series data. It provides a simple way to produce 
         common types of charts in a principled, consistent and responsive way." />
-    <meta property="og:image" content="http://mozilla.github.io/metrics-graphics/images/og-logo.png" />
+    <meta property="og:image" content="http://metricsgraphicsjs.org/images/og-logo.png" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="http://mozilla.github.io/metrics-graphics/" />
+    <meta property="og:url" content="http://metricsgraphicsjs.org/" />
     <meta property="og:site_name" content="MetricsGraphics.js" />
     
     <title>MetricsGraphics.js</title>
@@ -45,6 +45,7 @@
         <div id='content-body'>
             <div id='head'>
                 <ul>
+                    <li><a href='https://github.com/mozilla/metrics-graphics#quick-start-guide'>Download</a></li>
                     <li><a href='https://github.com/mozilla/metrics-graphics'>Code</a></li>
                     <li><a href='https://github.com/mozilla/metrics-graphics/issues'>Issues</a></li>
                     <li class='divider'>|</li>
@@ -57,13 +58,13 @@
 
             <div id='description'>
                 <p><i>MetricsGraphics.js</i> is a library optimized for visualizing and 
-                laying out time-series data. At just 16KB in size, it provides a simple 
+                laying out time-series data. At just 20KB in size (minified), it provides a simple 
                 way to produce common types of charts in a principled, consistent and 
                 responsive way. The library currently supports a wide variety of line 
                 charts, as demonstrated below. Take a look at 
-                <a href='https://github.com/mozilla/metrics-graphics/wiki'>the wiki</a> 
-                for more. The data here is synthetic and is generated using the included 
-                <i>make_fake_data.py</i> script.</p>
+                <a href='https://github.com/mozilla/metrics-graphics#quick-start-guide'>
+                the project's page on GitHub</a> for more. The data here is synthetic and 
+                is generated using the included <i>make_fake_data.py</i> script.</p>
             </div>
 
             <div id='torso'>
@@ -88,7 +89,7 @@
                     </div>
                     <div class='col-lg-8'>
                         <div class='row'>
-                            <div class='col-lg-12 gr' id='fake_users3'></div>
+                            <div class='col-lg-12 gr extended-y-ticks' id='fake_users3'></div>
                        </div>
                     </div>
                 </div>
@@ -103,7 +104,7 @@
                     </div>
                     <div class='col-lg-8'>
                         <div class='row'>
-                            <div class='col-lg-12 gr' id='confidence_band'></div>
+                            <div class='col-lg-12 gr extended-x-ticks' id='confidence_band'></div>
                        </div>
                     </div>
                 </div>
@@ -212,7 +213,6 @@
                     </div>
                 </div>
 
-
                 <div class='row trunk-section'>
                     <div class='col-lg-4'>
                         <h2 class='trunk-title'>Min / Max Numbers on Y Axis</h2>
@@ -228,13 +228,34 @@
                     </div>
                 </div>
 
+                <div class='row trunk-section'>
+                    <div class='col-lg-4'>
+                        <h2 class='trunk-title'>Histograms</h2>
+                        <p>We use histograms a lot, particularly in <a href='https://wiki.mozilla.org/Telemetry' target='_blank'>Telemetry</a>. We'll be 
+                        adding histogram binning as a helper soon using an algorithm such as 
+                        <a href="http://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule">
+                        this one</a>.
+                        </p>
+                    </div>
+                    <div class='col-lg-8'>
+                        <div class='row'>
+                            <div class='col-lg-6 gr extended-y-ticks' id='histogram1'></div>
+                            <div class='col-lg-6 gr extended-y-ticks' id='histogram2'></div>
+                        </div>
+                        <div class='row'>
+                            <div class='col-lg-6 gr extended-y-ticks' id='histogram3'></div>
+                            <div class='col-lg-6 gr extended-y-ticks' id='histogram4'></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class='row wip light-bg'>
                     <div class='col-lg-12 text-center'>
                         <i class="fa fa-wrench"></i> <strong>Works in Progress</strong> 
                         subject to drastic change
                     </div>
                 </div>
-
+                
                 <div class='row trunk-section'>
                     <div class='col-lg-4'>
                         <h2 class='trunk-title'>Scatterplots</h2>
@@ -253,8 +274,8 @@
 
         </div>
         <div id='footer'>
-            <a href="http://metricsgraphicsjs.org">MetricsGraphics.js 0.1</a>
-            <br />Made by <a href='https://github.com/almossawi'>Ali Almossawi</a> and 
+            <a href="http://metricsgraphicsjs.org">MetricsGraphics.js 0.3</a>
+            <br />Created by <a href='https://github.com/almossawi'>Ali Almossawi</a> and 
             <a href="https://github.com/hamilton">Hamilton Ulmer</a> at 
             <a href='https://github.com/mozilla'>Mozilla</a>
             <br />2014 &middot; Shared under a <a href="http://www.mozilla.org/MPL/2.0/">

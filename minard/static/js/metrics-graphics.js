@@ -1,1 +1,1 @@
-../metrics-graphics-0.2.0/js/metrics-graphics.js
+../metrics-graphics/js/metrics-graphics.js

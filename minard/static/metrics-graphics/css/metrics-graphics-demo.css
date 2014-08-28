@@ -1,12 +1,3 @@
-#long svg .y-axis line,
-#fake_users3 svg .y-axis line {
-    opacity: 0.1;
-}
-
-#confidence_band svg .x-axis line {
-    opacity: 0.1;
-}
-
 .wip {
     font-size: 15px;
     margin-top: 60px;

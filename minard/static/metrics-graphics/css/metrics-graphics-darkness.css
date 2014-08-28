@@ -21,6 +21,14 @@ a:visited {
     fill: #ff0000;
 }
 
+.area4-color {
+    fill: #f8b128;
+}
+
+.area5-color {
+    fill: #f7f7f7;
+}
+
 .baselines line {
     stroke: #fff;
 }
@@ -55,20 +63,34 @@ circle {
     fill: #fff;
 }
 
+h2.chart_title span {
+    color: #f1f1f1;
+}
+
 #head {
     color: #f1f1f1;
 }
 
-.markers line {
-    stroke: #fff;
+.histogram .axis path,
+.histogram .axis line {
+    opacity: 0.5;
+    stroke: #ccc;
 }
 
-.markers text {
+.histogram .bar rect {
+    fill: #d8b307;
+}
+
+.histogram .bar rect.active {
+    fill: #b3960f;
+}
+
+.histogram .bar text {
     fill: #fff;
 }
 
-h2.chart_title span {
-    color: #f1f1f1;
+.histogram .axis .tick line {
+    opacity: 0.3;
 }
 
 .light-bg {
@@ -87,12 +109,48 @@ h2.chart_title span {
     stroke: #ff0000;
 }
 
+.line4-color {
+    stroke: #f8b128;
+}
+
+.line5-color {
+    stroke: #f7f7f7;
+}
+
+.line1-legend-color {
+    color: #ffd300;
+}
+
+.line2-legend-color {
+    color: #18ff00;
+}
+
+.line3-legend-color {
+    color: #ff0000;
+}
+
+.line4-legend-color {
+    color: #f8b128;
+}
+
+.line5-legend-color {
+    color: #f7f7f7;
+}
+
 #logo g path {
     fill: #e8e8e8;
 }
 
 .main-area-solid svg .main-area {
     fill: #52491f;
+}
+
+.markers line {
+    stroke: #fff;
+}
+
+.markers text {
+    fill: #fff;
 }
 
 .missing {
@@ -130,7 +188,8 @@ text {
 }
 
 .x-axis text,
-.y-axis text {
+.y-axis text,
+.histogram .axis text {
     fill: #fff;
 }
 
@@ -141,7 +200,6 @@ text {
 .year-marker line {
     stroke: #fff;
 }
-
 
 /*
     CSS from http://bootswatch.com/slate
