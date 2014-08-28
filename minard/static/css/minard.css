@@ -39,10 +39,6 @@ svg {
     -webkit-transition: fill-opacity 250ms linear;
 }
 
-.axis path {
-    display: none;
-}
-
 .axis line {
     stroke: #000;
     shape-rendering: crispEdges;
