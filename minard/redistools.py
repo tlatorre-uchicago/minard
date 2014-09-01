@@ -39,8 +39,9 @@ for card=0,16 do
         end
     end
 end
+
 if n > 0 then
-    return string.format('%.2f',sum/n)
+    return string.format('%g',sum/n)
 else
     return nil
 end
@@ -63,7 +64,12 @@ for card=0,16 do
         end
     end
 end
-return max
+
+if max == nil then
+    return max
+else
+    return string.format('%g', max)
+end
 """
 
 _hmincrby = redis.register_script(HMINCRBY)
@@ -76,7 +82,19 @@ def maxcrate(key, crate, client=None):
     return _maxcrate(keys=[key], args=[crate], client=client)
 
 def avgcrate(key, crate, client=None):
-    """Averages the hash fields for channels in a crate."""
+    """
+    Averages the hash fields for channels in a crate.
+
+    Example:
+        >>> redis.hmset('spam', {3584: 1, 3589: 100, 9728: 1e6})
+        True
+        >>> avgcrate('spam', 7)
+        '50.5'
+        >>> avgcrate('spam',19)
+        '1e+06'
+        >>> avgcrate('spam',0)
+        None
+    """
     return _avgcrate(keys=[key], args=[crate], client=client)
 
 def hmincrby(key, mapping, client=None):
@@ -107,6 +125,6 @@ def hmdiv(result, a, b, fields, client=None):
         >>> hmdiv('c','a','b', ['a','b'])
         1L
         >>> redis.hgetall('c')
-        {'a': '0.5', 'b': 1}
+        {'a': '0.5', 'b': '1'}
     """
     return _hmdiv(keys=[result,a,b], args=fields, client=client)
