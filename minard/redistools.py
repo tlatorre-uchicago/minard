@@ -3,7 +3,7 @@ from itertools import chain
 
 redis = StrictRedis()
 
-HMINCR = """
+HMINCRBY = """
 local k
 for i, v in ipairs(ARGV) do
     if i % 2 == 1 then
@@ -24,10 +24,10 @@ end
 return true
 """
 
-_hmincr = redis.register_script(HMINCR)
+_hmincrby = redis.register_script(HMINCRBY)
 _hmdiv = redis.register_script(HMDIV)
 
-def hmincr(key, mapping):
+def hmincrby(key, mapping, client=None):
     """
     Increment multiple fields in the hash stored at `key`.
 
@@ -40,9 +40,9 @@ def hmincr(key, mapping):
         {'a': '10', 'b': '2'}
     """
     args = chain.from_iterable(mapping.items())
-    return _hmincr(keys=[key],args=args)
+    return _hmincrby(keys=[key], args=args, client=client)
 
-def hmdiv(result, a, b, fields):
+def hmdiv(result, a, b, fields, client=None):
     """
     Divide multiple fields in the hash stored at `a` by
     fields in `b` and store the result in `result`.
@@ -57,4 +57,4 @@ def hmdiv(result, a, b, fields):
         >>> redis.hgetall('c')
         {'a': '0.5', 'b': 1}
     """
-    return _hmdiv(keys=[result,a,b], args=fields)
+    return _hmdiv(keys=[result,a,b], args=fields, client=client)
