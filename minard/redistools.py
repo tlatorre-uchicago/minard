@@ -99,7 +99,6 @@ def avgcrate(key, crate, client=None):
     """
     Averages the hash fields for channels in a crate, not counting
     any missing or 0 values.
-    """
 
     Example:
         >>> redis.hmset('spam', {3584: 1, 3589: 100, 9728: 1e6})
