@@ -71,13 +71,35 @@ _hmdiv = redis.register_script(HMDIV)
 _avgrange = redis.register_script(AVGRANGE)
 _maxrange = redis.register_script(MAXRANGE)
 
+def maxcard(key, crate, card, client=None):
+    """
+    Returns the maximum field value for channels in card `card`
+    and crate `crate`.
+    """
+    start = crate << 9 + card << 5
+    stop = start + 32
+    return _maxrange(keys=[key], args=[start,stop], client=client)
+
 def maxcrate(key, crate, client=None):
     """Returns the maximum field value for channels in `crate`."""
-    return _maxrange(keys=[key], args=[crate << 9, crate << 10], client=client)
+    start = crate << 9
+    stop = start + 16*32
+    return _maxrange(keys=[key], args=[start,stop], client=client)
+
+def avgcard(key, crate, card, client=None):
+    """
+    Returns the average field value for channels in card `card`
+    and crate `crate`, not counting missing or 0 values.
+    """
+    start = crate << 9 + card << 5
+    stop = start + 32
+    return _avgrange(keys=[key], args=[start,stop], client=client)
 
 def avgcrate(key, crate, client=None):
     """
-    Averages the hash fields for channels in a crate.
+    Averages the hash fields for channels in a crate, not counting
+    any missing or 0 values.
+    """
 
     Example:
         >>> redis.hmset('spam', {3584: 1, 3589: 100, 9728: 1e6})
@@ -89,7 +111,9 @@ def avgcrate(key, crate, client=None):
         >>> avgcrate('spam',0)
         None
     """
-    return _avgrange(keys=[key], args=[crate << 9, crate << 10], client=client)
+    start = crate << 9
+    stop = start + 16*32
+    return _avgrange(keys=[key], args=[start,stop], client=client)
 
 def hmincrby(key, mapping, client=None):
     """
