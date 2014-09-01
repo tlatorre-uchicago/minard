@@ -24,19 +24,16 @@ end
 return true
 """
 
-AVGCRATE = """
-local crate = tonumber(ARGV[1])
+AVGRANGE = """
+local start = tonumber(ARGV[1])
+local stop = tonumber(ARGV[2])
 local n = 0
 local sum = 0
-for card=0,16 do
-    for channel=0,32 do
-        -- i = crate << 9 | card << 5 | channel
-        local i = crate*16*32 + 32*card + channel
-        local v = redis.call('HGET', KEYS[1], i)
-        if v then
-            sum = sum + tonumber(v)
-            n = n + 1
-        end
+for i=start,stop do
+    local v = redis.call('HGET', KEYS[1], i)
+    if v then
+        sum = sum + tonumber(v)
+        n = n + 1
     end
 end
 
@@ -47,20 +44,17 @@ else
 end
 """
 
-MAXCRATE = """
-local crate = tonumber(ARGV[1])
+MAXRANGE = """
+local start = tonumber(ARGV[1])
+local stop = tonumber(ARGV[2])
 local max = nil
-for card=0,16 do
-    for channel=0,32 do
-        -- i = crate << 9 | card << 5 | channel
-        local i = crate*16*32 + 32*card + channel
-        local v = redis.call('HGET', KEYS[1], i)
-        if v then
-            v = tonumber(v)
+for i=start, stop do
+    local v = redis.call('HGET', KEYS[1], i)
+    if v then
+        v = tonumber(v)
 
-            if max == nil or v > max then
-                max = v
-            end
+        if max == nil or v > max then
+            max = v
         end
     end
 end
@@ -74,12 +68,12 @@ end
 
 _hmincrby = redis.register_script(HMINCRBY)
 _hmdiv = redis.register_script(HMDIV)
-_avgcrate = redis.register_script(AVGCRATE)
-_maxcrate = redis.register_script(MAXCRATE)
+_avgrange = redis.register_script(AVGRANGE)
+_maxrange = redis.register_script(MAXRANGE)
 
 def maxcrate(key, crate, client=None):
     """Returns the maximum field value for channels in `crate`."""
-    return _maxcrate(keys=[key], args=[crate], client=client)
+    return _maxrange(keys=[key], args=[crate << 9, crate << 10], client=client)
 
 def avgcrate(key, crate, client=None):
     """
@@ -95,7 +89,7 @@ def avgcrate(key, crate, client=None):
         >>> avgcrate('spam',0)
         None
     """
-    return _avgcrate(keys=[key], args=[crate], client=client)
+    return _avgrange(keys=[key], args=[crate << 9, crate << 10], client=client)
 
 def hmincrby(key, mapping, client=None):
     """
