@@ -24,8 +24,60 @@ end
 return true
 """
 
+AVGCRATE = """
+local crate = tonumber(ARGV[1])
+local n = 0
+local sum = 0
+for card=0,16 do
+    for channel=0,32 do
+        -- i = crate << 9 | card << 5 | channel
+        local i = crate*16*32 + 32*card + channel
+        local v = redis.call('HGET', KEYS[1], i)
+        if v then
+            sum = sum + tonumber(v)
+            n = n + 1
+        end
+    end
+end
+if n > 0 then
+    return string.format('%.2f',sum/n)
+else
+    return nil
+end
+"""
+
+MAXCRATE = """
+local crate = tonumber(ARGV[1])
+local max = nil
+for card=0,16 do
+    for channel=0,32 do
+        -- i = crate << 9 | card << 5 | channel
+        local i = crate*16*32 + 32*card + channel
+        local v = redis.call('HGET', KEYS[1], i)
+        if v then
+            v = tonumber(v)
+
+            if max == nil or v > max then
+                max = v
+            end
+        end
+    end
+end
+return max
+"""
+
 _hmincrby = redis.register_script(HMINCRBY)
 _hmdiv = redis.register_script(HMDIV)
+_avgcrate = redis.register_script(AVGCRATE)
+_maxcrate = redis.register_script(MAXCRATE)
+
+def maxcrate(key, crate, client=None):
+    """Returns the maximum field value for channels in `crate`."""
+    return _maxcrate(keys=[key], args=[crate], client=client)
+
+def avgcrate(key, crate, client=None):
+    """Averages the hash fields for channels in a crate."""
+    return _avgcrate(keys=[key], args=[crate], client=client)
 
 def hmincrby(key, mapping, client=None):
     """
