@@ -26,7 +26,8 @@ return true
 
 AVGRANGE = """
 local start = tonumber(ARGV[1])
-local stop = tonumber(ARGV[2])
+-- lua for loops are [start,stop]
+local stop = tonumber(ARGV[2]) - 1
 local n = 0
 local sum = 0
 for i=start,stop do
@@ -38,7 +39,7 @@ for i=start,stop do
 end
 
 if n > 0 then
-    return string.format('%g',sum/n)
+    return string.format('%.15g',sum/n)
 else
     return nil
 end
@@ -46,7 +47,8 @@ end
 
 MAXRANGE = """
 local start = tonumber(ARGV[1])
-local stop = tonumber(ARGV[2])
+-- lua for loops are [start,stop]
+local stop = tonumber(ARGV[2]) - 1
 local max = nil
 for i=start, stop do
     local v = redis.call('HGET', KEYS[1], i)
@@ -62,7 +64,7 @@ end
 if max == nil then
     return max
 else
-    return string.format('%g', max)
+    return string.format('%.15g', max)
 end
 """
 
@@ -76,7 +78,7 @@ def maxcard(key, crate, card, client=None):
     Returns the maximum field value for channels in card `card`
     and crate `crate`.
     """
-    start = crate << 9 + card << 5
+    start = (crate << 9) + (card << 5)
     stop = start + 32
     return _maxrange(keys=[key], args=[start,stop], client=client)
 
@@ -91,7 +93,7 @@ def avgcard(key, crate, card, client=None):
     Returns the average field value for channels in card `card`
     and crate `crate`, not counting missing or 0 values.
     """
-    start = crate << 9 + card << 5
+    start = (crate << 9) + (card << 5)
     stop = start + 32
     return _avgrange(keys=[key], args=[start,stop], client=client)
 
