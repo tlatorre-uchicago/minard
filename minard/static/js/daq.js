@@ -76,6 +76,8 @@ function metric(context, name, crate, card, channel, method) {
 }
 
 var context = create_context('#tscrate');
+var colors = colorbrewer['YlOrRd'][3];
+var scale = d3.scale.threshold().domain([0.001,0.002]).range(colors);
 
 function create_horizons() {
     var source = $('#data-source').val();
@@ -87,7 +89,17 @@ function create_horizons() {
         crate_metrics[i] = metric(context, source, i, null, null, method);
     }
 
-    var horizon = context.horizon().height(20);
+    var horizon = context.horizon()
+        .height(20)
+        .colors(colors.concat(colors))
+        .extent(scale.domain())
+        .format(function(n) {
+            if (n == null)
+                return '-';
+            else
+                return d3.format('.2s')(n);
+            }
+        );
 
     // add time series
     var horizons = d3.select('#tscrate').selectAll('.horizon').remove();
@@ -102,10 +114,49 @@ function create_horizons() {
 
 create_horizons();
 
-var threshold=1000;
+var default_thresholds = {
+    cmos: [100,2e3],
+    base: [10, 80],
+    occupancy: [0.001, 0.002]
+}
 
-var colors = colorbrewer['YlOrRd'][3];
-var scale = d3.scale.threshold().domain([0.001,0.002]).range(colors);
+function set_thresholds(lo, hi) {
+    $('#threshold-lo').val(lo)
+    $('#threshold-hi').val(hi)
+}
+
+function set_default_thresholds(source) {
+    var thresholds = default_thresholds[source];
+    set_thresholds(thresholds[0],thresholds[1]);
+}
+
+function setup() {
+    var source = $('#data-source').val();
+
+    set_default_thresholds(source);
+
+    if (source == 'cmos') {
+        card.format(d3.format('.2s'));
+    } else if (source == "occupancy") {
+        card.format(d3.format('.0e'));
+    } else {
+        card.format(d3.format());
+    }
+}
+
+var card = card_view()
+    .scale(scale);
+
+var crate = crate_view()
+    .scale(scale)
+    .click(function(d, i) {
+        card.crate(i);
+        d3.select('#card').call(card);
+        $('#card h4 small').text('Crate ' + i);
+        $('#carousel').carousel('next');
+    });
+
+setup();
 
 $('#data-source').change(function() {
     var source = $('#data-source').val();
@@ -116,6 +167,7 @@ $('#data-source').change(function() {
     } else {
         card.format(d3.format());
     }
+    set_default_thresholds(source);
     update();
     create_horizons();
 });
@@ -125,6 +177,7 @@ $('#threshold-lo').keypress(function(e) {
         scale.domain([$('#threshold-lo').val(),scale.domain()[1]]);
         d3.select("#crate").call(crate);
         d3.select("#card").call(card);
+        create_horizons();
     }
 });
 
@@ -133,22 +186,9 @@ $('#threshold-hi').keypress(function(e) {
         scale.domain([scale.domain()[0],$('#threshold-hi').val()]);
         d3.select("#crate").call(crate);
         d3.select("#card").call(card);
+        create_horizons();
     }
 });
-
-var card = card_view()
-    .threshold(threshold)
-    .scale(scale);
-
-var crate = crate_view()
-    .threshold(threshold)
-    .scale(scale)
-    .click(function(d, i) {
-        card.crate(i);
-        d3.select('#card').call(card);
-        $('#card h4 small').text('Crate ' + i);
-        $('#carousel').carousel('next');
-    });
 
 var interval = 5000;
 
