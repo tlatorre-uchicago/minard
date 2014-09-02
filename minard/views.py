@@ -10,7 +10,7 @@ import json
 from tools import total_seconds, parseiso
 import requests
 from collections import deque, namedtuple
-from timeseries import get_timeseries, get_interval
+from timeseries import get_timeseries, get_interval, get_hash_timeseries
 import random
 import operator
 
@@ -312,7 +312,7 @@ def metric_hash():
     start -= dt
     stop -= dt
 
-    values = get_timeseries_hash(start,stop,step,crate,card,channel,method)
+    values = get_hash_timeseries(name,start,stop,step,crate,card,channel,method)
     return jsonify(values=values)
 
 @app.route('/metric')

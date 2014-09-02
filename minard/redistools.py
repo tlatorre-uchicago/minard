@@ -15,6 +15,18 @@ end
 return true
 """
 
+HMINCRBYFLOAT = """
+local k
+for i, v in ipairs(ARGV) do
+    if i % 2 == 1 then
+        k = v
+    else
+        redis.call('HINCRBYFLOAT', KEYS[1], k, tonumber(v))
+    end
+end
+return true
+"""
+
 HMINCR = """
 for i, v in ipairs(ARGV) do
     redis.call('HINCRBY', KEYS[1], v, 1)
@@ -85,6 +97,7 @@ end
 """
 
 _hmincrby = redis.register_script(HMINCRBY)
+_hmincrbyfloat = redis.register_script(HMINCRBYFLOAT)
 _hmincr = redis.register_script(HMINCR)
 _hdivh = redis.register_script(HDIVH)
 _hdivk = redis.register_script(HDIVK)
@@ -148,6 +161,21 @@ def hmincrby(key, mapping, client=None):
     """
     args = chain.from_iterable(mapping.items())
     return _hmincrby(keys=[key], args=args, client=client)
+
+def hmincrbyfloat(key, mapping, client=None):
+    """
+    Increment multiple fields in the hash stored at `key`.
+
+    Example:
+        >>> redis.hmset('spam', {'a': 0, 'b': 1})
+        True
+        >>> hmincrbyfloat('spam', {'a': 10, 'b': 1})
+        1L
+        >>> redis.hgetall('spam')
+        {'a': '10.0', 'b': '2.0'}
+    """
+    args = chain.from_iterable(mapping.items())
+    return _hmincrbyfloat(keys=[key], args=args, client=client)
 
 def hmincr(key, fields, client=None):
     """

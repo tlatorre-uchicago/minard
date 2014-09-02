@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import numpy as np
 from redis import Redis
 import time
-from minard.redistools import hmincrby, hdivh
+from minard.redistools import hmincrby, hmincrbyfloat, hdivh, hmincr
 from minard.timeseries import HASH_INTERVALS, HASH_EXPIRE
 
 CMOS_ID = 1310720
@@ -59,6 +59,8 @@ def orca_consumer(port):
     while True:
         id, rec = pull.recv_pyobj()
 
+        now = int(time.time())
+
         if id == CMOS_ID:
             crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
                 parse_cmos(rec)
@@ -91,7 +93,7 @@ def orca_consumer(port):
 
             for interval in HASH_INTERVALS:
                 key = 'ts:%i:%i:cmos' % (interval, now//interval)
-                hmincrby(key + ':sum', hash, client=p)
+                hmincrbyfloat(key + ':sum', hash, client=p)
                 hmincr(key + ':count', hash.keys(), client=p)
                 hdivh(key, key + ':sum', key + ':count', hash.keys(), client=p)
                 p.expire(key, HASH_EXPIRE*interval)

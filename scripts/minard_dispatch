@@ -7,7 +7,7 @@ from collections import defaultdict
 import zmq
 import threading
 from minard.timeseries import INTERVALS, EXPIRE, HASH_INTERVALS, HASH_EXPIRE
-from minard.redistools import hmincrby
+from minard.redistools import hmincrby, hdivk
 
 redis = Redis()
 
@@ -116,7 +116,7 @@ def pull():
                 p.incrby(key + ':count', cache['TOTAL'])
                 p.expire(key + ':hits', interval)
                 p.expire(key + ':count', interval)
-                hdivk(key + ':occupancy', key + ':hits', key + ':count', event_cache.keys())
+                hdivk(key + ':occupancy', key + ':hits', key + ':count', event_cache.keys(), client=p)
                 p.expire(key + ':occupancy', HASH_EXPIRE*interval)
 
             p.incrby('ev:60:%i:count' % (ts//60),cache['TOTAL'])
