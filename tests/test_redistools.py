@@ -24,6 +24,13 @@ class TestRedisTools(unittest.TestCase):
         redis.delete('blah')
 
         redis.hmset('spam', self.hash)
+        redis.set('foo', 2)
+
+    def test_hdivk(self):
+        hdivk('result', 'spam', 'foo', self.hash.keys())
+        result = redis.hgetall('result')
+        for k, v in result.iteritems():
+            self.assertAlmostEqual(float(v), self.hash[int(k)]/2)
 
     def test_hmincr(self):
         hmincr('spam', self.hash.keys())
@@ -38,7 +45,7 @@ class TestRedisTools(unittest.TestCase):
 
             vals = [v for v in iter_crate(self.hash,crate) if v != 0]
 
-            self.assertAlmostEqual(avg, sum(vals)/len(vals),places=4)
+            self.assertAlmostEqual(avg, sum(vals)/len(vals))
 
     def test_maxcrate(self):
         self.assertEqual(maxcrate('blah',0),None)
@@ -47,7 +54,7 @@ class TestRedisTools(unittest.TestCase):
 
             vals = [v for v in iter_crate(self.hash,crate) if v != 0]
 
-            self.assertAlmostEqual(max_, max(vals),places=4)
+            self.assertAlmostEqual(max_, max(vals))
 
     def test_maxcard(self):
         self.assertEqual(maxcard('blah',0,0),None)
@@ -58,7 +65,7 @@ class TestRedisTools(unittest.TestCase):
             print(type(v))
             max_ = float(v)
             values = [v for v in iter_card(self.hash,crate,card) if v != 0]
-            self.assertAlmostEqual(max_, max(values),places=4)
+            self.assertAlmostEqual(max_, max(values))
 
     def test_avgcard(self):
         self.assertEqual(avgcard('blah',0,0),None)
@@ -68,4 +75,4 @@ class TestRedisTools(unittest.TestCase):
             print(type(v))
             avg = float(v)
             values = [v for v in iter_card(self.hash,crate,card) if v != 0]
-            self.assertAlmostEqual(avg, sum(values)/len(values),places=4)
+            self.assertAlmostEqual(avg, sum(values)/len(values))

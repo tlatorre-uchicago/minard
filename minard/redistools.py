@@ -22,10 +22,19 @@ end
 return true
 """
 
-HMDIV = """
+HDIVH = """
 for i, v in ipairs(ARGV) do
     local n = tonumber(redis.call('HGET', KEYS[2], v))
     local d = tonumber(redis.call('HGET', KEYS[3], v))
+    redis.call('HSET', KEYS[1], v, n/d)
+end
+return true
+"""
+
+HDIVK = """
+local d = tonumber(redis.call('GET', KEYS[3]))
+for i, v in ipairs(ARGV) do
+    local n = tonumber(redis.call('HGET', KEYS[2], v))
     redis.call('HSET', KEYS[1], v, n/d)
 end
 return true
@@ -77,7 +86,8 @@ end
 
 _hmincrby = redis.register_script(HMINCRBY)
 _hmincr = redis.register_script(HMINCR)
-_hmdiv = redis.register_script(HMDIV)
+_hdivh = redis.register_script(HDIVH)
+_hdivk = redis.register_script(HDIVK)
 _avgrange = redis.register_script(AVGRANGE)
 _maxrange = redis.register_script(MAXRANGE)
 
@@ -153,7 +163,7 @@ def hmincr(key, fields, client=None):
     """
     return _hmincr(keys=[key], args=fields, client=client)
 
-def hmdiv(result, a, b, fields, client=None):
+def hdivh(result, a, b, fields, client=None):
     """
     Divide multiple fields in the hash stored at `a` by
     fields in `b` and store the result in `result`.
@@ -163,9 +173,26 @@ def hmdiv(result, a, b, fields, client=None):
         True
         >>> redis.hmset('b', {'a': 2, 'b': 2})
         True
-        >>> hmdiv('c','a','b', ['a','b'])
+        >>> hdivh('c','a','b', ['a','b'])
         1L
         >>> redis.hgetall('c')
         {'a': '0.5', 'b': '1'}
     """
-    return _hmdiv(keys=[result,a,b], args=fields, client=client)
+    return _hdivh(keys=[result,a,b], args=fields, client=client)
+
+def hdivk(result, a, b, fields, client=None):
+    """
+    Divide multiple fields in the hash stored at `a` by
+    the value in key `b` and store the result in `result`.
+
+    Example:
+        >>> redis.hmset('a', {'a': 1, 'b': 2})
+        True
+        >>> redis.set('b', '2')
+        True
+        >>> hdivk('c','a','b', ['a','b'])
+        1L
+        >>> redis.hgetall('c')
+        {'a': '0.5', 'b': '1'}
+    """
+    return _hdivk(keys=[result,a,b], args=fields, client=client)

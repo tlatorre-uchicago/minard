@@ -111,11 +111,13 @@ def pull():
                 p.expire(redis_key,600)
 
             for interval in HASH_INTERVALS:
-                hmincrby('ts:%i:%i:hits' % (interval, ts//interval), event_cache,
-                         client=p)
-                p.incrby('ts:%i:%i:count' % (interval, ts//interval), cache['TOTAL'])
-                p.expire('ts:%i:%i:hits' % (interval, ts//interval), interval*HASH_EXPIRE)
-                p.expire('ts:%i:%i:count' % (interval, ts//interval), interval*HASH_EXPIRE)
+                key = 'ts:%i:%i' % (interval, ts//interval)
+                hmincrby(key + ':hits', event_cache, client=p)
+                p.incrby(key + ':count', cache['TOTAL'])
+                p.expire(key + ':hits', interval)
+                p.expire(key + ':count', interval)
+                hdivk(key + ':occupancy', key + ':hits', key + ':count', event_cache.keys())
+                p.expire(key + ':occupancy', HASH_EXPIRE*interval)
 
             p.incrby('ev:60:%i:count' % (ts//60),cache['TOTAL'])
             p.expire('ev:60:%i:count' % (ts//60),600)
