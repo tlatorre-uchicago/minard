@@ -1,5 +1,6 @@
 from redis import Redis
 import bisect
+from redistools import maxcard, avgcard, maxcrate, avgcrate
 
 redis = Redis()
 
@@ -26,7 +27,7 @@ def get_hash_interval(step):
     return HASH_INTERVALS[bisect.bisect_right(HASH_INTERVALS,step)-1]
 
 def get_interval(step):
-return INTERVALS[bisect.bisect_right(INTERVALS,step)-1]
+    return INTERVALS[bisect.bisect_right(INTERVALS,step)-1]
 
 def get_hash_timeseries(name, start, stop, step, crate, card=None,
                         channel=None, method='avg', type=None):
@@ -48,29 +49,30 @@ def get_hash_timeseries(name, start, stop, step, crate, card=None,
     p = redis.pipeline()
     for i in range(start, stop, step):
         key = 'ts:%i:%i:%s' % (interval, i//interval, name)
+
         if card is None:
             # crate
             if method == 'max':
-                cratemax(key, crate, client=p)
+                maxcrate(key, crate, client=p)
             else:
-                crateavg(key, crate, client=p)
+                avgcrate(key, crate, client=p)
         elif channel is None:
             # card
             if method == 'max':
-                cardmax(key, crate, card, client=p)
+                maxcard(key, crate, card, client=p)
             else:
-                cardavg(key, crate, card, client=p)
+                avgcard(key, crate, card, client=p)
         else:
             # channel
             i = crate*16*32 + card*32 + channel
             p.hget(key, i)
 
-        values = p.execute()
+    values = p.execute()
 
-        if type is None:
-            return values
+    if type is None:
+        return values
 
-        return map(type, values)
+    return map(type, values)
 
 def get_timeseries(name, start, stop, step, type=None):
     """
@@ -81,7 +83,9 @@ def get_timeseries(name, start, stop, step, type=None):
 
     p = redis.pipeline()
     for i in range(start, stop, step):
-        p.get('ts:{interval}:{ts}:{name}'.format(interval=interval,ts=i//interval,name=name))
+        key = 'ts:%i:%i:%s' % (interval,i//interval,name)
+        p.get(key)
+
     values = p.execute()
 
     if type is None:
