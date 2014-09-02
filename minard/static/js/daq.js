@@ -1,23 +1,41 @@
 var threshold=1000;
-var card = card_view().threshold(threshold);
 
 var colors = colorbrewer['YlOrRd'][3];
-var scale = d3.scale.threshold().domain([0,0.001,0.1]).range(colors);
+var scale = d3.scale.threshold().domain([0.001,0.002]).range(colors);
 
-card.scale(scale);
+$('#data-source').change(function() {
+    update();
+});
+
+$('#threshold-lo').keypress(function(e) {
+    if (e.which == 13) {
+        scale.domain([$('#threshold-lo').val(),scale.domain()[1]]);
+    }
+});
+
+$('#threshold-hi').keypress(function(e) {
+    if (e.which == 13) {
+        scale.domain([scale.domain()[0],$('#threshold-hi').val()]);
+    }
+});
+
+var card = card_view()
+    .threshold(threshold)
+    .scale(scale);
+
+var crate = crate_view()
+    .threshold(threshold)
+    .scale(scale)
+    .click(function(d, i) {
+        card.crate(i);
+        d3.select('#card').call(card);
+        $('#card h4 small').text('Crate ' + i);
+        $('#carousel').carousel('next');
+    });
 
 if (threshold > 1000) {
     card = card.format(d3.format('.2s'));
 }
-
-var crate = crate_view().threshold(threshold);
-crate.click(function(d, i) {
-    card.crate(i);
-    d3.select('#card').call(card);
-    $('#card h4 small').text('Crate ' + i);
-})
-
-crate.scale(scale);
 
 $('#threshold').val(crate.threshold());
 
