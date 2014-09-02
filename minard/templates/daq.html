@@ -2,9 +2,53 @@
 {% block title %}Channels{% endblock %}
 {% block head %}
     {{ super() }}
+    <style>
+        .carousel-control.right, .carousel-control.left {
+            background-image: none;
+        }
+    </style>
 {% endblock %}
 {% block body %}
     {{ super() }}
+    <div id="carousel" class="carousel slide" data-ride="carousel"
+     data-interval="">
+        <ol class="carousel-indicators">
+            <li data-target="#carousel" data-slide-to="0" class="active"></li>
+            <li data-target="#carousel" data-slide-to="1"></li>
+        </ol>
+
+        <div class="carousel-inner">
+            <div class="item active">
+                <!-- first slide -->
+                <div class="row">
+                    <div class="col-md-12" id="crate">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                    </div>
+                    <div class="col-md-6">
+                    </div>
+                </div>
+            </div>
+            <div class="item">
+                <!-- second slide -->
+                <div id="card">
+            </div>
+        </div>
+
+        <a class="left carousel-control" href="#carousel" role="button"
+         data-slide="prev">
+            <span class="glyphicon glyphicon-chevron-left"></span>
+        </a>
+        <a class="right carousel-control" href="#carousel" role="button"
+         data-slide="next">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+        </a>
+    </div>
+
+
+<!--
     <div class="container">
         <div class="row">
             <div class="col-md-5" id="crate">
@@ -30,6 +74,7 @@
             </div>
         </div>
     </div>
+-->
 {% endblock %}
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>

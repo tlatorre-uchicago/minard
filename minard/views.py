@@ -292,6 +292,29 @@ def get_alarm():
 
     return jsonify(alarms=alarms,latest=count-1)
 
+@app.route('/metric_hash')
+def metric_hash():
+    """Returns the time series for argument `names` as a JSON list."""
+    name = request.args['name']
+    start = request.args.get('start', type=parseiso)
+    stop = request.args.get('stop', type=parseiso)
+    now_client = request.args.get('now', type=parseiso)
+    step = request.args.get('step', type=int)
+    crate = request.args.get('crate', type=int)
+    card = request.args.get('card', None, type=int)
+    channel = request.args.get('channel', None, type=int)
+    method = request.args.get('method', 'avg')
+
+    now = int(time.time())
+
+    # adjust for clock skew
+    dt = now_client - now
+    start -= dt
+    stop -= dt
+
+    values = get_timeseries_hash(start,stop,step,crate,card,channel,method)
+    return jsonify(values=values)
+
 @app.route('/metric')
 def metric():
     """Returns the time series for argument `expr` as a JSON list."""
