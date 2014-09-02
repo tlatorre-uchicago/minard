@@ -15,6 +15,13 @@ end
 return true
 """
 
+HMINCR = """
+for i, v in ipairs(ARGV) do
+    redis.call('HINCRBY', KEYS[1], v, 1)
+end
+return true
+"""
+
 HMDIV = """
 for i, v in ipairs(ARGV) do
     local n = tonumber(redis.call('HGET', KEYS[2], v))
@@ -69,6 +76,7 @@ end
 """
 
 _hmincrby = redis.register_script(HMINCRBY)
+_hmincr = redis.register_script(HMINCR)
 _hmdiv = redis.register_script(HMDIV)
 _avgrange = redis.register_script(AVGRANGE)
 _maxrange = redis.register_script(MAXRANGE)
@@ -123,13 +131,27 @@ def hmincrby(key, mapping, client=None):
     Example:
         >>> redis.hmset('spam', {'a': 0, 'b': 1})
         True
-        >>> hmincr('spam', {'a': 10, 'b': 1})
+        >>> hmincrby('spam', {'a': 10, 'b': 1})
         1L
         >>> redis.hgetall('spam')
         {'a': '10', 'b': '2'}
     """
     args = chain.from_iterable(mapping.items())
     return _hmincrby(keys=[key], args=args, client=client)
+
+def hmincr(key, fields, client=None):
+    """
+    Increment multiple fields in the hash stored at `key` by 1.
+
+    Example:
+        >>> redis.hmset('spam', {'a': 0, 'b': 0})
+        True
+        >> hmincr('spam', ['a'])
+        1L
+        >>> redis.hgetall('spam')
+        {'a': '1', 'b': '0'}
+    """
+    return _hmincr(keys=[key], args=fields, client=client)
 
 def hmdiv(result, a, b, fields, client=None):
     """

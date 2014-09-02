@@ -6,7 +6,8 @@ from dispatch import Dispatch, unpack_trigger_type, unpack_header, unpack_pmt_re
 from collections import defaultdict
 import zmq
 import threading
-from minard.timeseries import INTERVALS, EXPIRE
+from minard.timeseries import INTERVALS, EXPIRE, HASH_INTERVALS, HASH_EXPIRE
+from minard.redistools import hmincrby
 
 redis = Redis()
 
@@ -108,6 +109,13 @@ def pull():
                 redis_key = 'ev:60:%i:pmt:%s' % (ts//60,key)
                 p.incrby(redis_key,value)
                 p.expire(redis_key,600)
+
+            for interval in HASH_INTERVALS:
+                hmincrby('ts:%i:%i:hits' % (interval, ts//interval), event_cache,
+                         client=p)
+                p.incrby('ts:%i:%i:count' % (interval, ts//interval), cache['TOTAL'])
+                p.expire('ts:%i:%i:hits' % (interval, ts//interval), interval*HASH_EXPIRE)
+                p.expire('ts:%i:%i:count' % (interval, ts//interval), interval*HASH_EXPIRE)
 
             p.incrby('ev:60:%i:count' % (ts//60),cache['TOTAL'])
             p.expire('ev:60:%i:count' % (ts//60),600)

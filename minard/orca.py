@@ -8,6 +8,8 @@ from datetime import datetime, timedelta
 import numpy as np
 from redis import Redis
 import time
+from minard.redistools import hmincrby, hmdiv
+from minard.timeseries import HASH_INTERVALS, HASH_EXPIRE
 
 CMOS_ID = 1310720
 BASE_ID = 1048576
@@ -61,6 +63,8 @@ def orca_consumer(port):
             crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
                 parse_cmos(rec)
 
+            hash = {}
+
             p = redis.pipeline()
             for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
                 for j, value in enumerate(map(int,counts[i])):
@@ -79,15 +83,27 @@ def orca_consumer(port):
                         except ZeroDivisionError as e:
                             print 'ZeroDivisonError %s' % e
                             continue
+                        hash[index] = rate
                         p.setex('cmos:%i:value' % index, int(rate), EXPIRE)
 
                     p.setex('cmos:%i:count' % index, value, EXPIRE)
                     p.setex('cmos:%i:time' % index, timestamp.isoformat(), EXPIRE)
+
+            for interval in HASH_INTERVALS:
+                key = 'ts:%i:%i:cmos' % (interval, now//interval)
+                hmincrby(key + ':sum', hash, client=p)
+                hmincr(key + ':count', hash.keys(), client=p)
+                hmdiv(key, key + ':sum', key + ':count', hash.keys(), client=p)
+                p.expire(key, HASH_EXPIRE*interval)
+                p.expire(key + ':sum', interval)
+                p.expire(key + ':count', interval)
             p.execute()
 
         elif id == BASE_ID:
             crate, slotmask, channelmask, error_flags, counts, busy, timestamp = \
                 parse_base(rec)
+
+            hash = {}
 
             p = redis.pipeline()
             for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
@@ -98,6 +114,16 @@ def orca_consumer(port):
                     index = crate << 9 | slot << 5 | j
 
                     p.setex('base:%i:value' % index, value-127, EXPIRE)
+                    hash[index] = value-127
+
+            for interval in HASH_INTERVALS:
+                key = 'ts:%i:%i:base' % (interval, now//interval)
+                hmincrby(key + ':sum', hash, client=p)
+                hmincr(key + ':count', hash.keys(), client=p)
+                hmdiv(key, key + ':sum', key + ':count', hash.keys(), client=p)
+                p.expire(key, HASH_EXPIRE*interval)
+                p.expire(key + ':sum', interval)
+                p.expire(key + ':count', interval)
             p.execute()
 
 def grouper(iterable, n, fillvalue=None):

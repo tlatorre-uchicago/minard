@@ -25,6 +25,12 @@ class TestRedisTools(unittest.TestCase):
 
         redis.hmset('spam', self.hash)
 
+    def test_hmincr(self):
+        hmincr('spam', self.hash.keys())
+        hash = redis.hgetall('spam')
+        for k, v in hash.iteritems():
+            self.assertEqual(int(v),self.hash[int(k)]+1)
+
     def test_avgcrate(self):
         self.assertEqual(avgcrate('blah',0),None)
         for crate in range(19):

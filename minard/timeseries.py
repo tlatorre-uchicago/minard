@@ -18,6 +18,13 @@ redis = Redis()
 INTERVALS = [1,3,9,29,90,280,867,2677,8267,25531]
 EXPIRE = 3*4000
 
+# intervals to store info per channel in a redis hash
+HASH_INTERVALS = [5,24*60*60]
+HASH_EXPIRE = 1000
+
+def get_hash_interval(step):
+    return HASH_INTERVALS[bisect.bisect_right(HASH_INTERVALS,step)-1]
+
 def get_interval(step):
     return INTERVALS[bisect.bisect_right(INTERVALS,step)-1]
 
