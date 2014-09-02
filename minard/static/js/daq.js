@@ -75,24 +75,32 @@ function metric(context, name, crate, card, channel, method) {
     }, name);
 }
 
-var source = $('#data-source').val();
-var method = $('#data-method').val();
 var context = create_context('#tscrate');
 
-// crate metrics
-crate_metrics = [];
-for (var i=0; i < 20; i++) {
-    crate_metrics[i] = metric(context, source, i, null, null, method);
+function create_horizons() {
+    var source = $('#data-source').val();
+    var method = $('#data-method').val();
+    //
+    // crate metrics
+    crate_metrics = [];
+    for (var i=0; i < 20; i++) {
+        crate_metrics[i] = metric(context, source, i, null, null, method);
+    }
+
+    var horizon = context.horizon().height(20);
+
+    // add time series
+    var horizons = d3.select('#tscrate').selectAll('.horizon').remove();
+
+    var horizons = d3.select('#tscrate').selectAll('.horizon')
+        .data(crate_metrics);
+    horizons.exit().remove();
+    horizons.enter().insert('div','.bottom')
+        .attr('class', 'horizon')
+        .call(horizon);
 }
 
-var horizon = context.horizon().height(20);
-
-// add time series
-d3.select('#tscrate').selectAll('.horizon')
-    .data(crate_metrics)
-  .enter().insert('div','.bottom')
-    .attr('class', 'horizon')
-    .call(horizon);
+create_horizons();
 
 var threshold=1000;
 
@@ -109,6 +117,7 @@ $('#data-source').change(function() {
         card.format(d3.format());
     }
     update();
+    create_horizons();
 });
 
 $('#threshold-lo').keypress(function(e) {
