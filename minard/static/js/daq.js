@@ -4,18 +4,30 @@ var colors = colorbrewer['YlOrRd'][3];
 var scale = d3.scale.threshold().domain([0.001,0.002]).range(colors);
 
 $('#data-source').change(function() {
+    var source = $('#data-source').val();
+    if (source == 'cmos') {
+        card.format(d3.format('.2s'));
+    } else if (source == "occupancy") {
+        card.format(d3.format('.0e'));
+    } else {
+        card.format(d3.format());
+    }
     update();
 });
 
 $('#threshold-lo').keypress(function(e) {
     if (e.which == 13) {
         scale.domain([$('#threshold-lo').val(),scale.domain()[1]]);
+        d3.select("#crate").call(crate);
+        d3.select("#card").call(card);
     }
 });
 
 $('#threshold-hi').keypress(function(e) {
     if (e.which == 13) {
         scale.domain([scale.domain()[0],$('#threshold-hi').val()]);
+        d3.select("#crate").call(crate);
+        d3.select("#card").call(card);
     }
 });
 
