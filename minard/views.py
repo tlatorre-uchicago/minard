@@ -266,7 +266,7 @@ def query():
             p.get('%s:%i:value' % (name,index))
         values = p.execute()
 
-        return jsonify(value=values)
+        return jsonify(values=values)
 
 @app.route('/get_alarm')
 def get_alarm():

@@ -39,8 +39,8 @@ var interval = 5000;
 function update() {
     $.getJSON($SCRIPT_ROOT + '/query', {name: name, stats: $('#stats').val()})
         .done(function(result) {
-            d3.select('#crate').datum(result.value).call(crate);
-            d3.select('#card').datum(result.value).call(card);
+            d3.select('#crate').datum(result.values).call(crate);
+            d3.select('#card').datum(result.values).call(card);
             success()
         }).fail(warn);
 }
