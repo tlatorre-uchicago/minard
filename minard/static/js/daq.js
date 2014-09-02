@@ -1,7 +1,10 @@
-var threshold = Number(url_params['threshold']);
-var name = url_params['name'];
-
+var threshold=1000;
 var card = card_view().threshold(threshold);
+
+var colors = colorbrewer['YlOrRd'][3];
+var scale = d3.scale.threshold().domain([0,0.001,0.1]).range(colors);
+
+card.scale(scale);
 
 if (threshold > 1000) {
     card = card.format(d3.format('.2s'));
@@ -13,6 +16,8 @@ crate.click(function(d, i) {
     d3.select('#card').call(card);
     $('#card h4 small').text('Crate ' + i);
 })
+
+crate.scale(scale);
 
 $('#threshold').val(crate.threshold());
 
@@ -37,6 +42,7 @@ function success() {
 var interval = 5000;
 
 function update() {
+    var name = $('#data-source').val();
     $.getJSON($SCRIPT_ROOT + '/query', {name: name, stats: $('#stats').val()})
         .done(function(result) {
             d3.select('#crate').datum(result.values).call(crate);

@@ -86,6 +86,12 @@ function card_view() {
        crate = value;
        return chart;
    }
+
+   chart.scale = function(value) {
+       if (!arguments.length) return scale;
+       scale = value;
+       return chart;
+   }
    
    chart.threshold = function(value) {
        if (!arguments.length) return threshold;
