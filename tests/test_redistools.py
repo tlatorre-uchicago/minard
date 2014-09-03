@@ -34,15 +34,12 @@ class TestRedisTools(unittest.TestCase):
         redis.set('foo', 2)
 
     def test_setavgmax(self):
-        setavgmax('spam', 'spam:crate:avg', 'spam:crate:max',
-                    'spam:card:avg', 'spam:card:max')
+        setavgmax('spam')
 
         for crate in range(20):
-            print 'crate = ', crate
             self.assertAlmostEqual(sum(self.hash_crate[crate])/len(self.hash_crate[crate]),float(redis.hget('spam:crate:avg',crate)))
             self.assertAlmostEqual(max(self.hash_crate[crate]),float(redis.hget('spam:crate:max',crate)))
             for card in range(16):
-                print 'card = ', card
                 self.assertAlmostEqual(sum(self.hash_card[crate][card])/len(self.hash_card[crate][card]),float(redis.hget('spam:card:avg',crate*512 + card*32)))
                 self.assertAlmostEqual(max(self.hash_card[crate][card]),float(redis.hget('spam:card:max',crate*512 + card*32)))
             
