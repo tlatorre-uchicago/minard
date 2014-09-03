@@ -28,6 +28,9 @@ function create_context(target) {
         focus_format = format_day;
     }
 
+    // delete old axes
+    $(target + ' .axis').remove();
+
     // add time axes
     d3.select(target).selectAll(".axis")
         .data(["top", "bottom"])
@@ -40,6 +43,9 @@ function create_context(target) {
                 .focusFormat(focus_format)
             d3.select(this).call(axis);
         });
+
+    // delete old rule
+    $(target + ' .rule').remove();
 
     d3.select(target).append("div")
         .attr("class", "rule")
