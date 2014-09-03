@@ -83,7 +83,7 @@ function metric(context, name, crate, card, channel, method) {
     }, label);
 }
 
-function create_horizons(context, source, method, scale) {
+function create_horizons() {
     crate_metrics = [];
     for (var i=0; i < 20; i++) {
         crate_metrics[i] = metric(context, source, i, null, null, method);
@@ -141,7 +141,7 @@ function setup() {
 
     context = create_context('#timeseries');
 
-    create_horizons(context, source, method, scale);
+    create_horizons();
 
     // set default thresholds in text area
     $('#threshold-lo').val(thresholds[0])
@@ -170,26 +170,32 @@ function setup() {
 
 setup();
 
+function update_horizons() {
+    context.stop();
+    context = create_context('#timeseries');
+    create_horizons();
+}
+
 $('#data-method').change(function() {
     method = $('#data-method').val();
-    create_horizons(context, source, method, scale);
+    update_horizons();
 });
 
 $('#data-source').change(function() {
-    var source = $('#data-source').val();
+    source = $('#data-source').val();
     if (source == 'cmos') {
         card.format(d3.format('.2s'));
     } else if (source == "occupancy") {
         card.format(d3.format('.0e'));
     } else {
         card.format(d3.format());
-        }
+    }
 
     var thresholds = default_thresholds[source];
     set_thresholds.apply(this,thresholds);//(thresholds[0], thresholds[1]);
     scale.domain(thresholds);
     update();
-    create_horizons(context, source, method, scale);
+    update_horizons();
 });
 
 $('#threshold-lo').keypress(function(e) {
@@ -197,7 +203,7 @@ $('#threshold-lo').keypress(function(e) {
         scale.domain([$('#threshold-lo').val(),scale.domain()[1]]);
         d3.select("#crate").call(crate);
         d3.select("#card").call(card);
-        create_horizons(context, source, method, scale);
+        update_horizons();
     }
 });
 
@@ -206,7 +212,7 @@ $('#threshold-hi').keypress(function(e) {
         scale.domain([scale.domain()[0],$('#threshold-hi').val()]);
         d3.select("#crate").call(crate);
         d3.select("#card").call(card);
-        create_horizons(context, source, method, scale);
+        update_horizons();
     }
 });
 
