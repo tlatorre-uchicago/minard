@@ -1,3 +1,5 @@
+from __future__ import print_function
+import sys
 from redis import Redis
 import bisect
 from redistools import maxcard, avgcard, maxcrate, avgcrate
@@ -52,16 +54,10 @@ def get_hash_timeseries(name, start, stop, step, crate, card=None,
 
         if card is None:
             # crate
-            if method == 'max':
-                maxcrate(key, crate, client=p)
-            else:
-                avgcrate(key, crate, client=p)
+            p.hget(key + ':crate:' + method, crate)
         elif channel is None:
             # card
-            if method == 'max':
-                maxcard(key, crate, card, client=p)
-            else:
-                avgcard(key, crate, card, client=p)
+            p.hget(key + ':card:' + method, crate*512 + card*32)
         else:
             # channel
             i = crate*16*32 + card*32 + channel

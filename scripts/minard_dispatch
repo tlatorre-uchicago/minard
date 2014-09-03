@@ -7,7 +7,7 @@ from collections import defaultdict
 import zmq
 import threading
 from minard.timeseries import INTERVALS, EXPIRE, HASH_INTERVALS, HASH_EXPIRE
-from minard.redistools import hmincrby, hdivk
+from minard.redistools import hmincrby, hdivk, setavgmax
 
 redis = Redis()
 
@@ -91,7 +91,7 @@ def pull():
 
         if now > then:
             # for docs on redis pipeline see http://redis.io/topics/pipelining
-            p = redis.pipeline(transaction=False)
+            p = redis.pipeline()
 
             ts = then
             for key, value in cache.items():
@@ -111,13 +111,18 @@ def pull():
                 p.expire(redis_key,600)
 
             for interval in HASH_INTERVALS:
-                key = 'ts:%i:%i' % (interval, ts//interval)
+                key = 'ts:%i:%i:occupancy' % (interval, ts//interval)
                 hmincrby(key + ':hits', event_cache, client=p)
                 p.incrby(key + ':count', cache['TOTAL'])
                 p.expire(key + ':hits', interval)
                 p.expire(key + ':count', interval)
-                hdivk(key + ':occupancy', key + ':hits', key + ':count', event_cache.keys(), client=p)
-                p.expire(key + ':occupancy', HASH_EXPIRE*interval)
+
+                prev_key = 'ts:%i:%i:occupancy' % (interval,ts//interval-1)
+                if redis.incr(prev_key + ':lock') == 1:
+                    hdivk(prev_key, prev_key + ':hits', prev_key + ':count', range(10240), client=p)
+                    setavgmax(prev_key, client=p)
+                    p.expire(prev_key, HASH_EXPIRE*interval)
+                    p.expire(prev_key + ':lock', interval)
 
             p.incrby('ev:60:%i:count' % (ts//60),cache['TOTAL'])
             p.expire('ev:60:%i:count' % (ts//60),600)

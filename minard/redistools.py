@@ -38,7 +38,9 @@ HDIVH = """
 for i, v in ipairs(ARGV) do
     local n = tonumber(redis.call('HGET', KEYS[2], v))
     local d = tonumber(redis.call('HGET', KEYS[3], v))
-    redis.call('HSET', KEYS[1], v, n/d)
+    if n and d then
+        redis.call('HSET', KEYS[1], v, n/d)
+    end
 end
 return true
 """
@@ -47,7 +49,9 @@ HDIVK = """
 local d = tonumber(redis.call('GET', KEYS[3]))
 for i, v in ipairs(ARGV) do
     local n = tonumber(redis.call('HGET', KEYS[2], v))
-    redis.call('HSET', KEYS[1], v, n/d)
+    if n then
+        redis.call('HSET', KEYS[1], v, n/d)
+    end
 end
 return true
 """
@@ -71,6 +75,49 @@ if n > 0 then
 else
     return nil
 end
+"""
+
+SETAVGMAX = """
+for crate=0,19 do
+    local crate_n = 0
+    local crate_sum = 0
+    local crate_max = nil
+    for card=0,15 do
+        local card_n = 0
+        local card_sum = 0
+        local card_max = nil
+        for channel=0,31 do
+            local i = crate*512 + card*32 + channel
+            local v = redis.call('HGET', KEYS[1], i)
+            if v then
+                card_sum = card_sum + tonumber(v)
+                card_n = card_n + 1
+
+                if card_max == nil or v > card_max then
+                    card_max = v
+                end
+            end
+        end
+        if card_n > 0 then
+            redis.call('HSET', KEYS[4], crate*512 + card*32, card_sum/card_n)
+            redis.call('HSET', KEYS[5], crate*512 + card*32, card_max)
+        end
+
+        crate_n = crate_n + card_n
+        crate_sum = crate_sum + card_sum
+
+        if card_max then
+            if crate_max == nil or card_max > crate_max then
+                crate_max = card_max
+            end
+        end
+    end
+    if crate_n > 0 then
+        redis.call('HSET', KEYS[2], crate, crate_sum/crate_n)
+        redis.call('HSET', KEYS[3], crate, crate_max)
+    end
+end
+return true
 """
 
 MAXRANGE = """
@@ -97,12 +144,22 @@ end
 """
 
 _hmincrby = redis.register_script(HMINCRBY)
+_setavgmax = redis.register_script(SETAVGMAX)
 _hmincrbyfloat = redis.register_script(HMINCRBYFLOAT)
 _hmincr = redis.register_script(HMINCR)
 _hdivh = redis.register_script(HDIVH)
 _hdivk = redis.register_script(HDIVK)
 _avgrange = redis.register_script(AVGRANGE)
 _maxrange = redis.register_script(MAXRANGE)
+
+def setavgmax(key, client=None):
+    """
+    Sets the average and max values for crates in the hash key + ':crate:avg'
+    and key + ':crate:max' respectively. Similarly for cards, where the card
+    for a crate is indexed with the field crate*512 + card*32.
+    """
+    keys = [key, key + ':crate:avg', key + ':crate:max', key + ':card:avg', key + ':card:max']
+    _setavgmax(keys=keys, args=[], client=client)
 
 def maxcard(key, crate, card, client=None):
     """

@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import numpy as np
 from redis import Redis
 import time
-from minard.redistools import hmincrby, hmincrbyfloat, hdivh, hmincr
+from minard.redistools import hmincrby, hmincrbyfloat, hdivh, hmincr, setavgmax
 from minard.timeseries import HASH_INTERVALS, HASH_EXPIRE
 
 CMOS_ID = 1310720
@@ -95,10 +95,15 @@ def orca_consumer(port):
                 key = 'ts:%i:%i:cmos' % (interval, now//interval)
                 hmincrbyfloat(key + ':sum', hash, client=p)
                 hmincr(key + ':count', hash.keys(), client=p)
-                hdivh(key, key + ':sum', key + ':count', hash.keys(), client=p)
-                p.expire(key, HASH_EXPIRE*interval)
                 p.expire(key + ':sum', interval)
                 p.expire(key + ':count', interval)
+                prev = now//interval - 1
+                prev_key = 'ts:%i:%i:cmos' % (interval,prev)
+                if redis.incr(prev_key + ':lock') == 1:
+                    hdivh(prev_key, prev_key + ':sum', prev_key + ':count', range(10240), client=p)
+                    setavgmax(prev_key, client=p)
+                    p.expire(key, HASH_EXPIRE*interval)
+                    p.expire(prev_key + ':lock', interval)
             p.execute()
 
         elif id == BASE_ID:
@@ -122,10 +127,14 @@ def orca_consumer(port):
                 key = 'ts:%i:%i:base' % (interval, now//interval)
                 hmincrby(key + ':sum', hash, client=p)
                 hmincr(key + ':count', hash.keys(), client=p)
-                hdivh(key, key + ':sum', key + ':count', hash.keys(), client=p)
-                p.expire(key, HASH_EXPIRE*interval)
                 p.expire(key + ':sum', interval)
                 p.expire(key + ':count', interval)
+                prev_key = 'ts:%i:%i:base' % (interval,now//interval-1)
+                if redis.incr(prev_key + ':lock') == 1:
+                    hdivh(prev_key, prev_key + ':sum', prev_key + ':count', range(10240), client=p)
+                    setavgmax(prev_key, client=p)
+                    p.expire(prev_key, HASH_EXPIRE*interval)
+                    p.expire(prev_key + ':lock', interval)
             p.execute()
 
 def grouper(iterable, n, fillvalue=None):

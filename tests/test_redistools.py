@@ -15,16 +15,37 @@ def iter_card(hash, crate, card):
 class TestRedisTools(unittest.TestCase):
     def setUp(self):
         self.hash = {}
+        self.hash_crate = {}
+        self.hash_card = {}
         for crate in range(20):
+            self.hash_crate[crate] = []
+            self.hash_card[crate] = {}
             for card in range(16):
+                self.hash_card[crate][card] = []
                 for channel in range(32):
                     i = (crate << 9) | (card << 5) | channel
                     self.hash[i] = random.choice([1,10,100])
+                    self.hash_crate[crate] += [self.hash[i]]
+                    self.hash_card[crate][card] += [self.hash[i]]
         redis.delete('spam')
         redis.delete('blah')
 
         redis.hmset('spam', self.hash)
         redis.set('foo', 2)
+
+    def test_setavgmax(self):
+        setavgmax('spam', 'spam:crate:avg', 'spam:crate:max',
+                    'spam:card:avg', 'spam:card:max')
+
+        for crate in range(20):
+            print 'crate = ', crate
+            self.assertAlmostEqual(sum(self.hash_crate[crate])/len(self.hash_crate[crate]),float(redis.hget('spam:crate:avg',crate)))
+            self.assertAlmostEqual(max(self.hash_crate[crate]),float(redis.hget('spam:crate:max',crate)))
+            for card in range(16):
+                print 'card = ', card
+                self.assertAlmostEqual(sum(self.hash_card[crate][card])/len(self.hash_card[crate][card]),float(redis.hget('spam:card:avg',crate*512 + card*32)))
+                self.assertAlmostEqual(max(self.hash_card[crate][card]),float(redis.hget('spam:card:max',crate*512 + card*32)))
+            
 
     def test_hdivk(self):
         hdivk('result', 'spam', 'foo', self.hash.keys())
