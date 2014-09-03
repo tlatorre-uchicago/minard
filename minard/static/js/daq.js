@@ -3,7 +3,7 @@ function create_context(target) {
 
     var size = $(target).width();
     var context = cubism.context(scale)
-        .serverDelay(1e3)
+        .serverDelay(2e3)
         .clientDelay(1e3)
         .step(5e3)
         .size(size);
@@ -51,6 +51,14 @@ function create_context(target) {
 function metric(context, name, crate, card, channel, method) {
     method = typeof method === 'undefined' ? 'avg' : method;
 
+    var label;
+    if (card === null)
+        label = 'crate ' + crate;
+    else if (channel == null)
+        label = 'card ' + card;
+    else
+        label = 'channel ' + channel;
+
     return context.metric(function(start, stop, step, callback) {
         var params = {
             name: name,
@@ -72,26 +80,19 @@ function metric(context, name, crate, card, channel, method) {
                 return callback(null,data.values);
             }
         );
-    }, name);
+    }, label);
 }
 
-var context = create_context('#tscrate');
-var colors = colorbrewer['YlOrRd'][3];
-var scale = d3.scale.threshold().domain([0.001,0.002]).range(colors);
-
-function create_horizons() {
-    var source = $('#data-source').val();
-    var method = $('#data-method').val();
-    //
-    // crate metrics
+function create_horizons(context, source, method, scale) {
     crate_metrics = [];
     for (var i=0; i < 20; i++) {
         crate_metrics[i] = metric(context, source, i, null, null, method);
-    }
+        }
 
     var horizon = context.horizon()
         .height(20)
-        .colors(colors.concat(colors))
+        // horizon needs 2x the colors for positive and negative
+        .colors(scale.range().concat(scale.range()))
         .extent(scale.domain())
         .format(function(n) {
             if (n == null)
@@ -101,18 +102,18 @@ function create_horizons() {
             }
         );
 
-    // add time series
-    var horizons = d3.select('#tscrate').selectAll('.horizon').remove();
+    $('#timeseries .horizon').remove();
 
-    var horizons = d3.select('#tscrate').selectAll('.horizon')
+    var horizons = d3.select('#timeseries').selectAll('.horizon')
         .data(crate_metrics);
-    horizons.exit().remove();
+    // remove old divs
+    //horizons.exit().remove();
+
+    // add time series
     horizons.enter().insert('div','.bottom')
         .attr('class', 'horizon')
         .call(horizon);
 }
-
-create_horizons();
 
 var default_thresholds = {
     cmos: [100,2e3],
@@ -121,19 +122,42 @@ var default_thresholds = {
 }
 
 function set_thresholds(lo, hi) {
+    // set thresholds text area
     $('#threshold-lo').val(lo)
     $('#threshold-hi').val(hi)
 }
 
-function set_default_thresholds(source) {
-    var thresholds = default_thresholds[source];
-    set_thresholds(thresholds[0],thresholds[1]);
-}
+var source, method, scale, context, crate, card;
 
 function setup() {
-    var source = $('#data-source').val();
+    source = $('#data-source').val();
+    method = $('#data-method').val();
 
-    set_default_thresholds(source);
+    var thresholds = default_thresholds[source];
+
+    scale = d3.scale.threshold()
+        .domain(thresholds)
+        .range(colorbrewer['YlOrRd'][3]);
+
+    context = create_context('#timeseries');
+
+    create_horizons(context, source, method, scale);
+
+    // set default thresholds in text area
+    $('#threshold-lo').val(thresholds[0])
+    $('#threshold-hi').val(thresholds[1])
+
+    card = card_view()
+        .scale(scale);
+
+    crate = crate_view()
+        .scale(scale)
+        .click(function(d, i) {
+            card.crate(i);
+            d3.select('#card').call(card);
+            $('#card h4 small').text('Crate ' + i);
+            $('#carousel').carousel('next');
+        });
 
     if (source == 'cmos') {
         card.format(d3.format('.2s'));
@@ -144,19 +168,12 @@ function setup() {
     }
 }
 
-var card = card_view()
-    .scale(scale);
-
-var crate = crate_view()
-    .scale(scale)
-    .click(function(d, i) {
-        card.crate(i);
-        d3.select('#card').call(card);
-        $('#card h4 small').text('Crate ' + i);
-        $('#carousel').carousel('next');
-    });
-
 setup();
+
+$('#data-method').change(function() {
+    method = $('#data-method').val();
+    create_horizons(context, source, method, scale);
+});
 
 $('#data-source').change(function() {
     var source = $('#data-source').val();
@@ -166,10 +183,13 @@ $('#data-source').change(function() {
         card.format(d3.format('.0e'));
     } else {
         card.format(d3.format());
-    }
-    set_default_thresholds(source);
+        }
+
+    var thresholds = default_thresholds[source];
+    set_thresholds.apply(this,thresholds);//(thresholds[0], thresholds[1]);
+    scale.domain(thresholds);
     update();
-    create_horizons();
+    create_horizons(context, source, method, scale);
 });
 
 $('#threshold-lo').keypress(function(e) {
@@ -177,7 +197,7 @@ $('#threshold-lo').keypress(function(e) {
         scale.domain([$('#threshold-lo').val(),scale.domain()[1]]);
         d3.select("#crate").call(crate);
         d3.select("#card").call(card);
-        create_horizons();
+        create_horizons(context, source, method, scale);
     }
 });
 
@@ -186,7 +206,7 @@ $('#threshold-hi').keypress(function(e) {
         scale.domain([scale.domain()[0],$('#threshold-hi').val()]);
         d3.select("#crate").call(crate);
         d3.select("#card").call(card);
-        create_horizons();
+        create_horizons(context, source, method, scale);
     }
 });
 

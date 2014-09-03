@@ -29,70 +29,73 @@
         <div class="carousel-inner">
             <div class="item active">
                 <!-- first slide -->
-                <div class="row">
-                    <center>
-                        <div id="crate"></div>
-                    </center>
-                </div>
-                <div class="row">
-                    <div id="tscrate" class="col-md-6">
+                <div class="container">
+                    <div class="row">
+                        <center>
+                            <div id="crate"></div>
+                        </center>
                     </div>
-                    <div class="col-md-4">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">Options</div>
-                            <div class="panel-body">
-                                <form class="form-horizontal" role="form">
-                                    <div class="form-group form-group-sm">
-                                        <label class="col-sm-4 control-label">
-                                            Data
-                                        </label>
-                                        <div class="col-sm-8">
-                                            <select id="data-source"
-                                             class="form-control">
-                                                <option value="cmos">CMOS</option>
-                                                <option value="base">Base</option>
-                                                <option value="occupancy">
-                                                    Occupancy
-                                                </option>
-                                            </select>
-                                        </div> <!-- col-sm-10 -->
-                                    </div>
-                                    <div class="form-group form-group-sm">
-                                        <label class="col-sm-4 control-label">
-                                            Threshold (LO)
-                                        </label>
-                                        <div class="col-sm-8">
-                                            <input id="threshold-lo"
-                                             type="number"
-                                             class="form-control">
-                                        </div> <!-- col-sm-10 -->
-                                    </div>
-                                    <div class="form-group form-group-sm">
-                                        <label class="col-sm-4 control-label">
-                                            Threshold (HI)
-                                        </label>
-                                        <div class="col-sm-8">
-                                            <input id="threshold-hi"
-                                             type="number"
-                                             class="form-control">
-                                        </div> <!-- col-sm-10 -->
-                                    </div>
-                                    <div class="form-group form-group-sm">
-                                        <label class="col-sm-4 control-label">
-                                            Method
-                                        </label>
-                                        <div class="col-sm-8">
-                                            <select id="data-method"
-                                             class="form-control">
-                                                <option value="avg">Average</option>
-                                                <option value="max">Max</option>
-                                            </select>
-                                        </div> <!-- col-sm-10 -->
-                                    </div>
-                                </form>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div id="timeseries" style="position:relative"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Options</div>
+                                <div class="panel-body">
+                                    <form class="form-horizontal" role="form">
+                                        <div class="form-group form-group-sm">
+                                            <label class="col-sm-4 control-label">
+                                                Data
+                                            </label>
+                                            <div class="col-sm-8">
+                                                <select id="data-source"
+                                                 class="form-control">
+                                                    <option value="cmos">CMOS</option>
+                                                    <option value="base">Base</option>
+                                                    <option value="occupancy">
+                                                        Occupancy
+                                                    </option>
+                                                </select>
+                                            </div> <!-- col-sm-10 -->
+                                        </div>
+                                        <div class="form-group form-group-sm">
+                                            <label class="col-sm-4 control-label">
+                                                Threshold (LO)
+                                            </label>
+                                            <div class="col-sm-8">
+                                                <input id="threshold-lo"
+                                                 type="number"
+                                                 class="form-control">
+                                            </div> <!-- col-sm-10 -->
+                                        </div>
+                                        <div class="form-group form-group-sm">
+                                            <label class="col-sm-4 control-label">
+                                                Threshold (HI)
+                                            </label>
+                                            <div class="col-sm-8">
+                                                <input id="threshold-hi"
+                                                 type="number"
+                                                 class="form-control">
+                                            </div> <!-- col-sm-10 -->
+                                        </div>
+                                        <div class="form-group form-group-sm">
+                                            <label class="col-sm-4 control-label">
+                                                Method
+                                            </label>
+                                            <div class="col-sm-8">
+                                                <select id="data-method"
+                                                 class="form-control">
+                                                    <option value="avg">Average</option>
+                                                    <option value="max">Max</option>
+                                                </select>
+                                            </div> <!-- col-sm-10 -->
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </div> <!-- row -->
                 </div>
             </div>
             <div class="item">
