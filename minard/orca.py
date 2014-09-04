@@ -104,7 +104,7 @@ def orca_consumer(port):
                     keys = setavgmax(prev_key, client=p)
                     for k in keys:
                         p.expire(k, HASH_EXPIRE*interval)
-                    p.expire(key, HASH_EXPIRE*interval)
+                    p.expire(prev_key, HASH_EXPIRE*interval)
                     p.expire(prev_key + ':lock', interval)
             p.execute()
 
