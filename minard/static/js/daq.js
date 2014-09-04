@@ -161,7 +161,7 @@ function setup() {
         .click(function(d, i) {
             card.crate(i);
             d3.select('#card').call(card);
-            $('#card h4 small').text('Crate ' + i);
+            $('#card-heading').text('Crate ' + i);
             $('#carousel').carousel('next');
         });
 

@@ -31,9 +31,9 @@ function card_view() {
 
     function chart(selection) {
         selection.each(function(data) {
-            var root = d3.select(this).selectAll('table').data([crate], function(d) { return d; });
-            root.exit().remove();
-            var table = root.enter().append('div').attr('id','card-view').append('table')
+            var table = d3.select(this).selectAll('table').data([crate], function(d) { return d; });
+            table.exit().remove();
+            table.enter().append('table')
                 .attr('style','padding:2px;border-collapse:separate;border-spacing:1px');
 
             var setup = crate_setup[crate];
