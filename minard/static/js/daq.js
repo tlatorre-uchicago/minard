@@ -89,12 +89,7 @@ function metric(context, name, crate, card, channel, method) {
     }, label);
 }
 
-function create_horizons() {
-    crate_metrics = [];
-    for (var i=0; i < 20; i++) {
-        crate_metrics[i] = metric(context, source, i, null, null, method);
-        }
-
+function create_horizons(target, context, metrics) {
     var horizon = context.horizon()
         .height(20)
         // horizon needs 2x the colors for positive and negative
@@ -108,10 +103,10 @@ function create_horizons() {
             }
         );
 
-    $('#timeseries .horizon').remove();
+    $(target + ' .horizon').remove();
 
-    var horizons = d3.select('#timeseries').selectAll('.horizon')
-        .data(crate_metrics);
+    var horizons = d3.select(target).selectAll('.horizon')
+        .data(metrics);
     // remove old divs
     //horizons.exit().remove();
 
@@ -133,8 +128,44 @@ function set_thresholds(lo, hi) {
     $('#threshold-hi').val(hi)
 }
 
-var source, method, scale, context, crate, card;
-
+var spam = {
+target: '#timeseries',
+source: $('#data-source').val(),
+method: $('#data-method').val(),
+context: null,
+scale: null,
+metrics:null,
+update: function () {
+    this.context.stop();
+    this.context = create_context(this.target);
+    this.metrics = [];
+    for (var i=0; i < 20; i++) {
+        this.metrics[i] = metric(this.context, this.source, i, null, null, this.method);
+    }
+    create_horizons(this.target, this.context, this.metrics);
+}
+}
+    
+var blah = {
+target: '#timeseries-card',
+source: $('#data-source').val(),
+method: $('#data-method').val(),
+context: null,
+scale: null,
+metrics:null,
+crate: 0,
+update: function () {
+    if (this.context !== null)
+        this.context.stop();
+    this.context = create_context(this.target);
+    this.metrics = [];
+    for (var i=0; i < 16; i++) {
+        this.metrics[i] = metric(this.context, this.source, this.crate, i, null, this.method);
+    }
+    create_horizons(this.target, this.context, this.metrics);
+}
+}
+    
 function setup() {
     source = $('#data-source').val();
     method = $('#data-method').val();
@@ -145,9 +176,15 @@ function setup() {
         .domain(thresholds)
         .range(colorbrewer['YlOrRd'][3]);
 
-    context = create_context('#timeseries');
+    spam.context = create_context('#timeseries');
+    spam.scale = scale;
 
-    create_horizons();
+    spam.metrics = [];
+    for (var i=0; i < 20; i++) {
+        spam.metrics[i] = metric(spam.context, spam.source, i, null, null, spam.method);
+    }
+
+    create_horizons(spam.target, spam.context, spam.metrics);
 
     // set default thresholds in text area
     $('#threshold-lo').val(thresholds[0])
@@ -163,6 +200,9 @@ function setup() {
             d3.select('#card').call(card);
             $('#card-heading').text('Crate ' + i);
             $('#carousel').carousel('next');
+
+            blah.crate = i;
+            blah.update();
         });
 
     if (source == 'cmos') {
@@ -176,49 +216,59 @@ function setup() {
 
 setup();
 
-function update_horizons() {
-    context.stop();
-    context = create_context('#timeseries');
-    create_horizons();
-}
-
 $('#data-method').change(function() {
-    method = $('#data-method').val();
-    update_horizons();
+    spam.method = this.value;
+    spam.update();
+    blah.method = this.value;
+    blah.update();
 });
 
 $('#data-source').change(function() {
-    source = $('#data-source').val();
-    if (source == 'cmos') {
+    if (this.value == 'cmos') {
         card.format(d3.format('.2s'));
-    } else if (source == "occupancy") {
+    } else if (this.value == "occupancy") {
         card.format(d3.format('.0e'));
     } else {
         card.format(d3.format());
     }
 
-    var thresholds = default_thresholds[source];
-    set_thresholds.apply(this,thresholds);//(thresholds[0], thresholds[1]);
+    // update threshold values
+    var thresholds = default_thresholds[this.value];
+    set_thresholds.apply(this,thresholds);
+    // update color scale
     scale.domain(thresholds);
     update();
-    update_horizons();
+
+    // update source, scale, and redraw
+    spam.source = this.value;
+    spam.scale.domain(thresholds);
+    spam.update();
+    blah.source = this.value;
+    blah.scale.domain(thresholds);
+    blah.update();
 });
 
 $('#threshold-lo').keypress(function(e) {
     if (e.which == 13) {
-        scale.domain([$('#threshold-lo').val(),scale.domain()[1]]);
+        spam.scale.domain([this.value,scale.domain()[1]]);
+        spam.update();
+        blah.scale.domain([this.value,scale.domain()[1]]);
+        blah.update();
+
         d3.select("#crate").call(crate);
         d3.select("#card").call(card);
-        update_horizons();
     }
 });
 
 $('#threshold-hi').keypress(function(e) {
     if (e.which == 13) {
-        scale.domain([scale.domain()[0],$('#threshold-hi').val()]);
+        spam.scale.domain([scale.domain()[0],this.value]);
+        spam.update();
+        blah.scale.domain([scale.domain()[0],this.value]);
+        blah.update();
+
         d3.select("#crate").call(crate);
         d3.select("#card").call(card);
-        update_horizons();
     }
 });
 
