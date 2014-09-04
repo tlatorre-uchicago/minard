@@ -160,6 +160,7 @@ def setavgmax(key, client=None):
     """
     keys = [key, key + ':crate:avg', key + ':crate:max', key + ':card:avg', key + ':card:max']
     _setavgmax(keys=keys, args=[], client=client)
+    return keys[1:]
 
 def maxcard(key, crate, card, client=None):
     """

@@ -120,7 +120,9 @@ def pull():
                 prev_key = 'ts:%i:%i:occupancy' % (interval,ts//interval-1)
                 if redis.incr(prev_key + ':lock') == 1:
                     hdivk(prev_key, prev_key + ':hits', prev_key + ':count', range(10240), client=p)
-                    setavgmax(prev_key, client=p)
+                    keys = setavgmax(prev_key, client=p)
+                    for k in keys:
+                        p.expire(k, HASH_EXPIRE*interval)
                     p.expire(prev_key, HASH_EXPIRE*interval)
                     p.expire(prev_key + ':lock', interval)
 

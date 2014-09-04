@@ -101,7 +101,9 @@ def orca_consumer(port):
                 prev_key = 'ts:%i:%i:cmos' % (interval,prev)
                 if redis.incr(prev_key + ':lock') == 1:
                     hdivh(prev_key, prev_key + ':sum', prev_key + ':count', range(10240), client=p)
-                    setavgmax(prev_key, client=p)
+                    keys = setavgmax(prev_key, client=p)
+                    for k in keys:
+                        p.expire(k, HASH_EXPIRE*interval)
                     p.expire(key, HASH_EXPIRE*interval)
                     p.expire(prev_key + ':lock', interval)
             p.execute()
@@ -132,7 +134,9 @@ def orca_consumer(port):
                 prev_key = 'ts:%i:%i:base' % (interval,now//interval-1)
                 if redis.incr(prev_key + ':lock') == 1:
                     hdivh(prev_key, prev_key + ':sum', prev_key + ':count', range(10240), client=p)
-                    setavgmax(prev_key, client=p)
+                    keys = setavgmax(prev_key, client=p)
+                    for k in keys:
+                        p.expire(k, HASH_EXPIRE*interval)
                     p.expire(prev_key, HASH_EXPIRE*interval)
                     p.expire(prev_key + ':lock', interval)
             p.execute()
