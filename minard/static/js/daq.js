@@ -89,7 +89,7 @@ function metric(context, name, crate, card, channel, method) {
     }, label);
 }
 
-function create_horizons(target, context, metrics) {
+function create_horizons(target, context, metrics, scale) {
     var horizon = context.horizon()
         .height(20)
         // horizon needs 2x the colors for positive and negative
@@ -142,7 +142,7 @@ update: function () {
     for (var i=0; i < 20; i++) {
         this.metrics[i] = metric(this.context, this.source, i, null, null, this.method);
     }
-    create_horizons(this.target, this.context, this.metrics);
+    create_horizons(this.target, this.context, this.metrics, this.scale);
 }
 }
     
@@ -162,7 +162,7 @@ update: function () {
     for (var i=0; i < 16; i++) {
         this.metrics[i] = metric(this.context, this.source, this.crate, i, null, this.method);
     }
-    create_horizons(this.target, this.context, this.metrics);
+    create_horizons(this.target, this.context, this.metrics, this.scale);
 }
 }
     
@@ -178,13 +178,9 @@ function setup() {
 
     spam.context = create_context('#timeseries');
     spam.scale = scale;
+    spam.update();
 
-    spam.metrics = [];
-    for (var i=0; i < 20; i++) {
-        spam.metrics[i] = metric(spam.context, spam.source, i, null, null, spam.method);
-    }
-
-    create_horizons(spam.target, spam.context, spam.metrics);
+    blah.scale = scale;
 
     // set default thresholds in text area
     $('#threshold-lo').val(thresholds[0])
@@ -269,6 +265,20 @@ $('#threshold-hi').keypress(function(e) {
 
         d3.select("#crate").call(crate);
         d3.select("#card").call(card);
+    }
+});
+
+$('.carousel').on('slide.bs.carousel', function(e) {
+    var slide = $(e.relatedTarget).index();
+    if (slide == 1) {
+        // card slide
+        spam.context.stop();
+        if (blah.context)
+            blah.context.start();
+    } else if (slide == 0) {
+        // crate slide
+        blah.context.stop();
+        spam.context.start();
     }
 });
 
