@@ -15,6 +15,7 @@ import random
 import operator
 
 import pcadb
+import ecadb
 
 Program = namedtuple('Program', ['name', 'machine', 'link'])
 
@@ -307,14 +308,104 @@ def metric():
 
 @app.route('/eca')
 def eca():
-    return render_template('eca.html',runs=[(1000,'12:12','12:14', 'PDST', 'pass'), (2000,'13:02','13:10', 'TSLP', 'fail')])
+
+    def timefmt(time_string):
+        return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(float(time_string)))
+
+    def testBit(int_type, offset):
+        int_type = int(int_type)
+        offset = int(offset)
+        mask = 1 << offset
+        return(int_type & mask)
+
+    def parse_status(run_status, run_type):
+        run_stauts = int(run_status)
+        if run_type == 'PDST':
+            #these are all the run-level status flags for PDST runs
+            #some are worse to fail than others
+            #decide monitoring pass/fail/do-over-if-time results based on which flags fail
+            tooManyZeroEv = testBit(run_status,0)
+            tooManyChWithFewEv = testBit(run_status,1)
+            tooManyChFailBoardID = testBit(run_status,2)
+            tooManyChFailQHS = testBit(run_status,3)
+            tooManyChFailQHL = testBit(run_status,4)
+            tooManyChFailQLX = testBit(run_status,5)
+            tooManyChFailTAC = testBit(run_status,6)
+            avgQHSbad = testBit(run_status,7)
+            avgQHLbad = testBit(run_status,8)
+            avgQLXbad = testBit(run_status,9)
+            avgTACbad = testBit(run_status,10)
+            avgQHSwidthBad = testBit(run_status,11)
+            avgQHLwidthBad = testBit(run_status,12)
+            avgQLXwidthBad = testBit(run_status,13)
+            avgTACwidthBad = testBit(run_status,14)
+            avgQHSdiffBad = testBit(run_status,15)
+            avgQHLdiffBad = testBit(run_status,16)
+            avgQLXdiffBad = testBit(run_status,17)
+            avgTACdiffBad = testBit(run_status,18)
+            tooManyFlaggedCh = testBit(run_status,19)
+            UCbitSet = testBit(run_status,26)
+            boardIDfail = testBit(run_status,27)
+            sequencerIDfail = testBit(run_status,28)
+            attemptDiffCheckFail = testBit(run_status,29)
+            runNotComplete = testBit(run_status,30)
+            attemptMergeFail = testBit(run_status,31)
+            
+            allflags=True
+            for bit in range(0,32):
+                thisbit = testBit(run_status,bit)
+                if thisbit == 1:
+                    allflags = False
+                    break
+
+            if allflags:
+                return 1
+            else:
+                return 2  
+
+        if run_type == 'TSLP':
+            allflags=True
+            for bit in range(0,32):
+                thisbit = testBit(run_status,bit)
+                if thisbit == 1:
+                    allflags = False
+                    break
+
+            if allflags:
+                return 1
+            else:
+                return 0  
+
+    def statusfmt(status_int):
+        if status_int == 0:
+            return 'Fail'
+        if status_int == 1:
+            return 'Pass'
+        if status_int == 2:
+            return 'OK'
+    
+    def statusclass(status_int):
+        if status_int == 0:
+            return "danger"
+        if status_int == 1:
+            return "success"
+        if status_int == 2:
+            return "warning"
+
+    runs = ecadb.runs_after_run(redis, 0)      
+
+    return render_template('eca.html',runs=runs,parse_status=parse_status,timefmt=timefmt,statusfmt=statusfmt,statusclass=statusclass)
  
 @app.route('/eca_run_detail')
-@app.route('/eca_run_detail/<run_number>')
-def eca_run_detail(run_number=1000):
-    
-    return render_template('eca_run_detail.html',
-                            run_number=run_number)      
+#@app.route('/eca_run_detail?run=<run_number>')
+@app.route('/eca_run_detail/<run_type>/<run_number>')
+def eca_run_detail(run_type, run_number):
+    if run_type == 'PDST': 
+        return render_template('eca_run_detail_PDST.html',
+                            run_type=run_type, run_number=run_number)      
+    if run_type == 'TSLP': 
+        return render_template('eca_run_detail_TSLP.html',
+                            run_type=run_type, run_number=run_number)      
 
 @app.route('/pcatellie', methods=['GET'])
 def pcatellie():

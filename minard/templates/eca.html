@@ -7,17 +7,27 @@
     {{ super() }}
 
     <div class="container">
-    <table class="table">
-	<tr><th>Run Number</th><th>Run Time</th><th>Analysis Time</th><th>Type</th><th>Status</th></tr>
-	{% for num, runt,anat,type, status in runs %}
-	    <tr>
-		<td><a href="{{url_for("eca_run_detail",run=num)}}">{{ num }}</a></td>
-		<td>{{ runt }}</td>
-		<td>{{ anat }}</td>
-		<td>{{ type }}</td>
-		<td class="status">{{status}}</td>
-	    </tr>
-	{% endfor %}
+    <table class="table table-bordered table-condensed table-striped">
+            <thead>
+                <tr>
+                    <th>Run Number</th>
+                    <th>Run Time</th>
+                    <th>Analysis Time</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for run in runs %}
+                <tr class="{{ statusclass(parse_status(run["run_status"], run["run_type"])) }}">
+                    <td><a href="{{url_for("eca_run_detail",run_type=run["run_type"],run_number = run["run_number"]) }}">{{ run["run_number"] }}</a></td>
+                    <td>{{ timefmt(run["run_time"]) }}</td>
+                    <td>{{ timefmt(run["analyze_time"]) }}</td>
+                    <td>{{ run["run_type"] }}</td>
+                    <td>{{ statusfmt(parse_status(run["run_status"], run["run_type"])) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
     </table>
     </div>
 

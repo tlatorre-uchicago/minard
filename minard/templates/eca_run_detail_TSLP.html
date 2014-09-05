@@ -2,6 +2,59 @@
 {% block title %}Channels{% endblock %}
 {% block head %}
 {{ super() }}
+
+<div class="container">
+<h2>Run {{ run_number }} details</h2>            
+<div class="row">        
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Nhit(EXTA) / Occupancy</h3>
+        </div>
+        <div class="panel-body">
+            <img src="/monitoring/static/generated/NHits-{{ run_number }}.png" 
+            alt="NHit histogram" class="img-responsive col-md-6">
+            <img src="/monitoring/static/generated/OccPerPMT-{{ run_number }}.png" 
+            alt="Occupancy histogram" class="img-responsive col-md-6">          
+        </div>
+    </div>
+</div>
+<!--ped thigns to plot-->
+6660fPedAve1.png
+6660fPedAve2.png
+6660fPedAve3.png
+6660fPedAve4.png
+6660fPedestal1.png
+6660fPedestal2.png
+6660fPedestal3.png
+6660fPedestal4.png
+6660fPWidth1.png
+6660fPWidth2.png
+6660fPWidth3.png
+6660fPWidth4.png
+6660fWidthAve1.png
+6660fWidthAve2.png
+6660fWidthAve3.png
+6660fWidthAve4.png
+
+<!--tslope things to plot-->
+7030fCubFitPar11.png
+7030fCubFitPar12.png
+7030fCubFitPar21.png
+7030fCubFitPar22.png
+7030fCubFitPar31.png
+7030fCubFitPar32.png
+7030fCubFitParAve11.png
+7030fCubFitParAve12.png
+7030fCubFitParAve13.png
+7030fCubFitParAve21.png
+7030fCubFitParAve22.png
+7030fCubFitParAve23.png
+7030fCubFitParAve31.png
+7030fCubFitParAve32.png
+7030fCubFitParAve33.png
+7030fWidth.png
+
+
 <style>
     #card table tr td {
         font-size: 10px;
