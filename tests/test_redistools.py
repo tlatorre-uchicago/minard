@@ -15,6 +15,7 @@ def iter_card(hash, crate, card):
 class TestRedisTools(unittest.TestCase):
     def setUp(self):
         self.hash = {}
+        self.hash_int = {}
         self.hash_crate = {}
         self.hash_card = {}
         for crate in range(20):
@@ -24,13 +25,15 @@ class TestRedisTools(unittest.TestCase):
                 self.hash_card[crate][card] = []
                 for channel in range(32):
                     i = (crate << 9) | (card << 5) | channel
-                    self.hash[i] = random.choice([1,10,100])
+                    self.hash[i] = random.random()
+                    self.hash_int[i] = random.choice([1,10,100])
                     self.hash_crate[crate] += [self.hash[i]]
                     self.hash_card[crate][card] += [self.hash[i]]
         redis.delete('spam')
         redis.delete('blah')
 
         redis.hmset('spam', self.hash)
+        redis.hmset('spam_int', self.hash_int)
         redis.set('foo', 2)
 
     def test_setavgmax(self):
@@ -50,11 +53,17 @@ class TestRedisTools(unittest.TestCase):
         for k, v in result.iteritems():
             self.assertAlmostEqual(float(v), self.hash[int(k)]/2)
 
-    def test_hmincr(self):
-        hmincr('spam', self.hash.keys())
+    def test_hmincrbyfloat(self):
+        hmincrbyfloat('spam', self.hash)
         hash = redis.hgetall('spam')
         for k, v in hash.iteritems():
-            self.assertEqual(int(v),self.hash[int(k)]+1)
+            self.assertAlmostEqual(float(v), self.hash[int(k)]*2)
+
+    def test_hmincr(self):
+        hmincr('spam_int', self.hash.keys())
+        hash = redis.hgetall('spam_int')
+        for k, v in hash.iteritems():
+            self.assertEqual(int(v),self.hash_int[int(k)]+1)
 
     def test_avgcrate(self):
         self.assertEqual(avgcrate('blah',0),None)

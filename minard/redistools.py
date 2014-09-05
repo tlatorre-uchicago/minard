@@ -89,8 +89,9 @@ for crate=0,19 do
         for channel=0,31 do
             local i = crate*512 + card*32 + channel
             local v = redis.call('HGET', KEYS[1], i)
-            if v then
-                card_sum = card_sum + tonumber(v)
+            if v ~= nil then
+                v = tonumber(v)
+                card_sum = card_sum + v
                 card_n = card_n + 1
 
                 if card_max == nil or v > card_max then
