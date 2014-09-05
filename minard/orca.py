@@ -1,6 +1,6 @@
 from __future__ import division
 from xml.etree.ElementTree import XML
-from itertools import izip_longest
+from itertools import izip_longest, repeat
 import socket
 import struct
 import zmq
@@ -10,6 +10,7 @@ from redis import Redis
 import time
 from minard.redistools import hmincrby, hmincrbyfloat, hdivh, hmincr, setavgmax
 from minard.timeseries import HASH_INTERVALS, HASH_EXPIRE
+from minard.tools import parseiso
 
 CMOS_ID = 1310720
 BASE_ID = 1048576
@@ -31,9 +32,9 @@ def parse_cmos(rec):
     crate, slot_mask = struct.unpack('II', rec[:8])
     channel_mask = np.frombuffer(rec[8:8+4*16], dtype=np.uint32)
     delay, error_flags = struct.unpack('II',rec[72:72+2*4])
-    counts = np.frombuffer(rec[80:80+8*32*4], dtype=np.uint32).reshape((8,-1))
+    counts = np.frombuffer(rec[80:80+8*32*4], dtype=np.uint32)
     date_string = rec[21*4+8*32*4-4:].strip('\x00')
-    timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
+    timestamp = parseiso(date_string)
     return crate, slot_mask, channel_mask, delay, error_flags, counts, timestamp
 
 def parse_base(rec):
@@ -47,9 +48,9 @@ def parse_base(rec):
     timestamp = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
     return crate, slot_mask, channel_mask, error_flags, counts, busy, timestamp
 
-def total_seconds(td):
-    """Returns the total number of seconds contained in the duration."""
-    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+def unpack_index(index):
+    """Returns (crate, card, channel) for a channel index."""
+    return index >> 9, index >> 5 & 0xf, index & 0x1f
 
 def orca_consumer(port):
     pull_context = zmq.Context()
@@ -65,36 +66,44 @@ def orca_consumer(port):
             crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
                 parse_cmos(rec)
 
-            hash = {}
+            cmos_rates = {}
+
+            cards = np.array([i for i in range(16) if (slotmask >> i) & 1])
+            indices = (crate << 9 | cards[:,np.newaxis] << 5 | np.arange(32)).flatten()
+
+            last_counts = redis.hmget('cmos:count', indices)
+            last_timestamps = redis.hmget('cmos:timestamp', indices)
+
+            # set new times/counts
+            p = redis.pipeline()
+            p.hmset('cmos:count', dict(zip(indices, counts)))
+            p.hmset('cmos:timestamp', dict(zip(indices, repeat(timestamp))))
+            p.execute()
 
             p = redis.pipeline()
-            for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
-                for j, value in enumerate(map(int,counts[i])):
-                    if not channelmask[slot] & (1 << j) or value >> 31:
-                        continue
+            for index, count, last_count, last_timestamp in \
+                    zip(indices, counts, last_counts, last_timestamps):
+                _, card, channel = unpack_index(index)
 
-                    index = crate << 9 | slot << 5 | j
+                if (not channelmask[card] & (1 << channel)
+                    or count >> 31
+                    or last_count is None):
+                    continue
 
-                    prev_count = redis.get('cmos:%i:count' % index)
+                # time delta between cmos counts (seconds)
+                dt = timestamp - float(last_timestamp)
 
-                    if prev_count is not None:
-                        prev_timestamp = strpiso(redis.get('cmos:%i:time' % index))
-                        prev_count = int(prev_count)
-                        try:
-                            rate = (value-prev_count)/total_seconds(timestamp-prev_timestamp)
-                        except ZeroDivisionError as e:
-                            print 'ZeroDivisonError %s' % e
-                            continue
-                        hash[index] = rate
-                        p.setex('cmos:%i:value' % index, int(rate), EXPIRE)
-
-                    p.setex('cmos:%i:count' % index, value, EXPIRE)
-                    p.setex('cmos:%i:time' % index, timestamp.isoformat(), EXPIRE)
+                if 0 < dt < 10 and count > int(last_count):
+                    rate = (count-int(last_count))/dt
+                    # time series
+                    cmos_rates[index] = rate
+                    # latest reading
+                    p.setex('cmos:%i:value' % index, rate, 10)
 
             for interval in HASH_INTERVALS:
                 key = 'ts:%i:%i:cmos' % (interval, now//interval)
-                hmincrbyfloat(key + ':sum', hash, client=p)
-                hmincr(key + ':count', hash.keys(), client=p)
+                hmincrbyfloat(key + ':sum', cmos_rates, client=p)
+                hmincr(key + ':count', cmos_rates.keys(), client=p)
                 p.expire(key + ':sum', interval)
                 p.expire(key + ':count', interval)
                 prev = now//interval - 1
@@ -112,7 +121,7 @@ def orca_consumer(port):
             crate, slotmask, channelmask, error_flags, counts, busy, timestamp = \
                 parse_base(rec)
 
-            hash = {}
+            base_currents = {}
 
             p = redis.pipeline()
             for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
@@ -123,12 +132,12 @@ def orca_consumer(port):
                     index = crate << 9 | slot << 5 | j
 
                     p.setex('base:%i:value' % index, value-127, EXPIRE)
-                    hash[index] = value-127
+                    base_currents[index] = value-127
 
             for interval in HASH_INTERVALS:
                 key = 'ts:%i:%i:base' % (interval, now//interval)
-                hmincrby(key + ':sum', hash, client=p)
-                hmincr(key + ':count', hash.keys(), client=p)
+                hmincrby(key + ':sum', base_currents, client=p)
+                hmincr(key + ':count', base_currents.keys(), client=p)
                 p.expire(key + ':sum', interval)
                 p.expire(key + ':count', interval)
                 prev_key = 'ts:%i:%i:base' % (interval,now//interval-1)

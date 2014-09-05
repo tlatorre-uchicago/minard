@@ -8,5 +8,5 @@ def total_seconds(td):
 def parseiso(timestr):
     """Convert an iso time string -> unix timestamp."""
     dt = datetime.strptime(timestr,'%Y-%m-%dT%H:%M:%S.%fZ')
-    return calendar.timegm(dt.timetuple())
+    return calendar.timegm(dt.timetuple()) + dt.microsecond/1e6
 
