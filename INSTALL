@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 set -e; sudo -v || exit
 
-if ! hash git 2>/dev/null; then echo "Please install git."; fi
-if ! hash virtualenv 2>/dev/null; then echo "Please install virtualenv."; fi
-if ! hash gcc 2>/dev/null; then echo "Please install gcc."; fi
+check_install () {
+    for prog in $@
+    do
+        if ! hash $prog 2>/dev/null; then
+            echo "Please install $prog."
+            exit 1
+        fi
+    done
+}
 
 add_service () {
     # adds an init script service to chkconfig or update-rc.d
@@ -19,6 +25,43 @@ add_service () {
     fi
 }
     
+check_install git virtualenv gcc nginx ntpd
+
+if [ -f /etc/debian_version ]; then
+    supervisord_init=supervisord_debian
+    nginx_init=nginx_debian
+    # ntpd should already be running
+elif [ -f /etc/redhat-release ]; then
+    supervisord_init=supervisord_redhat
+    nginx_init=nginx_redhat
+    sudo chkconfig ntpd on
+else
+    echo "Error! Couldn't determine Linux distribution!"
+    echo "no /etc/debian_version or /etc/redhat-release file"
+    exit 1
+fi
+
+redis_conf=redis.conf;
+supervisord_conf=supervisord.conf;
+
+while true; do
+    read -p "Install master or backup [m/b]? " mb
+    case $mb in
+        m)
+            nginx_conf=nginx.conf;
+            # create conf file for minard
+            temp=$(mktemp)
+            echo "SUPERVISOR = True" > $temp
+            sudo install -m 644 $temp /etc/minard.conf
+            break;;
+        b)
+            nginx_conf=nginx_backup.conf;
+            read -p "Hostname of master install: " host
+            break;;
+        *) echo "Please answer m or b.";;
+    esac
+done
+
 if [ ! -f /usr/local/bin/redis-server ]; then
     # install redis to /usr/local
     printf "Installing redis..."
@@ -57,7 +100,7 @@ fi
 if [ ! -d /opt/minard/src/minard ]; then
     printf "Installing minard..."
     cd $VIRTUAL_ENV/src
-    git clone -q git@github.com:tlatorre-uchicago/minard.git
+    git clone -q git@github.com:snoplus/minard.git
     pip install -qq ./minard
     cd minard/doc
     make html
@@ -66,7 +109,7 @@ if [ ! -d /opt/minard/src/minard ]; then
 else
     printf "Updating minard..."
     cd $VIRTUAL_ENV/src/minard
-    git pull
+    git pull git@github.com:snoplus/minard.git master
     cd doc
     make html &>/dev/null
     rm -rf /opt/minard/www/static/doc
@@ -104,7 +147,40 @@ fi
 # make sure snoplusmon user exists
 if ! id -u snoplusmon >/dev/null; then
     echo "Adding snoplusmon user..."
-    sudo useradd -r snoplusmon
+    sudo useradd -d /home/snoplusmon snoplusmon
+    if [ $mb == 'm' ]; then
+        sudo passwd snoplusmon
+    fi
+fi
+
+if [ $mb == 'b' ]; then
+    temp=$(mktemp)
+    echo "* * * * * snoplusmon flock -n /tmp/rsync.lck rsync -av $host:/var/log/snoplus/ /var/log/snoplus" > $temp
+    sudo install -m 644 $temp /etc/cron.d/rsync
+
+    # test password-less SSH
+    sudo -u snoplusmon -H bash -c "ssh -o StrictHostKeyChecking=no -o NumberOfPasswordPrompts=0 $host echo hello"
+
+    if [ $? -ne 0 ]; then
+        # previous command failed
+        echo "password-less SSH is not set up."
+        while true; do
+            read -p "Set up SSH key now (y/n)? " yn
+            case $yn in
+                [Yy]*)
+                    # set up password less SSH login for rsync
+                    set +e
+                    sudo -u snoplusmon -H bash -c "ssh-keygen"
+                    sudo -u snoplusmon -H bash -c "ssh-copy-id $host"
+                    set -e
+                    break;;
+                [Nn]*)
+                    break;;
+                *)
+                    echo "Please answer yes or no.";;
+            esac
+        done
+    fi
 fi
 
 # make sure nginx user exists
@@ -125,47 +201,51 @@ sudo cp init/gunicorn /etc/init.d/gunicorn
 # add gunicorn service
 add_service gunicorn
 
-if [ -f /etc/debian_version ]; then
-    sudo cp init/supervisord_debian /etc/init.d/supervisord
-elif [ -f /etc/redhat-release ]; then
-    sudo cp init/supervisord_redhat /etc/init.d/supervisord
-else
-    echo "Error! Couldn't determine Linux distribution!"
-    echo "no /etc/debian_version or /etc/redhat-release file"
-    exit 1
+if [ $mb == 'm' ]; then
+    # only install supervisord init if this is installed
+    # as master
+    sudo cp init/$supervisord_init /etc/init.d/supervisord
+    add_service supervisord
+    sudo cp etc/$supervisord_conf /etc/supervisord.conf
 fi
 
-add_service supervisord
-
-sudo cp etc/supervisord.conf /etc/supervisord.conf
-
-if [ -f /etc/debian_version ]; then
-    sudo cp init/nginx_debian /etc/init.d/nginx
-elif [ -f /etc/redhat-release ]; then
-    sudo cp init/nginx_redhat /etc/init.d/nginx
-else
-    echo "Error! Couldn't determine Linux distribution!"
-    echo "no /etc/debian_version or /etc/redhat-release file"
-    exit 1
-fi
-
+sudo cp init/$nginx_init /etc/init.d/nginx
 add_service nginx
+sudo mkdir -p /etc/nginx
+sudo cp etc/$nginx_conf /etc/nginx/nginx.conf
 
-sudo cp etc/nginx.conf /etc/nginx/nginx.conf
+sudo mkdir -p /var/log/nginx
+sudo chown -R nginx:nginx /var/log/nginx
 
 # install redis init script
 sudo cp init/redis_6379 /etc/init.d/redis_6379
 
+if [ $mb == 'b' ]; then
+    sed "s/# slaveof <masterip> <masterport>/slaveof $host 6379/g" etc/$redis_conf -i
+fi
+
 # redis configuration file
 # this is where, for example, the location of the backup image is configured
-sudo cp etc/redis.conf /etc/redis/6379.conf
+sudo cp etc/$redis_conf /etc/redis/6379.conf
 
 # add redis service
 add_service redis_6379
 
-# echo commands from here
-set -x
+if [ $mb == 'm' ] || [ $mb == 'M' ]; then
+    # echo commands from here
+    set -x
 
-sudo /etc/init.d/nginx restart
-sudo /etc/init.d/gunicorn restart
-sudo /etc/init.d/supervisord restart
+    sudo /etc/init.d/redis_6379 stop
+    sudo /etc/init.d/redis_6379 start
+    sudo /etc/init.d/nginx restart
+    sudo /etc/init.d/gunicorn restart
+    sudo /etc/init.d/supervisord restart
+else
+    # echo commands from here
+    set -x
+
+    sudo /etc/init.d/redis_6379 stop
+    sudo /etc/init.d/redis_6379 start
+    sudo /etc/init.d/nginx restart
+    sudo /etc/init.d/gunicorn restart
+fi

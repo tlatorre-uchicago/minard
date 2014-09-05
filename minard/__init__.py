@@ -1,7 +1,7 @@
 from __future__ import print_function
 from flask import Flask
 import sys
-from os.path import join
+from os.path import join, exists
 
 class ReverseProxied(object):
     '''Wrap the application in this middleware and configure the 
@@ -44,7 +44,9 @@ PROJECT_NAME = 'minard'
 app = Flask(__name__, static_folder=STATIC_FOLDER, template_folder=TEMPLATE_FOLDER)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
-app.debug=True
+if exists('/etc/minard.conf'):
+    app.config.from_pyfile('/etc/minard.conf')
+
 if not app.debug:
     import logging
     import logging.handlers

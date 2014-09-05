@@ -17,25 +17,92 @@ import operator
 import pcadb
 import ecadb
 
-Program = namedtuple('Program', ['name', 'machine', 'link'])
+TRIGGER_NAMES = \
+['100L',
+ '100M',
+ '100H',
+ '20',
+ '20LB',
+ 'ESUML',
+ 'ESUMH',
+ 'OWLN',
+ 'OWLEL',
+ 'OWLEH',
+ 'PULGT',
+ 'PRESCL',
+ 'PED',
+ 'PONG',
+ 'SYNC',
+ 'EXTA',
+ 'EXT2',
+ 'EXT3',
+ 'EXT4',
+ 'EXT5',
+ 'EXT6',
+ 'EXT7',
+ 'EXT8',
+ 'SRAW',
+ 'NCD',
+ 'SOFGT',
+ 'MISS']
+
+
+class Program(object):
+    def __init__(self, name, machine=None, link=None, description=None, expire=10):
+        self.name = name
+        self.machine = machine
+        self.link = link
+        self.description = description
+        self.expire = expire
 
 redis = Redis()
 
-PROGRAMS = [Program('builder','builder1.sp.snolab.ca',None),
-            Program('L2','buffer1.sp.snolab.ca',None),
-            Program('dataflow',None,
-            'http://snoplus.westgrid.ca:5984/buffer/_design/buffer/index.html'),
-            Program('PMT-noiserate',None,None)]
+PROGRAMS = [Program('builder','builder1.sp.snolab.ca',
+                    description="event builder"),
+            Program('dispatch','builder1.sp.snolab.ca',
+                    description="event dispatcher"),
+            Program('L2-server','builder1.sp.snolab.ca',
+                    description="builder -> buffer transfer"),
+            Program('L2-client','buffer1.sp.snolab.ca',
+                    description="L2 processor"),
+            Program('L2-convert','buffer1.sp.snolab.ca',
+                    description="zdab -> ROOT conversion"),
+            Program('L1-delete','buffer1.sp.snolab.ca',
+                    description="delete L1 files"),
+            Program('dataflow', expire=20*60,
+                    link='http://snoplus.westgrid.ca:5984/buffer/_design/buffer/index.html'),
+            Program('builder_copy', 'buffer1.sp.snolab.ca',
+                    description="builder -> buffer transfer"),
+            Program('buffer_copy', 'buffer1.sp.snolab.ca',
+                    description="buffer -> grid transfer"),
+            Program('builder_delete', 'buffer1.sp.snolab.ca',
+                    description="builder deletion script"),
+            Program('PCA','nino.physics.berkeley.edu',
+                    link='http://snopluspmts.physics.berkeley.edu/pca',
+                    description="monitor PCA data"),
+            Program('ECA','nino.physics.berkeley.edu',
+                    link='http://snopluspmts.physics.berkeley.edu/eca',
+                    description="monitor ECA data")]
 
 @app.route('/status')
 def status():
     return render_template('status.html', programs=PROGRAMS)
 
+<<<<<<< HEAD
 @app.route('/test_ajax')
 def test_ajax():
     import sys
     print("Hello world!",file=sys.stderr)
     return jsonify(value='world',key='blah',this='that')
+=======
+@app.route('/graph')
+def graph():
+    name = request.args.get('name')
+    start = request.args.get('start')
+    stop = request.args.get('stop')
+    step = request.args.get('step',1,type=int)
+    return render_template('graph.html',name=name,start=start,stop=stop,step=step)
+>>>>>>> 91da7013963e441e598bc29548fff68dd43219f0
 
 @app.route('/get_status')
 def get_status():
@@ -44,44 +111,19 @@ def get_status():
 
     name = request.args['name']
 
-    up = redis.get('/uptime/{name}'.format(name=name))
+    up = redis.get('uptime:{name}'.format(name=name))
 
     if up is None:
         uptime = None
     else:
         uptime = int(time.time()) - int(up)
 
-    return jsonify(status=redis.get('/heartbeat/{name}'.format(name=name)),uptime=uptime)
+    return jsonify(status=redis.get('heartbeat:{name}'.format(name=name)),uptime=uptime)
 
-@app.route('/heartbeat', methods=['POST'])
-def heartbeat():
-    """Log heartbeat."""
-    if 'name' not in request.form:
-        return 'must specify name', 400
-
-    name = request.form['name']
-
-    if 'status' not in request.form:
-        return 'must specify status', 400
-
-    status = request.form['status']
-
-    # expire every 10 seconds
-    redis.setex('/heartbeat/{name}'.format(name=name),status,10)
-
-    up = redis.get('/uptime/{name}'.format(name=name))
-
-    if up is None:
-        redis.setex('/uptime/{name}'.format(name=name),int(time.time()),10)
-    else:
-        # still running, update expiration
-        redis.expire('/uptime/{name}'.format(name=name),10)
-
-    return 'ok\n'
-
-@app.route('/view_log/<name>')
-def view_log(name):
-    return render_template('view_log.html', name=name)
+@app.route('/view_log')
+def view_log():
+    name = request.args.get('name', '???')
+    return render_template('view_log.html',name=name)
 
 @app.route('/log', methods=['POST'])
 def log():
@@ -178,12 +220,9 @@ def l2_filter():
 def detector():
     return render_template('detector.html')
 
-@app.route('/daq/<name>')
-def channels(name):
-    if name == 'cmos':
-        return render_template('channels.html', name=name, threshold=5000)
-    elif name == 'base':
-        return render_template('channels.html', name=name, threshold=80)
+@app.route('/daq')
+def daq():
+    return render_template('daq.html')
 
 @app.route('/alarms')
 def alarms():
@@ -200,14 +239,14 @@ def query():
         return jsonify(name=redis.get('dispatcher'))
 
     if name == 'nhit':
-        start = request.args.get('start',type=parseiso)
+        seconds = request.args.get('seconds',type=int)
 
         now = int(time.time())
 
         p = redis.pipeline()
-        for i in range(start,now):
-            p.lrange('ev:1:{ts}:nhit'.format(ts=i),0,-1)
-        nhit = sum(p.execute(),[])
+        for i in range(seconds):
+            p.lrange('ev:1:{ts}:nhit'.format(ts=now-i),0,-1)
+        nhit = map(int,sum(p.execute(),[]))
         return jsonify(value=nhit)
 
     if name == 'occupancy':
@@ -233,7 +272,7 @@ def query():
     if name == 'cmos' or name == 'base':
         p = redis.pipeline()
         for index in CHANNELS:
-            p.get('%s/index:%i:value' % (name,index))
+            p.get('%s:%i:value' % (name,index))
         values = p.execute()
 
         return jsonify(value=values)
@@ -241,9 +280,8 @@ def query():
 @app.route('/get_alarm')
 def get_alarm():
     try:
-        count = int(redis.get('/alarms/count'))
+        count = int(redis.get('alarms:count'))
     except TypeError:
-        redis.set('/alarms/count',0)
         return jsonify(alarms=[],latest=-1)
 
     if 'start' in request.args:
@@ -256,7 +294,7 @@ def get_alarm():
 
     alarms = []
     for i in range(start,count):
-        value = redis.get('/alarms/{0:d}'.format(i))
+        value = redis.get('alarms:{0:d}'.format(i))
 
         if value:
             alarms.append(json.loads(value))
@@ -298,11 +336,15 @@ def metric():
         trig, _ = expr.split('-')
         values = get_timeseries(expr,start,stop,step)
         counts = get_timeseries(trig,start,stop,step)
-        values = [float(a)/int(b) if a and b else 0 for a, b in zip(values,counts)]
+        values = [float(a)/int(b) if a and b else None for a, b in zip(values,counts)]
     else:
         values = get_timeseries(expr,start,stop,step)
         interval = get_interval(step)
-        values = map(lambda x: int(x)/interval if x else 0, values)
+        if expr in TRIGGER_NAMES or expr in ('TOTAL','L1','L2','ORPHANS','BURSTS'):
+            # trigger counts are zero by default
+            values = map(lambda x: int(x)/interval if x else 0, values)
+        else:
+            values = map(lambda x: int(x)/interval if x else None, values)
 
     return jsonify(values=values)
 
@@ -410,10 +452,6 @@ def eca_run_detail(run_type, run_number):
 @app.route('/pcatellie', methods=['GET'])
 def pcatellie():
     
-    def valuefmt(value_string):
-        value = float(value_string)
-        return '%.2f' % value
-    
     def timefmt(time_string):
         return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(float(time_string)))
     
@@ -424,24 +462,7 @@ def pcatellie():
     def boolclass(bool_string):
         bool_value = bool_string == '1'
         return "success" if not bool_value else "danger"
-  
-    def fiber_css_class(fiber):
-        """  Returns a css class name appropriate for the fiber """
-        # DEAD = dead fiber
-        # VACANT = not installed yet
-        # INSTALLED = installed but no data
-        # FAIL = no successful PCA yet
-        # SUCCES = successful PCA run in tha pocket
-        if fiber["is_dead"]:
-            return "pca-fiber-dead"
-        elif not fiber["is_installed"]:
-            return "pca-fiber-vacant"
-        elif fiber["pca_run"]:
-            if fiber["pca_result"] == "1":
-                return "pca-fiber-fail"
-            else:
-                return "pca-fiber-success"
-        return "pca-fiber-installed"    
+    
     start_run = request.args.get("start_run", 0)
     installed_only = request.args.get("installed_only", False)    
     runs = pcadb.runs_after_run(redis, start_run)      
@@ -464,17 +485,15 @@ def pcatellie():
                        'pca_result': pca_result})
             
     # ['Fiber', 'Node', 'AB', 'IsInstalled', 'IsDead', 'Type'],
-    
+       
     return render_template('pcatellie.html',
                            runs=runs,
                            timefmt=timefmt,
                            boolfmt=boolfmt,
                            boolclass=boolclass,
                            fibers=fibers,
-                           fiber_css_class=fiber_css_class,
                            start_run=start_run,
                            installed_only=installed_only,
-                           valuefmt=valuefmt
     )    
     
 @app.route('/pca_run_detail/<run_number>')

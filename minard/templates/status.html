@@ -1,77 +1,51 @@
 {% extends "layout.html" %}
 {% block title %}Status{% endblock %}
 {% block head %}
-{{ super() }}
-<style>
-    .word-wrap {
-        white-space: pre-wrap;
-        white-space: -moz-pre-wrap;
-        white-space: -pre-wrap;
-        white-space: -o-pre-wrap;
-        word-wrap: break-word;
-    }
-</style>
-  <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    {{ super() }}
 {% endblock %}
 {% block body %}
-{{ super() }}
-<div class="col-md-10 col-md-offset-1">
-    <table class="table table-bordered table-condensed">
-        <tr>
-            <th>Status</th>
-            <th>Uptime</th>
-            <th>Name</th>
-            <th>Machine</th>
-            <th>Log</th>
-            <th>Link</th>
-        </tr>
+    {{ super() }}
+    <div class="col-md-10 col-md-offset-1">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Uptime</th>
+                    <th>Name</th>
+                    <th>Machine</th>
+                    <th style="text-align:center">Log</th>
+                    <th style="text-align:center">Link</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            {% for program in programs %}
+                <tr id="{{ program.name }}">
+                    <td id="status" />
+                    <td id="uptime" />
+                    <td>{{ program.name }}</td>
+                    <td>{{ program.machine }}</td>
+                    <td style="text-align:center">
+                        <a href="{{ url_for('view_log', name=program.name) }}">Tail -f</a>
+                    </td>
+                    <td style="text-align:center">
+                        {% if program.link %}
+                            <a href="{{ program.link }}" target="_blank">Link</a>
+                        {% endif %}
+                    </td>
+                    <td>{% if program.description %}{{ program.description }}{% endif %}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/status.js') }}"></script>
+    <script>
         {% for program in programs %}
-        <tr id="{{ program.name }}">
-            <td id="status" />
-            <td id="uptime" />
-            <td>{{ program.name }}</td>
-            <td>{{ program.machine }}</td>
-            <td><a href="{{ url_for('view_log', name=program.name) }}">Tail -f</a></td>
-            <td>
-                {% if program.link %}
-                    <a href="{{ program.link }}">{{ program.link }}</a></td>
-                {% endif %}
-        </tr>
+            update_status('{{ program.name }}', 2);
         {% endfor %}
-    </table>
-</div>
 
-<script>
-function update_status(name)
-{
-    if (typeof(seek) === 'undefined') seek = null;
-
-    $.getJSON($SCRIPT_ROOT + '/get_status?name=' + name).done(function(obj) {
-        if (obj.status == "ok")
-        {
-            $('#' + name).attr("class","success");
-        }
-        else if (obj.status == null)
-        {
-            obj.status = "Not Responding";
-            $('#' + name).attr("class","danger");
-        }
-        else
-        {
-            $('#' + name).attr("class","warning");
-        }
-
-        $('#' + name + ' #status').text(obj.status);
-        $('#' + name + ' #uptime').text(obj.uptime ? moment().subtract('seconds',obj.uptime).fromNow(true): "");
-
-        setTimeout(function() { update_status(name) },2000); // 2 seconds
-    });
-}
-
-{% for program in programs %}
-    update_status('{{ program.name }}');
-{% endfor %}
-
-$('#nav-status').attr('class','active');
-</script>
+        $('#nav-status').attr('class','active');
+    </script>
 {% endblock %}

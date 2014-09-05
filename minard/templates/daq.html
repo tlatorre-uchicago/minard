@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block title %}Channels{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-5" id="crate">
+                <h4>Crate View</h4>
+            </div>
+            <div class="col-md-7">
+                <div class="row">
+                    <div class="col-md-8" id="card">
+                        <h4>Card View <small></small></h4>
+                    </div>
+                    <div class="col-md-4">
+                        <h4>Options</h4>
+                        <div class="form-group">
+                        <div class='input-group input-group-sm'>
+                            <span class='input-group-addon'>Threshold:</span>
+                            <input type='text' class='form-control' id='threshold'>
+                            <script></script>
+                        </div></div>
+                        <h4>Status</h4>
+                        <div id="status"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/crate.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/daq.js') }}"></script>
+
+    <script>$('#nav-' + url_params['name']).attr('class','active');</script>
+{% endblock %}

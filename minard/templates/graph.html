@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block title %}{{ name }}{% endblock %}
+{% block head %}
+    <!-- metrics-graphics stylesheet goes above super() because we want bootstrap's style
+    (which is linked in super()) to override it. -->
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/metrics-graphics.css') }}">
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/metrics-graphics.js') }}"></script>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div id="main"></div>
+            </div>
+            <div class="col-md-6" id="hist-log"></div>
+            <div class="col-md-6" id="hist"></div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/graph.js') }}"></script>
+
+    <script>
+        add_graph("{{ name }}", moment("{{ start }}"), moment("{{ stop }}"), {{ step }});
+    </script>
+{% endblock %}

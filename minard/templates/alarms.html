@@ -1,110 +1,51 @@
 {% extends "layout.html" %}
 {% block title %}Alarms{% endblock %}
 {% block head %}
-{{ super() }}
-<style>
-    .btn {
-        margin: 5px 5px;
-    }
-
-    .word-wrap {
-        white-space: pre-wrap;
-        white-space: -moz-pre-wrap;
-        white-space: -pre-wrap;
-        white-space: -o-pre-wrap;
-        word-wrap: break-word;
-    }
-</style>
-  <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/moment-timezone.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/moment-timezone-data.js') }}"></script>
+    {{ super() }}
 {% endblock %}
 {% block body %}
 {{ super() }}
 <div class="container">
+    <div class="page-header">
+        <h1>Alarms <small><span id="time"></span></small></h1>
+    </div>
+
     <div class="row">
-        <div class="col-md-10 col-md-offset-1" id="filter-nav">
-            <center>
-                <button class="btn btn-default" type="button" name="default">Default</button>
-                <button class="btn btn-success" type="button" name="success">Success</button>
-                <button class="btn btn-info" type="button" name="info">Info</button>
-                <button class="btn btn-warning" type="button" name="warning">Warning</button>
-                <button class="btn btn-danger" type="button" name="danger">Danger</button>
-            </center>
-            <p>
-            <div id="main"></div>
+        <div class="col-md-1 col-md-push-11 text-center">
+            <h4>View</h4>
+            <form>
+                <div class="checkbox">
+                    <input type="checkbox" name="view" value="debug">
+                    <span class="label label-default label-block">Debug</span>
+                    <br>
+                    <input type="checkbox" name="view" value="info">
+                    <span class="label label-info label-block">Info</span>
+                    <br>
+                    <input type="checkbox" name="view" value="success">
+                    <span class="label label-success label-block">Success</span>
+                    <br>
+                    <input type="checkbox" name="view" value="warning">
+                    <span class="label label-warning label-block">Warning</span>
+                    <br>
+                    <input type="checkbox" name="view" value="danger">
+                    <span class="label label-danger label-block">Error</span>
+                    <br>
+                    <input type="checkbox" name="view" value="unknown">
+                    <span class="label label-default label-block">???</span>
+                    <br>
+                </div>
+            </form>
         </div>
+        <div class="col-md-11 col-md-pull-1 word-wrap monospace" id="log"></div>
     </div>
 </div>
+{% endblock %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/alarms.js') }}"></script>
 
-<script>
-(function () {
-var alert_class = {21 : "alert alert-success",
-                   20 : "alert alert-info",
-                   30 : "alert alert-warning",
-                   40 : "alert alert-danger"};
-
-var alert_level = {21 : "success",
-                   20 : "info",
-                   30 : "warning",
-                   40 : "danger"};
-
-var msglist = [],
-    filter = 'default';
-
-function update_alarms() {
-    $.getJSON($SCRIPT_ROOT + '/get_alarm?start=-100').done(function (obj) {
-        msglist = obj.alarms;
-        parse();
-    });
-    setTimeout(update_alarms,1000);
-}
-
-$("#filter-nav button").each(function() {
-    $(this).click(function() {
-        filter = $(this).attr("name");
-        parse();
-    });
-});
-
-update_alarms();
-
-function parse() {
-    var msgdisp;
-    if (filter != 'default') {
-        msgdisp = msglist.filter(function(d) {
-            return alert_level[d.level] == filter;
-        });
-    } else {
-        msgdisp = msglist;
-    }
-
-    var id = msgdisp.map(function(d) { return d.id; });
-
-    var div = d3.select('#main').selectAll('p').data(id, String).sort(d3.descending);
-
-    div.enter()
-        .insert('p',':first-child')
-        .attr('class', function(d, i) {
-          if (msgdisp[i].level >= 40)
-          {
-            return "bg-danger word-wrap";
-          }
-          else
-          {
-            return "bg-" + (alert_level[msgdisp[i].level] || "") + " word-wrap";
-          }
-        })
-        .text(function(d, i) {
-            return ['[',moment(msgdisp[i].time).tz('America/Toronto').format('MMMM Do YYYY, h:mm:ss z'),
-                '] ', msgdisp[i].message].join('');})
-
-    div.exit().remove();
-}
-
-$('#nav-alarms').attr('class','active');
-})()
-</script>
-
+    <script>
+        update_alarms();
+    </script>
 {% endblock %}

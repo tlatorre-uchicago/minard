@@ -7,12 +7,15 @@ from redis import Redis
 import json
 from os.path import join
 from minard.views import PROGRAMS
+import time
 
 logging.addLevelName(21, 'SUCCESS')
 
 redis = Redis()
 
 PROGRAM_NAMES = [prog.name for prog in PROGRAMS]
+
+PROGRAM_DICT = dict((p.name, p) for p in PROGRAMS)
 
 def get_logger(name):
     """Returns the logger for `name`."""
@@ -30,7 +33,38 @@ def get_logger(name):
 
     return logger
 
-@app.route('/', methods=['POST'])
+@app.route('/heartbeat', methods=['POST'])
+def heartbeat():
+    """Log heartbeat."""
+    if 'name' not in request.form:
+        return "must specify name\n", 400
+
+    name = request.form['name']
+
+    if 'status' not in request.form:
+        return "must specify status\n", 400
+
+    status = request.form['status']
+
+    try:
+        expire = PROGRAM_DICT[name].expire
+    except KeyError:
+        return "unknown name\n", 400
+
+    # expire every expire seconds
+    redis.setex('heartbeat:{name}'.format(name=name),status,expire)
+
+    up = redis.get('uptime:{name}'.format(name=name))
+
+    if up is None:
+        redis.setex('uptime:{name}'.format(name=name),int(time.time()),expire)
+    else:
+        # still running, update expiration
+        redis.expire('uptime:{name}'.format(name=name),expire)
+
+    return 'ok\n'
+
+@app.route('/log', methods=['POST'])
 def log():
     """
     Log a message to disk and optionally set an alarm. The POST request
@@ -53,13 +87,13 @@ def log():
 
     if 'notify' in request.form or lvl >= 40:
         # post to redis
-        id = redis.incr('/alarms/count') - 1
+        id = redis.incr('alarms:count') - 1
 
         alarm = {'id'     : id,
                  'level'  : lvl,
                  'message': msg,
                  'time'   : datetime.now().isoformat()}
 
-        redis.setex('/alarms/{id}'.format(id=id), json.dumps(alarm), 24*60*60)
+        redis.setex('alarms:{id}'.format(id=id), json.dumps(alarm), 24*60*60)
 
     return 'ok\n'

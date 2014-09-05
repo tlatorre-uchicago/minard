@@ -1,146 +1,48 @@
 {% extends "layout.html" %}
 {% block title %}Stream{% endblock %}
 {% block head %}
-{{ super() }}
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    {{ super() }}
+    <style>
+        .axis path {
+            display: none;
+        }
 
-  <style>
-
-  .horizon .title,
-  .horizon .value {
-    bottom: 0;
-    line-height: {{ height }}px;
-    margin: 0 6px;
-    position: absolute;
-    text-shadow: 0 1px 0 rgba(255,255,255,.5);
-    white-space: nowrap;
-  }
-
-  </style>
-
-  <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/cubism.v1.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/moment-timezone.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/moment-timezone-data.js') }}"></script>
+        .horizon .title,
+        .horizon .value {
+            line-height: {{ height }}px;
+        }
+    </style>
 {% endblock %}
 {% block body %}
-{{ super() }}
-  <div class="container">
-    <div class="row">
-      <div class="col-md-6">
-        <p>Dispatcher: <span id='dispatcher'></span>
-        <p>Sudbury Time: <span id='sudbury-time'></span>
-      </div>
-      <div class="col-md-6">
-        <p class="pull-right">
-        <select id="step-menu">
-            {% for i, text in [(1,"15 min"), (3, "1 hour"), (9, "3 hours"), (29, "9 hours"), (90, "1 day"), (280, "3 days"), (867, "1 week"), (2677, "1 month"), (8267, "3 months"), (25531, "1 year"), (255310, "10 years")] %}
-            <option {% if step == i %}selected="selected" {% endif %}value="{{ i }}">{{ text }}</option>
-          {% endfor %}
-        </select>
-      </div>
+    {{ super() }}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-2">
+                <p>Dispatcher: <span id='dispatcher'></span>
+            </div>
+            <div class="col-md-2 col-md-offset-8 text-right">
+                <select id="step-menu">
+                    {% for i, text in [(1,"15 min"), (3, "1 hour"), (9, "3 hours"), (29, "9 hours"), (90, "1 day"), (280, "3 days"), (867, "1 week"), (2677, "1 month"), (8267, "3 months"), (25531, "1 year"), (255310, "10 years")] %}
+                        <option {% if step == i %}selected="selected" {% endif %}value="{{ i }}">{{ text }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12" style="padding:0" id="main"></div>
+        </div>
     </div>
-    <div class="row">
-      <div class="col-md-12" style="padding:0" id="main"></div>
-    </div>
-  </div>
+{% endblock %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cubism.v1.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tzscale.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/snostream.js') }}"></script>
 
-<script>
-(function () {
-  $("#step-menu").on("change", function() {
-      window.location.replace("{{ url_for('snostream') }}?step=" + this.value + "&height={{ height }}");
-  });
-
-  setInterval(function() {
-    $.getJSON($SCRIPT_ROOT + '/query', {'name': 'dispatcher'}, function(reply) {
-        $('#dispatcher').text(reply.name);
-    });
-  },1000);
-
-  setInterval(function() {
-    $('#sudbury-time').text(moment().tz('America/Toronto').format('h:mm:ss'));
-  },1000);
-
-var size = $('#main').width();
-var context = cubism.context()
-    .serverDelay(1e3)
-    .clientDelay(1e3)
-    .step({{ step }}*1000)
-    .size(size);
-
-d3.select("#main").selectAll(".axis")
-    .data(["top", "bottom"])
-  .enter().append("div")
-    .attr("class", function(d) { return d + " axis"; })
-    .each(function(d) { d3.select(this).call(context.axis().ticks(12).orient(d)); });
-
-d3.select("#main").append("div")
-    .attr("class", "rule")
-    .call(context.rule());
-
-var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB','ESUML','ESUMH',
-  'OWLN','OWLEL','OWLEH','PULGT','PRESCL', 'PED','PONG','SYNC','EXTA',
-  //'EXT2','EXT3','EXT4','EXT5','EXT6','EXT7', 'EXT8','SRAW','NCD', 'SOFGT','MISS'
-  ]
-
-var L2_STREAMS = ['L1','L2','ORPHANS','BURSTS'];
-
-var si_format = d3.format('.2s');
-
-var my_format = function(n)
-{
-    if (n < 100 && n % 1 === 0)
-        return n.toString();
-    else
-        return si_format(n);
-}
-
-function metric(name) {
-    var format = d3.time.format("%d-%b-%y");
-    return context.metric(function(start, stop, step, callback) {
-        d3.json($SCRIPT_ROOT + '/metric' + 
-                '?expr=' + name +
-                '&start=' + start.toISOString() +
-                '&stop=' + stop.toISOString() +
-                '&now=' + new Date().toISOString() +
-                '&step=' + Math.floor(step/1000), function(data) {
-                if (!data) return callback(new Error('unable to load data'));
-                return callback(null,data.values);
-        });
-    }, name);
-}
-
-function add_horizon(expressions, format, colors, extent)
-{
-    var horizon = context.horizon().height({{ height }});
-
-    if (typeof format != "undefined") horizon = horizon.format(format);
-    if (typeof colors != "undefined" && colors) horizon = horizon.colors(colors);
-    if (typeof extent != "undefined") horizon = horizon.extent(extent);
-
-    d3.select('#main').selectAll('.horizon')
-        .data(expressions.map(metric), String)
-      .enter().insert('div','.bottom')
-        .attr('class', 'horizon')
-        .call(horizon);
-}
-
-add_horizon(TRIGGER_NAMES.slice(0,1),my_format);
-add_horizon(L2_STREAMS,my_format);
-add_horizon(TRIGGER_NAMES.slice(1),my_format);
-add_horizon(["0\u03bd\u03b2\u03b2"],my_format);
-add_horizon(["TOTAL-nhit","TOTAL-charge","PULGT-nhit","PULGT-charge"]);
-add_horizon(["gtid"],d3.format('#0xx'),[]);
-add_horizon(["run"],d3.format(),[]);
-add_horizon(["subrun"],d3.format(),[],[0,100]);
-add_horizon(["heartbeat"],d3.format(),null,[0,4]);
-
-context.on("focus", function(i) {
-  d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
-});
-
-$("#nav-snostream").attr("class","active");
-})()
-</script>
+    <script>
+        $("#nav-snostream").attr("class","active");
+    </script>
 {% endblock %}

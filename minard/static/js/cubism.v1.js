@@ -20,7 +20,7 @@ cubism.options = function(name, defaultValues) {
   }
   return values.length || arguments.length < 2 ? values : defaultValues;
 };
-cubism.context = function() {
+cubism.context = function(scale) {
   var context = new cubism_context,
       step = 1e4, // ten seconds, in milliseconds
       size = 1440, // four hours at ten seconds, in pixels
@@ -29,9 +29,10 @@ cubism.context = function() {
       serverDelay = 5e3,
       clientDelay = 5e3,
       event = d3.dispatch("prepare", "beforechange", "change", "focus"),
-      scale = context.scale = d3.time.scale().range([0, size]),
       timeout,
       focus;
+
+  scale = context.scale = typeof scale !== 'undefined' ? scale : d3.time.scale().range([0, size]);
 
   function update() {
     var now = Date.now();

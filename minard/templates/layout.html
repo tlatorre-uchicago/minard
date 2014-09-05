@@ -12,60 +12,11 @@
 
         <title>{% block title %}{% endblock %}</title>
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" media="screen">
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" media="screen">
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/toastr.css') }}" media="screen">
-
-        <!-- jquery for $() pattern -->
-        <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/toastr.js') }}"></script>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/toastr.min.css') }}" media="screen">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/minard.css') }}" media="screen">
         {% endblock %}
     </head>
     <body>
-        <!-- $SCRIPT_ROOT for app location -->
-        <script type="text/javascript">
-            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-
-        ALARM_AUDIO = '<audio autoplay loop> \
-        <source src="{{ url_for('static', filename='audio/0096.ogg') }}", type="audio/ogg"> \
-        <source src="{{ url_for('static', filename='audio/0096.mp3') }}", type="audio/mpeg"> \
-        <source src="{{ url_for('static', filename='audio/0096.wav') }}", type="audio/wav"> \
-        </audio>'
-
-            // convert alarm level -> string
-            var alarm_level_map = {21: 'success', 20: 'info', 30: 'warning', 40: 'error'};
-
-            function update_toastr(latest)
-            {
-                next = latest + 1;
-                $.getJSON($SCRIPT_ROOT + '/get_alarm?start=' + next).done(function(obj) {
-                    for (var i=0; i < obj.alarms.length; i++)
-                    {
-                        alarm = obj.alarms[i];
-
-                        var level_string;
-                        if (alarm.level >= 40) {
-                            alarm.message += ALARM_AUDIO;
-                            toastr.options = {'timeOut': 0, 'extendedTimeOut': 0, 'closeButton': true};
-                            level_string = "error";
-                        } else {
-                            toastr.options = {'timeOut': 20000};
-                            level_string = alarm_level_map[alarm.level] || "info";
-                        }
-
-                        toastr[level_string](alarm.message);
-
-                        // update latest alarm id
-                        latest = Math.max(latest,alarm.id);
-                    }
-                });
-
-                setTimeout(function() { update_toastr(latest); },1000);
-            }
-
-            $.getJSON($SCRIPT_ROOT + '/get_alarm?start=-1').done(function(obj) {
-                update_toastr(obj.latest);
-            });
-        </script>
         {% block body %}
         <div class="navbar navbar-default navbar-static-top">
             <div class="container">
@@ -81,6 +32,7 @@
                     <ul class="nav navbar-nav">
                         <li id='nav-status'><a href="{{ url_for('status') }}">Status</a></li>
                         <li id='nav-snostream'><a href="{{ url_for('snostream') }}">Stream</a></li>
+                        <li id='nav-nhit'><a href="{{ url_for('nhit') }}">NHit</a></li>
                         <li id='nav-detector'><a href="{{ url_for('detector') }}">Detector</a></li>
 
                         <!-- Dropdown DAQ -->
@@ -88,10 +40,10 @@
 			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>DAQ <b class='caret'></b></a>
                             <ul class='dropdown-menu'>
                                 <li id='nav-cmos'>
-                                    <a href="{{ url_for('channels',name='cmos') }}">CMOS Rates</a>
+                                    <a href="{{ url_for('daq',name='cmos', threshold=5000) }}">CMOS Rates</a>
                                 </li>
                                 <li id='nav-base'>
-                                    <a href="{{ url_for('channels',name='base') }}">Base Currents</a>
+                                    <a href="{{ url_for('daq',name='base', threshold=80) }}">Base Currents</a>
                                 </li>
                                 
                             </ul><!-- Dropdown PMTcal -->
@@ -109,13 +61,27 @@
                         <li id='nav-alarms'><a href="{{ url_for('alarms') }}">Alarms</a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
-                      <li><a href="{{ url_for('supervisor') }}">Supervisor</a></li>
+                      {% if config['SUPERVISOR'] %}
+                        <li><a href="{{ url_for('supervisor') }}">Supervisor</a></li>
+                      {% endif %}
                       <li><a href="{{ url_for('doc') }}">Docs</a></li>
                     </ul>
                 </div><!--/.navbar-collapse -->
             </div>
         </div>
         {% endblock %}
+        <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+
+        <!-- $SCRIPT_ROOT for app location -->
+        <script type="text/javascript">
+            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        </script>
+
+        <script src="{{ url_for('static', filename='js/minard.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/toastr-alarms.js') }}"></script>
+
+        {% block script %}{% endblock %}
     </body>
 </html>
