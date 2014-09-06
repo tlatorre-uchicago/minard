@@ -54,9 +54,7 @@ function create_context(target) {
     return context;
 }
 
-function metric(context, name, crate, card, channel, method) {
-    method = typeof method === 'undefined' ? 'avg' : method;
-
+function metric(timeseries, crate, card, channel) {
     var label;
     if (card === null)
         label = 'crate ' + crate;
@@ -65,9 +63,9 @@ function metric(context, name, crate, card, channel, method) {
     else
         label = 'channel ' + channel;
 
-    return context.metric(function(start, stop, step, callback) {
+    return timeseries.context.metric(function(start, stop, step, callback) {
         var params = {
-            name: name,
+            name: timeseries.source,
             start: start.toISOString(),
             stop: stop.toISOString(),
             now: new Date().toISOString(),
@@ -75,7 +73,7 @@ function metric(context, name, crate, card, channel, method) {
             crate: crate,
             card: card,
             channel: channel,
-            method: method
+            method: timeseries.method
         }
 
         d3.json($SCRIPT_ROOT + '/metric_hash?' + $.param(params),
@@ -89,31 +87,56 @@ function metric(context, name, crate, card, channel, method) {
     }, label);
 }
 
-function create_horizons(target, context, metrics, scale) {
-    var horizon = context.horizon()
+function draw(timeseries) {
+    // create a horizon from timeseries.context and draw horizons
+    if (timeseries.horizon) {
+        d3.select(timeseries.target).selectAll('.horizon')
+        .call(timeseries.horizon.remove)
+        .remove();
+        }
+
+    timeseries.horizon = timeseries.context.horizon()
         .height(20)
-        // horizon needs 2x the colors for positive and negative
-        .colors(scale.range().concat(scale.range()))
-        .extent(scale.domain())
-        .format(function(n) {
-            if (n == null)
-                return '-';
-            else
-                return d3.format('.2s')(n);
-            }
-        );
+        .colors(timeseries.scale.range().concat(timeseries.scale.range()))
+        .extent(timeseries.scale.domain())
+        .format(timeseries.format);
 
-    $(target + ' .horizon').remove();
+    var horizons = d3.select(timeseries.target).selectAll('.horizon')
+        .data(timeseries.metrics)
+      .enter().insert('div','.bottom')
+          .attr('class', 'horizon')
+          .call(timeseries.horizon);
 
-    var horizons = d3.select(target).selectAll('.horizon')
-        .data(metrics);
-    // remove old divs
-    //horizons.exit().remove();
+    if (timeseries.click)
+        horizons.on('click', timeseries.click);
+    }
 
-    // add time series
-    horizons.enter().insert('div','.bottom')
-        .attr('class', 'horizon')
-        .call(horizon);
+function update_metrics(timeseries, crate, card) {
+    if (timeseries.context != null)
+        timeseries.context.stop();
+
+        timeseries.context = create_context(timeseries.target);
+    timeseries.metrics = [];
+
+    if (typeof crate === 'undefined') {
+        for (var i=0; i < 19; i++)
+            timeseries.metrics[i] = metric(timeseries, i, null, null);
+    } else if (typeof card === 'undefined') {
+        for (var i=0; i < 16; i++)
+            timeseries.metrics[i] = metric(timeseries, crate, i, null);
+    } else {
+        for (var i=0; i < 32; i++)
+            timeseries.metrics[i] = metric(timeseries, crate, card, i);
+    }
+}
+
+si_format = d3.format('.2s');
+
+function format(d) {
+    if (d == null)
+        return '-';
+    else
+        return si_format(d);
 }
 
 var default_thresholds = {
@@ -128,22 +151,38 @@ function set_thresholds(lo, hi) {
     $('#threshold-hi').val(hi)
 }
 
+function switch_to_crate(crate) {
+    card.crate(crate);
+    d3.select('#card').call(card);
+    $('#card-heading').text('Crate ' + crate);
+    $('.carousel').carousel('next');
+
+    update_metrics(blah, crate);
+    draw(blah);
+    blah.crate = crate;
+}
+
+function switch_to_channel(crate, card) {
+    $('#channel-heading').text('Crate ' + crate + ', Card ' + card);
+    $('#carousel').carousel('next');
+    update_metrics(channelts, crate, card);
+    channelts.crate = crate;
+    channelts.card = card;
+    draw(channelts);
+}
+
 var spam = {
 target: '#timeseries',
 source: $('#data-source').val(),
 method: $('#data-method').val(),
 context: null,
+horizon: null,
 scale: null,
 metrics:null,
-update: function () {
-    this.context.stop();
-    this.context = create_context(this.target);
-    this.metrics = [];
-    for (var i=0; i < 20; i++) {
-        this.metrics[i] = metric(this.context, this.source, i, null, null, this.method);
+format: format,
+click: function(d, i) {
+    switch_to_crate(i);
     }
-    create_horizons(this.target, this.context, this.metrics, this.scale);
-}
 }
     
 var blah = {
@@ -151,21 +190,26 @@ target: '#timeseries-card',
 source: $('#data-source').val(),
 method: $('#data-method').val(),
 context: null,
+horizon: null,
 scale: null,
 metrics:null,
-crate: 0,
-update: function () {
-    if (this.context !== null)
-        this.context.stop();
-    this.context = create_context(this.target);
-    this.metrics = [];
-    for (var i=0; i < 16; i++) {
-        this.metrics[i] = metric(this.context, this.source, this.crate, i, null, this.method);
+format: format,
+click: function(d, i) {
+    switch_to_channel(blah.crate, i);
     }
-    create_horizons(this.target, this.context, this.metrics, this.scale);
-}
 }
     
+var channelts = {
+target: '#timeseries-channel',
+source: $('#data-source').val(),
+method: $('#data-method').val(),
+context: null,
+horizon: null,
+scale: null,
+metrics:null,
+format: format,
+}
+
 function setup() {
     source = $('#data-source').val();
     method = $('#data-method').val();
@@ -176,11 +220,12 @@ function setup() {
         .domain(thresholds)
         .range(colorbrewer['YlOrRd'][3]);
 
-    spam.context = create_context('#timeseries');
     spam.scale = scale;
-    spam.update();
+    update_metrics(spam);
+    draw(spam);
 
     blah.scale = scale;
+    channelts.scale = scale;
 
     // set default thresholds in text area
     $('#threshold-lo').val(thresholds[0])
@@ -192,13 +237,7 @@ function setup() {
     crate = crate_view()
         .scale(scale)
         .click(function(d, i) {
-            card.crate(i);
-            d3.select('#card').call(card);
-            $('#card-heading').text('Crate ' + i);
-            $('#carousel').carousel('next');
-
-            blah.crate = i;
-            blah.update();
+            switch_to_crate(i);
         });
 
     if (source == 'cmos') {
@@ -214,9 +253,15 @@ setup();
 
 $('#data-method').change(function() {
     spam.method = this.value;
-    spam.update();
+    update_metrics(spam);
+    draw(spam);
     blah.method = this.value;
-    blah.update();
+    update_metrics(blah);
+    if (blah.context)
+        draw(blah);
+    channelts.method = this.value;
+    if (channelts.context)
+        draw(channelts);
 });
 
 $('#data-source').change(function() {
@@ -238,18 +283,26 @@ $('#data-source').change(function() {
     // update source, scale, and redraw
     spam.source = this.value;
     spam.scale.domain(thresholds);
-    spam.update();
+    update_metrics(spam);
+    draw(spam);
     blah.source = this.value;
     blah.scale.domain(thresholds);
-    blah.update();
+    update_metrics(blah, blah.crate);
+    if (blah.context)
+        draw(blah);
+    channelts.source = this.value;
+    channelts.scale.domain(thresholds);
+    update_metrics(channelts, channelts.crate, channelts.card);
+    if (channelts.context)
+        draw(channelts);
 });
 
 $('#threshold-lo').keypress(function(e) {
     if (e.which == 13) {
         spam.scale.domain([this.value,scale.domain()[1]]);
-        spam.update();
+        draw(spam);
         blah.scale.domain([this.value,scale.domain()[1]]);
-        blah.update();
+        draw(blah);
 
         d3.select("#crate").call(crate);
         d3.select("#card").call(card);
@@ -259,9 +312,9 @@ $('#threshold-lo').keypress(function(e) {
 $('#threshold-hi').keypress(function(e) {
     if (e.which == 13) {
         spam.scale.domain([scale.domain()[0],this.value]);
-        spam.update();
+        draw(spam);
         blah.scale.domain([scale.domain()[0],this.value]);
-        blah.update();
+        draw(blah);
 
         d3.select("#crate").call(crate);
         d3.select("#card").call(card);
@@ -270,15 +323,23 @@ $('#threshold-hi').keypress(function(e) {
 
 $('.carousel').on('slide.bs.carousel', function(e) {
     var slide = $(e.relatedTarget).index();
-    if (slide == 1) {
+    if (slide == 3) {
+        spam.context.stop();
+        blah.context.stop();
+        if (baz.context)
+            baz.context.start();
+    } else if (slide == 1) {
         // card slide
         spam.context.stop();
         if (blah.context)
             blah.context.start();
+        if (channelts.context)
+            channelts.context.start();
     } else if (slide == 0) {
         // crate slide
         blah.context.stop();
         spam.context.start();
+        channelts.context.stop();
     }
 });
 
