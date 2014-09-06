@@ -5,7 +5,6 @@
 {% endblock %}
 {% block body %}
     {{ super() }}
-<<<<<<< HEAD
 
     <div class="container">
     <table class="table table-bordered table-condensed table-striped">
@@ -21,7 +20,7 @@
             <tbody>
                 {% for run in runs %}
                 <tr class="{{ statusclass(parse_status(run["run_status"], run["run_type"])) }}">
-                    <td><a href="{{url_for("eca_run_detail",run_type=run["run_type"],run_number = run["run_number"]) }}">{{ run["run_number"] }}</a></td>
+                    <td><a href="{{url_for('eca_run_detail',run_type=run["run_type"],run_number = run["run_number"]) }}">{{ run["run_number"] }}</a></td>
                     <td>{{ timefmt(run["run_time"]) }}</td>
                     <td>{{ timefmt(run["analyze_time"]) }}</td>
                     <td>{{ run["run_type"] }}</td>
@@ -30,33 +29,9 @@
                 {% endfor %}
             </tbody>
     </table>
-    </div>
-
-
-    <script>
-
-    function process_result(result)
-    {
-	alert(result['this']);
-    }
-
-    //$.getJSON($SCRIPT_ROOT + '/test_ajax', {'name': 'hello'}).done(process_result);
-
-    $(".status").each(function() {
-        if($(this).text() == 'pass') {
-		$(this).addClass("success");}
-        if($(this).text() == 'fail') {
-		$(this).addClass("danger");}
-	});
-
-    </script>
+   </div>
 
 
 
 
-=======
-    <div class="container">
-        <h1>Coming soon!</h1>
-    </div>
->>>>>>> 91da7013963e441e598bc29548fff68dd43219f0
 {% endblock %}

@@ -47,6 +47,7 @@ app.wsgi_app = ReverseProxied(app.wsgi_app)
 if exists('/etc/minard.conf'):
     app.config.from_pyfile('/etc/minard.conf')
 
+app.debug=True
 if not app.debug:
     import logging
     import logging.handlers

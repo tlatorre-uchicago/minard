@@ -88,13 +88,6 @@ PROGRAMS = [Program('builder','builder1.sp.snolab.ca',
 def status():
     return render_template('status.html', programs=PROGRAMS)
 
-<<<<<<< HEAD
-@app.route('/test_ajax')
-def test_ajax():
-    import sys
-    print("Hello world!",file=sys.stderr)
-    return jsonify(value='world',key='blah',this='that')
-=======
 @app.route('/graph')
 def graph():
     name = request.args.get('name')
@@ -102,7 +95,6 @@ def graph():
     stop = request.args.get('stop')
     step = request.args.get('step',1,type=int)
     return render_template('graph.html',name=name,start=start,stop=stop,step=step)
->>>>>>> 91da7013963e441e598bc29548fff68dd43219f0
 
 @app.route('/get_status')
 def get_status():
@@ -361,7 +353,7 @@ def eca():
         return(int_type & mask)
 
     def parse_status(run_status, run_type):
-        run_stauts = int(run_status)
+        run_status = int(run_status)
         if run_type == 'PDST':
             #these are all the run-level status flags for PDST runs
             #some are worse to fail than others
@@ -436,7 +428,12 @@ def eca():
 
     runs = ecadb.runs_after_run(redis, 0)      
 
-    return render_template('eca.html',runs=runs,parse_status=parse_status,timefmt=timefmt,statusfmt=statusfmt,statusclass=statusclass)
+    return render_template('eca.html',
+                            runs=runs,
+                            parse_status=parse_status,
+                            timefmt=timefmt,
+                            statusfmt=statusfmt,
+                            statusclass=statusclass)
  
 @app.route('/eca_run_detail')
 #@app.route('/eca_run_detail?run=<run_number>')
