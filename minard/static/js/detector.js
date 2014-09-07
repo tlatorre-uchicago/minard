@@ -1,7 +1,7 @@
 function linspace(min, max, N) {
-    var a = new Array();
+    var a = [];
     for (var i=0; i < N; i++) {
-        a[i] = min + (max-min)*i/(N-1)
+        a[i] = min + (max-min)*i/(N-1);
     }
     return a;
 }
@@ -9,11 +9,12 @@ function linspace(min, max, N) {
 var xsnoed1 = ["#4876ff","#32cd32","#ffff00","#ffa500","#ff0000"],
     xsnoed2 = ["#3a5fcd","#2e8b57","#cd9b1d","#ffa500","#ff0000"];
 
-var color_scales = Object();
-color_scales['xsnoed1'] = xsnoed1;
-color_scales['xsnoed2'] = xsnoed2;
-for (var key in colorbrewer)
+var color_scales = {};
+color_scales.xsnoed1 = xsnoed1;
+color_scales.xsnoed2 = xsnoed2;
+for (var key in colorbrewer) {
     color_scales[key] = colorbrewer[key][5];
+}
 
 color_scales = d3.entries(color_scales);
 
@@ -103,14 +104,14 @@ options.forEach(function(o) {
     o.projection.rotate([0, 0]).center([0, 0])
         .scale((width + 1) / 2 / Math.PI)
         .translate([width / 2, height / 2])
-        .precision(.1);
+        .precision(0.1);
     });
 
 var coords = [];
 for (var i=0; i < pmtinfo['x'].length; i++) {
-    var x = pmtinfo['x'][i],
-        y = pmtinfo['y'][i],
-        z = pmtinfo['z'][i];
+    var x = pmtinfo.x[i],
+        y = pmtinfo.y[i],
+        z = pmtinfo.z[i];
 
     var r = Math.sqrt(x*x + y*y + z*z);
 
@@ -130,7 +131,7 @@ menu.selectAll("option")
   .enter().append("option")
     .text(function(d) { return d.name; });
 
-menu.property("selectedIndex", 16)
+menu.property("selectedIndex", 16);
 
 function update_projection(option) {
     svg.selectAll("path").transition()
@@ -177,7 +178,7 @@ function redraw() {
     d3.select("#crate").call(crate);
 
     svg.selectAll("circle")
-        .style('fill',function(d, i) { return d ? color_scale(d) : "#e0e0e0";})
+        .style('fill',function(d, i) { return d ? color_scale(d) : "#e0e0e0";});
  
 }
 
@@ -194,7 +195,7 @@ function setup() {
 
     d3.select(self.frameElement).style("height", height + "px");
 
-    pos = []
+    pos = [];
     for (var i=0; i < coords.length; i++)
         pos[i] = projection(coords[i]);
 
