@@ -1,3 +1,5 @@
+var STEP, SOURCE, METHOD, SCALE;
+
 function create_context(target) {
     var scale = tzscale().zone('America/Toronto');
 
@@ -5,7 +7,7 @@ function create_context(target) {
     var context = cubism.context(scale)
         .serverDelay(2e3)
         .clientDelay(1e3)
-        .step(5e3)
+        .step(STEP*1000)
         .size(size);
 
     function format_seconds(date) {
@@ -65,16 +67,16 @@ function metric(timeseries, crate, card, channel) {
 
     return timeseries.context.metric(function(start, stop, step, callback) {
         var params = {
-            name: timeseries.source,
+            name: SOURCE,
             start: start.toISOString(),
             stop: stop.toISOString(),
             now: new Date().toISOString(),
-            step: 5,
+            step: Math.floor(step/1000),
             crate: crate,
             card: card,
             channel: channel,
-            method: timeseries.method
-        }
+            method: METHOD
+        };
 
         d3.json($SCRIPT_ROOT + '/metric_hash?' + $.param(params),
             function(data) {
@@ -97,8 +99,8 @@ function draw(timeseries) {
 
     timeseries.horizon = timeseries.context.horizon()
         .height(20)
-        .colors(timeseries.scale.range().concat(timeseries.scale.range()))
-        .extent(timeseries.scale.domain())
+        .colors(SCALE.range().concat(SCALE.range()))
+        .extent(SCALE.domain())
         .format(timeseries.format);
 
     var horizons = d3.select(timeseries.target).selectAll('.horizon')
@@ -131,12 +133,28 @@ function update_metrics(timeseries) {
 }
 
 si_format = d3.format('.2s');
+percentage_format = d3.format('.2%');
+fixed_format = d3.format('.0f');
 
-function format(d) {
+function my_si_format(d) {
     if (d == null)
         return '-';
     else
         return si_format(d);
+}
+
+function my_percentage_format(d) {
+    if (d == null)
+        return '-';
+    else
+        return percentage_format(d);
+}
+
+function base_format(d) {
+    if (d == null)
+        return '-';
+    else
+        return fixed_format(d);
 }
 
 var default_thresholds = {
@@ -176,13 +194,10 @@ var ACTIVE = 0,
 
 var spam = {
 target: '#timeseries',
-source: $('#data-source').val(),
-method: $('#data-method').val(),
 context: null,
 horizon: null,
-scale: null,
 metrics:null,
-format: format,
+format: my_si_format,
 click: function(d, i) {
     switch_to_crate(i);
     },
@@ -192,13 +207,10 @@ slide: 0
     
 var blah = {
 target: '#timeseries-card',
-source: $('#data-source').val(),
-method: $('#data-method').val(),
 context: null,
 horizon: null,
-scale: null,
 metrics:null,
-format: format,
+format: my_si_format,
 crate: 0,
 click: function(d, i) {
     switch_to_channel(blah.crate, i);
@@ -209,13 +221,10 @@ slide: 1
     
 var channelts = {
 target: '#timeseries-channel',
-source: $('#data-source').val(),
-method: $('#data-method').val(),
 context: null,
 horizon: null,
-scale: null,
 metrics:null,
-format: format,
+format: my_si_format,
 crate: 0,
 card: 0,
 state: NEEDS_UPDATE,
@@ -223,48 +232,59 @@ slide: 2
 }
 
 function setup() {
-    source = $('#data-source').val();
-    method = $('#data-method').val();
+    SOURCE = $('#data-source').val();
+    METHOD = $('#data-method').val();
+    STEP = +$('#data-step').val();
 
-    var thresholds = default_thresholds[source];
+    var thresholds = default_thresholds[SOURCE];
 
-    scale = d3.scale.threshold()
+    SCALE = d3.scale.threshold()
         .domain(thresholds)
         .range(colorbrewer['YlOrRd'][3]);
 
-    spam.scale = scale;
+    card = card_view()
+        .scale(SCALE);
+
+    crate = crate_view()
+        .scale(SCALE)
+        .click(function(d, i) {
+            switch_to_crate(i);
+        });
+
+    update_format();
     update_metrics(spam);
     draw(spam);
     spam.state = ACTIVE;
-
-    blah.scale = scale;
-    channelts.scale = scale;
 
     // set default thresholds in text area
     $('#threshold-lo').val(thresholds[0])
     $('#threshold-hi').val(thresholds[1])
 
-    card = card_view()
-        .scale(scale);
-
-    crate = crate_view()
-        .scale(scale)
-        .click(function(d, i) {
-            switch_to_crate(i);
-        });
-
-    if (source == 'cmos') {
-        card.format(d3.format('.2s'));
-    } else if (source == "occupancy") {
-        card.format(d3.format('.0e'));
-    } else {
-        card.format(d3.format());
-    }
 }
 
-setup();
+function update_format() {
+    if (SOURCE == 'cmos') {
+        card.format(my_si_format);
+    } else if (SOURCE == "occupancy") {
+        card.format(d3.format('.0e'));
+    } else {
+        card.format(base_format);
+    }
+
+    timeseries.forEach(function(ts) {
+        if (SOURCE == 'cmos') {
+            ts.format = my_si_format;
+        } else if (SOURCE == 'occupancy') {
+            ts.format = my_percentage_format;
+        } else {
+            ts.format = base_format;
+        }
+    });
+}
 
 var timeseries = [spam, blah, channelts];
+
+setup();
 
 function update_state(call_update_metric) {
     call_update_metric = typeof call_update_metric === 'undefined' ? true : false;
@@ -286,44 +306,34 @@ function update_state(call_update_metric) {
 }
 
 $('#data-method').change(function() {
-    spam.method = this.value;
-    blah.method = this.value;
-    channelts.method = this.value;
+    METHOD = this.value;
+
+    update_state();
+});
+
+$('#data-step').change(function() {
+    STEP = this.value;
 
     update_state();
 });
 
 $('#data-source').change(function() {
-    if (this.value == 'cmos') {
-        card.format(d3.format('.2s'));
-    } else if (this.value == "occupancy") {
-        card.format(d3.format('.0e'));
-    } else {
-        card.format(d3.format());
-    }
-
     // update threshold values
     var thresholds = default_thresholds[this.value];
     set_thresholds.apply(this,thresholds);
-    // update color scale
-    scale.domain(thresholds);
-    update();
 
-    // update source, scale, and redraw
-    spam.source = this.value;
-    spam.scale.domain(thresholds);
-    blah.source = this.value;
-    blah.scale.domain(thresholds);
-    channelts.source = this.value;
-    channelts.scale.domain(thresholds);
+    SOURCE = this.value;
+    SCALE.domain(thresholds);
+    update_format();
+
+    update();
 
     update_state();
 });
 
 $('#threshold-lo').keypress(function(e) {
     if (e.which == 13) {
-        spam.scale.domain([this.value,scale.domain()[1]]);
-        blah.scale.domain([this.value,scale.domain()[1]]);
+        SCALE.domain([this.value,SCALE.domain()[1]]);
 
         update_state(false);
 
@@ -334,8 +344,7 @@ $('#threshold-lo').keypress(function(e) {
 
 $('#threshold-hi').keypress(function(e) {
     if (e.which == 13) {
-        spam.scale.domain([scale.domain()[0],this.value]);
-        blah.scale.domain([scale.domain()[0],this.value]);
+        SCALE.domain([SCALE.domain()[0],this.value]);
 
         update_state(false);
 
@@ -348,6 +357,7 @@ $('.carousel').on('slid.bs.carousel', function(e) {
     var slide = $(e.relatedTarget).index();
     $('#card-heading').text('Crate ' + blah.crate);
     $('#channel-heading').text('Crate ' + channelts.crate + ', Card ' + channelts.card);
+    $('.data-source-heading').text($('#data-source :selected').text());
 
     timeseries.forEach(function(ts) {
         if (ts.slide == slide) {
@@ -373,8 +383,7 @@ $('.carousel').on('slid.bs.carousel', function(e) {
 var interval = 5000;
 
 function update() {
-    var name = $('#data-source').val();
-    $.getJSON($SCRIPT_ROOT + '/query', {name: name, stats: $('#stats').val()})
+    $.getJSON($SCRIPT_ROOT + '/query', {name: SOURCE})
         .done(function(result) {
             d3.select('#crate').datum(result.values).call(crate);
             d3.select('#card').datum(result.values).call(card);
