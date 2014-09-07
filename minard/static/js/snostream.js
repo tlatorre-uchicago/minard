@@ -1,5 +1,5 @@
 $("#step-menu").on("change", function() {
-    window.location.replace($SCRIPT_ROOT + "/snostream?step=" + this.value + "&height=" + url_params['height']);
+    window.location.replace($SCRIPT_ROOT + "/snostream?step=" + this.value + "&height=" + url_params.height);
 });
 
 setInterval(function() {
@@ -14,7 +14,7 @@ var size = $('#main').width();
 var context = cubism.context(scale)
     .serverDelay(1e3)
     .clientDelay(1e3)
-    .step(Number(url_params['step'])*1000)
+    .step(Number(url_params.step)*1000)
     .size(size);
 
 function format_seconds(date) {
@@ -50,14 +50,14 @@ d3.select("#main").append("div")
 var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB','ESUML','ESUMH',
   'OWLN','OWLEL','OWLEH','PULGT','PRESCL', 'PED','PONG','SYNC','EXTA',
   //'EXT2','EXT3','EXT4','EXT5','EXT6','EXT7', 'EXT8','SRAW','NCD', 'SOFGT','MISS'
-  ]
+  ];
 
 var L2_STREAMS = ['L1','L2','ORPHANS','BURSTS'];
 
 var si_format = d3.format('.2s');
 
 function format_rate(n) {
-    if (n == null) {
+    if (!$.isNumeric(n)) {
         return '-';
     } else if (n < 100 && n % 1 === 0) {
         return n.toString();
@@ -67,7 +67,7 @@ function format_rate(n) {
 }
 
 function format_int(n) {
-    if (n == null) {
+    if (!$.isNumeric(n)) {
         return '-';
     } else {
         return n.toString();
@@ -77,7 +77,7 @@ function format_int(n) {
 function format(str) {
     var fmt = d3.format(str);
 
-    return function(n) { return (n == null) ? '-' : fmt(n); };
+    return function(n) { return (!$.isNumeric(n)) ? '-' : fmt(n); };
 }
 
 function metric(name) {
@@ -95,7 +95,7 @@ function metric(name) {
 }
 
 function add_horizon(expressions, format, colors, extent) {
-    var horizon = context.horizon().height(Number(url_params['height']));
+    var horizon = context.horizon().height(Number(url_params.height));
 
     if (typeof format != "undefined") horizon = horizon.format(format);
     if (typeof colors != "undefined" && colors) horizon = horizon.colors(colors);
@@ -113,7 +113,7 @@ function add_horizon(expressions, format, colors, extent) {
                 start: domain[0].toISOString(),
                 stop: domain[domain.length-1].toISOString(),
                 step: Math.floor(context.step()/1000)
-            }
+            };
             window.open($SCRIPT_ROOT + "/graph?" + $.param(params), '_self');
         });
 }
@@ -129,5 +129,5 @@ add_horizon(["subrun"],format_int,[],[0,100]);
 add_horizon(["heartbeat"],format_int,null,[0,4]);
 
 context.on("focus", function(i) {
-  d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
+  d3.selectAll(".value").style("right", i === null ? null : context.size() - i + "px");
 });
