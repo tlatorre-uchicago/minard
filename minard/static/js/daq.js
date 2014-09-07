@@ -93,7 +93,7 @@ function draw(timeseries) {
         d3.select(timeseries.target).selectAll('.horizon')
         .call(timeseries.horizon.remove)
         .remove();
-        }
+    }
 
     timeseries.horizon = timeseries.context.horizon()
         .height(20)
@@ -109,24 +109,24 @@ function draw(timeseries) {
 
     if (timeseries.click)
         horizons.on('click', timeseries.click);
-    }
+}
 
-function update_metrics(timeseries, crate, card) {
+function update_metrics(timeseries) {
     if (timeseries.context != null)
         timeseries.context.stop();
 
-        timeseries.context = create_context(timeseries.target);
+    timeseries.context = create_context(timeseries.target);
     timeseries.metrics = [];
 
-    if (typeof crate === 'undefined') {
+    if (typeof timeseries.crate === 'undefined') {
         for (var i=0; i < 19; i++)
             timeseries.metrics[i] = metric(timeseries, i, null, null);
-    } else if (typeof card === 'undefined') {
+    } else if (typeof timeseries.card === 'undefined') {
         for (var i=0; i < 16; i++)
-            timeseries.metrics[i] = metric(timeseries, crate, i, null);
+            timeseries.metrics[i] = metric(timeseries, timeseries.crate, i, null);
     } else {
         for (var i=0; i < 32; i++)
-            timeseries.metrics[i] = metric(timeseries, crate, card, i);
+            timeseries.metrics[i] = metric(timeseries, timeseries.crate, timeseries.card, i);
     }
 }
 
@@ -154,22 +154,25 @@ function set_thresholds(lo, hi) {
 function switch_to_crate(crate) {
     card.crate(crate);
     d3.select('#card').call(card);
-    $('#card-heading').text('Crate ' + crate);
-    $('.carousel').carousel('next');
 
-    update_metrics(blah, crate);
-    draw(blah);
     blah.crate = crate;
+    blah.state = NEEDS_UPDATE;
+    channelts.crate = crate;
+    channelts.state = NEEDS_UPDATE;
+
+    $('.carousel').carousel('next');
 }
 
 function switch_to_channel(crate, card) {
-    $('#channel-heading').text('Crate ' + crate + ', Card ' + card);
-    $('#carousel').carousel('next');
-    update_metrics(channelts, crate, card);
     channelts.crate = crate;
     channelts.card = card;
-    draw(channelts);
+    channelts.state = NEEDS_UPDATE;
+    $('#carousel').carousel('next');
 }
+
+var ACTIVE = 0,
+    PAUSED = 1,
+    NEEDS_UPDATE = 2;
 
 var spam = {
 target: '#timeseries',
@@ -182,7 +185,9 @@ metrics:null,
 format: format,
 click: function(d, i) {
     switch_to_crate(i);
-    }
+    },
+state: NEEDS_UPDATE,
+slide: 0
 }
     
 var blah = {
@@ -194,9 +199,12 @@ horizon: null,
 scale: null,
 metrics:null,
 format: format,
+crate: 0,
 click: function(d, i) {
     switch_to_channel(blah.crate, i);
-    }
+    },
+state: NEEDS_UPDATE,
+slide: 1
 }
     
 var channelts = {
@@ -208,6 +216,10 @@ horizon: null,
 scale: null,
 metrics:null,
 format: format,
+crate: 0,
+card: 0,
+state: NEEDS_UPDATE,
+slide: 2
 }
 
 function setup() {
@@ -223,6 +235,7 @@ function setup() {
     spam.scale = scale;
     update_metrics(spam);
     draw(spam);
+    spam.state = ACTIVE;
 
     blah.scale = scale;
     channelts.scale = scale;
@@ -251,17 +264,33 @@ function setup() {
 
 setup();
 
+var timeseries = [spam, blah, channelts];
+
+function update_state(call_update_metric) {
+    call_update_metric = typeof call_update_metric === 'undefined' ? true : false;
+
+    timeseries.forEach(function(ts) {
+        switch (ts.state) {
+            case ACTIVE:
+                if (call_update_metric)
+                    update_metrics(ts);
+                draw(ts);
+                break;
+            case PAUSED:
+                if (call_update_metric)
+                    ts.state = NEEDS_UPDATE;
+                else
+                    draw(ts);
+        }
+    });
+}
+
 $('#data-method').change(function() {
     spam.method = this.value;
-    update_metrics(spam);
-    draw(spam);
     blah.method = this.value;
-    update_metrics(blah);
-    if (blah.context)
-        draw(blah);
     channelts.method = this.value;
-    if (channelts.context)
-        draw(channelts);
+
+    update_state();
 });
 
 $('#data-source').change(function() {
@@ -283,26 +312,20 @@ $('#data-source').change(function() {
     // update source, scale, and redraw
     spam.source = this.value;
     spam.scale.domain(thresholds);
-    update_metrics(spam);
-    draw(spam);
     blah.source = this.value;
     blah.scale.domain(thresholds);
-    update_metrics(blah, blah.crate);
-    if (blah.context)
-        draw(blah);
     channelts.source = this.value;
     channelts.scale.domain(thresholds);
-    update_metrics(channelts, channelts.crate, channelts.card);
-    if (channelts.context)
-        draw(channelts);
+
+    update_state();
 });
 
 $('#threshold-lo').keypress(function(e) {
     if (e.which == 13) {
         spam.scale.domain([this.value,scale.domain()[1]]);
-        draw(spam);
         blah.scale.domain([this.value,scale.domain()[1]]);
-        draw(blah);
+
+        update_state(false);
 
         d3.select("#crate").call(crate);
         d3.select("#card").call(card);
@@ -312,35 +335,39 @@ $('#threshold-lo').keypress(function(e) {
 $('#threshold-hi').keypress(function(e) {
     if (e.which == 13) {
         spam.scale.domain([scale.domain()[0],this.value]);
-        draw(spam);
         blah.scale.domain([scale.domain()[0],this.value]);
-        draw(blah);
+
+        update_state(false);
 
         d3.select("#crate").call(crate);
         d3.select("#card").call(card);
     }
 });
 
-$('.carousel').on('slide.bs.carousel', function(e) {
+$('.carousel').on('slid.bs.carousel', function(e) {
     var slide = $(e.relatedTarget).index();
-    if (slide == 3) {
-        spam.context.stop();
-        blah.context.stop();
-        if (baz.context)
-            baz.context.start();
-    } else if (slide == 1) {
-        // card slide
-        spam.context.stop();
-        if (blah.context)
-            blah.context.start();
-        if (channelts.context)
-            channelts.context.start();
-    } else if (slide == 0) {
-        // crate slide
-        blah.context.stop();
-        spam.context.start();
-        channelts.context.stop();
-    }
+    $('#card-heading').text('Crate ' + blah.crate);
+    $('#channel-heading').text('Crate ' + channelts.crate + ', Card ' + channelts.card);
+
+    timeseries.forEach(function(ts) {
+        if (ts.slide == slide) {
+            if (ts.state == NEEDS_UPDATE) {
+                update_metrics(ts);
+                draw(ts);
+                ts.state = ACTIVE;
+            } else if (ts.state == PAUSED) {
+                ts.context.start();
+                ts.state = ACTIVE;
+            } else {
+                console.log('timeseries already active');
+            }
+        } else {
+            if (ts.state == ACTIVE) {
+                ts.context.stop();
+                ts.state = PAUSED;
+            }
+        }
+    });
 });
 
 var interval = 5000;
