@@ -42,7 +42,7 @@ function create_context(target) {
             var axis = context.axis()
                 .ticks(12)
                 .orient(d)
-                .focusFormat(focus_format)
+                .focusFormat(focus_format);
             d3.select(this).call(axis);
         });
 
@@ -60,7 +60,7 @@ function metric(timeseries, crate, card, channel) {
     var label;
     if (card === null)
         label = 'crate ' + crate;
-    else if (channel == null)
+    else if (channel === null)
         label = 'card ' + card;
     else
         label = 'channel ' + channel;
@@ -114,21 +114,24 @@ function draw(timeseries) {
 }
 
 function update_metrics(timeseries) {
-    if (timeseries.context != null)
+    if (timeseries.context !== null)
         timeseries.context.stop();
 
     timeseries.context = create_context(timeseries.target);
     timeseries.metrics = [];
 
     if (typeof timeseries.crate === 'undefined') {
-        for (var i=0; i < 19; i++)
+        for (var i=0; i < 19; i++) {
             timeseries.metrics[i] = metric(timeseries, i, null, null);
+        }
     } else if (typeof timeseries.card === 'undefined') {
-        for (var i=0; i < 16; i++)
+        for (var i=0; i < 16; i++) {
             timeseries.metrics[i] = metric(timeseries, timeseries.crate, i, null);
+        }
     } else {
-        for (var i=0; i < 32; i++)
+        for (var i=0; i < 32; i++) {
             timeseries.metrics[i] = metric(timeseries, timeseries.crate, timeseries.card, i);
+        }
     }
 }
 
@@ -137,21 +140,21 @@ percentage_format = d3.format('.2%');
 fixed_format = d3.format('.0f');
 
 function my_si_format(d) {
-    if (d == null)
+    if (!$.isNumeric(d))
         return '-';
     else
         return si_format(d);
 }
 
 function my_percentage_format(d) {
-    if (d == null)
+    if (!$.isNumeric(d))
         return '-';
     else
         return percentage_format(d);
 }
 
 function base_format(d) {
-    if (d == null)
+    if (!$.isNumeric(d))
         return '-';
     else
         return fixed_format(d);
@@ -161,12 +164,12 @@ var default_thresholds = {
     cmos: [100,2e3],
     base: [10, 80],
     occupancy: [0.001, 0.002]
-}
+};
 
 function set_thresholds(lo, hi) {
     // set thresholds text area
-    $('#threshold-lo').val(lo)
-    $('#threshold-hi').val(hi)
+    $('#threshold-lo').val(lo);
+    $('#threshold-hi').val(hi);
 }
 
 function switch_to_crate(crate) {
@@ -203,7 +206,7 @@ click: function(d, i) {
     },
 state: NEEDS_UPDATE,
 slide: 0
-}
+};
     
 var blah = {
 target: '#timeseries-card',
@@ -217,7 +220,7 @@ click: function(d, i) {
     },
 state: NEEDS_UPDATE,
 slide: 1
-}
+};
     
 var channelts = {
 target: '#timeseries-channel',
@@ -229,7 +232,7 @@ crate: 0,
 card: 0,
 state: NEEDS_UPDATE,
 slide: 2
-}
+};
 
 function setup() {
     SOURCE = $('#data-source').val();
@@ -240,7 +243,7 @@ function setup() {
 
     SCALE = d3.scale.threshold()
         .domain(thresholds)
-        .range(colorbrewer['YlOrRd'][3]);
+        .range(colorbrewer.YlOrRd[3]);
 
     card = card_view()
         .scale(SCALE);
@@ -257,8 +260,8 @@ function setup() {
     spam.state = ACTIVE;
 
     // set default thresholds in text area
-    $('#threshold-lo').val(thresholds[0])
-    $('#threshold-hi').val(thresholds[1])
+    $('#threshold-lo').val(thresholds[0]);
+    $('#threshold-hi').val(thresholds[1]);
 
 }
 
