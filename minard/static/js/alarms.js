@@ -23,7 +23,7 @@ var level_labels = {
     30        : '<span class="label label-warning label-block">Warning</span>',
     40        : '<span class="label label-danger label-block">Error</span>',
     10        : '<span class="label label-default label-debug label-block">Debug</span>',
-}
+};
 
 var _last_date = null;
 
@@ -42,7 +42,7 @@ function update_alarms(start)
 
             if (mom.isValid())
             {
-                if (_last_date == null)
+                if (_last_date === null)
                 {
                     _last_date = mom;
                 } else
@@ -60,7 +60,7 @@ function update_alarms(start)
                 {
                     label = level_labels[level];
                 } else {
-                    label = level_labels['UNKNOWN'];
+                    label = level_labels.UNKNOWN;
                 }
 
                 var p = $('<p>')
@@ -79,10 +79,10 @@ function update_alarms(start)
                 }
             } else {
                 // print whole message
-                $('#log').prepend('<p>' + level_labels['UNKNOWN'] + ' ' + alarm.message);
+                $('#log').prepend('<p>' + level_labels.UNKNOWN + ' ' + alarm.message);
             }
         }
         $("#log p").slice(1000).remove();
-        setTimeout(function() { update_alarms(obj.latest+1) },1000); // 1 second
+        setTimeout(function() { update_alarms(obj.latest+1); },1000); // 1 second
     });
-};
+}
