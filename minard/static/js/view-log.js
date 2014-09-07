@@ -18,7 +18,7 @@ var level_labels = {
     'ERROR'   : '<span class="label label-danger label-block">Error</span>',
     'DEBUG'   : '<span class="label label-default label-debug label-block">Debug</span>',
     'UNKNOWN' : '<span class="label label-default label-unknown label-block">???</span>',
-}
+};
 
 var _last_date = null;
 
@@ -35,7 +35,7 @@ function update_log(name, seek) {
             var mom = moment(toks[0], 'YYYY-MM-DD hh:mm:ss,SSS', true);
 
             if (mom.isValid()) {
-                if (_last_date == null) {
+                if (_last_date === null) {
                     _last_date = mom;
                 } else {
                     if (!mom.isSame(_last_date, 'day')) {
@@ -49,7 +49,7 @@ function update_log(name, seek) {
                 if (level in level_labels) {
                     label = level_labels[level];
                 } else {
-                    label = level_labels['UNKNOWN'];
+                    label = level_labels.UNKNOWN;
                 }
 
                 var p = $('<p>')
@@ -67,10 +67,10 @@ function update_log(name, seek) {
                 }
             } else {
                 // print whole message
-                $('#log').prepend('<p>' + level_labels['UNKNOWN'] + ' ' + line);
+                $('#log').prepend('<p>' + level_labels.UNKNOWN + ' ' + line);
             }
         }
         $("#log p").slice(1000).remove();
-        setTimeout(function() { update_log(name, obj.seek) },1000); // 1 second
+        setTimeout(function() { update_log(name, obj.seek); },1000); // 1 second
     });
-};
+}

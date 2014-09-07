@@ -8,7 +8,7 @@ function update_status(name, interval) {
         if (obj.status == "ok") {
             $('#' + name).attr("class","success");
         }
-        else if (obj.status == null) {
+        else if (obj.status === null) {
             obj.status = "Not Responding";
             $('#' + name).attr("class","danger");
         }
@@ -19,6 +19,6 @@ function update_status(name, interval) {
         $('#' + name + ' #status').text(obj.status);
         $('#' + name + ' #uptime').text(obj.uptime ? moment().subtract('seconds',obj.uptime).fromNow(true): "");
 
-        setTimeout(function() { update_status(name) }, interval*1000);
+        setTimeout(function() { update_status(name); }, interval*1000);
     });
 }
