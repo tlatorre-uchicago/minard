@@ -312,6 +312,10 @@ def metric_hash():
     start -= dt
     stop -= dt
 
+    start = int(start)
+    stop = int(stop)
+    step = int(step)
+
     values = get_hash_timeseries(name,start,stop,step,crate,card,channel,method)
     return jsonify(values=values)
 
@@ -332,6 +336,10 @@ def metric():
     dt = now_client - now
     start -= dt
     stop -= dt
+
+    start = int(start)
+    stop = int(stop)
+    step = int(step)
 
     if expr in ('gtid', 'run', 'subrun', 'heartbeat','l2-heartbeat'):
         values = get_timeseries(expr,start,stop,step)
