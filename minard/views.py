@@ -246,20 +246,13 @@ def query():
     if name == 'occupancy':
         now = int(time.time())
 
+        interval = get_hash_interval(60)
+
         occ = []
         p = redis.pipeline()
         for channel in CHANNELS:
-            p.get('ev:60:{0:d}:pmt:{1:d}'.format(now//60-1,channel))
+            p.hget('ts:%i:%i:occupancy' % (interval, now//interval-1),channel)
         occ = p.execute()
-
-        count = redis.get('ev:60:{0:d}:count'.format(now//60-1))
-
-        if count is not None:
-            count = int(count)
-        else:
-            count = 0
-
-        occ = [int(n)/count if n else 0 for n in occ]
 
         return jsonify(values=occ)
 
