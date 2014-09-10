@@ -74,13 +74,15 @@ def flush_cache(cache, cache_set, cache_nhit, cache_pmt, time):
     for interval in INTERVALS:
         for name, hash in cache.items():
             key = 'ts:%i:%i:%s' % (interval, time//interval, name)
-            hmincrby(key, hash, client=p)
-            p.expire(key, interval*EXPIRE)
+            if len(hash) > 0:
+                hmincrby(key, hash, client=p)
+                p.expire(key, interval*EXPIRE)
 
         for name, hash in cache_set.items():
             key = 'ts:%i:%i:%s' % (interval, time//interval, name)
-            p.hmset(key, hash)
-            p.expire(key, interval*EXPIRE)
+            if len(hash) > 0:
+                p.hmset(key, hash)
+                p.expire(key, interval*EXPIRE)
 
     for interval in HASH_INTERVALS:
         key = 'ts:%i:%i:occupancy' % (interval, time//interval)
