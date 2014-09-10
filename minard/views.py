@@ -165,7 +165,9 @@ def tail():
             f.seek(seek)
             lines = f.readlines()
 
-    return jsonify(seek=f.tell(), lines=list(lines))
+    lines = [line.decode('unicode_escape') for line in lines]
+
+    return jsonify(seek=f.tell(), lines=lines)
 
 @app.route('/')
 def index():

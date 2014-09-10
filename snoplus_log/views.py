@@ -80,7 +80,7 @@ def log():
     logger = get_logger(name)
 
     lvl = int(request.form['level'])
-    msg = request.form['message'].encode('unicode_escape')
+    msg = request.form['message'].strip().encode('unicode_escape')
 
     # log it to disk
     logger.log(lvl,msg)
