@@ -11,7 +11,7 @@ from tools import total_seconds, parseiso
 import requests
 from collections import deque, namedtuple
 from timeseries import get_timeseries, get_interval, get_hash_timeseries
-from timeseries import get_timeseries_field
+from timeseries import get_timeseries_field, get_hash_interval
 import random
 import operator
 
