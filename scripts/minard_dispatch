@@ -67,16 +67,61 @@ def push(host):
     for record in dispatcher:
         zmq_socket.send(record)
 
+def flush_cache(cache, cache_set, cache_nhit, cache_pmt, time):
+    # for docs on redis pipeline see http://redis.io/topics/pipelining
+    p = redis.pipeline()
+
+    for interval in INTERVALS:
+        for name, hash in cache.items():
+            key = 'ts:%i:%i:%s' % (interval, time//interval, name)
+            hmincrby(key, hash, client=p)
+            p.expire(key, interval*EXPIRE)
+
+        for name, hash in cache_set.items():
+            key = 'ts:%i:%i:%s' % (interval, time//interval, name)
+            p.hmset(key, hash)
+            p.expire(key, interval*EXPIRE)
+
+    for interval in HASH_INTERVALS:
+        key = 'ts:%i:%i:occupancy' % (interval, time//interval)
+        hmincrby(key + ':hits', cache_pmt, client=p)
+        p.incrby(key + ':count', cache['trig']['TOTAL'])
+        # expire after just interval, because these will
+        # occupancy will be set as hits/count
+        p.expire(key + ':hits', interval)
+        p.expire(key + ':count', interval)
+
+        prev_key = 'ts:%i:%i:occupancy' % (interval,time//interval-1)
+        if redis.incr(prev_key + ':lock') == 1:
+            hdivk(prev_key, prev_key + ':hits', prev_key + ':count', range(10240), client=p)
+            keys = setavgmax(prev_key, client=p)
+            for k in keys:
+                p.expire(k, HASH_EXPIRE*interval)
+            p.expire(prev_key, HASH_EXPIRE*interval)
+            p.expire(prev_key + ':lock', interval)
+
+    if len(cache_nhit) > 0:
+        # nhit distribution
+        # see http://flask.pocoo.org/snippets/71/ for this design pattern
+        p.lpush('ts:1:%i:nhit' % time, *cache_nhit)
+        p.expire('ts:1:%i:nhit' % time, 3600)
+
+    p.execute()
+
 def pull():
     """Connects to a ZMQ socket and processes the dispatch stream."""
     context = zmq.Context()
     zmq_socket = context.socket(zmq.PULL)
     zmq_socket.connect('tcp://127.0.0.1:5560')
 
-    cache = defaultdict(int)
+    cache = {}
+    cache['trig'] = defaultdict(int)
+    cache['trig:nhit'] = defaultdict(int)
+    cache['trig:charge'] = defaultdict(int)
     cache_set = {}
-    nhit_cache = []
-    event_cache = defaultdict(int)
+    cache_set['trig'] = {}
+    cache_nhit = []
+    cache_pmt = defaultdict(int)
 
     then = int(time.time())
 
@@ -90,62 +135,21 @@ def pull():
         now = int(time.time())
 
         if now > then:
-            # for docs on redis pipeline see http://redis.io/topics/pipelining
-            p = redis.pipeline()
-
-            ts = then
-            for key, value in cache.items():
-                for interval in INTERVALS:
-                    redis_key = 'ts:%i:%i:%s' % (interval, ts//interval, key)
-                    p.incrby(redis_key,value)
-                    p.expire(redis_key,interval*EXPIRE)
-
-            for key, value in cache_set.items():
-                for interval in INTERVALS:
-                    redis_key = 'ts:%i:%i:%s' % (interval, ts//interval, key)
-                    p.setex(redis_key,value,interval*EXPIRE)
-
-            for key, value in event_cache.items():
-                redis_key = 'ev:60:%i:pmt:%s' % (ts//60,key)
-                p.incrby(redis_key,value)
-                p.expire(redis_key,600)
-
-            for interval in HASH_INTERVALS:
-                key = 'ts:%i:%i:occupancy' % (interval, ts//interval)
-                hmincrby(key + ':hits', event_cache, client=p)
-                p.incrby(key + ':count', cache['TOTAL'])
-                p.expire(key + ':hits', interval)
-                p.expire(key + ':count', interval)
-
-                prev_key = 'ts:%i:%i:occupancy' % (interval,ts//interval-1)
-                if redis.incr(prev_key + ':lock') == 1:
-                    hdivk(prev_key, prev_key + ':hits', prev_key + ':count', range(10240), client=p)
-                    keys = setavgmax(prev_key, client=p)
-                    for k in keys:
-                        p.expire(k, HASH_EXPIRE*interval)
-                    p.expire(prev_key, HASH_EXPIRE*interval)
-                    p.expire(prev_key + ':lock', interval)
-
-            p.incrby('ev:60:%i:count' % (ts//60),cache['TOTAL'])
-            p.expire('ev:60:%i:count' % (ts//60),600)
-
-            if len(nhit_cache) > 0:
-                # nhit distribution
-                # see http://flask.pocoo.org/snippets/71/ for this design pattern
-                p.lpush('ev:1:%i:nhit' % ts,*nhit_cache)
-                p.expire('ev:1:%i:nhit' % ts,3600)
+            # flush data to redis every second
+            flush_cache(cache, cache_set, cache_nhit, cache_pmt, then)
 
             for interval in INTERVALS:
-                p.setex('ts:%i:%i:heartbeat' % (interval, ts//interval),1,interval*EXPIRE)
+                key = 'ts:%i:%i:heartbeat' % (interval, then//interval)
+                redis.setex(key,1,interval*EXPIRE)
 
-            cache.clear()
-            cache_set.clear()
-            nhit_cache = []
-            event_cache.clear()
+            cache['trig'].clear()
+            cache['trig:nhit'].clear()
+            cache['trig:charge'].clear()
+            cache_set['trig'].clear()
+            cache_nhit = []
+            cache_pmt.clear()
             then = now
 
-            p.execute()
-                
         if record is None:
             # nothing to process, take a break
             time.sleep(0.01)
@@ -166,27 +170,27 @@ def pull():
         subrun = pev.DaqStatus # seriously :)
         trig = unpack_trigger_type(pev)
 
-        nhit_cache += [nhit]
+        cache_nhit += [nhit]
 
         qhs_sum = 0
         for pmt in pmt_gen:
             id = 16*32*pmt.CrateID + 32*pmt.BoardID + pmt.ChannelID
-            event_cache[id] += 1
+            cache_pmt[id] += 1
 
             qhs_sum += pmt.Qhs
 
-        cache['TOTAL'] += 1
-        cache['TOTAL-nhit'] += nhit
-        cache['TOTAL-charge'] += qhs_sum
-        cache_set['run'] = run
-        cache_set['subrun'] = subrun
-        cache_set['gtid'] = gtid
+        cache['trig']['TOTAL'] += 1
+        cache['trig:nhit']['TOTAL'] += nhit
+        cache['trig:charge']['TOTAL'] += qhs_sum
+        cache_set['trig']['run'] = run
+        cache_set['trig']['subrun'] = subrun
+        cache_set['trig']['gtid'] = gtid
 
         for i, name in enumerate(TRIGGER_NAMES):
             if trig & (1 << i):
-                cache[name] += 1
-                cache[name + '-nhit'] += nhit
-                cache[name + '-charge'] += qhs_sum
+                cache['trig'][i] += 1
+                cache['trig:nhit'][i] += nhit
+                cache['trig:charge'][i] += qhs_sum
 
 if __name__ == '__main__':
     import argparse

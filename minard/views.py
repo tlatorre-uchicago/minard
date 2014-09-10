@@ -11,6 +11,7 @@ from tools import total_seconds, parseiso
 import requests
 from collections import deque, namedtuple
 from timeseries import get_timeseries, get_interval, get_hash_timeseries
+from timeseries import get_timeseries_field
 import random
 import operator
 
@@ -341,7 +342,11 @@ def metric():
     stop = int(stop)
     step = int(step)
 
-    if expr in ('gtid', 'run', 'subrun', 'heartbeat','l2-heartbeat'):
+    if expr in ('gtid', 'run', 'subrun'):
+        values = get_timeseries_field('trig', expr, start, stop, step)
+        return jsonify(values=values)
+
+    if expr in ('heartbeat','l2-heartbeat'):
         values = get_timeseries(expr,start,stop,step)
         return jsonify(values=values)
 
@@ -355,12 +360,26 @@ def metric():
         # e.g. PULGT-nhit, which means the average nhit for PULGT triggers
         # this is not a rate, so we divide by the # of PULGT triggers for
         # the interval instead of the interval length
-        trig, _ = expr.split('-')
-        values = get_timeseries(expr,start,stop,step)
-        counts = get_timeseries(trig,start,stop,step)
+        trig, value = expr.split('-')
+
+        if trig in TRIGGER_NAMES:
+            field = TRIGGER_NAMES.index(trig)
+        elif trig == 'TOTAL':
+            field = trig
+        else:
+            raise ValueError('unknown trigger type %s' % trig)
+        values = get_timeseries_field('trig:%s' % value,field,start,stop,step)
+        counts = get_timeseries_field('trig',field,start,stop,step)
         values = [float(a)/int(b) if a and b else None for a, b in zip(values,counts)]
     else:
-        values = get_timeseries(expr,start,stop,step)
+        if expr in TRIGGER_NAMES:
+            field = TRIGGER_NAMES.index(expr)
+            values = get_timeseries_field('trig',field,start,stop,step)
+        elif expr == 'TOTAL':
+            values = get_timeseries_field('trig','TOTAL',start,stop,step)
+        else:
+            values = get_timeseries(expr,start,stop,step)
+
         interval = get_interval(step)
         if expr in TRIGGER_NAMES or expr in ('TOTAL','L1','L2','ORPHANS','BURSTS'):
             # trigger counts are zero by default

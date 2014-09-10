@@ -89,3 +89,22 @@ def get_timeseries(name, start, stop, step, type=None):
 
     return map(type, values)
 
+def get_timeseries_field(name, field, start, stop, step, type=None):
+    """
+    Returns the time series for `name` from start to stop in increments of
+    step. start, stop, and step should all be UNIX timestamps.
+    """
+    interval = get_interval(step)
+
+    p = redis.pipeline()
+    for i in range(start, stop, step):
+        key = 'ts:%i:%i:%s' % (interval,i//interval,name)
+        p.hget(key, field)
+
+    values = p.execute()
+
+    if type is None:
+        return values
+
+    return map(type, values)
+
