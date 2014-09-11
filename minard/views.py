@@ -243,24 +243,26 @@ def query():
         nhit = map(int,sum(p.execute(),[]))
         return jsonify(value=nhit)
 
-    if name == 'occupancy':
+    if name in ('occupancy','cmos','base'):
         now = int(time.time())
+        step = request.args.get('step',-1,type=int)
 
-        interval = get_hash_interval(60)
+        if step == -1 and name in ('cmos','base'):
+            # step == -1 means latest values
+            # only compute for cmos and base currents
+            # because latest occupancy doesn't really mean
+            # anything because pmt hits need to be averaged
+            # over some time window, so instead we just
+            # use the latest time interval
+            p = redis.pipeline()
+            for index in CHANNELS:
+                p.get('%s:%i:value' % (name,index))
+            values = p.execute()
+            return jsonify(values=values)
 
-        occ = []
-        p = redis.pipeline()
-        for channel in CHANNELS:
-            p.hget('ts:%i:%i:occupancy' % (interval, now//interval-1),channel)
-        occ = p.execute()
+        interval = get_hash_interval(step)
 
-        return jsonify(values=occ)
-
-    if name == 'cmos' or name == 'base':
-        p = redis.pipeline()
-        for index in CHANNELS:
-            p.get('%s:%i:value' % (name,index))
-        values = p.execute()
+        values = redis.hgetall('ts:%i:%i:%s' % (interval, now//interval-1, name))
 
         return jsonify(values=values)
 

@@ -26,10 +26,12 @@ HASH_INTERVALS = [5,24*60*60]
 HASH_EXPIRE = 1000
 
 def get_hash_interval(step):
-    return HASH_INTERVALS[bisect.bisect_right(HASH_INTERVALS,step)-1]
+    i = bisect.bisect_right(HASH_INTERVALS,step)-1
+    return HASH_INTERVALS[i if i > 0 else 0]
 
 def get_interval(step):
-    return INTERVALS[bisect.bisect_right(INTERVALS,step)-1]
+    i = bisect.bisect_right(INTERVALS,step)-1
+    return INTERVALS[i if i > 0 else 0]
 
 def get_hash_timeseries(name, start, stop, step, crate, card=None,
                         channel=None, method='avg', type=None):

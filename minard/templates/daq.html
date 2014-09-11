@@ -103,12 +103,27 @@
                                         </div>
                                         <div class="form-group form-group-sm">
                                             <label class="col-sm-4 control-label">
-                                                Step
+                                                Time Series Step
                                             </label>
                                             <div class="col-sm-8">
                                                 <select id="data-step"
                                                  class="form-control">
                                                     <option value="5">5 seconds</option>
+                                                    <option value="60">1 minute</option>
+                                                    <option value="86400">1 day</option>
+                                                </select>
+                                            </div> <!-- col-sm-10 -->
+                                        </div>
+                                        <div class="form-group form-group-sm">
+                                            <label class="col-sm-4 control-label">
+                                                Crate Map Window
+                                            </label>
+                                            <div class="col-sm-8">
+                                                <select id="crate-map-window"
+                                                 class="form-control">
+                                                    <option value="-1">Latest</option>
+                                                    <option value="5">5 seconds</option>
+                                                    <option value="60">1 minute</option>
                                                     <option value="86400">1 day</option>
                                                 </select>
                                             </div> <!-- col-sm-10 -->
@@ -157,18 +172,7 @@
                     </div>
                 </div>
             </div> <!-- item -->
-        <!--
-        <div class="pull-left">
-            <a class="left carousel-control" href="#carousel" role="button" data-slide="prev">
-                <span class="glyphicon glyphicon-chevron-left"></span>
-            </a>
         </div>
-        <div class="pull-right">
-            <a class="right carousel-control" href="#carousel" role="button" data-slide="next">
-                <span class="glyphicon glyphicon-chevron-right"></span>
-            </a>
-        </div>
-        -->
     </div>
 {% endblock %}
 {% block script %}

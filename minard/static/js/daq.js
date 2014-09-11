@@ -1,4 +1,4 @@
-var STEP, SOURCE, METHOD, SCALE;
+var STEP, SOURCE, METHOD, SCALE, CRATE_WINDOW;
 
 function create_context(target) {
     var scale = tzscale().zone('America/Toronto');
@@ -238,6 +238,7 @@ function setup() {
     SOURCE = $('#data-source').val();
     METHOD = $('#data-method').val();
     STEP = +$('#data-step').val();
+    CRATE_WINDOW = +$('#crate-map-window').val();
 
     var thresholds = default_thresholds[SOURCE];
 
@@ -314,6 +315,12 @@ $('#data-method').change(function() {
     update_state();
 });
 
+$('#crate-map-window').change(function() {
+    CRATE_WINDOW = this.value;
+
+    update();
+});
+
 $('#data-step').change(function() {
     STEP = this.value;
 
@@ -386,7 +393,7 @@ $('.carousel').on('slid.bs.carousel', function(e) {
 var interval = 5000;
 
 function update() {
-    $.getJSON($SCRIPT_ROOT + '/query', {name: SOURCE})
+    $.getJSON($SCRIPT_ROOT + '/query', {name: SOURCE, step: CRATE_WINDOW})
         .done(function(result) {
             d3.select('#crate').datum(result.values).call(crate);
             d3.select('#card').datum(result.values).call(card);
