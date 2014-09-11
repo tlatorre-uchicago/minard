@@ -104,8 +104,8 @@ def orca_consumer(port):
                 key = 'ts:%i:%i:cmos' % (interval, now//interval)
                 hmincrbyfloat(key + ':sum', cmos_rates, client=p)
                 hmincr(key + ':count', cmos_rates.keys(), client=p)
-                p.expire(key + ':sum', interval)
-                p.expire(key + ':count', interval)
+                p.expire(key + ':sum', interval*2)
+                p.expire(key + ':count', interval*2)
                 prev = now//interval - 1
                 prev_key = 'ts:%i:%i:cmos' % (interval,prev)
                 if redis.incr(prev_key + ':lock') == 1:
@@ -114,7 +114,7 @@ def orca_consumer(port):
                     for k in keys:
                         p.expire(k, HASH_EXPIRE*interval)
                     p.expire(prev_key, HASH_EXPIRE*interval)
-                    p.expire(prev_key + ':lock', interval)
+                    p.expire(prev_key + ':lock', interval*2)
             p.execute()
 
         elif id == BASE_ID:

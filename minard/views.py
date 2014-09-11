@@ -260,22 +260,28 @@ def query():
         if remainder < interval//2:
             # haven't accumulated enough data for this window
             # so just return the last time block
-            values = redis.hmget('ts:%i:%i:%s' % (interval, i-1, name),CHANNELS)
-        else:
-            if name in ('cmos', 'base'):
-                # grab latest sum of values and divide by the number
-                # of values to get average over that window
-                sum = redis.hmget('ts:%i:%i:%s:sum' % (interval,i,name),CHANNELS)
-                count = redis.hmget('ts:%i:%i:%s:count' % (interval,i,name),CHANNELS)
-
-                values = map(div,sum,count)
+            if redis.ttl('ts:%i:%i:%s:lock' % (interval,i-1,name)) > 0:
+                # if ttl for lock exists, it means the values for the last
+                # interval were already computed
+                values = redis.hmget('ts:%i:%i:%s' % (interval, i-1, name),CHANNELS)
+                return jsonify(values=values)
             else:
-                hits = redis.hmget('ts:%i:%i:occupancy:hits' % (interval,i), CHANNELS)
-                count = int(redis.get('ts:%i:%i:occupancy:count' % (interval,i)))
-                if count > 0:
-                    values = [int(n)/count if n is not None else None for n in hits]
-                else:
-                    values = [None]*len(CHANNELS)
+                i -= 1
+
+        if name in ('cmos', 'base'):
+            # grab latest sum of values and divide by the number
+            # of values to get average over that window
+            sum = redis.hmget('ts:%i:%i:%s:sum' % (interval,i,name),CHANNELS)
+            count = redis.hmget('ts:%i:%i:%s:count' % (interval,i,name),CHANNELS)
+
+            values = map(div,sum,count)
+        else:
+            hits = redis.hmget('ts:%i:%i:occupancy:hits' % (interval,i), CHANNELS)
+            count = int(redis.get('ts:%i:%i:occupancy:count' % (interval,i)))
+            if count > 0:
+                values = [int(n)/count if n is not None else None for n in hits]
+            else:
+                values = [None]*len(CHANNELS)
 
         return jsonify(values=values)
 
