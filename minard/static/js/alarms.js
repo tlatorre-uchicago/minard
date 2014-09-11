@@ -25,6 +25,11 @@ var level_labels = {
     10        : '<span class="label label-default label-debug label-block">Debug</span>',
 };
 
+function same_day(mom1, mom2) {
+    // returns true if mom1 and mom2 are the same day
+    return mom1.date() == mom2.date() && mom1.month() == mom2.month() && mom1.year() == mom2.year();
+}
+
 var _last_date = null;
 
 function update_alarms(start)
@@ -47,7 +52,7 @@ function update_alarms(start)
                     _last_date = mom;
                 } else
                 {
-                    if (!mom.isSame(_last_date, 'day'))
+                    if (!same_day(mom,_last_date))
                     {
                         $('#log').prepend('<div class="border-bottom text-center">' + _last_date.format('MM/DD/YYYY') + '</div>');
                         _last_date = mom;
@@ -72,7 +77,7 @@ function update_alarms(start)
 
                 $('#log').prepend(p);
 
-                if ((i == obj.alarms.length-1) && !now.isSame(mom,'day'))
+                if ((i == obj.alarms.length-1) && !same_day(now,mom))
                 {
                     $('#log').prepend('<div class="border-bottom text-center">' + mom.format('MM/DD/YYYY') + '</div>');
                     _last_date = now;
