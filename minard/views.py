@@ -14,6 +14,7 @@ from timeseries import get_timeseries, get_interval, get_hash_timeseries
 from timeseries import get_timeseries_field, get_hash_interval
 import random
 import operator
+from collections import defaultdict
 
 import pcadb
 
@@ -247,22 +248,34 @@ def query():
         now = int(time.time())
         step = request.args.get('step',-1,type=int)
 
-        if step == -1 and name in ('cmos','base'):
-            # step == -1 means latest values
-            # only compute for cmos and base currents
-            # because latest occupancy doesn't really mean
-            # anything because pmt hits need to be averaged
-            # over some time window, so instead we just
-            # use the latest time interval
-            p = redis.pipeline()
-            for index in CHANNELS:
-                p.get('%s:%i:value' % (name,index))
-            values = p.execute()
-            return jsonify(values=values)
-
         interval = get_hash_interval(step)
 
-        values = redis.hgetall('ts:%i:%i:%s' % (interval, now//interval-1, name))
+        i, remainder = divmod(now, interval)
+
+        def div(a,b):
+            if a is None or b is None:
+                return None
+            return float(a)/float(b)
+
+        if remainder < interval//2:
+            # haven't accumulated enough data for this window
+            # so just return the last time block
+            values = redis.hmget('ts:%i:%i:%s' % (interval, i-1, name),CHANNELS)
+        else:
+            if name in ('cmos', 'base'):
+                # grab latest sum of values and divide by the number
+                # of values to get average over that window
+                sum = redis.hmget('ts:%i:%i:%s:sum' % (interval,i,name),CHANNELS)
+                count = redis.hmget('ts:%i:%i:%s:count' % (interval,i,name),CHANNELS)
+
+                values = map(div,sum,count)
+            else:
+                hits = redis.hmget('ts:%i:%i:occupancy:hits' % (interval,i), CHANNELS)
+                count = int(redis.get('ts:%i:%i:occupancy:count' % (interval,i)))
+                if count > 0:
+                    values = [int(n)/count if n is not None else None for n in hits]
+                else:
+                    values = [None]*len(CHANNELS)
 
         return jsonify(values=values)
 
