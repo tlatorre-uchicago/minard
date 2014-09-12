@@ -271,10 +271,10 @@ def query():
         if name in ('cmos', 'base'):
             # grab latest sum of values and divide by the number
             # of values to get average over that window
-            sum = redis.hmget('ts:%i:%i:%s:sum' % (interval,i,name),CHANNELS)
+            sum_ = redis.hmget('ts:%i:%i:%s:sum' % (interval,i,name),CHANNELS)
             count = redis.hmget('ts:%i:%i:%s:count' % (interval,i,name),CHANNELS)
 
-            values = map(div,sum,count)
+            values = map(div,sum_,count)
         else:
             hits = redis.hmget('ts:%i:%i:occupancy:hits' % (interval,i), CHANNELS)
             count = int(redis.get('ts:%i:%i:occupancy:count' % (interval,i)))
