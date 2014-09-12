@@ -57,6 +57,10 @@ def orca_consumer(port):
     pull = pull_context.socket(zmq.PULL)
     pull.connect('tcp://127.0.0.1:%s' % port)
 
+    cmos_rates = {}
+    base_currents = {}
+
+    then = int(time.time())
     while True:
         id, rec = pull.recv_pyobj()
 
@@ -66,19 +70,16 @@ def orca_consumer(port):
             crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
                 parse_cmos(rec)
 
-            cmos_rates = {}
-
             cards = np.array([i for i in range(16) if (slotmask >> i) & 1])
             indices = (crate << 9 | cards[:,np.newaxis] << 5 | np.arange(32)).flatten()
 
-            last_counts = redis.hmget('cmos:count', indices)
-            last_timestamps = redis.hmget('cmos:timestamp', indices)
-
             # set new times/counts
             p = redis.pipeline()
-            p.hmset('cmos:count', dict(zip(indices, counts)))
-            p.hmset('cmos:timestamp', dict(zip(indices, repeat(timestamp))))
-            p.execute()
+            p.hmget('cmos:count:%i' % crate, indices)
+            p.hmget('cmos:timestamp:%i' % crate, indices)
+            p.hmset('cmos:count:%i' % crate, dict(zip(indices, counts)))
+            p.hmset('cmos:timestamp:%i' % crate, dict(zip(indices, repeat(timestamp))))
+            last_counts, last_timestamps, _, _ = p.execute()
 
             for index, count, last_count, last_timestamp in \
                     zip(indices, counts, last_counts, last_timestamps):
@@ -97,29 +98,30 @@ def orca_consumer(port):
                     # time series
                     cmos_rates[index] = rate
 
-            p = redis.pipeline()
-            for interval in HASH_INTERVALS:
-                key = 'ts:%i:%i:cmos' % (interval, now//interval)
-                hmincrbyfloat(key + ':sum', cmos_rates, client=p)
-                hmincr(key + ':count', cmos_rates.keys(), client=p)
-                p.expire(key + ':sum', interval*2)
-                p.expire(key + ':count', interval*2)
-                prev = now//interval - 1
-                prev_key = 'ts:%i:%i:cmos' % (interval,prev)
-                if redis.incr(prev_key + ':lock') == 1:
-                    hdivh(prev_key, prev_key + ':sum', prev_key + ':count', range(10240), client=p)
-                    keys = setavgmax(prev_key, client=p)
-                    for k in keys:
-                        p.expire(k, HASH_EXPIRE*interval)
-                    p.expire(prev_key, HASH_EXPIRE*interval)
-                    p.expire(prev_key + ':lock', interval*2)
-            p.execute()
+            if now > then:
+                p = redis.pipeline()
+                for interval in HASH_INTERVALS:
+                    key = 'ts:%i:%i:cmos' % (interval, now//interval)
+                    hmincrbyfloat(key + ':sum', cmos_rates, client=p)
+                    hmincr(key + ':count', cmos_rates.keys(), client=p)
+                    p.expire(key + ':sum', interval*2)
+                    p.expire(key + ':count', interval*2)
+                    prev = now//interval - 1
+                    prev_key = 'ts:%i:%i:cmos' % (interval,prev)
+                    if redis.incr(prev_key + ':lock') == 1:
+                        hdivh(prev_key, prev_key + ':sum', prev_key + ':count', range(10240), client=p)
+                        keys = setavgmax(prev_key, client=p)
+                        for k in keys:
+                            p.expire(k, HASH_EXPIRE*interval)
+                        p.expire(prev_key, HASH_EXPIRE*interval)
+                        p.expire(prev_key + ':lock', interval*2)
+                p.execute()
+                then = now
+                cmos_rates.clear()
 
         elif id == BASE_ID:
             crate, slotmask, channelmask, error_flags, counts, busy, timestamp = \
                 parse_base(rec)
-
-            base_currents = {}
 
             for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
                 for j, value in enumerate(map(int,counts[i])):
@@ -130,22 +132,25 @@ def orca_consumer(port):
 
                     base_currents[index] = value-127
 
-            p = redis.pipeline()
-            for interval in HASH_INTERVALS:
-                key = 'ts:%i:%i:base' % (interval, now//interval)
-                hmincrby(key + ':sum', base_currents, client=p)
-                hmincr(key + ':count', base_currents.keys(), client=p)
-                p.expire(key + ':sum', interval)
-                p.expire(key + ':count', interval)
-                prev_key = 'ts:%i:%i:base' % (interval,now//interval-1)
-                if redis.incr(prev_key + ':lock') == 1:
-                    hdivh(prev_key, prev_key + ':sum', prev_key + ':count', range(10240), client=p)
-                    keys = setavgmax(prev_key, client=p)
-                    for k in keys:
-                        p.expire(k, HASH_EXPIRE*interval)
-                    p.expire(prev_key, HASH_EXPIRE*interval)
-                    p.expire(prev_key + ':lock', interval)
-            p.execute()
+            if now > then:
+                p = redis.pipeline()
+                for interval in HASH_INTERVALS:
+                    key = 'ts:%i:%i:base' % (interval, now//interval)
+                    hmincrby(key + ':sum', base_currents, client=p)
+                    hmincr(key + ':count', base_currents.keys(), client=p)
+                    p.expire(key + ':sum', interval)
+                    p.expire(key + ':count', interval)
+                    prev_key = 'ts:%i:%i:base' % (interval,now//interval-1)
+                    if redis.incr(prev_key + ':lock') == 1:
+                        hdivh(prev_key, prev_key + ':sum', prev_key + ':count', range(10240), client=p)
+                        keys = setavgmax(prev_key, client=p)
+                        for k in keys:
+                            p.expire(k, HASH_EXPIRE*interval)
+                        p.expire(prev_key, HASH_EXPIRE*interval)
+                        p.expire(prev_key + ':lock', interval)
+                p.execute()
+                then = now
+                base_currents.clear()
 
 def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
