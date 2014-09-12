@@ -404,6 +404,10 @@ d3.select('#crate').datum([]).call(crate);
 d3.select('#card').datum([]).call(card);
 // wrap first ten and last ten crates in a div
 $('#crate' + [0,1,2,3,4,5,6,7,8,9].join(',#crate')).wrapAll('<div />');
+$('#crate' + [0,1,2,3,4].join(',#crate')).wrapAll('<div />');
+$('#crate' + [5,6,7,8,9].join(',#crate')).wrapAll('<div />');
 $('#crate' + [10,11,12,13,14,15,16,17,18,19].join(',#crate')).wrapAll('<div />');
+$('#crate' + [10,11,12,13,14].join(',#crate')).wrapAll('<div />');
+$('#crate' + [15,16,17,18,19].join(',#crate')).wrapAll('<div />');
 update();
 setInterval(update,interval);
