@@ -23,7 +23,7 @@ EXPIRE = 3*4000
 
 # intervals to store info per channel in a redis hash
 HASH_INTERVALS = [5,60,24*60*60]
-HASH_EXPIRE = 1000
+HASH_EXPIRE = 2000
 
 def get_hash_interval(step):
     i = bisect.bisect_right(HASH_INTERVALS,step)-1
