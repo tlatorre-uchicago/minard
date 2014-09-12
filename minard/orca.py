@@ -80,7 +80,6 @@ def orca_consumer(port):
             p.hmset('cmos:timestamp', dict(zip(indices, repeat(timestamp))))
             p.execute()
 
-            p = redis.pipeline()
             for index, count, last_count, last_timestamp in \
                     zip(indices, counts, last_counts, last_timestamps):
                 _, card, channel = unpack_index(index)
@@ -97,9 +96,8 @@ def orca_consumer(port):
                     rate = (count-int(last_count))/dt
                     # time series
                     cmos_rates[index] = rate
-                    # latest reading
-                    p.setex('cmos:%i:value' % index, rate, 10)
 
+            p = redis.pipeline()
             for interval in HASH_INTERVALS:
                 key = 'ts:%i:%i:cmos' % (interval, now//interval)
                 hmincrbyfloat(key + ':sum', cmos_rates, client=p)
@@ -123,7 +121,6 @@ def orca_consumer(port):
 
             base_currents = {}
 
-            p = redis.pipeline()
             for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
                 for j, value in enumerate(map(int,counts[i])):
                     if not channelmask[slot] & (1 << j) or value >> 31:
@@ -131,9 +128,9 @@ def orca_consumer(port):
 
                     index = crate << 9 | slot << 5 | j
 
-                    p.setex('base:%i:value' % index, value-127, EXPIRE)
                     base_currents[index] = value-127
 
+            p = redis.pipeline()
             for interval in HASH_INTERVALS:
                 key = 'ts:%i:%i:base' % (interval, now//interval)
                 hmincrby(key + ':sum', base_currents, client=p)
