@@ -161,7 +161,7 @@ function base_format(d) {
 }
 
 var default_thresholds = {
-    cmos: [100,2e3],
+    cmos: [100,5e3],
     base: [10, 80],
     occupancy: [0.001, 0.002]
 };
