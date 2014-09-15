@@ -50,7 +50,9 @@
                         </div>
                         <div class="col-md-6">
                             <div class="panel panel-default">
-                                <div class="panel-heading">Options</div>
+                                <div class="panel-heading">
+                                    Options <a href="#" data-toggle="modal" data-target="#modal"><span class="glyphicon glyphicon-question-sign"></span></a>
+                                </div>
                                 <div class="panel-body">
                                     <form class="form-horizontal" role="form">
                                         <div class="form-group form-group-sm">
@@ -170,6 +172,37 @@
                     </div>
                 </div>
             </div> <!-- item -->
+        </div>
+    </div>
+    <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Options</h4>
+                </div>
+                <div class="modal-body">
+                    <h4>Method</h4>
+                    <p>Method determines how time series for crates/cards are computed. For example,
+                    if method is "Average", the time series for a crate will be the average of all
+                    the CMOS rates for each channel in the crate/card. If method is "Maximum", then the
+                    time series will show the maximum CMOS rate for all channels in the crate/card.
+                    <div class="alert alert-success">
+                        <strong>Note:</strong> This option is <em>not</em> used to combine multiple data points within a single time
+                        bin. For example, if there were 10 CMOS readings within a single time bin
+                        for a given channel, these are always <em>averaged</em> to produce the CMOS
+                        rate for that time bin.
+                    </div>
+                    <h4>Time Series Step</h4>
+                    <p>The time step for a single CSS pixel in the time series.
+                    <h4>Crate Map Window</h4>
+                    <p>The integration length for data displayed in the crate/card map.
+                    <div class="alert alert-success">
+                        <strong>Note:</strong> For performance reasons, this is <em>not</em> a rolling integration window,
+                        and therefore there will be discontinuous jumps in the data when the window
+                        switches from one bin to the next.
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
