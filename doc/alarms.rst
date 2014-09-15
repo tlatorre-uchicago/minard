@@ -46,7 +46,7 @@ Level    Name         Description
 Logging from Python
 -------------------
 
-With the module `monitor <https://github.com/tlatorre-uchicago/minard/blob/master/scripts/monitor.py>`_,
+With the module `monitor <https://github.com/tlatorre-uchicago/minard/blob/master/bin/monitor.py>`_,
 you can log to the monitoring server using the python `logging <https://docs.python.org/2/howto/logging.html>`_ module
 and post a heartbeat signal every five seconds::
 
