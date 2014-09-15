@@ -66,12 +66,6 @@ fi
 # see "Installing Redis more properly" at http://redis.io/topics/quickstart
 sudo mkdir -p /etc/redis /var/redis /opt/redis
 
-# open port 6379 for buffer
-if ! sudo iptables --list | grep buffer1.sp.snolab.ca -q; then
-    echo "adding iptables rule for buffer1"
-    sudo iptables -I INPUT -p tcp --dport 6379 -s buffer1.sp.snolab.ca -j ACCEPT
-fi
-
 if [ ! -d /opt/minard ]; then
     sudo mkdir /opt/minard
     sudo chown $USER /opt/minard
