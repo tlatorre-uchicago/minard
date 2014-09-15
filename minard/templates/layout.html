@@ -18,6 +18,13 @@
     </head>
     <body>
         {% block body %}
+        {% macro nav_link(endpoint, name) -%}
+            {% if request.endpoint.endswith(endpoint) %}
+                <li class="active"><a href="{{ url_for(endpoint) }}">{{ name }}</a></li>
+            {% else %}
+                <li><a href="{{ url_for(endpoint) }}">{{ name }}</a></li>
+            {% endif %}
+        {%- endmacro %}
         <div class="navbar navbar-default navbar-static-top">
             <div class="container">
                 <div class="navbar-header">
@@ -30,30 +37,25 @@
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
-                        <li id='nav-status'><a href="{{ url_for('status') }}">Status</a></li>
-                        <li id='nav-snostream'><a href="{{ url_for('snostream') }}">Stream</a></li>
-                        <li id='nav-nhit'><a href="{{ url_for('nhit') }}">NHit</a></li>
-                        <li id='nav-detector'><a href="{{ url_for('detector') }}">Detector</a></li>
-                        <li id='nav-daq'><a href="{{ url_for('daq') }}">DAQ</a></li>
+                        {{ nav_link('status', 'Status') }}
+                        {{ nav_link('snostream', 'Stream') }}
+                        {{ nav_link('nhit', 'NHit') }}
+                        {{ nav_link('detector', 'Detector') }}
+                        {{ nav_link('daq', 'DAQ') }}
                         <!-- Dropdown PMTcal -->
                         <li class='dropdown'>
 			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>PMTcal <b class='caret'></b></a>
                             <ul class='dropdown-menu'>
-                                <li id='nav-eca'>
-                                    <a href="{{ url_for('eca') }}">ECA</a>
-                                </li>
-                                <li id='nav-pcatellie'>
-                                    <a href="{{ url_for('pcatellie') }}">PCA TELLIE</a>
-                                </li>
+                                {{ nav_link('eca', 'ECA') }}
+                                {{ nav_link('pcatellie', 'PCA Tellie') }}
                             </ul>
-                            
-                        <li id='nav-alarms'><a href="{{ url_for('alarms') }}">Alarms</a></li>
+                        {{ nav_link('alarms', 'Alarms') }}
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
-                      {% if config['SUPERVISOR'] %}
-                        <li><a href="{{ url_for('supervisor') }}">Supervisor</a></li>
-                      {% endif %}
-                      <li><a href="{{ url_for('doc') }}">Docs</a></li>
+                        {% if config['SUPERVISOR'] %}
+                            <li><a href="{{ url_for('supervisor') }}">Supervisor</a></li>
+                        {% endif %}
+                        <li><a href="{{ url_for('doc') }}">Docs</a></li>
                     </ul>
                 </div><!--/.navbar-collapse -->
             </div>

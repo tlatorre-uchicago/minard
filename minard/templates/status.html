@@ -45,7 +45,5 @@
         {% for program in programs %}
             update_status('{{ program.name }}', 2);
         {% endfor %}
-
-        $('#nav-status').attr('class','active');
     </script>
 {% endblock %}
