@@ -1,11 +1,17 @@
 #!/usr/bin/env python
-from minard.orca import orca_consumer
+from minard.orca import cmos_consumer, base_consumer
 
 if __name__ == '__main__':
+    import sys
     import argparse
 
     parser = argparse.ArgumentParser('ORCA stream consumer')
     parser.add_argument('port', type=int, help='port number (5557 for CMOS, 5558 for base currents)')
     args = parser.parse_args()
 
-    orca_consumer(args.port)
+    if args.port == 5557:
+        cmos_consumer(args.port)
+    elif args.port == 5558:
+        base_consumer(args.port)
+    else:
+        sys.exit("port must be 5557 or 5558")
