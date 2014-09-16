@@ -52,6 +52,25 @@ def unpack_index(index):
     """Returns (crate, card, channel) for a channel index."""
     return index >> 9, index >> 5 & 0xf, index & 0x1f
 
+def flush_to_redis(dict_, name, time_):
+    p = redis.pipeline()
+    for interval in HASH_INTERVALS:
+        key = 'ts:%i:%i:%s' % (interval, time_//interval, name)
+        hmincrbyfloat(key + ':sum', dict_, client=p)
+        hmincr(key + ':count', dict_.keys(), client=p)
+        p.expire(key + ':sum', interval)
+        p.expire(key + ':count', interval)
+        prev = time_//interval - 1
+        prev_key = 'ts:%i:%i:%s' % (interval, prev, name)
+        if redis.incr(prev_key + ':lock') == 1:
+            hdivh(prev_key, prev_key + ':sum', prev_key + ':count', range(10240), client=p)
+            keys = setavgmax(prev_key, client=p)
+            for k in keys:
+                p.expire(k, HASH_EXPIRE*interval)
+            p.expire(prev_key, HASH_EXPIRE*interval)
+            p.expire(prev_key + ':lock', interval)
+    p.execute()
+
 def cmos_consumer(port):
     pull_context = zmq.Context()
     pull = pull_context.socket(zmq.PULL)
@@ -71,23 +90,7 @@ def cmos_consumer(port):
 
         if now > then and len(cmos_rates) > 0:
             # flush results to database once a second
-            p = redis.pipeline()
-            for interval in HASH_INTERVALS:
-                key = 'ts:%i:%i:cmos' % (interval, then//interval)
-                hmincrbyfloat(key + ':sum', cmos_rates, client=p)
-                hmincr(key + ':count', cmos_rates.keys(), client=p)
-                p.expire(key + ':sum', interval*2)
-                p.expire(key + ':count', interval*2)
-                prev = then//interval - 1
-                prev_key = 'ts:%i:%i:cmos' % (interval,prev)
-                if redis.incr(prev_key + ':lock') == 1:
-                    hdivh(prev_key, prev_key + ':sum', prev_key + ':count', range(10240), client=p)
-                    keys = setavgmax(prev_key, client=p)
-                    for k in keys:
-                        p.expire(k, HASH_EXPIRE*interval)
-                    p.expire(prev_key, HASH_EXPIRE*interval)
-                    p.expire(prev_key + ':lock', interval*2)
-            p.execute()
+            flush_to_redis(cmos_rates, 'cmos', then)
             then = now
             cmos_rates.clear()
 
@@ -146,22 +149,7 @@ def base_consumer(port):
             id = None
 
         if now > then and len(base_currents) > 0:
-            p = redis.pipeline()
-            for interval in HASH_INTERVALS:
-                key = 'ts:%i:%i:base' % (interval, then//interval)
-                hmincrby(key + ':sum', base_currents, client=p)
-                hmincr(key + ':count', base_currents.keys(), client=p)
-                p.expire(key + ':sum', interval)
-                p.expire(key + ':count', interval)
-                prev_key = 'ts:%i:%i:base' % (interval,then//interval-1)
-                if redis.incr(prev_key + ':lock') == 1:
-                    hdivh(prev_key, prev_key + ':sum', prev_key + ':count', range(10240), client=p)
-                    keys = setavgmax(prev_key, client=p)
-                    for k in keys:
-                        p.expire(k, HASH_EXPIRE*interval)
-                    p.expire(prev_key, HASH_EXPIRE*interval)
-                    p.expire(prev_key + ':lock', interval)
-            p.execute()
+            flush_to_redis(base_currents, 'base', then)
             then = now
             base_currents.clear()
 
