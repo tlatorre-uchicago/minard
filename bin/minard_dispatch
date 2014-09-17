@@ -114,6 +114,10 @@ def flush_cache(cache, cache_set, cache_nhit, cache_pmt, time):
 
     if len(cache_nhit) > 0:
         # nhit distribution
+        if len(cache_nhit) > 100:
+            # if there are more than 100 events this second
+            # randomly sample the nhit from 100 events
+            cache_nhit = random.sample(cache_nhit,100)
         # see http://flask.pocoo.org/snippets/71/ for this design pattern
         p.lpush('ts:1:%i:nhit' % time, *cache_nhit)
         p.expire('ts:1:%i:nhit' % time, 3600)
