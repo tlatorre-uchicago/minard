@@ -246,7 +246,7 @@ def query():
 
     if name in ('occupancy','cmos','base'):
         now = int(time.time())
-        step = request.args.get('step',-1,type=int)
+        step = request.args.get('step',60,type=int)
 
         interval = get_hash_interval(step)
 
