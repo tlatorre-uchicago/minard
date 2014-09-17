@@ -8,6 +8,7 @@ import zmq
 import threading
 from minard.timeseries import INTERVALS, EXPIRE, HASH_INTERVALS, HASH_EXPIRE
 from minard.redistools import hmincrby, hdivk, setavgmax
+import random
 
 redis = Redis()
 
