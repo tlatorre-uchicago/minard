@@ -39,7 +39,7 @@ for i, v in ipairs(ARGV) do
     local n = tonumber(redis.call('HGET', KEYS[2], v))
     local d = tonumber(redis.call('HGET', KEYS[3], v))
     if n and d then
-        redis.call('HSET', KEYS[1], v, n/d)
+        redis.call('HSET', KEYS[1], v, string.format(KEYS[4],n/d))
     end
 end
 return true
@@ -50,7 +50,7 @@ local d = tonumber(redis.call('GET', KEYS[3]))
 for i, v in ipairs(ARGV) do
     local n = tonumber(redis.call('HGET', KEYS[2], v))
     if n then
-        redis.call('HSET', KEYS[1], v, n/d)
+        redis.call('HSET', KEYS[1], v, string.format(KEYS[4],n/d))
     end
 end
 return true
@@ -250,7 +250,7 @@ def hmincr(key, fields, client=None):
     """
     return _hmincr(keys=[key], args=fields, client=client)
 
-def hdivh(result, a, b, fields, client=None):
+def hdivh(result, a, b, fields, format='%.15g', client=None):
     """
     Divide multiple fields in the hash stored at `a` by
     fields in `b` and store the result in `result`.
@@ -265,9 +265,9 @@ def hdivh(result, a, b, fields, client=None):
         >>> redis.hgetall('c')
         {'a': '0.5', 'b': '1'}
     """
-    return _hdivh(keys=[result,a,b], args=fields, client=client)
+    return _hdivh(keys=[result,a,b,format], args=fields, client=client)
 
-def hdivk(result, a, b, fields, client=None):
+def hdivk(result, a, b, fields, format='%.15g', client=None):
     """
     Divide multiple fields in the hash stored at `a` by
     the value in key `b` and store the result in `result`.
@@ -282,4 +282,4 @@ def hdivk(result, a, b, fields, client=None):
         >>> redis.hgetall('c')
         {'a': '0.5', 'b': '1'}
     """
-    return _hdivk(keys=[result,a,b], args=fields, client=client)
+    return _hdivk(keys=[result,a,b,format], args=fields, client=client)

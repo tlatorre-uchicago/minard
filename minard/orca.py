@@ -63,7 +63,8 @@ def flush_to_redis(dict_, name, time_):
         prev = time_//interval - 1
         prev_key = 'ts:%i:%i:%s' % (interval, prev, name)
         if redis.incr(prev_key + ':lock') == 1:
-            hdivh(prev_key, prev_key + ':sum', prev_key + ':count', range(10240), client=p)
+            hdivh(prev_key, prev_key + ':sum', prev_key + ':count',
+                  range(10240), format='%.2g', client=p)
             keys = setavgmax(prev_key, client=p)
             for k in keys:
                 p.expire(k, HASH_EXPIRE*interval)
