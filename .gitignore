@@ -2,3 +2,4 @@
 *.swp
 *.zip
 *.tar.gz
+doc/_build
