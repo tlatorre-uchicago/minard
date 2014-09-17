@@ -4,32 +4,38 @@ from itertools import chain
 redis = StrictRedis()
 
 HMINCRBY = """
-local k
-for i, v in ipairs(ARGV) do
-    if i % 2 == 1 then
-        k = v
-    else
-        redis.call('HINCRBY', KEYS[1], k, tonumber(v))
+local f
+for _, key in ipairs(KEYS) do
+    for i, v in ipairs(ARGV) do
+        if i % 2 == 1 then
+            f = v
+        else
+            redis.call('HINCRBY', key, f, tonumber(v))
+        end
     end
 end
 return true
 """
 
 HMINCRBYFLOAT = """
-local k
-for i, v in ipairs(ARGV) do
-    if i % 2 == 1 then
-        k = v
-    else
-        redis.call('HINCRBYFLOAT', KEYS[1], k, tonumber(v))
+local f
+for _, key in ipairs(KEYS) do
+    for i, v in ipairs(ARGV) do
+        if i % 2 == 1 then
+            f = v
+        else
+            redis.call('HINCRBYFLOAT', key, f, tonumber(v))
+        end
     end
 end
 return true
 """
 
 HMINCR = """
-for i, v in ipairs(ARGV) do
-    redis.call('HINCRBY', KEYS[1], v, 1)
+for _, key in ipairs(KEYS) do
+    for i, v in ipairs(ARGV) do
+        redis.call('HINCRBY', key, v, 1)
+    end
 end
 return true
 """
@@ -219,7 +225,11 @@ def hmincrby(key, mapping, client=None):
         {'a': '10', 'b': '2'}
     """
     args = chain.from_iterable(mapping.items())
-    return _hmincrby(keys=[key], args=args, client=client)
+    if isinstance(key, str):
+        keys = [key]
+    else:
+        keys = key
+    return _hmincrby(keys=keys, args=args, client=client)
 
 def hmincrbyfloat(key, mapping, client=None):
     """
@@ -234,7 +244,11 @@ def hmincrbyfloat(key, mapping, client=None):
         {'a': '10.0', 'b': '2.0'}
     """
     args = chain.from_iterable(mapping.items())
-    return _hmincrbyfloat(keys=[key], args=args, client=client)
+    if isinstance(key, str):
+        keys = [key]
+    else:
+        keys = key
+    return _hmincrbyfloat(keys=keys, args=args, client=client)
 
 def hmincr(key, fields, client=None):
     """
@@ -248,7 +262,11 @@ def hmincr(key, fields, client=None):
         >>> redis.hgetall('spam')
         {'a': '1', 'b': '0'}
     """
-    return _hmincr(keys=[key], args=fields, client=client)
+    if isinstance(key, str):
+        keys = [key]
+    else:
+        keys = key
+    return _hmincr(keys=keys, args=fields, client=client)
 
 def hdivh(result, a, b, fields, format='%.15g', client=None):
     """

@@ -71,27 +71,36 @@ def flush_cache(cache, cache_set, cache_nhit, cache_pmt, time):
     # for docs on redis pipeline see http://redis.io/topics/pipelining
     p = redis.pipeline()
 
-    for interval in INTERVALS:
-        for name, hash in cache.items():
-            key = 'ts:%i:%i:%s' % (interval, time//interval, name)
-            if len(hash) > 0:
-                hmincrby(key, hash, client=p)
-                p.expire(key, interval*EXPIRE)
+    for name, hash in cache.items():
+        keys = ['ts:%i:%i:%s' % (interval, time//interval, name)
+                for interval in INTERVALS]
 
+        if len(hash) > 0:
+            hmincrby(keys, hash, client=p)
+            
+            for key, interval in zip(keys,INTERVALS):
+                p.expire(key,interval*EXPIRE)
+
+    for interval in INTERVALS:
         for name, hash in cache_set.items():
             key = 'ts:%i:%i:%s' % (interval, time//interval, name)
             if len(hash) > 0:
                 p.hmset(key, hash)
                 p.expire(key, interval*EXPIRE)
 
+    keys = ['ts:%i:%i:occupancy:hits' % (interval, time//interval)
+            for interval in HASH_INTERVALS]
+
+    if len(cache_pmt) > 0:
+        hmincrby(keys, cache_pmt, client=p)
+
     for interval in HASH_INTERVALS:
         key = 'ts:%i:%i:occupancy' % (interval, time//interval)
-        hmincrby(key + ':hits', cache_pmt, client=p)
         p.incrby(key + ':count', cache['trig']['TOTAL'])
         # expire after just interval, because these will
         # occupancy will be set as hits/count
-        p.expire(key + ':hits', interval*2)
-        p.expire(key + ':count', interval*2)
+        p.expire(key + ':hits', interval)
+        p.expire(key + ':count', interval)
 
         prev_key = 'ts:%i:%i:occupancy' % (interval,time//interval-1)
         if redis.incr(prev_key + ':lock') == 1:
@@ -101,7 +110,7 @@ def flush_cache(cache, cache_set, cache_nhit, cache_pmt, time):
             for k in keys:
                 p.expire(k, HASH_EXPIRE*interval)
             p.expire(prev_key, HASH_EXPIRE*interval)
-            p.expire(prev_key + ':lock', interval*2)
+            p.expire(prev_key + ':lock', interval)
 
     if len(cache_nhit) > 0:
         # nhit distribution

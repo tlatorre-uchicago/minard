@@ -59,6 +59,12 @@ class TestRedisTools(unittest.TestCase):
         for k, v in hash.iteritems():
             self.assertAlmostEqual(float(v), self.hash[int(k)]*2)
 
+    def test_hmincrby(self):
+        hmincrby('spam_int', self.hash_int)
+        hash = redis.hgetall('spam_int')
+        for k, v in hash.iteritems():
+            self.assertAlmostEqual(float(v), self.hash_int[int(k)]*2)
+
     def test_hmincr(self):
         hmincr('spam_int', self.hash.keys())
         hash = redis.hgetall('spam_int')

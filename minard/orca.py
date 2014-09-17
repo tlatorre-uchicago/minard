@@ -54,16 +54,25 @@ def unpack_index(index):
 
 def flush_to_redis(dict_, name, time_):
     p = redis.pipeline()
+
+    sum_keys = ['ts:%i:%i:%s:sum' % (interval, time_//interval, name)
+                for interval in HASH_INTERVALS]
+    len_keys = ['ts:%i:%i:%s:len' % (interval, time_//interval, name)
+                for interval in HASH_INTERVALS]
+
+    if len(dict_) > 0:
+        hmincrbyfloat(sum_keys, dict_, client=p)
+        hmincr(len_keys, dict_.keys(), client=p)
+
     for interval in HASH_INTERVALS:
-        key = 'ts:%i:%i:%s' % (interval, time_//interval, name)
-        hmincrbyfloat(key + ':sum', dict_, client=p)
-        hmincr(key + ':count', dict_.keys(), client=p)
-        p.expire(key + ':sum', interval)
-        p.expire(key + ':count', interval)
+        basekey = 'ts:%i:%i:%s' % (interval, time_//interval, name)
+        if len(dict_) > 0:
+            p.expire(basekey + ':sum', interval)
+            p.expire(basekey + ':len', interval)
         prev = time_//interval - 1
         prev_key = 'ts:%i:%i:%s' % (interval, prev, name)
         if redis.incr(prev_key + ':lock') == 1:
-            hdivh(prev_key, prev_key + ':sum', prev_key + ':count',
+            hdivh(prev_key, prev_key + ':sum', prev_key + ':len',
                   range(10240), format='%.2g', client=p)
             keys = setavgmax(prev_key, client=p)
             for k in keys:
