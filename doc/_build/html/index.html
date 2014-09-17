@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to minard’s documentation! &mdash; minard 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="minard 0.1 documentation" href="#" />
+    <link rel="next" title="Installation" href="install.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="install.html" title="Installation"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">minard 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-minard-s-documentation">
+<h1>Welcome to minard&#8217;s documentation!<a class="headerlink" href="#welcome-to-minard-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#installing-minard">Installing minard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#installing-redis">Installing Redis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#running-the-web-server">Running the Web Server</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">QuickStart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#hello-world">Hello World</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#creating-a-template">Creating a Template</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#adding-a-histogram">Adding a Histogram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#monitoring-cpu-usage">Monitoring CPU Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Sources</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.html#dispatch-stream">Dispatch Stream</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#orca-stream">Orca Stream</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dispatch_local.html">Dispatching Locally</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dispatch_local.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dispatch_local.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mimic_orca.html">Mimicking the ORCA Data Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alarms.html">Logging and Alarms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="alarms.html#heartbeat">Heartbeat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alarms.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alarms.html#logging-from-python">Logging from Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alarms.html#logging-from-c-libcurl">Logging from C (libcurl)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="production.html">Production Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring_software.html">List of Monitoring Software</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="monitoring_software.html#minard-dispatch-push">minard_dispatch_push</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitoring_software.html#minard-dispatch-pull">minard_dispatch_pull</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitoring_software.html#redis">redis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitoring_software.html#gunicorn">gunicorn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitoring_software.html#gunicorn-logging-server">gunicorn (logging server)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitoring_software.html#nginx">nginx</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitoring_software.html#orca-producer">orca_producer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitoring_software.html#orca-consumer-cmos">orca_consumer_cmos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitoring_software.html#orca-consumer-base">orca_consumer_base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitoring_software.html#supervisord">supervisord</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="links.html">Links</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">minard</a></h1>
+
+
+
+
+
+<p>
+<iframe src="http://ghbtns.com/github-btn.html?user=snoplus&repo=minard&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">QuickStart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dispatch_local.html">Dispatching Locally</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mimic_orca.html">Mimicking the ORCA Data Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alarms.html">Logging and Alarms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="production.html">Production Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring_software.html">List of Monitoring Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="links.html">Links</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="/monitoring">Home</a></li>
+    
+</ul>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Anthony LaTorre.
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.5.0</a>
+      |
+      <a href="_sources/index.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+    <a href="https://github.com/snoplus/minard" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

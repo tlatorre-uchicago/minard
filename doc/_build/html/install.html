@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &mdash; minard 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="minard 0.1 documentation" href="index.html" />
+    <link rel="next" title="QuickStart" href="quickstart.html" />
+    <link rel="prev" title="Welcome to minard’s documentation!" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="quickstart.html" title="QuickStart"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to minard’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">minard 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="installing-minard">
+<h2>Installing minard<a class="headerlink" href="#installing-minard" title="Permalink to this headline">¶</a></h2>
+<p>The easiest way to install minard is to use a virtual environment with
+<a class="reference external" href="http://virtualenv.org">virtualenv</a>:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ virtualenv minard
+$ cd minard
+$ source bin/activate
+$ mkdir src
+$ cd src
+$ git clone https://github.com/snoplus/minard
+$ pip install ./minard
+</pre></div>
+</div>
+<p>On Mac OSX you may need to add the following line to your bash_profile:</p>
+<div class="highlight-python"><div class="highlight"><pre>export ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future
+</pre></div>
+</div>
+</div>
+<div class="section" id="installing-redis">
+<h2>Installing Redis<a class="headerlink" href="#installing-redis" title="Permalink to this headline">¶</a></h2>
+<p>To install redis, you can run these commands:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -O http://download.redis.io/redis-stable.tar.gz
+$ tar -xzvf redis-stable.tar.gz
+$ cd redis-stable
+$ make
+$ sudo make install
+</pre></div>
+</div>
+<p>You can now run the redis server with the <cite>redis-server</cite> command.</p>
+<p>For more information on installing redis, and how to set it up to run as a
+daemon see <a class="reference external" href="http://redis.io/topics/quickstart">redis quickstart</a>.</p>
+</div>
+<div class="section" id="running-the-web-server">
+<h2>Running the Web Server<a class="headerlink" href="#running-the-web-server" title="Permalink to this headline">¶</a></h2>
+<p>You should now be able to run the web server. After activating your virtual
+environment, run:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ gunicorn -b 127.0.0.1:5000 minard:app
+</pre></div>
+</div>
+<p>and navigate your web browser to <a class="reference external" href="http://localhost:5000">http://localhost:5000</a>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">minard</a></h1>
+
+
+
+
+
+<p>
+<iframe src="http://ghbtns.com/github-btn.html?user=snoplus&repo=minard&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installing-minard">Installing minard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-redis">Installing Redis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-the-web-server">Running the Web Server</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">QuickStart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dispatch_local.html">Dispatching Locally</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mimic_orca.html">Mimicking the ORCA Data Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alarms.html">Logging and Alarms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="production.html">Production Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring_software.html">List of Monitoring Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="links.html">Links</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="/monitoring">Home</a></li>
+    
+</ul>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Anthony LaTorre.
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.5.0</a>
+      |
+      <a href="_sources/install.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+    <a href="https://github.com/snoplus/minard" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

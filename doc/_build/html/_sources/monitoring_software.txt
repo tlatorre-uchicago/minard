@@ -8,7 +8,7 @@ minard_dispatch_push
 * **Runs as**: snoplusmon
 * **Ports**: 5560
 * **Started by**: supervisord
-* **Log File**: ``/var/log/minard/minard_dispatch_push.log``
+* **Log File**: ``/var/log/minard_dispatch_push.log``
 * **Description**: Reads events from the dispatch stream and pushes them to a ZMQ push/pull socket for processing.
 
 minard_dispatch_pull
@@ -18,7 +18,7 @@ minard_dispatch_pull
 * **Runs as**: snoplusmon
 * **Ports**: 5560
 * **Started by**: supervisord
-* **Log File**: ``/var/log/minard/minard_dispatch_pull.log``
+* **Log File**: ``/var/log/minard_dispatch_pull.log``
 * **Description**: Reads events from a ZMQ push/pull socket, and writes info to a redis database.
 
 redis
@@ -71,7 +71,7 @@ orca_producer
 * **Run as**: snoplusmon
 * **Ports**: 5557, 5558
 * **Started by**: supervisord
-* **Log File**: ``/var/log/minard/orca_producer.log``
+* **Log File**: ``/var/log/orca_producer.log``
 * **Description**: Reads CMOS rates and base current records from the ORCA data stream and pushes them to ZMQ push/pull sockets for processing.
 
 orca_consumer_cmos
@@ -81,7 +81,7 @@ orca_consumer_cmos
 * **Run as**: snoplusmon
 * **Ports**: 5557
 * **Started by**: supervisord
-* **Log File**: ``/var/log/minard/orca_consumer_cmos.log``
+* **Log File**: ``/var/log/orca_consumer_cmos.log``
 * **Description**: Reads CMOS rates from a ZMQ push/pull socket and writes to the redis database.
 
 orca_consumer_base
@@ -91,7 +91,7 @@ orca_consumer_base
 * **Run as**: snoplusmon
 * **Ports**: 5558
 * **Started by**: supervisord
-* **Log File**: ``/var/log/minard/orca_consumer_base.log``
+* **Log File**: ``/var/log/orca_consumer_base.log``
 * **Description**: Reads base currents from a ZMQ push/pull socket and writes to the redis database.
 
 supervisord

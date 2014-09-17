@@ -1,0 +1,405 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>QuickStart &mdash; minard 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="minard 0.1 documentation" href="index.html" />
+    <link rel="next" title="Data Sources" href="data.html" />
+    <link rel="prev" title="Installation" href="install.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="data.html" title="Data Sources"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">minard 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="quickstart">
+<h1>QuickStart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="hello-world">
+<h2>Hello World<a class="headerlink" href="#hello-world" title="Permalink to this headline">¶</a></h2>
+<p>The simplest thing we can do is add a new url to the web app which returns a
+string. Edit the file <cite>views.py</cite> in the minard source directory and add the
+following function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/hello_world&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello_world</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">&#39;Hello World!&#39;</span>
+</pre></div>
+</div>
+<p>That&#8217;s it! Now, just reinstall the minard package and restart the server:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ cd $VIRTUAL_ENV/src
+$ pip uninstall minard
+$ pip install ./minard
+$ gunicorn -b 127.0.0.1:5000 minard:app
+</pre></div>
+</div>
+<p>and navigate your browser to <a class="reference external" href="http://localhost:5000/hello_world">http://localhost:5000/hello_world</a>. To learn more about how this example worked see the <a class="reference external" href="http://flask.pocoo.org/docs/quickstart/">Flask Quickstart</a></p>
+</div>
+<div class="section" id="creating-a-template">
+<h2>Creating a Template<a class="headerlink" href="#creating-a-template" title="Permalink to this headline">¶</a></h2>
+<p>The next step is to create a template so that we can return a real HTML page from our <cite>hello_world</cite> function. Create a file that looks like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% extends &quot;layout.html&quot; %}
+{% block title %}Hello World{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    &lt;h1&gt;Hello World!&lt;/h1&gt;
+{% endblock %}
+</pre></div>
+</div>
+<p>and save it as <cite>hello_world.html</cite> in the <cite>minard/templates</cite> directory.</p>
+<p>Now edit <cite>views.py</cite> again and change the <cite>hello_world</cite> function to look like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/hello_world&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello_world</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;hello_world.html&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, reinstall minard, and restart the web server and navigate to <a class="reference external" href="http://localhost:5000/hello_world">http://localhost:5000/hello_world</a> again, and you should see <cite>Hello World</cite> displayed below the navigation bar.</p>
+</div>
+<div class="section" id="adding-a-histogram">
+<h2>Adding a Histogram<a class="headerlink" href="#adding-a-histogram" title="Permalink to this headline">¶</a></h2>
+<p>Our page is pretty boring, so let&#8217;s add a histogram! Edit <cite>hello_world.html</cite> to look like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% extends &quot;layout.html&quot; %}
+{% block title %}Hello World{% endblock %}
+{% block head %}
+    {{ super() }}
+    &lt;link href=&quot;{{ url_for(&#39;static&#39;, filename=&#39;css/bar-chart.css&#39;) }}&quot; rel=&quot;stylesheet&quot;&gt;
+    &lt;script src=&quot;{{ url_for(&#39;static&#39;, filename=&#39;js/d3.js&#39;) }}&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;{{ url_for(&#39;static&#39;, filename=&#39;js/histogram.js&#39;) }}&quot;&gt;&lt;/script&gt;
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    &lt;div class=&quot;container&quot;&gt;
+        &lt;h1&gt;Hello World!&lt;/h1&gt;
+        &lt;div id=&quot;hist&quot; /&gt;
+    &lt;/div&gt;
+    &lt;script&gt;
+        var chart = histogram();
+
+        setInterval(function() {
+            $.getJSON($SCRIPT_ROOT + &#39;/hello_world_hist&#39;, function(reply) {
+                d3.select(&#39;#hist&#39;).datum(reply.value).call(chart);
+            });
+        },1000);
+    &lt;/script&gt;
+{% endblock %}
+</pre></div>
+</div>
+<p>Now we need to edit <cite>views.py</cite> again and add a function which will return the histogram data:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">random</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/hello_world_hist&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello_world_hist</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">random</span><span class="o">.</span><span class="n">gauss</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">)])</span>
+</pre></div>
+</div>
+<p>Reinstall minard, restart the web server and navigate to <a class="reference external" href="http://localhost:5000/hello_world">http://localhost:5000/hello_world</a>, and you should see your beautiful histogram updating every second.</p>
+</div>
+<div class="section" id="monitoring-cpu-usage">
+<h2>Monitoring CPU Usage<a class="headerlink" href="#monitoring-cpu-usage" title="Permalink to this headline">¶</a></h2>
+<p>For this example, we&#8217;ll use the redis database to log the current CPU usage and
+display it using a d3 plugin called <a class="reference external" href="http://square.github.io/cubism/">cubism</a>.</p>
+<div class="section" id="script">
+<h3>Script<a class="headerlink" href="#script" title="Permalink to this headline">¶</a></h3>
+<p>First, we need to set up a script that will write to the redis database. We&#8217;ll
+monitor the cpu usage and memory in intervals of one second, and one minute. I
+will use a design pattern found <a class="reference external" href="http://flask.pocoo.org/snippets/71">here</a>,
+where we use the unix timestamp to keep track of keys. For more details on how
+redis works see the tutorial on creating a <a class="reference external" href="http://redis.io/topics/twitter-clone">twitter clone</a>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+<span class="kn">import</span> <span class="nn">psutil</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">redis</span> <span class="kn">import</span> <span class="n">Redis</span>
+
+<span class="n">redis</span> <span class="o">=</span> <span class="n">Redis</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">log</span><span class="p">():</span>
+    <span class="n">cpu_usage</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">cpu_percent</span><span class="p">()</span>
+    <span class="n">mem_usage</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()</span><span class="o">.</span><span class="n">percent</span>
+
+    <span class="n">now</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+
+    <span class="c"># keys are &#39;stream/[time interval]:[now//time interval]:[name]&#39;</span>
+
+    <span class="c"># set cpu percent</span>
+    <span class="n">redis</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;stream/1:</span><span class="si">%i</span><span class="s">:cpu&#39;</span> <span class="o">%</span> <span class="n">now</span><span class="p">,</span> <span class="n">cpu_usage</span><span class="p">)</span>
+    <span class="c"># set it to expire in 600 seconds</span>
+    <span class="n">redis</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="s">&#39;stream/1:</span><span class="si">%i</span><span class="s">:cpu&#39;</span> <span class="o">%</span> <span class="n">now</span><span class="p">,</span><span class="mi">600</span><span class="p">)</span>
+    <span class="c"># keep a running sum for the minute interval. Later we can divide</span>
+    <span class="c"># by the number of points added to get an average.</span>
+    <span class="n">redis</span><span class="o">.</span><span class="n">incrbyfloat</span><span class="p">(</span><span class="s">&#39;stream/60:</span><span class="si">%i</span><span class="s">:cpu&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">now</span><span class="o">//</span><span class="mi">60</span><span class="p">),</span> <span class="n">cpu_usage</span><span class="p">)</span>
+    <span class="n">redis</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="s">&#39;stream/60:</span><span class="si">%i</span><span class="s">:cpu&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">now</span><span class="o">//</span><span class="mi">60</span><span class="p">),</span> <span class="mi">60000</span><span class="p">)</span>
+    <span class="c"># keep track of the number of times we incremented the minute total</span>
+    <span class="n">redis</span><span class="o">.</span><span class="n">incr</span><span class="p">(</span><span class="s">&#39;stream/60:</span><span class="si">%i</span><span class="s">:count&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">now</span><span class="o">//</span><span class="mi">60</span><span class="p">))</span>
+    <span class="n">redis</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="s">&#39;stream/60:</span><span class="si">%i</span><span class="s">:count&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">now</span><span class="o">//</span><span class="mi">60</span><span class="p">),</span> <span class="mi">60000</span><span class="p">)</span>
+
+    <span class="c"># do the same for memory usage</span>
+    <span class="c"># here we&#39;ll use a redis pipeline so that the commands aren&#39;t sent</span>
+    <span class="c"># until the very end</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">pipeline</span><span class="p">()</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;stream/1:</span><span class="si">%i</span><span class="s">:mem&#39;</span> <span class="o">%</span> <span class="n">now</span><span class="p">,</span> <span class="n">mem_usage</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="s">&#39;stream/1:</span><span class="si">%i</span><span class="s">:mem&#39;</span> <span class="o">%</span> <span class="n">now</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">incrbyfloat</span><span class="p">(</span><span class="s">&#39;stream/60:</span><span class="si">%i</span><span class="s">:mem&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">now</span><span class="o">//</span><span class="mi">60</span><span class="p">),</span> <span class="n">mem_usage</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="s">&#39;stream/60:</span><span class="si">%i</span><span class="s">:mem&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">now</span><span class="o">//</span><span class="mi">60</span><span class="p">),</span> <span class="mi">60000</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">incr</span><span class="p">(</span><span class="s">&#39;stream/60:</span><span class="si">%i</span><span class="s">:count&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">now</span><span class="o">//</span><span class="mi">60</span><span class="p">))</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="s">&#39;stream/60:</span><span class="si">%i</span><span class="s">:count&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">now</span><span class="o">//</span><span class="mi">60</span><span class="p">),</span> <span class="mi">60000</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">log</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To use this script, you&#8217;ll need to install the psutil python package:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ pip install psutil
+</pre></div>
+</div>
+</div>
+<div class="section" id="template">
+<h3>Template<a class="headerlink" href="#template" title="Permalink to this headline">¶</a></h3>
+<p>Now, we need to create a template to display the time series. Create a file in
+the templates directory called <cite>system_monitor.html</cite>.</p>
+<div class="highlight-python"><div class="highlight"><pre>{% extends &quot;layout.html&quot; %}
+{% block title %}System Monitor{% endblock %}
+{% block head %}
+{{ super() }}
+  &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;{{ url_for(&#39;static&#39;, filename=&#39;css/style.css&#39;) }}&quot;&gt;
+  &lt;script src=&quot;{{ url_for(&#39;static&#39;, filename=&#39;js/d3.js&#39;) }}&quot;&gt;&lt;/script&gt;
+  &lt;script src=&quot;{{ url_for(&#39;static&#39;, filename=&#39;js/cubism.v1.js&#39;) }}&quot;&gt;&lt;/script&gt;
+{% endblock %}
+{% block body %}
+{{ super() }}
+  &lt;div class=&quot;container&quot;&gt;
+    &lt;div class=&quot;row&quot;&gt;
+      &lt;div class=&quot;col-md-12&quot;&gt;
+        &lt;p class=&quot;pull-right&quot;&gt;Step: 
+        &lt;select id=&quot;step-menu&quot;&gt;
+          {% for i in [1,10,100,1000] %}
+            &lt;option {% if step == i %}selected=&quot;selected&quot; {% endif %}value=&quot;{{ i }}&quot;&gt;{{ i }}&lt;/option&gt;
+          {% endfor %}
+        &lt;/select&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;row&quot;&gt;
+      &lt;div class=&quot;col-md-12&quot; style=&quot;padding:0&quot; id=&quot;demo&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;script&gt;
+  $(&quot;#step-menu&quot;).on(&quot;change&quot;, function() {
+      window.location.replace(&quot;{{ url_for(&#39;system_monitor&#39;) }}?step=&quot; + this.value + &quot;&amp;height={{ height }}&quot;);
+  });
+
+var size = $(&#39;#demo&#39;).width();
+var context = cubism.context()
+    .serverDelay(1e3)
+    .clientDelay(1e3)
+    .step({{ step }}*1000)
+    .size(size);
+
+d3.select(&quot;#demo&quot;).selectAll(&quot;.axis&quot;)
+    .data([&quot;top&quot;, &quot;bottom&quot;])
+  .enter().append(&quot;div&quot;)
+    .attr(&quot;class&quot;, function(d) { return d + &quot; axis&quot;; })
+    .each(function(d) { d3.select(this).call(context.axis().ticks(12).orient(d)); });
+
+d3.select(&quot;#demo&quot;).append(&quot;div&quot;)
+    .attr(&quot;class&quot;, &quot;rule&quot;)
+    .call(context.rule());
+
+d3.select(&quot;#demo&quot;).selectAll(&quot;.horizon&quot;)
+  .data([&#39;cpu&#39;,&#39;mem&#39;].map(get_metric))
+  .enter().insert(&quot;div&quot;, &quot;.bottom&quot;)
+    .attr(&quot;class&quot;, &quot;horizon&quot;)
+  .call(context.horizon().height({{ height }}));
+
+context.on(&quot;focus&quot;, function(i) {
+  d3.selectAll(&quot;.value&quot;).style(&quot;right&quot;, i == null ? null : context.size() - i + &quot;px&quot;);
+});
+
+function get_metric(name) {
+  var format = d3.time.format(&quot;%d-%b-%y&quot;);
+  return context.metric(function(start, stop, step, callback) {
+    d3.json($SCRIPT_ROOT + &#39;/hello_world_metric&#39; + 
+            &#39;?expr=&#39; + name +
+            &#39;&amp;start=&#39; + start.toISOString() +
+            &#39;&amp;stop=&#39; + stop.toISOString() +
+            &#39;&amp;now=&#39; + new Date().toISOString() +
+            &#39;&amp;step=&#39; + step, function(data) {
+              if (!data) return callback(new Error(&#39;unable to load data&#39;));
+              return callback(null,data.values);
+    });
+  }, name);
+}
+
+&lt;/script&gt;
+{% endblock %}
+</pre></div>
+</div>
+</div>
+<div class="section" id="view">
+<h3>View<a class="headerlink" href="#view" title="Permalink to this headline">¶</a></h3>
+<p>Finally, we need to add the following to views.py:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/system_monitor&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">system_monitor</span><span class="p">():</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;step&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;system_monitor&#39;</span><span class="p">,</span><span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">height</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span><span class="n">_external</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;step&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;height&#39;</span><span class="p">,</span><span class="mi">40</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;system_monitor.html&#39;</span><span class="p">,</span><span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span><span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/hello_world_metric&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello_world_metric</span><span class="p">():</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span>
+
+    <span class="n">expr</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;expr&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;start&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="n">parseiso</span><span class="p">)</span>
+    <span class="n">stop</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;stop&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="n">parseiso</span><span class="p">)</span>
+    <span class="n">now_client</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;now&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="n">parseiso</span><span class="p">)</span>
+    <span class="c"># convert ms -&gt; sec</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;step&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span><span class="o">//</span><span class="mi">1000</span>
+
+    <span class="n">now</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+
+    <span class="c"># adjust for clock skew</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">now_client</span> <span class="o">-</span> <span class="n">now</span>
+    <span class="n">start</span> <span class="o">-=</span> <span class="n">dt</span>
+    <span class="n">stop</span> <span class="o">-=</span> <span class="n">dt</span>
+
+    <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="mi">60</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="mi">60</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">pipeline</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="n">stop</span><span class="p">,</span><span class="n">step</span><span class="p">):</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;stream/</span><span class="si">%i</span><span class="s">:</span><span class="si">%i</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">i</span><span class="o">//</span><span class="n">t</span><span class="p">,</span><span class="n">expr</span><span class="p">))</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">execute</span><span class="p">()]</span>
+
+    <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="mi">60</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">pipeline</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="n">stop</span><span class="p">,</span><span class="n">step</span><span class="p">):</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;stream/60:</span><span class="si">%i</span><span class="s">:count&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="o">//</span><span class="n">t</span><span class="p">))</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">execute</span><span class="p">()]</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">/</span><span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">result</span><span class="p">,</span><span class="n">counts</span><span class="p">)]</span>
+
+    <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, run the script, reinstall minard, and restart the web server and you should
+see the time series at <a class="reference external" href="http://localhost:5000/system_monitor">localhost:5000/system_monitor</a>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">minard</a></h1>
+
+
+
+
+
+<p>
+<iframe src="http://ghbtns.com/github-btn.html?user=snoplus&repo=minard&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">QuickStart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#hello-world">Hello World</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-a-template">Creating a Template</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-a-histogram">Adding a Histogram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#monitoring-cpu-usage">Monitoring CPU Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dispatch_local.html">Dispatching Locally</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mimic_orca.html">Mimicking the ORCA Data Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alarms.html">Logging and Alarms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="production.html">Production Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring_software.html">List of Monitoring Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="links.html">Links</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="/monitoring">Home</a></li>
+    
+</ul>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Anthony LaTorre.
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.5.0</a>
+      |
+      <a href="_sources/quickstart.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+    <a href="https://github.com/snoplus/minard" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
