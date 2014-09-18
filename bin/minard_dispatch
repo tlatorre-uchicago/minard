@@ -155,9 +155,11 @@ def pull():
             # flush data to redis every second
             flush_cache(cache, cache_set, cache_nhit, cache_pmt, then)
 
+            p = redis.pipeline()
             for interval in INTERVALS:
                 key = 'ts:%i:%i:heartbeat' % (interval, then//interval)
-                redis.setex(key,1,interval*EXPIRE)
+                p.setex(key,1,interval*EXPIRE)
+            p.execute()
 
             cache['trig'].clear()
             cache['trig:nhit'].clear()
