@@ -5,7 +5,7 @@ function create_context(target) {
 
     var size = $(target).width();
     var context = cubism.context(scale)
-        .serverDelay(2e3)
+        .serverDelay(1e3)
         .clientDelay(1e3)
         .step(STEP*1000)
         .size(size);
