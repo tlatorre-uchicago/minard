@@ -8,6 +8,15 @@
         'DEBUG'   : 10,
     };
 
+    var level_to_value = {
+        '-1' : 'unknown',
+        21 : 'success',
+        20 : 'info',
+        30 : 'warning',
+        40 : 'danger',
+        10 : 'debug',
+    };
+
     var level_to_label = {
         '-1' : '<span class="label label-default label-unknown label-block">???</span>',
         21 : '<span class="label label-success label-block">Success</span>',
@@ -20,6 +29,14 @@
     function same_day(mom1, mom2) {
         // returns true if mom1 and mom2 are the same day
         return mom1.date() == mom2.date() && mom1.month() == mom2.month() && mom1.year() == mom2.year();
+    }
+
+    function get_value(value) {
+        if (value in level_to_value) {
+            return level_to_value[value];
+        }
+
+        return level_to_value[-1];
     }
 
     function get_level(name) {
@@ -85,6 +102,12 @@
                 .append(record.time.format('HH:mm:ss'))
                 .append(' ')
                 .append(record.message);
+
+            var value = get_value(record.level);
+
+            if (!$('input[name="view"][value="' + value + '"]').prop('checked')) {
+                p.hide();
+            }
 
             $(selector).prepend(p);
 
