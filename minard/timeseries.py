@@ -19,11 +19,11 @@ redis = Redis()
 # The optimal number of intervals N is actually somewhere around 20,
 # but you get diminishing returns after 10, so this is easier.
 INTERVALS = [2**i for i in range(16+1)]
-EXPIRE = 2*2000
+EXPIRE = 2*1200
 
 # intervals to store info per channel in a redis hash
 HASH_INTERVALS = [5,60,24*60*60]
-HASH_EXPIRE = 2000
+HASH_EXPIRE = 1200
 
 def get_hash_interval(step):
     i = bisect.bisect_right(HASH_INTERVALS,step)-1
