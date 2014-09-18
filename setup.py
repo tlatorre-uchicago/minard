@@ -3,7 +3,7 @@ from distutils.core import setup
 from glob import glob
 
 setup(name='minard',
-      version='0.2',
+      version='0.3',
       description='Web App Monitoring Tools',
       author='Anthony LaTorre',
       author_email='tlatorre@uchicago.edu',
