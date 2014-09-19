@@ -66,7 +66,7 @@ def push(host):
     zmq_socket.bind('tcp://127.0.0.1:5560')
 
     for record in dispatcher:
-        zmq_socket.send(record)
+        zmq_socket.send_pyobj((int(time.time()),record.raw))
 
 def flush_cache(cache, cache_set, cache_nhit, cache_pmt, time):
     # for docs on redis pipeline see http://redis.io/topics/pipelining
@@ -140,16 +140,17 @@ def pull():
     cache_nhit = []
     cache_pmt = defaultdict(int)
 
-    then = int(time.time())
+    then = None
 
     while True:
         try:
-            record = zmq_socket.recv(zmq.NOBLOCK)
+            now, record = zmq_socket.recv_pyobj(zmq.NOBLOCK)
         except zmq.ZMQError:
             record = None
+            now = int(time.time())
 
-        # unix timestamp
-        now = int(time.time())
+        if then is None:
+            then = now
 
         if now > then:
             # flush data to redis every second
