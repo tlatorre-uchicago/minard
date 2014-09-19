@@ -19,7 +19,7 @@ function update_alarms(start)
 
     $.getJSON($SCRIPT_ROOT + '/get_alarm?start=' + start).done(function(obj) {
         for (var i=0; i < obj.alarms.length; i++) {
-            obj.alarms[i].time = moment(obj.alarms[i].time).tz('America/Toronto');
+            obj.alarms[i].time = moment.tz(obj.alarms[i].time, 'America/Toronto');
         }
         _last_date = log.log('#log', obj.alarms, _last_date);
         $("#log p").slice(1000).remove();
