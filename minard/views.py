@@ -355,36 +355,6 @@ def eca():
     def parse_status(run_status, run_type):
         run_status = int(run_status)
         if run_type == 'PDST':
-            #these are all the run-level status flags for PDST runs
-            #some are worse to fail than others
-            #decide monitoring pass/fail/do-over-if-time results based on which flags fail
-            tooManyZeroEv = testBit(run_status,0)
-            tooManyChWithFewEv = testBit(run_status,1)
-            tooManyChFailBoardID = testBit(run_status,2)
-            tooManyChFailQHS = testBit(run_status,3)
-            tooManyChFailQHL = testBit(run_status,4)
-            tooManyChFailQLX = testBit(run_status,5)
-            tooManyChFailTAC = testBit(run_status,6)
-            avgQHSbad = testBit(run_status,7)
-            avgQHLbad = testBit(run_status,8)
-            avgQLXbad = testBit(run_status,9)
-            avgTACbad = testBit(run_status,10)
-            avgQHSwidthBad = testBit(run_status,11)
-            avgQHLwidthBad = testBit(run_status,12)
-            avgQLXwidthBad = testBit(run_status,13)
-            avgTACwidthBad = testBit(run_status,14)
-            avgQHSdiffBad = testBit(run_status,15)
-            avgQHLdiffBad = testBit(run_status,16)
-            avgQLXdiffBad = testBit(run_status,17)
-            avgTACdiffBad = testBit(run_status,18)
-            tooManyFlaggedCh = testBit(run_status,19)
-            UCbitSet = testBit(run_status,26)
-            boardIDfail = testBit(run_status,27)
-            sequencerIDfail = testBit(run_status,28)
-            attemptDiffCheckFail = testBit(run_status,29)
-            runNotComplete = testBit(run_status,30)
-            attemptMergeFail = testBit(run_status,31)
-            
             allflags=True
             for bit in range(0,32):
                 thisbit = testBit(run_status,bit)
@@ -427,7 +397,11 @@ def eca():
             return "warning"
 
     runs = ecadb.runs_after_run(redis, 0)      
+    runs
 
+#    for run in runs:
+#        print run['run_number'], '   ', run['run_status']
+ 
     return render_template('eca.html',
                             runs=runs,
                             parse_status=parse_status,

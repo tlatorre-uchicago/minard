@@ -1,120 +1,54 @@
 {% extends "layout.html" %}
-{% block title %}Channels{% endblock %}
+{% block title %}ECA Detail{% endblock %}
 {% block head %}
-{{ super() }}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
 
 <div class="container">
 <h2>Run {{ run_number }} details</h2>            
 <div class="row">        
     <div class="panel panel-default">
         <div class="panel-heading">
-            <h3 class="panel-title">Nhit(EXTA) / Occupancy</h3>
+            <h3 class="panel-title">x0 Coefficient / x1 Coefficient</h3>
         </div>
         <div class="panel-body">
-            <img src="/monitoring/static/generated/NHits-{{ run_number }}.png" 
-            alt="NHit histogram" class="img-responsive col-md-6">
-            <img src="/monitoring/static/generated/OccPerPMT-{{ run_number }}.png" 
-            alt="Occupancy histogram" class="img-responsive col-md-6">          
+            <img src="{{ url_for('static', filename="gen/" + run_number + "fCubInt.png") }}"
+            alt="x0 coefficient histogram" class="img-responsive col-md-6">
+            <img src="~/eca_monitoring/{{run_number}}/{{ run_number }}fCubFitPar11.png" 
+            alt="x1 coefficient histogram" class="img-responsive col-md-6">          
         </div>
     </div>
 </div>
-<!--ped thigns to plot-->
-6660fPedAve1.png
-6660fPedAve2.png
-6660fPedAve3.png
-6660fPedAve4.png
-6660fPedestal1.png
-6660fPedestal2.png
-6660fPedestal3.png
-6660fPedestal4.png
-6660fPWidth1.png
-6660fPWidth2.png
-6660fPWidth3.png
-6660fPWidth4.png
-6660fWidthAve1.png
-6660fWidthAve2.png
-6660fWidthAve3.png
-6660fWidthAve4.png
 
-<!--tslope things to plot-->
-7030fCubFitPar11.png
-7030fCubFitPar12.png
-7030fCubFitPar21.png
-7030fCubFitPar22.png
-7030fCubFitPar31.png
-7030fCubFitPar32.png
-7030fCubFitParAve11.png
-7030fCubFitParAve12.png
-7030fCubFitParAve13.png
-7030fCubFitParAve21.png
-7030fCubFitParAve22.png
-7030fCubFitParAve23.png
-7030fCubFitParAve31.png
-7030fCubFitParAve32.png
-7030fCubFitParAve33.png
-7030fWidth.png
-
-
-<style>
-    #card table tr td {
-        font-size: 10px;
-        text-align: right;
-        width: 25px;
-        height: 18px;
-    }
-
-    #crate table tr td {
-        padding:2px;
-    }
-
-    .card-label-row {
-      padding-right: 5px;
-    }
-
-    .card-label-col {
-      text-align:center !important;
-    }
-</style>
-<meta charset="UTF-8">
-<script src="{{ url_for('static', filename='js/d3.js') }}"></script>
-<script src="{{ url_for('static', filename='js/bar-chart.js') }}"></script>
-<script src="{{ url_for('static', filename='js/crate.js') }}"></script>
-{% endblock %}
-{% block body %}
-{{ super() }}
-<div class="container">
-    <div class="row">
-        <div class="col-md-12" id="crate">
-            <h4>Crate View - Run {{ run_number }}</h4>
+<div class="row">        
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">x2 Coefficient / x3 Coefficient</h3>
+        </div>
+        <div class="panel-body">
+            <img src="/data/snoplus/shared/data/eca/gen/{{ run_number }}fCubFitPar21.png" 
+            alt="x2 coefficient histogram" class="img-responsive col-md-6">
+            <img src="/data/snoplus/shared/data/eca/gen/{{ run_number }}fCubFitPar31.png" 
+            alt="x3 coefficient histogram" class="img-responsive col-md-6">          
         </div>
     </div>
 </div>
-<script>
-    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
 
-    var crate = crate_view().scale(function() {return "#ff0";});
-    crate.click(function(d, i) {
-        card.crate(i);
-        d3.select('#card').call(card);
-        $('#card h4 small').text('Crate ' + i);
-    });
+<div class="row">        
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">N Points Used Per Fit/ Point Widths</h3>
+        </div>
+        <div class="panel-body">
+            <img src="/data/snoplus/shared/data/eca/gen/{{ run_number }}fNUsed.png" 
+            alt="N points used per fit histogram" class="img-responsive col-md-6">
+            <img src="/data/snoplus/shared/data/eca/gen/{{ run_number }}fWdith.png" 
+            alt="TSlope Point Widths histogram" class="img-responsive col-md-6">          
+        </div>
+    </div>
+</div>
 
-
-
-    function update() {
-        $.getJSON($SCRIPT_ROOT + '/query', {name: '{{ name }}', stats: $('#stats').val()})
-            .done(function(result) {
-                d3.select('#crate').datum(result.value).call(crate);
-                d3.select('#card').datum(result.value).call(card);
-                success()
-            });
-    }
-
-    d3.select('#crate').datum([]).call(crate);
-    $("#crate9").after("<br>");
-    update();
-
-</script>
-<script>$('#nav-{{ name }}').attr('class','active');</script>
 {% endblock %}

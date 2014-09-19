@@ -19,7 +19,8 @@
             </thead>
             <tbody>
                 {% for run in runs %}
-                <tr class="{{ statusclass(parse_status(run["run_status"], run["run_type"])) }}">
+                <tr class="{{ statusclass(parse_status(run["run_status"], run["run_type"]) ) }}">
+                <!--tr class="{{ "danger" }}"-->
                     <td><a href="{{url_for('eca_run_detail',run_type=run["run_type"],run_number = run["run_number"]) }}">{{ run["run_number"] }}</a></td>
                     <td>{{ timefmt(run["run_time"]) }}</td>
                     <td>{{ timefmt(run["analyze_time"]) }}</td>
