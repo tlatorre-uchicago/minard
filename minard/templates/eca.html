@@ -25,7 +25,7 @@
                     <td>{{ timefmt(run["run_time"]) }}</td>
                     <td>{{ timefmt(run["analyze_time"]) }}</td>
                     <td>{{ run["run_type"] }}</td>
-                    <td>{{ statusfmt(parse_status(run["run_status"], run["run_type"])) }}</td>
+                    <td><a href= "{{url_for('eca_status_detail', run_type=run["run_type"],run_number=run["run_number"]) }}">{{ statusfmt(parse_status(run["run_status"], run["run_type"])) }}</a></td>
                 </tr>
                 {% endfor %}
             </tbody>

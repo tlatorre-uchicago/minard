@@ -420,6 +420,20 @@ def eca_run_detail(run_type, run_number):
         return render_template('eca_run_detail_TSLP.html',
                             run_type=run_type, run_number=run_number)      
 
+@app.route('/eca_status_detail')
+@app.route('/eca_status_detail/<run_type>/<run_number>')
+def eca_status_detail(run_type, run_number):
+    if run_type == 'PDST': 
+        return render_template('eca_status_detail_PDST.html',
+                            run_type=run_type, run_number=run_number)      
+    if run_type == 'TSLP': 
+        return render_template('eca_status_detail_TSLP.html',
+                            run_type=run_type, run_number=run_number)      
+
+
+
+
+
 @app.route('/pcatellie', methods=['GET'])
 def pcatellie():
     
