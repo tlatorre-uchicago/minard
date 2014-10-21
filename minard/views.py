@@ -347,16 +347,20 @@ def eca():
         return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(float(time_string)))
 
     def testBit(word, offset):
-        int_type = int(word) #apparently need to make sure this is an int to not crash
+        int_type = int(word)
         offset = int(offset)
         mask = 1 << offset
-        return(int_type & mask)
+        result = int_type & mask
+        if result == 0:
+            return 0
+        if result == pow(2,offset):
+            return 1
 
     def parse_status(run_status, run_type):
-        run_status = int(run_status)
+        #currently set run to fail if there is at least 1 bad bit in the status
         #this will need to be updated to actually check status flags 
+        #some flags are worse than others
         #requirements will be different for ped and tslope runs
-        #also need to add 'ok' level
         if run_type == 'PDST':
             allflagsareok=True
             for bit in range(0,32):
@@ -410,7 +414,6 @@ def eca():
 
  
 @app.route('/eca_run_detail')
-#@app.route('/eca_run_detail?run=<run_number>')
 @app.route('/eca_run_detail/<run_type>/<run_number>')
 def eca_run_detail(run_type, run_number):
     if run_type == 'PDST': 
@@ -425,16 +428,20 @@ def eca_run_detail(run_type, run_number):
 def eca_status_detail(run_type, run_number):
 
     def statusfmt(status_int):
-        if status_int == 0:
-            return 'Fail'
         if status_int == 1:
+            return 'Flag Raised'
+        if status_int == 0:
             return 'Pass'
 
     def testBit(word, offset):
         int_type = int(word)
         offset = int(offset)
         mask = 1 << offset
-        return(int_type & mask)
+        result = int_type & mask
+        if result == 0:
+            return 0
+        if result == pow(2,offset):
+            return 1
 
     run_status = int(ecadb.get_run_status(redis, run_number))
 
@@ -443,7 +450,7 @@ def eca_status_detail(run_type, run_number):
                             run_type=run_type, run_number=run_number,statusfmt=statusfmt,testBit=testBit,run_status=run_status)      
     if run_type == 'TSLP': 
         return render_template('eca_status_detail_TSLP.html',
-                            run_type=run_type, run_number=run_number)      
+                            run_type=run_type, run_number=run_number,statusfmt=statusfmt,testBit=testBit,run_status=run_status)      
 
 
 
