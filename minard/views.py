@@ -346,36 +346,39 @@ def eca():
     def timefmt(time_string):
         return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(float(time_string)))
 
-    def testBit(int_type, offset):
-        int_type = int(int_type)
+    def testBit(word, offset):
+        int_type = int(word) #apparently need to make sure this is an int to not crash
         offset = int(offset)
         mask = 1 << offset
         return(int_type & mask)
 
     def parse_status(run_status, run_type):
         run_status = int(run_status)
+        #this will need to be updated to actually check status flags 
+        #requirements will be different for ped and tslope runs
+        #also need to add 'ok' level
         if run_type == 'PDST':
-            allflags=True
+            allflagsareok=True
             for bit in range(0,32):
                 thisbit = testBit(run_status,bit)
                 if thisbit == 1:
-                    allflags = False
+                    allflagsareok = False
                     break
 
-            if allflags:
+            if allflagsareok:
                 return 1
             else:
-                return 2  
+                return 0  
 
         if run_type == 'TSLP':
-            allflags=True
+            allflagsareok=True
             for bit in range(0,32):
                 thisbit = testBit(run_status,bit)
                 if thisbit == 1:
-                    allflags = False
+                    allflagsareok = False
                     break
 
-            if allflags:
+            if allflagsareok:
                 return 1
             else:
                 return 0  
@@ -397,10 +400,6 @@ def eca():
             return "warning"
 
     runs = ecadb.runs_after_run(redis, 0)      
-    runs
-
-#    for run in runs:
-#        print run['run_number'], '   ', run['run_status']
  
     return render_template('eca.html',
                             runs=runs,
@@ -408,6 +407,7 @@ def eca():
                             timefmt=timefmt,
                             statusfmt=statusfmt,
                             statusclass=statusclass)
+
  
 @app.route('/eca_run_detail')
 #@app.route('/eca_run_detail?run=<run_number>')
@@ -423,14 +423,27 @@ def eca_run_detail(run_type, run_number):
 @app.route('/eca_status_detail')
 @app.route('/eca_status_detail/<run_type>/<run_number>')
 def eca_status_detail(run_type, run_number):
+
+    def statusfmt(status_int):
+        if status_int == 0:
+            return 'Fail'
+        if status_int == 1:
+            return 'Pass'
+
+    def testBit(word, offset):
+        int_type = int(word)
+        offset = int(offset)
+        mask = 1 << offset
+        return(int_type & mask)
+
+    run_status = int(ecadb.get_run_status(redis, run_number))
+
     if run_type == 'PDST': 
         return render_template('eca_status_detail_PDST.html',
-                            run_type=run_type, run_number=run_number)      
+                            run_type=run_type, run_number=run_number,statusfmt=statusfmt,testBit=testBit,run_status=run_status)      
     if run_type == 'TSLP': 
         return render_template('eca_status_detail_TSLP.html',
                             run_type=run_type, run_number=run_number)      
-
-
 
 
 

@@ -35,7 +35,30 @@ def runs_after_run(redis, run, maxrun = '+inf'):
     for key in keys:
         p.hgetall(key)
     return p.execute()    
+
+def get_run_by_number(redis, runnum):
+    '''
+    Returns Redis entries for specific run by run number
+    Requires Redis instance, and run number.
+    '''
+    keys = redis.zrangebyscore(RUN_INDEX, runnum, runnum)
+    p = redis.pipeline()
+    for key in keys:
+        p.hgetall(key)
+    return p.execute()    
+
+def get_run_status(redis, runnum):
+    '''
+    Returns run status for specific run by run number
+    Requires Redis instance, and run number.
+    '''
+    status = redis.hget(runnum, "run_status")
+    print 'in get run status'
+    print status
+    print type(status)
+    return status   
     
+
 def del_run_from_db(redis, run_number):
     '''
     Delete run from Redis. Requires Redis instance and run number. 
