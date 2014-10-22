@@ -52,13 +52,6 @@ def get_run_status(redis, runnum):
     Returns run status for specific run by run number
     Requires Redis instance, and run number.
     '''
-#    status = redis.hget(runnum, "run_status")
-#    print 'in get run status'
-#    print status
-#    print type(status)
-#    return status   
-     #the above way doesn't work for some reason it returns nothing
-     #so do it the kind of stupid way below
     keys = redis.zrangebyscore(RUN_INDEX, runnum, runnum)
     p = redis.pipeline()
     for key in keys:
