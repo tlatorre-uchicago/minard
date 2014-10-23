@@ -388,6 +388,13 @@ def eca():
                 return 0  
 
     def statusfmt(status_int):
+        '''
+        Returns overall run status as either 'Fail', 'Pass', or 'OK'. 
+        Pass: run was good, operator can move to the next run.
+        Fail: data is bad. Run should definitely be retaken.
+        OK: data is useable, some noncritical flags were raised.
+        Operator should repeat the run if time allows.
+        '''
         if status_int == 0:
             return 'Fail'
         if status_int == 1:
