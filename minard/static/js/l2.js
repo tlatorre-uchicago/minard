@@ -4,9 +4,10 @@ function update_files(name, interval) {
     $.getJSON($SCRIPT_ROOT + '/get_l2?name=' + name).done(function(obj) {
         $('#' + name + ' tbody tr').remove();
         for (var i=0; i < obj.files.length; i++) {
+            var mom = moment.tz(Number(obj.times[i])*1000, "America/Toronto");
             var tr = $('<tr>')
                 .append($('<td>').text(obj.files[i]))
-                .append($('<td>').text(obj.times[i]));
+                .append($('<td>').text(mom.format('hh:mm')));
             $('#' + name).find('tbody').append(tr);
         }
         setTimeout(function() {update_files(name, interval); }, interval*1000);
