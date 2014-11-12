@@ -2,10 +2,36 @@
 {% block title %}L2{% endblock %}
 {% block head %}
     {{ super() }}
+    <style>
+        .axis path {
+            display: none;
+        }
+
+        #main {
+            margin-bottom: 30px;
+        }
+
+        .horizon .title,
+        .horizon .value {
+            line-height: {{ height }}px;
+        }
+    </style>
 {% endblock %}
 {% block body %}
     {{ super() }}
     <div class="container">
+        <div class="row">
+            <div class="col-md-2 col-md-offset-10 text-right">
+                <select id="step-menu">
+                    {% for i, text in [(1,"15 min"), (3, "1 hour"), (9, "3 hours"), (29, "9 hours"), (90, "1 day"), (280, "3 days"), (867, "1 week"), (2677, "1 month"), (8267, "3 months"), (25531, "1 year"), (255310, "10 years")] %}
+                        <option {% if step == i %}selected="selected" {% endif %}value="{{ i }}">{{ text }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12" style="padding:0" id="main"></div>
+        </div>
         <div class="row">
             {% for id, caption in states %}
                 {% if not loop.first and loop.index0 % 3 == 0 %}
@@ -30,7 +56,12 @@
 {% endblock %}
 {% set states = [("process", "Being Processed"), ("wait", "Waiting for RAT"), ("rat", "RAT"), ("done", "Done"), ("fail", "Failed")] %}
 {% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cubism.v1.js') }}"></script>
     <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tzscale.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minard.js') }}"></script>
     <script src="{{ url_for('static', filename='js/l2.js') }}"></script>
     <script>
         {% for name, _ in states %}

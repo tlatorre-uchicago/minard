@@ -91,7 +91,11 @@ def status():
 
 @app.route('/l2')
 def l2():
-    return render_template('l2.html')
+    step = request.args.get('step',1,type=int)
+    height = request.args.get('height',20,type=int)
+    if not request.args.get('step') or not request.args.get('height'):
+        return redirect(url_for('l2',step=step,height=height,_external=True))
+    return render_template('l2.html',step=step,height=height)
 
 @app.route('/get_l2')
 def get_l2():
@@ -375,7 +379,7 @@ def metric():
     stop = int(stop)
     step = int(step)
 
-    if expr in ('gtid', 'run', 'subrun'):
+    if expr in ('gtid', 'run', 'subrun', 'L2:gtid', 'L2:run'):
         values = get_timeseries_field('trig', expr, start, stop, step)
         return jsonify(values=values)
 

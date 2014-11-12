@@ -49,7 +49,8 @@ d3.select("#main").append("div")
 
 var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB','ESUML','ESUMH',
   'OWLN','OWLEL','OWLEH','PULGT','PRESCL', 'PED','PONG','SYNC','EXTA',
-  //'EXT2','EXT3','EXT4','EXT5','EXT6','EXT7', 'EXT8','SRAW','NCD', 'SOFGT','MISS'
+  //'EXT2','EXT3','EXT4','EXT5','EXT6','EXT7', 'EXT8',
+  'SRAW','NCD', 'SOFGT','MISS'
   ];
 
 var L2_STREAMS = ['L1','L2','ORPHANS','BURSTS'];
@@ -119,7 +120,7 @@ function add_horizon(expressions, format, colors, extent) {
 }
 
 add_horizon(TRIGGER_NAMES.slice(0,1),format_rate);
-add_horizon(L2_STREAMS,format_rate);
+//add_horizon(L2_STREAMS,format_rate);
 add_horizon(TRIGGER_NAMES.slice(1),format_rate);
 add_horizon(["0\u03bd\u03b2\u03b2"],format_rate);
 add_horizon(["TOTAL-nhit","TOTAL-charge","PULGT-nhit","PULGT-charge"], format('.2s'));
