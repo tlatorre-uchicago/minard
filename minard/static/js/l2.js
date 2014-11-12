@@ -1,12 +1,22 @@
-$("#step-menu").on("change", function() {
-    window.location.replace($SCRIPT_ROOT + "/snostream?step=" + this.value + "&height=" + url_params.height);
-});
+function update_files(name, interval) {
+    // update the list of files in the l2 state `name`
 
-setInterval(function() {
-    $.getJSON($SCRIPT_ROOT + '/query', {'name': 'dispatcher'}, function(reply) {
-        $('#dispatcher').text(reply.name);
+    $.getJSON($SCRIPT_ROOT + '/get_l2?name=' + name).done(function(obj) {
+        $('#' + name + ' tbody tr').remove();
+        for (var i=0; i < obj.files.length; i++) {
+            var mom = moment.tz(Number(obj.times[i])*1000, "America/Toronto");
+            var tr = $('<tr>')
+                .append($('<td>').text(obj.files[i]))
+                .append($('<td>').text(mom.fromNow()));
+            $('#' + name).find('tbody').append(tr);
+        }
+        setTimeout(function() {update_files(name, interval); }, interval*1000);
     });
-},1000);
+}
+
+$("#step-menu").on("change", function() {
+    window.location.replace($SCRIPT_ROOT + "/l2?step=" + this.value + "&height=" + url_params.height);
+});
 
 var scale = tzscale().zone('America/Toronto');
 
@@ -49,8 +59,7 @@ d3.select("#main").append("div")
 
 var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB','ESUML','ESUMH',
   'OWLN','OWLEL','OWLEH','PULGT','PRESCL', 'PED','PONG','SYNC','EXTA',
-  //'EXT2','EXT3','EXT4','EXT5','EXT6','EXT7', 'EXT8',
-  'SRAW','NCD', 'SOFGT','MISS'
+  //'EXT2','EXT3','EXT4','EXT5','EXT6','EXT7', 'EXT8','SRAW','NCD', 'SOFGT','MISS'
   ];
 
 var L2_STREAMS = ['L1','L2','ORPHANS','BURSTS'];
@@ -119,15 +128,19 @@ function add_horizon(expressions, format, colors, extent) {
         });
 }
 
-add_horizon(TRIGGER_NAMES.slice(0,1),format_rate);
-//add_horizon(L2_STREAMS,format_rate);
-add_horizon(TRIGGER_NAMES.slice(1),format_rate);
-add_horizon(["0\u03bd\u03b2\u03b2"],format_rate);
-add_horizon(["TOTAL-nhit","TOTAL-charge","PULGT-nhit","PULGT-charge"], format('.2s'));
-add_horizon(["gtid"],format('#0xx'),[]);
-add_horizon(["run"],format_int,[]);
-add_horizon(["subrun"],format_int,[],[0,100]);
-add_horizon(["heartbeat"],format_int,null,[0,4]);
+var horizon = context.horizon().height(Number(url_params.height));
+
+add_horizon(["TOTAL"],format_rate);
+add_horizon(L2_STREAMS,format_rate);
+add_horizon(["L2:gtid"],format('#0xx'),[]);
+
+d3.select('#main').selectAll('.horizon')
+    .data([(metric('gtid').subtract(metric('L2:gtid'))).divide(metric('TOTAL'))],String)
+  .enter().insert('div','.bottom')
+    .attr('class', 'horizon')
+    .call(horizon);
+
+add_horizon(["L2:run"],format('#0xx'),[]);
 
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i === null ? null : context.size() - i + "px");

@@ -14,6 +14,7 @@ function histogram() {
         xlabel = '',
         ylabel = '',
         bins = 20,
+        min_bin_width = 0,
         color_scale = d3.scale.linear().domain([0,1]).range(['steelblue','steelblue']);
         on_scale_change = null,
         domain = null;
@@ -182,8 +183,13 @@ function histogram() {
                 }
 
                 // bin the data
+                var ticks = x.ticks(bins);
+
+                if ((ticks[1] - ticks[0]) < min_bin_width) {
+                    ticks = x.ticks(Math.floor((x.domain()[1]-x.domain()[0])/min_bin_width));
+                }
                 var data = d3.layout.histogram()
-                    .bins(x.ticks(bins))
+                    .bins(ticks)
                     (values);
 
                 if (log) {
@@ -267,6 +273,12 @@ function histogram() {
     chart.bins = function(value) {
         if (!arguments.length) return bins;
         bins = value;
+        return chart;
+    }
+
+    chart.min_bin_width = function(value) {
+        if (!arguments.length) return min_bin_width;
+        min_bin_width = value;
         return chart;
     }
 

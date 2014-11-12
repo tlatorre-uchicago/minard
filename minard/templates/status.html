@@ -5,37 +5,44 @@
 {% endblock %}
 {% block body %}
     {{ super() }}
-    <div class="col-md-10 col-md-offset-1">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Status</th>
-                    <th>Uptime</th>
-                    <th>Name</th>
-                    <th>Machine</th>
-                    <th style="text-align:center">Log</th>
-                    <th style="text-align:center">Link</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            {% for program in programs %}
-                <tr id="{{ program.name }}">
-                    <td id="status" />
-                    <td id="uptime" />
-                    <td>{{ program.name }}</td>
-                    <td>{{ program.machine }}</td>
-                    <td style="text-align:center">
-                        <a href="{{ url_for('view_log', name=program.name) }}">Tail -f</a>
-                    </td>
-                    <td style="text-align:center">
-                        {% if program.link %}
-                            <a href="{{ program.link }}" target="_blank">Link</a>
-                        {% endif %}
-                    </td>
-                    <td>{% if program.description %}{{ program.description }}{% endif %}</td>
-                </tr>
-            {% endfor %}
-        </table>
+    <div class="container">
+        <div style="text-align:right">
+            <a href="/var/log">View Log Files</a>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Uptime</th>
+                            <th>Name</th>
+                            <th>Machine</th>
+                            <th style="text-align:center">Log</th>
+                            <th style="text-align:center">Link</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    {% for program in programs %}
+                        <tr id="{{ program.name }}">
+                            <td id="status" />
+                            <td id="uptime" />
+                            <td>{{ program.name }}</td>
+                            <td>{{ program.machine }}</td>
+                            <td style="text-align:center">
+                                <a href="{{ url_for('view_log', name=program.name) }}">Tail -f</a>
+                            </td>
+                            <td style="text-align:center">
+                                {% if program.link %}
+                                    <a href="{{ program.link }}" target="_blank">Link</a>
+                                {% endif %}
+                            </td>
+                            <td>{% if program.description %}{{ program.description }}{% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
     </div>
 {% endblock %}
 {% block script %}

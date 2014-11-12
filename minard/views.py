@@ -90,6 +90,27 @@ PROGRAMS = [Program('builder','builder1.sp.snolab.ca',
 def status():
     return render_template('status.html', programs=PROGRAMS)
 
+@app.route('/l2')
+def l2():
+    step = request.args.get('step',1,type=int)
+    height = request.args.get('height',20,type=int)
+    if not request.args.get('step') or not request.args.get('height'):
+        return redirect(url_for('l2',step=step,height=height,_external=True))
+    return render_template('l2.html',step=step,height=height)
+
+@app.route('/get_l2')
+def get_l2():
+    name = request.args.get('name')
+
+    try:
+        files, times = zip(*redis.zrange('l2:%s' % name, 0, -1, withscores=True))
+    except ValueError:
+        # no files
+        files = []
+        times = []
+
+    return jsonify(files=files,times=times)
+
 @app.route('/graph')
 def graph():
     name = request.args.get('name')
@@ -359,7 +380,7 @@ def metric():
     stop = int(stop)
     step = int(step)
 
-    if expr in ('gtid', 'run', 'subrun'):
+    if expr in ('gtid', 'run', 'subrun', 'L2:gtid', 'L2:run'):
         values = get_timeseries_field('trig', expr, start, stop, step)
         return jsonify(values=values)
 

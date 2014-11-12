@@ -1,5 +1,15 @@
-var chart = histogram().xlabel('NHit').margin({'left': 50}).bins(100);
-var chart_log = histogram().xlabel('NHit').margin({'left': 50}).bins(100).log(true);
+var chart = histogram()
+    .xlabel('NHit')
+    .margin({'left': 50})
+    .bins(100)
+    .min_bin_width(1);
+
+var chart_log = histogram()
+    .xlabel('NHit')
+    .margin({'left': 50})
+    .bins(100)
+    .min_bin_width(1)
+    .log(true);
 
 function update_chart(selector, seconds, update) {
     $.getJSON($SCRIPT_ROOT + '/query', {'name': 'nhit', 'seconds': seconds}, function(reply) {
