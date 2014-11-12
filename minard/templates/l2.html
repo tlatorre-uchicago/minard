@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% block title %}L2{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+        {% for id, caption in states %}
+            <div class="col-md-4">
+                <table class="table table-hover" id="{{ id }}">
+                    <caption>{{ caption }}</caption>
+                    <thead>
+                        <tr>
+                            <th>Filename</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+{% set states = [("process", "Being Processed"), ("wait", "Waiting for RAT"), ("rat", "RAT"), ("done", "Done"), ("fail", "Failed")] %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/l2.js') }}"></script>
+    <script>
+        {% for name, _ in states %}
+            update_files("{{ name }}", 2);
+        {% endfor %}
+    </script>
+{% endblock %}

@@ -89,6 +89,23 @@ PROGRAMS = [Program('builder','builder1.sp.snolab.ca',
 def status():
     return render_template('status.html', programs=PROGRAMS)
 
+@app.route('/l2')
+def l2():
+    return render_template('l2.html')
+
+@app.route('/get_l2')
+def get_l2():
+    name = request.args.get('name')
+
+    try:
+        files, times = zip(*redis.zrange('l2:%s' % name, 0, -1, withscores=True))
+    except ValueError:
+        # no files
+        files = []
+        times = []
+
+    return jsonify(files=files,times=times)
+
 @app.route('/graph')
 def graph():
     name = request.args.get('name')
