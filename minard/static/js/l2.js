@@ -135,7 +135,7 @@ add_horizon(L2_STREAMS,format_rate);
 add_horizon(["L2:gtid"],format('#0xx'),[]);
 
 d3.select('#main').selectAll('.horizon')
-    .data([metric('gtid').subtract(metric('L2:gtid'))],String)
+    .data([(metric('gtid').subtract(metric('L2:gtid'))).divide(metric('TOTAL'))],String)
   .enter().insert('div','.bottom')
     .attr('class', 'horizon')
     .call(horizon);
