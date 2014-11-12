@@ -52,14 +52,7 @@ def get_run_status(redis, runnum):
     Returns run status for specific run by run number
     Requires Redis instance, and run number.
     '''
-    keys = redis.zrangebyscore(RUN_INDEX, runnum, runnum)
-    p = redis.pipeline()
-    for key in keys:
-        p.hgetall(key)
-    run_list = p.execute()    
-    thisrun = run_list[0]
-    status = thisrun["run_status"]
-    return status
+    return redis.hget("eca-run-%i" % runnum, "run_status")
 
 def del_run_from_db(redis, run_number):
     '''
