@@ -63,7 +63,7 @@
     <script src="{{ url_for('static', filename='js/l2.js') }}"></script>
     <script>
         {% for name, _ in states %}
-            update_files("{{ name }}", 2);
+            update_files("{{ name }}", 20);
         {% endfor %}
     </script>
 {% endblock %}
