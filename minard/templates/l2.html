@@ -6,20 +6,26 @@
 {% block body %}
     {{ super() }}
     <div class="container">
-        {% for id, caption in states %}
-            <div class="col-md-4">
-                <table class="table table-hover" id="{{ id }}">
-                    <caption>{{ caption }}</caption>
-                    <thead>
-                        <tr>
-                            <th>Filename</th>
-                            <th>Time</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        {% endfor %}
+        <div class="row">
+            {% for id, caption in states %}
+                {% if not loop.first and loop.index0 % 3 == 0 %}
+                    <!-- add new row -->
+                    </div><div class="row">
+                {% endif %}
+                <div class="col-md-4">
+                    <table class="table table-hover" id="{{ id }}">
+                        <caption>{{ caption }}</caption>
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 {% endblock %}
 {% set states = [("process", "Being Processed"), ("wait", "Waiting for RAT"), ("rat", "RAT"), ("done", "Done"), ("fail", "Failed")] %}
