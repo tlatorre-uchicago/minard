@@ -7,7 +7,7 @@ function update_files(name, interval) {
             var mom = moment.tz(Number(obj.times[i])*1000, "America/Toronto");
             var tr = $('<tr>')
                 .append($('<td>').text(obj.files[i]))
-                .append($('<td>').text(mom.format('hh:mm')));
+                .append($('<td>').text(mom.fromNow()));
             $('#' + name).find('tbody').append(tr);
         }
         setTimeout(function() {update_files(name, interval); }, interval*1000);
