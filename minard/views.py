@@ -380,7 +380,11 @@ def metric():
     stop = int(stop)
     step = int(step)
 
-    if expr in ('gtid', 'run', 'subrun', 'L2:gtid', 'L2:run'):
+    if expr in ('L2:gtid', 'L2:run'):
+        values = get_timeseries(expr, start, stop, step)
+        return jsonify(values=values)
+
+    if expr in ('gtid', 'run', 'subrun'):
         values = get_timeseries_field('trig', expr, start, stop, step)
         return jsonify(values=values)
 
