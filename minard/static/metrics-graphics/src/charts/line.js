@@ -50,7 +50,14 @@ charts.line = function(args) {
             .y(function() { return args.scales.Y(data_median); })
             .interpolate(args.interpolate);
 
+
+        //for building the optional legend
+        var legend = '';
+        var this_data;
+            
         for(var i=args.data.length-1; i>=0; i--) {
+            this_data = args.data[i];
+
             //override increment if we have a custom increment series
             var line_id = i+1;
             if(args.custom_line_color_map.length > 0) {
@@ -111,7 +118,16 @@ charts.line = function(args) {
                         .attr('d', line(args.data[i]));
                 }
             }
-        }	    
+            
+            //build legend
+            if(args.legend) {
+                legend += "<span class='line" + (i+1)  + "-legend-color'>&mdash; " + args.legend[i] + "&nbsp; </span>";
+            }
+        }
+        
+        if(args.legend) {
+            $(args.legend_target).html(legend);
+        }
 
         return this;
     }
@@ -132,10 +148,19 @@ charts.line = function(args) {
         if($(args.target + ' svg .voronoi').length > 0) {
             $(args.target + ' svg .voronoi').remove();
         }
+        
+        //remove the old rollover text and circle if they already exist
+        if($(args.target + ' svg .active_datapoint').length > 0) {
+            $(args.target + ' svg .active_datapoint').remove();
+        }
+        if($(args.target + ' svg .line_rollover_circle').length > 0) {
+            $(args.target + ' svg .line_rollover_circle').remove();
+        }
 
         //rollover text
         svg.append('text')
             .attr('class', 'active_datapoint')
+            .classed('active-datapoint-small', args.use_small_class)
             .attr('xml:space', 'preserve')
             .attr('x', args.width - args.right)
             .attr('y', args.top / 2)
@@ -170,7 +195,8 @@ charts.line = function(args) {
             //main rollover
             var voronoi = d3.geom.voronoi()
                 .x(function(d) { return args.scales.X(d[args.x_accessor]); })
-                .y(function(d) { return args.scales.Y(d[args.y_accessor]); });
+                .y(function(d) { return args.scales.Y(d[args.y_accessor]); })
+                .clipExtent([[args.buffer, args.buffer], [args.width - args.buffer, args.height - args.buffer]]);
         
             var g = svg.append('g')
                 .attr('class', 'voronoi')

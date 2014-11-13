@@ -3,11 +3,15 @@
 var charts = {};
 var globals = {};
 globals.link = false;
+globals.version = "1.0";
 
-function moz_chart() {
+function data_graphic() {
     var moz = {};
     moz.defaults = {};
     moz.defaults.all = {
+        missing_is_zero: false,       // if true, missing values will be treated as zeros
+        legend: '' ,                  // an array identifying the labels for a chart's lines
+        legend_target: '',            // if set, the specified element is populated with a legend
         error: '',                    // if set, a graph will show an error icon and log the error to the console
         animate_on_load: false,       // animate lines on load
         top: 40,                      // the size of the top margin
@@ -21,9 +25,9 @@ function moz_chart() {
         small_width_threshold: 160,   // the width  threshold for when smaller text appears
         small_text: false,            // coerces small text regardless of graphic size
         xax_count: 6,                 // number of x axis ticks
-        xax_tick: 5,                  // x axis tick length
+        xax_tick_length: 5,           // x axis tick length
         yax_count: 5,                 // number of y axis ticks
-        yax_tick: 5,                  // y axis tick length
+        yax_tick_length: 5,           // y axis tick length
         x_extended_ticks: false,      // extends x axis ticks across chart - useful for tall charts
         y_extended_ticks: false,      // extends y axis ticks across chart - useful for long charts
         y_scale_type: 'linear',
@@ -50,9 +54,16 @@ function moz_chart() {
 
             // format as date or not, of course user can pass in 
             // a custom function if desired
-            return (this.x_accessor == 'date') 
-                ? df(d)
-                : pf.scale(d) + pf.symbol;
+            switch($.type(args.data[0][0][args.x_accessor])) {
+                case 'date':
+                    return df(d);
+                    break;
+                case 'number':
+                    return pf.scale(d) + pf.symbol;
+                    break;
+                default:
+                    return d;
+            }
         },
         area: true,
         chart_type: 'line',   
@@ -73,8 +84,17 @@ function moz_chart() {
         max_data_size: null            // explicitly specify the the max number of line series, for use with custom_line_color_map
     }
     moz.defaults.point = {
+        buffer:16,
         ls: false,
-        lowess: false
+        lowess: false,
+        point_size: 2.5,
+        size_accessor: null,
+        color_accessor: null,
+        size_range: null,              // when we set a size_accessor option, this array determines the size range, e.g. [1,5]
+        color_range: null,             // e.g. ['blue', 'red'] to color different groups of points
+        size_domain: null,
+        color_domain: null,
+        color_type: 'number'           // can be either 'number' - the color scale is quantitative - or 'category' - the color scale is qualitative.
     }
     moz.defaults.histogram = {
         rollover_callback: function(d, i) {
@@ -91,11 +111,17 @@ function moz_chart() {
     moz.defaults.bar = {
         y_accessor: 'factor',
         x_accessor: 'value',
-        binned: false,
+        baseline_accessor: null,
+        predictor_accessor: null,
+        predictor_proportion: 5,
+        dodge_acessor: null,
+        binned: true,
         padding_percentage: .1,
         outer_padding_percentage: .1,
-        height:500,
-        top:20
+        height: 500,
+        top: 20,
+        bar_height: 20,
+        left: 70
     }
     moz.defaults.missing = {
         top: 0,
@@ -118,7 +144,7 @@ function moz_chart() {
     
     //build the chart
     if(args.chart_type == 'missing-data'){
-        args = merge_with_defaults(moz.defaults.missing, args);
+        args = merge_with_defaults(args, moz.defaults.missing);
         charts.missing(args);
     }
     else if(args.chart_type == 'point'){

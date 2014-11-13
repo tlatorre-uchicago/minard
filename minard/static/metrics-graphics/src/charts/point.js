@@ -12,12 +12,10 @@ charts.point = function(args) {
 
     this.markers = function() {
         markers(args);
-        if (args.least_squares){
+        if (args.least_squares) {
             add_ls(args);
         }
-        // if (args.lowess){
-        //     add_lowess(args);
-        // }
+
         return this
     }
 
@@ -29,24 +27,72 @@ charts.point = function(args) {
         g = svg.append('g')
             .classed('points', true);
 
-        g.selectAll('circle')
+        var pts = g.selectAll('circle')
             .data(args.data[0])
             .enter().append('svg:circle')
+                .attr('class', function(d, i) { return 'path-' + i; })
                 .attr('cx', args.scalefns.xf)
-                .attr('cy', args.scalefns.yf)
-                .attr('r', 2);
+                .attr('cy', args.scalefns.yf);
+
+        //are we coloring our points, or just using the default color?
+        if (args.color_accessor!=null) {
+            pts.attr('fill',   args.scalefns.color);
+            pts.attr('stroke', args.scalefns.color);
+        }
+        else {
+            pts.classed('points-mono', true);
+        }
+
+        if (args.size_accessor != null) {
+            pts.attr('r', args.scalefns.size);
+        }
+        else {
+            pts.attr('r', args.point_size);
+        }
+
+        //are we adding rug plots?
+        var rug;
+        if (args.x_rug) {
+            rug = g.selectAll('line.x_rug').data(args.data[0])
+                .enter().append('svg:line')
+                    .attr('x1', args.scalefns.xf)
+                    .attr('x2', args.scalefns.xf)
+                    .attr('y1', args.height-args.top+args.buffer/2)
+                    .attr('y2', args.height-args.top)
+                    .attr('class', 'x-rug')
+                    .attr('opacity', 0.3);
+
+            if (args.color_accessor) {
+                rug.attr('stroke', args.scalefns.color);
+            }
+            else {
+                rug.classed('x-rug-mono', true);
+            }
+        }
+
+        if (args.y_rug) {
+            rug = g.selectAll('line.y_rug').data(args.data[0])
+                .enter().append('svg:line')
+                    .attr('x1', args.left+1)
+                    .attr('x2', args.left+args.buffer/2)
+                    .attr('y1', args.scalefns.yf)
+                    .attr('y2', args.scalefns.yf)
+                    .attr('class', 'y-rug')
+                    .attr('opacity', 0.3);
+
+            if (args.color_accessor) {
+                rug.attr('stroke', args.scalefns.color);
+            }
+            else {
+                rug.classed('y-rug-mono', true);
+            }
+        }
 
         return this;
     }
 
     this.rollover = function() {
         var svg = d3.select(args.target + ' svg');
-
-        var clips = svg.append('g')
-                .attr('id', 'point-clips');
-
-        var paths = svg.append('g')
-            .attr('id', 'point-paths');
 
         //remove rollover text if it already exists
         if($(args.target + ' svg .active_datapoint').length > 0) {
@@ -60,31 +106,25 @@ charts.point = function(args) {
             .attr('x', args.width - args.right)
             .attr('y', args.top / 2)
             .attr('text-anchor', 'end');
-        
-        clips.selectAll('clipPath')
-            .data(args.data[0])
-                .enter().append('clipPath')
-                    .attr('id', function(d, i) { return 'clip-'+i;})
-                    .append('circle')
-                        .attr('cx', args.scalefns.xf)
-                        .attr('cy', args.scalefns.yf)
-                        .attr('r', 20);
 
+        //add rollover paths
         var voronoi = d3.geom.voronoi()
             .x(args.scalefns.xf)
-            .y(args.scalefns.yf);
+            .y(args.scalefns.yf)
+            .clipExtent([[args.buffer, args.buffer], [args.width - args.buffer, args.height - args.buffer]]);
+
+        var paths = svg.append('g')
+            .attr('class', 'voronoi');
 
         paths.selectAll('path')
             .data(voronoi(args.data[0]))
             .enter().append('path')
-                .attr('d', function(d) { 
+                .attr('d', function(d) {
+                    if(d == undefined) return; 
                     return 'M' + d.join(',') + 'Z';
                 })
-                .attr('id', function(d,i) { 
+                .attr('class', function(d,i) { 
                     return 'path-' + i;
-                })
-                .attr('clip-path', function(d,i) {
-                    return 'url(#clip-'+i+')';
                 })
                 .style('fill-opacity', 0)
                 .on('mouseover', this.rolloverOn(args))
@@ -96,12 +136,34 @@ charts.point = function(args) {
     this.rolloverOn = function(args) {
         var svg = d3.select(args.target + ' svg');
 
-        return function(d, i){
+        return function(d, i) {
             svg.selectAll('.points circle')
-                .classed('unselected', true);
+                .classed('selected', false);
+
+            //highlight active point
+            var pts = svg.selectAll('.points circle.path-' + i)
+                .classed('selected', true);
+
+            if (args.size_accessor) {
+                pts.attr('r', function(di) {
+                    return args.scalefns.size(di) + 1
+                });
+            } else {
+                pts.attr('r', args.point_size);
+            }
+
+            //trigger mouseover on all points for this class name in .linked charts
+            if(args.linked && !globals.link) {
+                globals.link = true;
+
+                //trigger mouseover on matching point in .linked charts
+                d3.selectAll('.voronoi .path-' + i)
+                    .each(function() {
+                        d3.select(this).on('mouseover')(d,i);
+                })
+            }
 
             var fmt = d3.time.format('%b %e, %Y');
-        
             if (args.format == 'count') {
                 var num = function(d_) {
                     var is_float = d_ % 1 != 0;
@@ -117,13 +179,6 @@ charts.point = function(args) {
                     return n(d_);
                 }
             }
-
-            //highlight active point
-            svg.selectAll('.points circle')
-                .filter(function(g,j){return i == j})
-                .classed('unselected', false)
-                .classed('selected', true)
-                .attr('r', 3);
 
             //update rollover text
             if (args.show_rollover_text) {
@@ -143,18 +198,37 @@ charts.point = function(args) {
                         }
                     });                
             }
+
+            if(args.rollover_callback) {
+                args.rollover_callback(d, i);
+            }
         }
     }
 
     this.rolloverOff = function(args) {
         var svg = d3.select(args.target + ' svg');
 
-        return function(d,i){
+        return function(d,i) {
+            if(args.linked && globals.link) {
+                globals.link = false;
+
+                d3.selectAll('.voronoi .path-' + i)
+                    .each(function() {
+                        d3.select(this).on('mouseout')(d,i);
+                })
+            }
+
             //reset active point
-            svg.selectAll('.points circle')
+            var pts = svg.selectAll('.points circle')
                 .classed('unselected', false)
-                .classed('selected', false)
-                .attr('r', 2);
+                .classed('selected', false);
+
+            if (args.size_accessor) {
+                pts.attr('r', args.scalefns.size);
+            }
+            else {
+                pts.attr('r', args.point_size);
+            }
 
             //reset active data point text
             svg.select('.active_datapoint')

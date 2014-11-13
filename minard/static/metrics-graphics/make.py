@@ -33,7 +33,7 @@ import os, os.path, shutil
 from StringIO import StringIO
 
 scripts = [
-    'src/common/moz_chart.js',
+    'src/common/data_graphic.js',
     'src/common/chart_title.js',
     'src/common/y_axis.js',
     'src/common/x_axis.js',
@@ -51,8 +51,8 @@ scripts = [
     'src/misc/error.js',
     ]
     
-scripts_out_debug = 'js/metrics-graphics.js'
-scripts_out = 'js/metrics-graphics.min.js'
+scripts_out_debug = 'js/metricsgraphics.js'
+scripts_out = 'js/metricsgraphics.min.js'
 
 
 def jsmin(js):

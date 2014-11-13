@@ -11,8 +11,7 @@ function add_ls(args){
         .attr('x2', args.scales.X(max_x))
         .attr('y1', args.scales.Y(args.ls_line.fit(min_x)) )
         .attr('y2', args.scales.Y(args.ls_line.fit(max_x)) )
-        .attr('stroke-width', 1)
-        .attr('stroke', 'red');
+        .attr('class', 'least-squares-line')
 }
 
 function add_lowess(args){
@@ -23,10 +22,10 @@ function add_lowess(args){
         .x(function(d){return args.scales.X(d.x)})
         .y(function(d){return args.scales.Y(d.y)})
             .interpolate(args.interpolate);
+
     svg.append('path')
         .attr('d', line(lowess))
-        .attr('stroke', 'red')
-        .attr('fill', 'none');
+        .attr('class', 'lowess-line')
 }
 
 function lowess_robust(x, y, alpha, inc){
@@ -77,14 +76,29 @@ function lowess(x, y, alpha, inc){
 
 }
 
-function least_squares(x, y) {
-    var xi, yi,
+function least_squares(x_, y_) {
+    var x, y, xi, yi,
         _x  = 0,
         _y  = 0,
         _xy = 0,
         _xx = 0;
 
-    var n = x.length;
+    var n = x_.length;
+    if (x_[0] instanceof Date){
+        x = x_.map(function(d){
+            return d.getTime();
+        });
+    } else {
+        x = x_;
+    };
+
+    if (y_[0] instanceof Date){
+        y = y_.map(function(d){
+            return d.getTime();
+        });
+    } else {
+        y = y_;
+    };
 
     var xhat = d3.mean(x);
     var yhat = d3.mean(y);
@@ -99,7 +113,6 @@ function least_squares(x, y) {
 
     var beta = numerator / denominator;
     var x0 = yhat - beta * xhat;
-
 
     return {
         x0:x0, 

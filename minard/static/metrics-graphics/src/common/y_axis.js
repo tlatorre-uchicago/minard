@@ -142,13 +142,34 @@ function y_axis(args) {
          }
          return Math.log(val) / Math.LN10;
     }
+
     if (args.y_scale_type == 'log'){
         // get out only whole logs.
         scale_ticks = scale_ticks.filter(function(d){
             return Math.abs(log10(d)) % 1 < 1e-6 || Math.abs(log10(d)) % 1 > 1-1e-6;
         });
+    }
 
-    } 
+    //filter out fraction ticks if our data is ints and if ymax > number of generated ticks
+    var number_of_ticks = args.scales.Y.ticks(args.yax_count).length;
+    
+    //is our data object all ints?
+    var data_is_int = true;
+    $.each(args.data, function(i, d) {
+        $.each(d, function(i, d) {
+            if(d[args.y_accessor] % 1 !== 0) {
+                data_is_int = false;
+                return false;
+            }
+        });
+    });
+
+    if(data_is_int && number_of_ticks > max_y && args.format == 'count') {
+        //remove non-integer ticks
+        scale_ticks = scale_ticks.filter(function(d){
+            return d % 1 === 0;
+        });
+    }
 
     var last_i = scale_ticks.length-1;
     if(!args.x_extended_ticks && !args.y_extended_ticks) {
@@ -168,7 +189,7 @@ function y_axis(args) {
                 .attr('x2', function() {
                     return (args.y_extended_ticks)
                         ? args.width - args.right
-                        : args.left - args.yax_tick;
+                        : args.left - args.yax_tick_length;
                 })
                 .attr('y1', args.scales.Y)
                 .attr('y2', args.scales.Y);
@@ -176,7 +197,7 @@ function y_axis(args) {
     g.selectAll('.yax-labels')
         .data(scale_ticks).enter()
             .append('text')
-                .attr('x', args.left - args.yax_tick * 3 / 2)
+                .attr('x', args.left - args.yax_tick_length * 3 / 2)
                 .attr('dx', -3).attr('y', args.scales.Y)
                 .attr('dy', '.35em')
                 .attr('text-anchor', 'end')
@@ -190,6 +211,11 @@ function y_axis(args) {
 
 function y_axis_categorical(args) {
     // first, come up with y_axis 
+    var svg_height = args.height;
+    if (args.chart_type=='bar' && svg_height==null){
+        // we need to set a new height variable.
+    }
+
     args.scales.Y = d3.scale.ordinal()
         .domain(args.categorical_variables)
         .rangeRoundBands([args.height - args.bottom - args.buffer, args.top], args.padding_percentage, args.outer_padding_percentage);
@@ -199,6 +225,7 @@ function y_axis_categorical(args) {
     }
 
     var svg = d3.select(args.target + ' svg');
+
     var g = svg.append('g')
         .classed('y-axis', true)
         .classed('y-axis-small', args.use_small_class);
@@ -208,7 +235,7 @@ function y_axis_categorical(args) {
 
     g.selectAll('text').data(args.categorical_variables).enter().append('svg:text')
         .attr('x', args.left)
-        .attr('y', function(d){return args.scales.Y(d) + args.scales.Y.rangeBand()/2 })
+        .attr('y', function(d){return args.scales.Y(d) + args.scales.Y.rangeBand()/2 +(args.buffer)*args.outer_padding_percentage  })
         .attr('dy', '.35em')
         .attr('text-anchor', 'end')
         .text(String)

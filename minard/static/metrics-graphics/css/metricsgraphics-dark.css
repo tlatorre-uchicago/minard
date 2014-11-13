@@ -2,7 +2,10 @@ a,
 a:active,
 a:visited {
     color: #71b4eb;
-    text-decoration: none;
+}
+
+a:hover {
+    color: #71b4eb;
 }
 
 .active_datapoint {
@@ -18,7 +21,7 @@ a:visited {
 }
 
 .area3-color {
-    fill: #ff0000;
+    fill: #f57070;
 }
 
 .area4-color {
@@ -42,17 +45,9 @@ body {
     color: #cfcfcf;
 }
 
-circle {
-    fill: #ffcb00;
-}
-
 .divider {
     color: #f1f1f1;
     opacity: 0.1;
-}
-
-#footer {
-    border-top-color: #3b3b3b;
 }
 
 .goal line {
@@ -63,11 +58,11 @@ circle {
     fill: #fff;
 }
 
-h2.chart_title span {
+h1 {
     color: #f1f1f1;
 }
 
-#head {
+h2.chart_title span {
     color: #f1f1f1;
 }
 
@@ -95,8 +90,12 @@ h2.chart_title span {
     opacity: 0.3;
 }
 
-.light-bg {
-    background-color: #3b3b3b;
+.least-squares-line {
+    stroke: #f57070;
+}
+
+li {
+    color: #cfcfcf;
 }
 
 .line1-color {
@@ -108,7 +107,7 @@ h2.chart_title span {
 }
 
 .line3-color {
-    stroke: #ff0000;
+    stroke: #f57070;
 }
 
 .line4-color {
@@ -128,7 +127,7 @@ h2.chart_title span {
 }
 
 .line3-legend-color {
-    color: #ff0000;
+    color: #f57070;
 }
 
 .line4-legend-color {
@@ -159,14 +158,14 @@ h2.chart_title span {
     background-image: url(../images/missing-data-dark.png);
 }
 
-.points circle {
-    fill: #a89641;
+circle.points-mono {
     fill-opacity: 0.6;
     stroke: #a89641;
+    fill: #a89641;
     stroke-opacity: 1;
 }
 
-.points circle.selected {
+circle.points-mono.selected {
     fill: #a89641;
     fill-opacity: 1;
     stroke-opacity: 1;
@@ -180,8 +179,9 @@ text {
     fill: #fff;
 }
 
-.trunk-section {
-    border-top-color: #5e5e5e;
+.x-rug-mono,
+.y-rug-mono {
+    stroke: #cfcfcf;
 }
 
 .x-axis line,

@@ -22,17 +22,39 @@ function init(args) {
 
     var linked;
 
+    var svg_width = args.width;
+    var svg_height = args.height;
+
+    if (args.chart_type=='bar' && svg_height == null){
+        svg_height = args.height = args.data[0].length * args.bar_height + args.top + args.bottom;
+    }
+    //remove the svg if the chart type has changed
+    if(($(args.target + ' svg .main-line').length > 0 && args.chart_type != 'line')
+            || ($(args.target + ' svg .points').length > 0 && args.chart_type != 'point')
+            || ($(args.target + ' svg .histogram').length > 0 && args.chart_type != 'histogram')
+        ) {
+        $(args.target).empty();
+
+    }
+
     //add svg if it doesn't already exist
     if($(args.target).is(':empty')) {
         //add svg
         d3.select(args.target)
             .append('svg')
                 .classed('linked', args.linked)
-                .attr('width', args.width)
-                .attr('height', args.height);
+                .attr('width', svg_width)
+                .attr('height', svg_height);
     }
 
     var svg = d3.select(args.target).selectAll('svg');
+
+    //has the width or height changed?
+    if(args.width != Number(svg.attr('width')))
+        svg.attr('width', args.width)
+
+    if(args.height != Number(svg.attr('height')))
+        svg.attr('height', args.height)
 
     // remove missing class
     svg.classed('missing', false);
@@ -42,19 +64,14 @@ function init(args) {
     //add chart title if it's different than existing one
     chart_title(args);
 
-    //we kind of need axes in all cases
-    args.use_small_class = args.height - args.top - args.bottom - args.buffer 
-            <= args.small_height_threshold 
-        && args.width - args.left-args.right - args.buffer*2 
-            <= args.small_width_threshold 
-        || args.small_text;
-
     //draw axes
-
+    args.use_small_class = args.height - args.top - args.bottom - args.buffer 
+            <= args.small_height_threshold && args.width - args.left-args.right - args.buffer*2 
+            <= args.small_width_threshold || args.small_text;
 
     //if we're updating an existing chart and we have fewer lines than
     //before, remove the outdated lines, e.g. if we had 3 lines, and we're calling
-    //moz_chart() on the same target with 2 lines, remove the 3rd line
+    //data_graphic() on the same target with 2 lines, remove the 3rd line
     if(args.data.length < $(args.target + ' svg .main-line').length) {
         //now, the thing is we can't just remove, say, line3 if we have a custom
         //line-color map, instead, see which are the lines to be removed, and delete those    
