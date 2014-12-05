@@ -91,7 +91,7 @@ def log():
 
         alarm = {'id'     : id,
                  'level'  : lvl,
-                 'message': msg,
+                 'message': name + ' - ' + msg,
                  'time'   : datetime.now().isoformat()}
 
         redis.setex('alarms:{id}'.format(id=id), json.dumps(alarm), 24*60*60)
