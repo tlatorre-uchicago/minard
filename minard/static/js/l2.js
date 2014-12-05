@@ -132,7 +132,7 @@ var horizon = context.horizon().height(Number(url_params.height));
 
 add_horizon(["TOTAL"],format_rate);
 add_horizon(L2_STREAMS,format_rate);
-add_horizon(["L2:gtid"],format('#0xx'),[]);
+add_horizon(["L2:gtid"],format_int,[]);
 
 d3.select('#main').selectAll('.horizon')
     .data([(metric('gtid').subtract(metric('L2:gtid'))).divide(metric('TOTAL'))],String)

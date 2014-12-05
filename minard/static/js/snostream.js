@@ -124,7 +124,7 @@ add_horizon(TRIGGER_NAMES.slice(0,1),format_rate);
 add_horizon(TRIGGER_NAMES.slice(1),format_rate);
 add_horizon(["0\u03bd\u03b2\u03b2"],format_rate);
 add_horizon(["TOTAL-nhit","TOTAL-charge","PULGT-nhit","PULGT-charge"], format('.2s'));
-add_horizon(["gtid"],format('#0xx'),[]);
+add_horizon(["gtid"],format_int,[]);
 add_horizon(["run"],format_int,[]);
 add_horizon(["subrun"],format_int,[],[0,100]);
 add_horizon(["heartbeat"],format_int,null,[0,4]);
