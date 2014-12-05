@@ -244,7 +244,7 @@ function setup() {
 
     SCALE = d3.scale.threshold()
         .domain(thresholds)
-        .range(colorbrewer.YlOrRd[3]);
+        .range(colorbrewer[$("#colors").val()][3]);
 
     card = card_view()
         .scale(SCALE);
@@ -312,6 +312,13 @@ function update_state(call_update_metric) {
 $('#data-method').change(function() {
     METHOD = this.value;
 
+    update_state();
+});
+
+$('#colors').change(function() {
+    SCALE.range(colorbrewer[this.value][3]);
+    update_format();
+    update();
     update_state();
 });
 
