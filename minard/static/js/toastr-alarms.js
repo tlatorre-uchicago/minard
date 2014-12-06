@@ -28,9 +28,8 @@ function update_toastr(latest) {
             // update latest alarm id
             latest = Math.max(latest,alarm.id);
         }
+        setTimeout(function() { update_toastr(latest); },1000);
     });
-
-    setTimeout(function() { update_toastr(latest); },1000);
 }
 
 $.getJSON($SCRIPT_ROOT + '/get_alarm?start=-1').done(function(obj) {
