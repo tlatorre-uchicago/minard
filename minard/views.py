@@ -17,6 +17,7 @@ import operator
 from collections import defaultdict
 
 import pcadb
+import ecadb
 
 TRIGGER_NAMES = \
 ['100L',
@@ -379,7 +380,11 @@ def metric():
     stop = int(stop)
     step = int(step)
 
-    if expr in ('gtid', 'run', 'subrun', 'L2:gtid', 'L2:run'):
+    if expr in ('L2:gtid', 'L2:run'):
+        values = get_timeseries(expr, start, stop, step)
+        return jsonify(values=values)
+
+    if expr in ('gtid', 'run', 'subrun'):
         values = get_timeseries_field('trig', expr, start, stop, step)
         return jsonify(values=values)
 
@@ -428,8 +433,125 @@ def metric():
 
 @app.route('/eca')
 def eca():
-    return render_template('eca.html')
+
+    def timefmt(time_string):
+        return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(float(time_string)))
+
+    def testBit(word, offset):
+        int_type = int(word)
+        offset = int(offset)
+        mask = 1 << offset
+        result = int_type & mask
+        if result == 0:
+            return 0
+        if result == pow(2,offset):
+            return 1
+
+    def parse_status(run_status, run_type):
+        #currently set run to fail if there is at least 1 bad bit in the status
+        #this will need to be updated to actually check status flags 
+        #some flags are worse than others
+        #requirements will be different for ped and tslope runs
+        if run_type == 'PDST':
+            allflagsareok=True
+            for bit in range(0,32):
+                thisbit = testBit(run_status,bit)
+                if thisbit == 1:
+                    allflagsareok = False
+                    break
+
+            if allflagsareok:
+                return 1
+            else:
+                return 0  
+
+        if run_type == 'TSLP':
+            allflagsareok=True
+            for bit in range(0,32):
+                thisbit = testBit(run_status,bit)
+                if thisbit == 1:
+                    allflagsareok = False
+                    break
+
+            if allflagsareok:
+                return 1
+            else:
+                return 0  
+
+    def statusfmt(status_int):
+        '''
+        Returns overall run status as either 'Fail', 'Pass', or 'OK'. 
+        Pass: run was good, operator can move to the next run.
+        Fail: data is bad. Run should definitely be retaken.
+        OK: data is useable, some noncritical flags were raised.
+        Operator should repeat the run if time allows.
+        '''
+        if status_int == 0:
+            return 'Fail'
+        if status_int == 1:
+            return 'Pass'
+        if status_int == 2:
+            return 'OK'
+    
+    def statusclass(status_int):
+        if status_int == 0:
+            return "danger"
+        if status_int == 1:
+            return "success"
+        if status_int == 2:
+            return "warning"
+
+    runs = ecadb.runs_after_run(redis, 0)      
  
+    return render_template('eca.html',
+                            runs=runs,
+                            parse_status=parse_status,
+                            timefmt=timefmt,
+                            statusfmt=statusfmt,
+                            statusclass=statusclass)
+
+ 
+@app.route('/eca_run_detail')
+@app.route('/eca_run_detail/<run_type>/<run_number>')
+def eca_run_detail(run_type, run_number):
+    if run_type == 'PDST': 
+        return render_template('eca_run_detail_PDST.html',
+                            run_type=run_type, run_number=run_number)      
+    if run_type == 'TSLP': 
+        return render_template('eca_run_detail_TSLP.html',
+                            run_type=run_type, run_number=run_number)      
+
+@app.route('/eca_status_detail')
+@app.route('/eca_status_detail/<run_type>/<run_number>')
+def eca_status_detail(run_type, run_number):
+
+    def statusfmt(status_int):
+        if status_int == 1:
+            return 'Flag Raised'
+        if status_int == 0:
+            return 'Pass'
+
+    def testBit(word, offset):
+        int_type = int(word)
+        offset = int(offset)
+        mask = 1 << offset
+        result = int_type & mask
+        if result == 0:
+            return 0
+        if result == pow(2,offset):
+            return 1
+
+    run_status = int(ecadb.get_run_status(redis, run_number))
+
+    if run_type == 'PDST': 
+        return render_template('eca_status_detail_PDST.html',
+                            run_type=run_type, run_number=run_number,statusfmt=statusfmt,testBit=testBit,run_status=run_status)      
+    if run_type == 'TSLP': 
+        return render_template('eca_status_detail_TSLP.html',
+                            run_type=run_type, run_number=run_number,statusfmt=statusfmt,testBit=testBit,run_status=run_status)      
+
+
+
 @app.route('/pcatellie', methods=['GET'])
 def pcatellie():
     
@@ -481,4 +603,6 @@ def pcatellie():
 def pca_run_detail(run_number):
     
     return render_template('pca_run_detail.html',
-                            run_number=run_number)
+                            run_number=run_number)      
+   
+

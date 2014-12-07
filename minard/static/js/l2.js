@@ -140,7 +140,7 @@ d3.select('#main').selectAll('.horizon')
     .attr('class', 'horizon')
     .call(horizon);
 
-add_horizon(["L2:run"],format('#0xx'),[]);
+add_horizon(["L2:run"],format_int,[]);
 
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i === null ? null : context.size() - i + "px");

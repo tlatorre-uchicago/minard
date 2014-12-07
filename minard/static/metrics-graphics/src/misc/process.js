@@ -10,11 +10,21 @@ function raw_data_transformation(args){
             return args.y_accessor.map(function(ya){
                 return _d.map(function(di){
                     di = clone(di);
+                    if (di[ya]==undefined){
+                        return undefined;
+                    }
                     di['multiline_y_accessor'] = di[ya];
                     return di;
+                }).filter(function(di){
+                    return di != undefined;
                 })
             })
         })[0];
+        // args.data = args.data.map(function(_d){
+        //     return _d.filter(function(di){
+        //         return di != undefined;
+        //     });
+        // })[0];
         args.y_accessor = 'multiline_y_accessor';
     }
 
@@ -26,10 +36,73 @@ function raw_data_transformation(args){
             });
         }
     }
+
     return this
 }
 
-function process_line(args){
+function process_line(args) {
+    //are we replacing missing y values with zeros?
+
+    //do we have a time-series?
+    var is_time_series = ($.type(args.data[0][0][args.x_accessor]) == 'date')
+            ? true
+            : false;
+
+    if(args.missing_is_zero && args.chart_type == 'line' && is_time_series) {
+        for(var i=0;i<args.data.length;i++) {
+            var first = args.data[i][0];
+            var last = args.data[i][args.data[i].length-1];
+            //initialize our new array for storing the processed data
+            var processed_data = [];
+
+            //we'll be starting from the day after our first date
+            var start_date = clone(first['date']).setDate(first['date'].getDate() + 1);
+
+            //if we've set a max_x, add data points up to there
+            var from = (args.min_x) ? args.min_x : start_date;
+            var upto = (args.max_x) ? args.max_x : last['date'];
+            for (var d = new Date(from); d <= upto; d.setDate(d.getDate() + 1)) {
+                var o = {};
+                d.setHours(0, 0, 0, 0);
+
+                //add the first date item (judge me not, world)
+                //we'll be starting from the day after our first date
+                if(Date.parse(d) == Date.parse(new Date(start_date))) {
+                    processed_data.push(clone(args.data[i][0]));
+                }
+
+                //check to see if we already have this date in our data object
+                var existing_o = null;
+                $.each(args.data[i], function(i, val) {
+                    if(Date.parse(val.date) == Date.parse(new Date(d))) {
+                        existing_o = val;
+
+                        return false;
+                    }
+                })
+
+                //if we don't have this date in our data object, add it and set it to zero
+                if(!existing_o) {            
+                    o['date'] = new Date(d);
+                    o[args.y_accessor] = 0;
+                    processed_data.push(o);
+                }
+                //otherwise, use the existing object for that date
+                else {
+                    processed_data.push(existing_o);
+                }
+                
+                //add the last data item
+                if(Date.parse(d) == Date.parse(new Date(last['date']))) {
+                    processed_data.push(last);
+                }
+            }
+
+            //update our date object
+            args.data[i] = processed_data;
+        }
+    }
+
     return this;
 }
 
@@ -133,6 +206,10 @@ function process_categorical_variables(args){
     } else {
         // nothing needs to really happen here.
         processed_data = our_data;
+        args.categorical_variables = d3.set(processed_data.map(function(d){
+            return d[args.y_accessor];
+        })).values();
+        args.categorical_variables.reverse();
     }
     args.data = [processed_data];
     return this;
@@ -145,7 +222,7 @@ function process_point(args){
     var y = data.map(function(d){return d[args.y_accessor]});
     if (args.least_squares){
         args.ls_line = least_squares(x,y);    
-    }
+    };
     
     //args.lowess_line = lowess_robust(x,y, .5, 100)
     return this;

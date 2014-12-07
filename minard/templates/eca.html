@@ -5,7 +5,34 @@
 {% endblock %}
 {% block body %}
     {{ super() }}
+
     <div class="container">
-        <h1>Coming soon!</h1>
-    </div>
+    <table class="table table-bordered table-condensed table-striped">
+            <thead>
+                <tr>
+                    <th>Run Number</th>
+                    <th>Run Time</th>
+                    <th>Analysis Time</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for run in runs %}
+                <tr class="{{ statusclass(parse_status(run["run_status"], run["run_type"]) ) }}">
+                <!--tr class="{{ "danger" }}"-->
+                    <td><a href="{{url_for('eca_run_detail',run_type=run["run_type"],run_number = run["run_number"]) }}">{{ run["run_number"] }}</a></td>
+                    <td>{{ timefmt(run["run_time"]) }}</td>
+                    <td>{{ timefmt(run["analyze_time"]) }}</td>
+                    <td>{{ run["run_type"] }}</td>
+                    <td><a href= "{{url_for('eca_status_detail', run_type=run["run_type"],run_number=run["run_number"]) }}">{{ statusfmt(parse_status(run["run_status"], run["run_type"])) }}</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+    </table>
+   </div>
+
+
+
+
 {% endblock %}

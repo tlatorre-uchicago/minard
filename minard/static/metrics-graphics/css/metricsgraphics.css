@@ -1,26 +1,18 @@
 a,
 a:active,
 a:visited {
-    color: #4a87ba;
+    color: steelblue;
     text-decoration: none;
 }
 
 a:hover {
-    text-decoration: underline;
+    color: steelblue;
 }
 
 .active_datapoint {
     fill: black;
     font-size: 11px;
     font-weight: 400;
-}
-
-a.active {
-    background-color: steelblue;
-    border: 0;
-    border-radius: 4px;
-    color: #fff;
-    padding: 5px;
 }
 
 .area1-color {
@@ -45,7 +37,8 @@ a.active {
 
 .barplot rect.bar {
     shape-rendering: crispEdges;
-    fill: #b6b6fc;
+        fill: #b6b6fc;
+
 }
 
 .barplot rect.bar.active {
@@ -72,8 +65,55 @@ body {
     font-family: 'Open Sans', sans-serif, Arial;
 }
 
+.btn-group {
+    display: inline-block;
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+.btn-group span.which-button {
+    font-weight: 300;
+    color: darkgray;
+}
+
+.btn-group span.title {
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.chart_title .popover {
+    font-size: 12px;
+}
+
+.chart_title .popover-content {
+    cursor: auto;
+    line-height: 17px;
+}
+
+.chart_title .popover.top {
+    margin-top: 0;
+}
+
+.chart_title {
+    cursor: default;
+    font-size: 22px;
+    padding-top: 8px;
+    text-align: center;
+}
+
+.chart_title .fa {
+    color: #ccc;
+    font-size: 14px;
+    padding-left: 4px;
+    vertical-align: top;
+}
+
+.chart_title .fa.warning {
+    font-weight: 300;
+}
+
 circle {
-    fill: #0000ff;
+    /*fill: #0000ff;*/
     opacity: 0.85;
 }
 
@@ -96,55 +136,6 @@ circle {
     opacity: 0.1;
 }
 
-#footer {
-    border-top: 1px solid #ccc;
-    font-size: 11px;
-    padding: 40px;
-    text-align: center;
-}
-
-.gr {
-    text-align: center;
-}
-
-h2.chart_title {
-    cursor: pointer;
-    font-size: 22px;
-    margin-left: 15px;
-}
-
-h2.chart_title .fa {
-    color: #ccc;
-    font-size: 14px;
-    padding-left: 4px;
-    vertical-align: top;
-}
-
-#head {
-    color: black;
-    margin: auto;
-    margin-bottom: 20px;
-    width: 100%;
-}
-
-#head h1 {
-    font-size: 50px;
-    font-weight: 300;
-    margin: 45px 0 0 0;
-}
-
-#head ul {
-    clear: both;
-    font-size: 14px;
-    padding: 10px 0 0 0;
-}
-
-#head ul li {
-    display: inline;
-    list-style: none;
-    padding-right: 15px;
-}
-
 .histogram .axis path,
 .histogram .axis line {
     opacity: 0.7;
@@ -162,8 +153,14 @@ h2.chart_title .fa {
     fill: #9e9efc;
 }
 
-.light-bg {
-    background-color: #f1f1f1;
+.least-squares-line {
+    stroke-width: 1;
+    stroke: red;
+}
+
+.lowess-line {
+    stroke: red;
+    fill: none;
 }
 
 .line1-color {
@@ -206,10 +203,9 @@ h2.chart_title .fa {
     color: #5c5c5c;
 }
 
-#logo {
-    margin: 60px 0 30px 0;
-    height: 79px;
-    width: 400px;
+.legend {
+    font-size: 11px;
+    padding: 25px 0 15px 0;
 }
 
 .main-area-solid svg .main-area {
@@ -245,6 +241,7 @@ h2.chart_title .fa {
 p {
     font-family: 'PT Serif', serif;
     font-size: 16px;
+    line-height: 24px;
 }
 
 path.main-area {
@@ -264,25 +261,18 @@ path.main-line {
     stroke-width: 1.1px;
 }
 
-.pill:hover {
-    text-decoration: none;
-}
-
-.pill {
-    font-family: 'Open Sans', serif;
-    font-size: 12px;
-    text-transform: uppercase;
-}
-
 .points circle {
-    fill: #0000ff;
     fill-opacity: 0.4;
-    stroke: #0000ff;
     stroke-opacity: 1;
 }
 
+circle.points-mono {
+    fill: #0000ff;
+    stroke: #0000ff;
+}
+
+/* a selected point in a scatterplot */
 .points circle.selected {
-    fill: #fff;
     fill-opacity: 1;
     stroke-opacity: 1;
 }
@@ -303,7 +293,7 @@ text {
 }
 
 #trunk {
-    margin-top:40px;
+    margin-top: 40px;
 }
 
 #trunk h2 {
@@ -329,11 +319,9 @@ text {
     stroke-opacity: 0.1;
 }
 
-h2.chart_title .fa.warning {
-    color: red;
-    cursor: pointer;
-    font-weight: 300;
-    opacity: 0.8;
+.x-rug-mono,
+.y-rug-mono {
+    stroke: black;
 }
 
 .x-axis line,
@@ -361,7 +349,8 @@ h2.chart_title .fa.warning {
 }
 
 .x-axis-small text,
-.y-axis-small text {
+.y-axis-small text,
+.active-datapoint-small {
     font-size: 8px;
 }
 

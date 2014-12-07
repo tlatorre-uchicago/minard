@@ -9,7 +9,7 @@ function format_data(values, start, stop, step)
     for (var i=0; i < values.length; i++)
     {
         var date = moment(start);
-        date.add('seconds', step*i);
+        date.add(step*i, 'seconds');
         data.push({'date': date.toDate(), 'value': values[i]});
     }
     return data;
@@ -33,7 +33,7 @@ function add_graph(name, start, stop, step)
 
                 var valid = values.filter(isNumber);
 
-                moz_chart({
+                data_graphic({
                     title: name,
                     chart_type: valid.length ? 'line' : 'missing-data',
                     area: false,
@@ -52,7 +52,7 @@ function add_graph(name, start, stop, step)
 
                 var width = $('#hist').width();
 
-                moz_chart({
+                data_graphic({
                     data: valid,
                     chart_type: valid.length ? 'histogram' : 'missing-data',
                     width: width,
@@ -63,7 +63,7 @@ function add_graph(name, start, stop, step)
                 });
 
                 // log
-                moz_chart({
+                data_graphic({
                     data: valid,
                     y_scale_type: 'log',
                     chart_type: valid.length ? 'histogram' : 'missing-data',
