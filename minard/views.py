@@ -92,7 +92,7 @@ def status():
 
 @app.route('/l2')
 def l2():
-    step = request.args.get('step',1,type=int)
+    step = request.args.get('step',3,type=int)
     height = request.args.get('height',20,type=int)
     if not request.args.get('step') or not request.args.get('height'):
         return redirect(url_for('l2',step=step,height=height,_external=True))

@@ -60,10 +60,10 @@ var si_format = d3.format('.2s');
 function format_rate(n) {
     if (!$.isNumeric(n)) {
         return '-';
-    } else if (n < 100 && n % 1 === 0) {
-        return n.toString();
-    } else {
+    } else if (n > 100) {
         return si_format(n);
+    } else {
+        return n.toString();
     }
 }
 

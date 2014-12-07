@@ -22,7 +22,7 @@ var scale = tzscale().zone('America/Toronto');
 
 var size = $('#main').width();
 var context = cubism.context(scale)
-    .serverDelay(1e3)
+    .serverDelay(5e3)
     .clientDelay(1e3)
     .step(Number(url_params.step)*1000)
     .size(size);
@@ -69,10 +69,10 @@ var si_format = d3.format('.2s');
 function format_rate(n) {
     if (!$.isNumeric(n)) {
         return '-';
-    } else if (n < 100 && n % 1 === 0) {
-        return n.toString();
-    } else {
+    } else if (n > 100) {
         return si_format(n);
+    } else {
+        return n.toString();
     }
 }
 
@@ -128,11 +128,13 @@ function add_horizon(expressions, format, colors, extent) {
         });
 }
 
-var horizon = context.horizon().height(Number(url_params.height));
-
 add_horizon(["TOTAL"],format_rate);
 add_horizon(L2_STREAMS,format_rate);
 add_horizon(["L2:gtid"],format_int,[]);
+
+var horizon = context.horizon()
+    .height(Number(url_params.height))
+    .extent([-60,60]);
 
 d3.select('#main').selectAll('.horizon')
     .data([(metric('gtid').subtract(metric('L2:gtid'))).divide(metric('TOTAL'))],String)
