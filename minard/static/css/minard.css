@@ -52,6 +52,11 @@
     padding:2px;
 }
 
+#crate table {
+    border-spacing: 2px;
+    border-collapse: separate;
+}
+
 .card-label-row {
     padding-right: 5px;
 }
@@ -82,25 +87,6 @@
     fill: none;
     stroke: #fff;
     stroke-width: .5px;
-}
-
-#card table tr td {
-    font-size: 10px;
-    text-align: right;
-    width: 25px;
-    height: 18px;
-}
-
-#crate table tr td {
-    padding:2px;
-}
-
-.card-label-row {
-  padding-right: 5px;
-}
-
-.card-label-col {
-  text-align:center !important;
 }
 
 /* histogram.js */

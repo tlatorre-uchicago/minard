@@ -33,8 +33,7 @@ function card_view() {
         selection.each(function(data) {
             var table = d3.select(this).selectAll('table').data([crate], function(d) { return d; });
             table.exit().remove();
-            table.enter().append('table')
-                .attr('style','padding:2px;border-collapse:separate;border-spacing:1px');
+            table.enter().append('table');
 
             var setup = crate_setup[crate];
 
