@@ -17,14 +17,20 @@ function create_context(target, step) {
         return moment.tz(date, 'America/Toronto').format('hh:mm');
     }
 
+    function format_day_hour(date) {
+        return moment.tz(date, 'America/Toronto').format('MMM DD, hh A');
+    }
+
     function format_day(date) {
         return moment.tz(date, 'America/Toronto').format('MMMM DD');
     }
 
-    if (context.step() < 6e4) {
+    if (step < 30) {
         focus_format = format_seconds;
-    } else if (context.step() < 864e5) {
+    } else if (step < 30*60) {
         focus_format = format_minutes;
+    } else if (step < 12*60*60) {
+        focus_format = format_day_hour;
     } else {
         focus_format = format_day;
     }
@@ -58,6 +64,7 @@ function create_context(target, step) {
 si_format = d3.format('.2s');
 percentage_format = d3.format('.2%');
 fixed_format = d3.format('.0f');
+precision_format = d3.format('.2g');
 
 function my_si_format(d) {
     if (!$.isNumeric(d))
@@ -88,7 +95,7 @@ function format_rate(n) {
     } else if (n > 100) {
         return si_format(n);
     } else {
-        return n.toString();
+        return precision_format(n);
     }
 }
 
