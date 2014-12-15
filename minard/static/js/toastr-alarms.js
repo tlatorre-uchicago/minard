@@ -32,6 +32,6 @@ function update_toastr(latest) {
     });
 }
 
-$.getJSON($SCRIPT_ROOT + '/get_alarm?start=-1').done(function(obj) {
-    update_toastr(obj.latest);
-});
+//$.getJSON($SCRIPT_ROOT + '/get_alarm?start=-1').done(function(obj) {
+//    update_toastr(obj.latest);
+//});
