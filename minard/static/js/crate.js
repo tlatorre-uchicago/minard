@@ -39,7 +39,8 @@ function card_view() {
 
             var tr2 = table.selectAll('tr')
                 .data(setup)
-                .enter().append('tr');
+                .enter().append('tr')
+                .attr('id', function(d, i) { return 'card-' + i; });
 
             //table.insert('tr',':first-child').selectAll('td').data(d3.range(17)).enter().append('td')
             //  .text(function(d, i) {

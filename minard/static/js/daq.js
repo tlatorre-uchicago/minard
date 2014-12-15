@@ -94,6 +94,9 @@ function set_thresholds(lo, hi) {
 function switch_to_crate(crate) {
     card.crate(crate);
     d3.select('#card').call(card);
+    $('#card-7').after('<tr></tr>');
+    $('#card-15').after('<tr></tr>');
+    $('#card-23').after('<tr></tr>');
 
     blah.crate = crate;
     blah.state = NEEDS_UPDATE;
