@@ -15,6 +15,8 @@ from timeseries import get_timeseries_field, get_hash_interval
 import random
 import operator
 from collections import defaultdict
+import numpy as np
+from math import isnan
 
 import pcadb
 import ecadb
@@ -248,6 +250,8 @@ def alarms():
 CHANNELS = [crate << 9 | card << 5 | channel \
             for crate, card, channel in product(range(20),range(16),range(32))]
 
+OWL_TUBES = [2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 7152, 7153, 7154, 7155, 7156, 7157, 7158, 7159, 7160, 7161, 7162, 7163, 7164, 7165, 7166, 7167, 9712, 9713, 9714, 9715, 9716, 9717, 9718, 9719, 9720, 9721, 9722, 9723, 9724, 9725, 9726, 9727]
+
 @app.route('/query')
 def query():
     name = request.args.get('name','',type=str)
@@ -330,6 +334,39 @@ def get_alarm():
             alarms.append(json.loads(value))
 
     return jsonify(alarms=alarms,latest=count-1)
+
+@app.route('/owl_tubes')
+def owl_tubes():
+    """Returns the time series for the sum of all upward facing OWL tubes."""
+    name = request.args['name']
+    start = request.args.get('start', type=parseiso)
+    stop = request.args.get('stop', type=parseiso)
+    now_client = request.args.get('now', type=parseiso)
+    step = request.args.get('step', type=int)
+    method = request.args.get('method', 'avg')
+
+    now = int(time.time())
+
+    # adjust for clock skew
+    dt = now_client - now
+    start -= dt
+    stop -= dt
+
+    start = int(start)
+    stop = int(stop)
+    step = int(step)
+
+    values = np.zeros((len(OWL_TUBES),len(range(start,stop,step))),float)
+    for i, id in enumerate(OWL_TUBES):
+        crate, card, channel = id >> 9, (id >> 5) & 0xf, id & 0x1f
+        values[i] = get_hash_timeseries(name,start,stop,step,crate,card,channel,method)
+
+    if method == 'max':
+        values = np.nanmax(values,axis=0)
+    else:
+        values = np.nanmean(values,axis=0)
+
+    return jsonify(values=[None if isnan(x) else x for x in values])
 
 @app.route('/metric_hash')
 def metric_hash():

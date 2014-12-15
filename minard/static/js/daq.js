@@ -65,9 +65,29 @@ function update_metrics(timeseries) {
     timeseries.metrics = [];
 
     if (typeof timeseries.crate === 'undefined') {
-        for (var i=0; i < 19; i++) {
+        for (var i=0; i < 20; i++) {
             timeseries.metrics[i] = metric(timeseries, i, null, null);
         }
+
+        timeseries.metrics[20] = timeseries.context.metric(function(start, stop, step, callback) {
+            var params = {
+                name: SOURCE,
+                start: start.toISOString(),
+                stop: stop.toISOString(),
+                now: new Date().toISOString(),
+                step: Math.floor(step/1000),
+                method: METHOD
+            };
+
+            d3.json($SCRIPT_ROOT + '/owl_tubes?' + $.param(params),
+                function(data) {
+                    if (!data)
+                        return callback(new Error('unable to load data'));
+
+                    return callback(null,data.values);
+                }
+            );
+        }, 'UFOWL');
     } else if (typeof timeseries.card === 'undefined') {
         for (var i=0; i < 16; i++) {
             timeseries.metrics[i] = metric(timeseries, timeseries.crate, i, null);
@@ -124,7 +144,8 @@ horizon: null,
 metrics:null,
 format: my_si_format,
 click: function(d, i) {
-    switch_to_crate(i);
+    if (i <= 19)
+        switch_to_crate(i);
     },
 state: NEEDS_UPDATE,
 slide: 0
