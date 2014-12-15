@@ -19,6 +19,6 @@ function update_status(name, interval) {
         $('#' + name + ' #status').text(obj.status);
         $('#' + name + ' #uptime').text(obj.uptime ? moment().subtract('seconds',obj.uptime).fromNow(true): "");
 
-        setTimeout(function() { update_status(name); }, interval*1000);
+        setTimeout(function() { update_status(name,interval); }, interval*1000);
     });
 }
