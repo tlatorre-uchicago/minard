@@ -8,44 +8,7 @@ setInterval(function() {
     });
 },1000);
 
-var scale = tzscale().zone('America/Toronto');
-
-var size = $('#main').width();
-var context = cubism.context(scale)
-    .serverDelay(1e3)
-    .clientDelay(1e3)
-    .step(Number(url_params.step)*1000)
-    .size(size);
-
-function format_seconds(date) {
-    return moment.tz(date, 'America/Toronto').format('hh:mm:ss');
-}
-
-function format_minutes(date) {
-    return moment.tz(date, 'America/Toronto').format('hh:mm');
-}
-
-function format_day(date) {
-    return moment.tz(date, 'America/Toronto').format('MMMM DD');
-}
-
-if (context.step() < 6e4) {
-    focus_format = format_seconds;
-} else if (context.step() < 864e5) {
-    focus_format = format_minutes;
-} else {
-    focus_format = format_day;
-}
-
-d3.select("#main").selectAll(".axis")
-    .data(["top", "bottom"])
-  .enter().append("div")
-    .attr("class", function(d) { return d + " axis"; })
-    .each(function(d) { d3.select(this).call(context.axis().ticks(12).orient(d).focusFormat(focus_format)); });
-
-d3.select("#main").append("div")
-    .attr("class", "rule")
-    .call(context.rule());
+var context = create_context('#main', url_params.step);
 
 var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB','ESUML','ESUMH',
   'OWLN','OWLEL','OWLEH','PULGT','PRESCL', 'PED','PONG','SYNC','EXTA',
@@ -54,32 +17,6 @@ var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB','ESUML','ESUMH',
   ];
 
 var L2_STREAMS = ['L1','L2','ORPHANS','BURSTS'];
-
-var si_format = d3.format('.2s');
-
-function format_rate(n) {
-    if (!$.isNumeric(n)) {
-        return '-';
-    } else if (n > 100) {
-        return si_format(n);
-    } else {
-        return n.toString();
-    }
-}
-
-function format_int(n) {
-    if (!$.isNumeric(n)) {
-        return '-';
-    } else {
-        return n.toString();
-    }
-}
-
-function format(str) {
-    var fmt = d3.format(str);
-
-    return function(n) { return (!$.isNumeric(n)) ? '-' : fmt(n); };
-}
 
 function metric(name) {
     return context.metric(function(start, stop, step, callback) {

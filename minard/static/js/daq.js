@@ -1,61 +1,5 @@
 var STEP, SOURCE, METHOD, SCALE, CRATE_WINDOW;
 
-function create_context(target) {
-    var scale = tzscale().zone('America/Toronto');
-
-    var size = $(target).width();
-    var context = cubism.context(scale)
-        .serverDelay(1e3)
-        .clientDelay(1e3)
-        .step(STEP*1000)
-        .size(size);
-
-    function format_seconds(date) {
-        return moment.tz(date, 'America/Toronto').format('hh:mm:ss');
-    }
-
-    function format_minutes(date) {
-        return moment.tz(date, 'America/Toronto').format('hh:mm');
-    }
-
-    function format_day(date) {
-        return moment.tz(date, 'America/Toronto').format('MMMM DD');
-    }
-
-    if (context.step() < 6e4) {
-        focus_format = format_seconds;
-    } else if (context.step() < 864e5) {
-        focus_format = format_minutes;
-    } else {
-        focus_format = format_day;
-    }
-
-    // delete old axes
-    $(target + ' .axis').remove();
-
-    // add time axes
-    d3.select(target).selectAll(".axis")
-        .data(["top", "bottom"])
-      .enter().append("div")
-        .attr("class", function(d) { return d + " axis"; })
-        .each(function(d) {
-            var axis = context.axis()
-                .ticks(12)
-                .orient(d)
-                .focusFormat(focus_format);
-            d3.select(this).call(axis);
-        });
-
-    // delete old rule
-    $(target + ' .rule').remove();
-
-    d3.select(target).append("div")
-        .attr("class", "rule")
-        .call(context.rule());
-
-    return context;
-}
-
 function metric(timeseries, crate, card, channel) {
     var label;
     if (card === null)
@@ -117,7 +61,7 @@ function update_metrics(timeseries) {
     if (timeseries.context !== null)
         timeseries.context.stop();
 
-    timeseries.context = create_context(timeseries.target);
+    timeseries.context = create_context(timeseries.target, STEP);
     timeseries.metrics = [];
 
     if (typeof timeseries.crate === 'undefined') {
@@ -133,31 +77,6 @@ function update_metrics(timeseries) {
             timeseries.metrics[i] = metric(timeseries, timeseries.crate, timeseries.card, i);
         }
     }
-}
-
-si_format = d3.format('.2s');
-percentage_format = d3.format('.2%');
-fixed_format = d3.format('.0f');
-
-function my_si_format(d) {
-    if (!$.isNumeric(d))
-        return '-';
-    else
-        return si_format(d);
-}
-
-function my_percentage_format(d) {
-    if (!$.isNumeric(d))
-        return '-';
-    else
-        return percentage_format(d);
-}
-
-function base_format(d) {
-    if (!$.isNumeric(d))
-        return '-';
-    else
-        return fixed_format(d);
 }
 
 var default_thresholds = {
