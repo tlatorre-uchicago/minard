@@ -6,10 +6,6 @@ app = Flask(__name__)
 if not app.debug:
     # see http://flask.pocoo.org/docs/errorhandling/
     import logging
-    import logging.handlers
-
-    handler = logging.handlers.RotatingFileHandler('/tmp/snoplus_log.log',maxBytes=50e6,backupCount=10)
-    handler.setLevel(logging.WARNING)
-    app.logger.addHandler(handler)
+    app.logger.addHandler(logging.StreamHandler())
 
 import snoplus_log.views

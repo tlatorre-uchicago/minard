@@ -50,10 +50,6 @@ if exists('/etc/minard.conf'):
 app.debug=False
 if not app.debug:
     import logging
-    import logging.handlers
-
-    handler = logging.handlers.RotatingFileHandler('/tmp/minard.log',maxBytes=50e6,backupCount=10)
-    handler.setLevel(logging.WARNING)
-    app.logger.addHandler(handler)
+    app.logger.addHandler(logging.StreamHandler())
 
 import minard.views
