@@ -116,6 +116,7 @@ if [ ! -d /opt/minard/src/disp ]; then
     make &>/tmp/disp.log
     echo 'export PYTHONPATH=$VIRTUAL_ENV/src/disp/python:$PYTHONPATH' >> $VIRTUAL_ENV/bin/activate
     echo 'export LD_LIBRARY_PATH=$VIRTUAL_ENV/src/disp/lib:$LD_LIBRARY_PATH' >> $VIRTUAL_ENV/bin/activate
+    ln -s $VIRTUAL_ENV/src/disp/bin/dispatch $VIRTUAL_ENV/bin/dispatch
     printf "Done\n"
 else
     printf "Updating disp..."
