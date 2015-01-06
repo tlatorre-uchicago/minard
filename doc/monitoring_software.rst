@@ -5,7 +5,7 @@ minard_dispatch_push
 --------------------
 
 * **Command**: ``minard_dispatch push [--host HOST]``
-* **Runs as**: snoplusmon
+* **Runs as**: spmon
 * **Ports**: 5560
 * **Started by**: supervisord
 * **Log File**: ``/var/log/minard/minard_dispatch_push.log``
@@ -15,7 +15,7 @@ minard_dispatch_pull
 --------------------
 
 * **Command**: ``minard_dispatch pull``
-* **Runs as**: snoplusmon
+* **Runs as**: spmon
 * **Ports**: 5560
 * **Started by**: supervisord
 * **Log File**: ``/var/log/minard/minard_dispatch_pull.log``
@@ -68,7 +68,7 @@ orca_producer
 -------------
 
 * **Command**: ``orca_producer [--host HOST] [--port PORT]``
-* **Run as**: snoplusmon
+* **Run as**: spmon
 * **Ports**: 5557, 5558
 * **Started by**: supervisord
 * **Log File**: ``/var/log/minard/orca_producer.log``
@@ -78,7 +78,7 @@ orca_consumer_cmos
 ------------------
 
 * **Command**: ``orca_consumer 5557``
-* **Run as**: snoplusmon
+* **Run as**: spmon
 * **Ports**: 5557
 * **Started by**: supervisord
 * **Log File**: ``/var/log/minard/orca_consumer_cmos.log``
@@ -88,7 +88,7 @@ orca_consumer_base
 ------------------
 
 * **Command**: ``orca_consumer 5558``
-* **Run as**: snoplusmon
+* **Run as**: spmon
 * **Ports**: 5558
 * **Started by**: supervisord
 * **Log File**: ``/var/log/minard/orca_consumer_base.log``

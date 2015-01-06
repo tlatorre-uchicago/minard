@@ -133,10 +133,10 @@ if ! id -u gunicorn >/dev/null; then
     sudo useradd -r gunicorn
 fi
 
-# make sure snoplusmon user exists
-if ! id -u snoplusmon >/dev/null; then
-    echo "Adding snoplusmon user..."
-    sudo useradd -d /home/snoplusmon snoplusmon
+# make sure spmon user exists
+if ! id -u spmon >/dev/null; then
+    echo "Adding spmon user..."
+    sudo useradd -d /home/spmon spmon
 fi
 
 # make sure nginx user exists
@@ -147,7 +147,7 @@ fi
 
 # create /var/log/snoplus
 sudo mkdir -p /var/log/snoplus /var/log/snoplus_log /var/log/minard
-sudo chown snoplusmon:snoplusmon /var/log/snoplus /var/log/snoplus_log /var/log/minard
+sudo chown spmon:spmon /var/log/snoplus /var/log/snoplus_log /var/log/minard
 
 cd $VIRTUAL_ENV/src/minard
 
