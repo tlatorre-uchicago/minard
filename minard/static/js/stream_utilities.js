@@ -94,6 +94,8 @@ function format_rate(n) {
         return '-';
     } else if (n > 100) {
         return si_format(n);
+    } else if (n >= 0 && n % 1 === 0) {
+        return n.toString();
     } else {
         return precision_format(n);
     }
