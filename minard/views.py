@@ -605,7 +605,9 @@ def pcatellie():
     
     start_run = request.args.get("start_run", 0)
     installed_only = request.args.get("installed_only", False)    
-    runs = pcadb.runs_after_run(redis, start_run)      
+    runs = pcadb.runs_after_run(redis, start_run)
+    # Deal with expired runs
+    runs = [run for run in runs if (len(run) > 0)]      
     fibers = list()
     for fiber in pcadb.FIBER_POSITION:
         runs_for_fiber = [run for run in runs 
