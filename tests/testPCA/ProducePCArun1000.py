@@ -8,7 +8,6 @@ from redis import Redis
 redis = Redis()
 import time
 import datetime
-import pcadb
 import calendar
 import os
 import subprocess
