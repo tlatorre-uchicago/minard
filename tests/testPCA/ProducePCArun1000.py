@@ -53,7 +53,7 @@ def main():
     key = 'pca-tellie-run-%s' % 1000
     p = redis.pipeline()
     p.hmset(key, pca_run_info)
-    p.expire(key, 6)
+    p.expire(key, 3600)
     p.zadd(RUN_INDEX, key, float(1000))
     p.zadd(TIME_INDEX, key, float(run_time))
     p.execute()
