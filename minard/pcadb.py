@@ -116,8 +116,8 @@ FIBER_POSITION = [
     [108, 22, 'A', False, False, 'SPARE', ''],
     [109, 28, 'A', False, False, 'SPARE', ''],
     [110, 31, 'A', False, False, 'SPARE', ''],
-    [1, 111, 'A', True, False, 'NECK'],
-    [112, 112, 'A', False, False, 'NECK']]
+    [1, 111, 'A', True, False, 'NECK', ''],
+    [112, 112, 'A', False, False, 'NECK', '']]
 
 def add_run_to_db(redis, run_dict):
     '''
