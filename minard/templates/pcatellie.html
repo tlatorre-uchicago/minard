@@ -22,10 +22,10 @@
         <div class="pca-fiber-installed pca-fiber-cell">
     {% endif %}
         <div>
-            {{ fiber["fiber_number"] }} {{ fiber["ab"] }}
+            {{ fiber["fiber_number"] }}{{ fiber["ab"] }} - {{ fiber["node"] }}
         </div>
         <div>
-            {{ fiber["pca_run"] }}
+            <a href="{{ url_for('pca_run_detail',run_number=fiber["pca_run"]) }}">{{ fiber["pca_run"] }}</a>
         </div>
     </div>
     {%- endmacro %}
