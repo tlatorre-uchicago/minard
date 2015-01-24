@@ -25,7 +25,7 @@ add_service () {
     fi
 }
     
-check_install git virtualenv gcc nginx ntpd
+check_install git virtualenv gcc nginx ntpd redis-server
 
 if [ -f /etc/debian_version ]; then
     supervisord_init=supervisord_debian
@@ -49,18 +49,6 @@ nginx_conf=nginx.conf;
 temp=$(mktemp)
 echo "SUPERVISOR = True" > $temp
 sudo install -m 644 $temp /etc/minard.conf
-
-if [ ! -f /usr/local/bin/redis-server ]; then
-    # install redis to /usr/local
-    printf "Installing redis..."
-    cd /usr/local
-    sudo curl -O -s http://download.redis.io/redis-stable.tar.gz
-    sudo tar -xzf redis-stable.tar.gz
-    cd redis-stable
-    sudo make &>/tmp/redis.log
-    sudo make install &>/tmp/redis.log
-    printf "Done\n"
-fi
 
 # make directories for redis
 # see "Installing Redis more properly" at http://redis.io/topics/quickstart
@@ -133,10 +121,10 @@ if ! id -u gunicorn >/dev/null; then
     sudo useradd -r gunicorn
 fi
 
-# make sure spmon user exists
-if ! id -u spmon >/dev/null; then
-    echo "Adding spmon user..."
-    sudo useradd -d /home/spmon spmon
+# make sure minard user exists
+if ! id -u minard >/dev/null; then
+    echo "Adding minard user..."
+    sudo useradd -r minard
 fi
 
 # make sure nginx user exists
@@ -147,7 +135,7 @@ fi
 
 # create /var/log/snoplus
 sudo mkdir -p /var/log/snoplus /var/log/snoplus_log /var/log/minard
-sudo chown spmon:spmon /var/log/snoplus /var/log/snoplus_log /var/log/minard
+sudo chown minard:minard /var/log/snoplus /var/log/snoplus_log /var/log/minard
 
 cd $VIRTUAL_ENV/src/minard
 
