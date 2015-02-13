@@ -1,7 +1,11 @@
+from redis import Redis
+
+redis = Redis()
+
 TIME_INDEX = 'eca_runs_by_time'
 RUN_INDEX = 'eca_runs_by_number'
 
-def add_run_to_db(redis, run_dict):
+def add_run_to_db(run_dict):
     '''
     Creates Redis entries for a run. Requires run_number and time keys in 
     run_dict
@@ -14,7 +18,7 @@ def add_run_to_db(redis, run_dict):
     p.zadd(TIME_INDEX, key, float(run_dict['run_time']))
     return p.execute()  
     
-def runs_after_time(redis, time, maxtime = '+inf'):
+def runs_after_time(time, maxtime = '+inf'):
     '''
     Returns Redis entries for all runs between time and maxtime. 
     Requires Redis instance, start-time and maximum time.
@@ -25,7 +29,7 @@ def runs_after_time(redis, time, maxtime = '+inf'):
         p.hgetall(key)
     return p.execute()    
         
-def runs_after_run(redis, run, maxrun = '+inf'):
+def runs_after_run(run, maxrun = '+inf'):
     '''
     Returns Redis entries for all runs between run and maxrun. 
     Requires Redis instance, start-run and maximum run.
@@ -36,7 +40,7 @@ def runs_after_run(redis, run, maxrun = '+inf'):
         p.hgetall(key)
     return p.execute()    
 
-def get_run_by_number(redis, runnum):
+def get_run_by_number(runnum):
     '''
     Returns Redis entries for specific run by run number
     Requires Redis instance, and run number.
@@ -47,14 +51,14 @@ def get_run_by_number(redis, runnum):
         p.hgetall(key)
     return p.execute()    
 
-def get_run_status(redis, runnum):
+def get_run_status(runnum):
     '''
     Returns run status for specific run by run number
     Requires Redis instance, and run number.
     '''
     return redis.hget("eca-run-%i" % runnum, "run_status")
 
-def del_run_from_db(redis, run_number):
+def del_run_from_db(run_number):
     '''
     Delete run from Redis. Requires Redis instance and run number. 
     '''

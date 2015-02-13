@@ -12,9 +12,6 @@ import requests
 from collections import deque, namedtuple
 from timeseries import get_timeseries, get_interval, get_hash_timeseries
 from timeseries import get_timeseries_field, get_hash_interval
-import random
-import operator
-from collections import defaultdict
 import numpy as np
 from math import isnan
 
@@ -470,7 +467,7 @@ def metric():
 
 @app.route('/eca')
 def eca():
-    runs = ecadb.runs_after_run(redis, 0)      
+    runs = ecadb.runs_after_run(0)      
     return render_template('eca.html', runs=runs)
  
 @app.route('/eca_run_detail')
@@ -504,7 +501,7 @@ def eca_status_detail(run_type, run_number):
         if result == pow(2,offset):
             return 1
 
-    run_status = int(ecadb.get_run_status(redis, run_number))
+    run_status = int(ecadb.get_run_status(run_number))
 
     if run_type == 'PDST': 
         return render_template('eca_status_detail_PDST.html',
@@ -518,9 +515,6 @@ def eca_status_detail(run_type, run_number):
 @app.route('/pcatellie', methods=['GET'])
 def pcatellie():
     
-    def timefmt(time_string):
-        return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(float(time_string)))
-    
     def boolfmt(bool_string):
         bool_value = bool_string == '1'
         return "Pass" if not bool_value else "Fail"
@@ -531,7 +525,7 @@ def pcatellie():
     
     start_run = request.args.get("start_run", 0)
     installed_only = request.args.get("installed_only", False)    
-    runs = pcadb.runs_after_run(redis, start_run)
+    runs = pcadb.runs_after_run(start_run)
     # Deal with expired runs
     runs = [run for run in runs if (len(run) > 0)]      
     fibers = list()
@@ -556,7 +550,6 @@ def pcatellie():
        
     return render_template('pcatellie.html',
                            runs=runs,
-                           timefmt=timefmt,
                            boolfmt=boolfmt,
                            boolclass=boolclass,
                            fibers=fibers,
