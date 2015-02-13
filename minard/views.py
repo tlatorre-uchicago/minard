@@ -557,6 +557,7 @@ def eca_run_detail(run_type, run_number):
 @app.route('/eca_status_detail')
 @app.route('/eca_status_detail/<run_type>/<run_number>')
 def eca_status_detail(run_type, run_number):
+    run_number = int(run_number)
 
     def statusfmt(status_int):
         if status_int == 1:
