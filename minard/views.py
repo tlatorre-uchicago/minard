@@ -63,8 +63,6 @@ redis = Redis()
 
 PROGRAMS = [Program('builder','builder1.sp.snolab.ca',
                     description="event builder"),
-            Program('dispatch','builder1.sp.snolab.ca',
-                    description="event dispatcher"),
             Program('L2-client','buffer1.sp.snolab.ca',
                     description="L2 processor"),
             Program('L2-convert','buffer1.sp.snolab.ca',
