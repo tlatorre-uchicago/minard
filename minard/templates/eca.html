@@ -7,7 +7,7 @@
     {{ super() }}
 
     <div class="container">
-    <table class="table table-bordered table-condensed table-striped">
+    <table class="table table-hover">
             <thead>
                 <tr>
                     <th>Run Number</th>
@@ -18,21 +18,28 @@
                 </tr>
             </thead>
             <tbody>
-                {% for run in runs %}
-                <tr class= "{{ statusclass(parse_status(run["run_status"], run["run_type"]) ) }}">
-                <!--tr class="{{ "danger" }}"-->
+                {% for run in runs if run %}
+		    {% if run['run_status']|int > 0 %}
+			<tr class="danger">
+		    {% else %}
+			<tr class="success">
+		    {% endif %}
+
                     <td><a href="{{ url_for('eca_run_detail',run_type=run["run_type"],run_number = run["run_number"]) }}">{{ run["run_number"] }}</a></td>
-                    <td>{{ timefmt(run["run_time"]) }}</td>
-                    <td>{{ timefmt(run["analyze_time"]) }}</td>
+                    <td>{{ run["run_time"]|timefmt }}</td>
+                    <td>{{ run["analyze_time"]|timefmt }}</td>
                     <td>{{ run["run_type"] }}</td>
-                    <td><a href= "{{url_for('eca_status_detail', run_type=run["run_type"],run_number=run["run_number"]) }}">{{ statusfmt(parse_status(run["run_status"], run["run_type"])) }}</a></td>
+                    <td><a href= "{{url_for('eca_status_detail', run_type=run["run_type"],run_number=run["run_number"]) }}">
+		    {% if run['run_status']|int > 0 %}
+			Fail
+		    {% else %}
+			Pass
+		    {% endif %}
+		    </a></td>
                 </tr>
                 {% endfor %}
             </tbody>
     </table>
    </div>
-
-
-
 
 {% endblock %}
