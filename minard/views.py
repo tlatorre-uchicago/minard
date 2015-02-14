@@ -539,6 +539,8 @@ def eca():
             return "warning"
 
     runs = ecadb.runs_after_run(redis, 0)      
+    # Deal with expired runs
+    runs = [run for run in runs if (len(run) > 0)]      
  
     return render_template('eca.html',
                             runs=runs,

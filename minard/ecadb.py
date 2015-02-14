@@ -52,7 +52,7 @@ def get_run_status(redis, runnum):
     Returns run status for specific run by run number
     Requires Redis instance, and run number.
     '''
-    return redis.hget("eca-run-%i" % runnum, "run_status")
+    return redis.hget("eca-run-%i" % int(runnum), "run_status")
 
 def del_run_from_db(redis, run_number):
     '''
