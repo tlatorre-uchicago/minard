@@ -12,9 +12,6 @@ import requests
 from collections import deque, namedtuple
 from timeseries import get_timeseries, get_interval, get_hash_timeseries
 from timeseries import get_timeseries_field, get_hash_interval
-import random
-import operator
-from collections import defaultdict
 import numpy as np
 from math import isnan
 
@@ -63,10 +60,6 @@ redis = Redis()
 
 PROGRAMS = [Program('builder','builder1.sp.snolab.ca',
                     description="event builder"),
-            Program('dispatch','builder1.sp.snolab.ca',
-                    description="event dispatcher"),
-            Program('L2-server','builder1.sp.snolab.ca',
-                    description="builder -> buffer transfer"),
             Program('L2-client','buffer1.sp.snolab.ca',
                     description="L2 processor"),
             Program('L2-convert','buffer1.sp.snolab.ca',
@@ -87,6 +80,10 @@ PROGRAMS = [Program('builder','builder1.sp.snolab.ca',
             Program('ECA','nino.physics.berkeley.edu',
                     link='http://snopluspmts.physics.berkeley.edu/eca',
                     description="monitor ECA data")]
+
+@app.template_filter('timefmt')
+def timefmt(timestamp):
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(float(timestamp)))
 
 @app.route('/status')
 def status():
@@ -471,98 +468,17 @@ def metric():
 @app.route('/eca')
 def eca():
 
-    def timefmt(time_string):
-        return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(float(time_string)))
-
-    def testBit(word, offset):
-        int_type = int(word)
-        offset = int(offset)
-        mask = 1 << offset
-        result = int_type & mask
-        if result == 0:
-            return 0
-        if result == pow(2,offset):
-            return 1
-
-    def parse_status(run_status, run_type):
-        #currently set run to fail if there is at least 1 bad bit in the status
-        #this will need to be updated to actually check status flags 
-        #some flags are worse than others
-        #requirements will be different for ped and tslope runs
-        if run_type == 'PDST':
-            allflagsareok=True
-            for bit in range(0,32):
-                thisbit = testBit(run_status,bit)
-                if thisbit == 1:
-                    allflagsareok = False
-                    break
-
-            if allflagsareok:
-                return 1
-            else:
-                return 0  
-
-        if run_type == 'TSLP':
-            allflagsareok=True
-            for bit in range(0,32):
-                thisbit = testBit(run_status,bit)
-                if thisbit == 1:
-                    allflagsareok = False
-                    break
-
-            if allflagsareok:
-                return 1
-            else:
-                return 0  
-
-    def statusfmt(status_int):
-        '''
-        Returns overall run status as either 'Fail', 'Pass', or 'OK'. 
-        Pass: run was good, operator can move to the next run.
-        Fail: data is bad. Run should definitely be retaken.
-        OK: data is useable, some noncritical flags were raised.
-        Operator should repeat the run if time allows.
-        '''
-        if status_int == 0:
-            return 'Fail'
-        if status_int == 1:
-            return 'Pass'
-        if status_int == 2:
-            return 'OK'
-    
-    def statusclass(status_int):
-        if status_int == 0:
-            return "danger"
-        if status_int == 1:
-            return "success"
-        if status_int == 2:
-            return "warning"
-
-    runs = ecadb.runs_after_run(redis, 0)      
-    # Deal with expired runs
-    runs = [run for run in runs if (len(run) > 0)]      
+    runs = ecadb.runs_after_run(0)      
+    return render_template('eca.html', runs=runs)
  
-    return render_template('eca.html',
-                            runs=runs,
-                            parse_status=parse_status,
-                            timefmt=timefmt,
-                            statusfmt=statusfmt,
-                            statusclass=statusclass)
+@app.route('/eca_run_detail/<run_number>')
+def eca_run_detail(run_number):
+    run_type = redis.hget('eca-run-%i' % int(run_number),'run_type')
+    return render_template('eca_run_detail_%s.html' % run_type, run_number=run_number)      
 
- 
-@app.route('/eca_run_detail')
-@app.route('/eca_run_detail/<run_type>/<run_number>')
-def eca_run_detail(run_type, run_number):
-    if run_type == 'PDST': 
-        return render_template('eca_run_detail_PDST.html',
-                            run_type=run_type, run_number=run_number)      
-    if run_type == 'TSLP': 
-        return render_template('eca_run_detail_TSLP.html',
-                            run_type=run_type, run_number=run_number)      
-
-@app.route('/eca_status_detail')
-@app.route('/eca_status_detail/<run_type>/<run_number>')
-def eca_status_detail(run_type, run_number):
+@app.route('/eca_status_detail/<run_number>')
+def eca_status_detail(run_number):
+    run_type = redis.hget('eca-run-%i' % int(run_number),'run_type')
 
     def statusfmt(status_int):
         if status_int == 1:
@@ -580,22 +496,13 @@ def eca_status_detail(run_type, run_number):
         if result == pow(2,offset):
             return 1
 
-    run_status = int(ecadb.get_run_status(redis, run_number))
+    run_status = int(ecadb.get_run_status(run_number))
 
-    if run_type == 'PDST': 
-        return render_template('eca_status_detail_PDST.html',
-                            run_type=run_type, run_number=run_number,statusfmt=statusfmt,testBit=testBit,run_status=run_status)      
-    if run_type == 'TSLP': 
-        return render_template('eca_status_detail_TSLP.html',
-                            run_type=run_type, run_number=run_number,statusfmt=statusfmt,testBit=testBit,run_status=run_status)      
-
-
+    return render_template('eca_status_detail_%s.html' % run_type,
+			    run_number=run_number,statusfmt=statusfmt,testBit=testBit,run_status=run_status)      
 
 @app.route('/pcatellie', methods=['GET'])
 def pcatellie():
-    
-    def timefmt(time_string):
-        return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(float(time_string)))
     
     def boolfmt(bool_string):
         bool_value = bool_string == '1'
@@ -607,7 +514,7 @@ def pcatellie():
     
     start_run = request.args.get("start_run", 0)
     installed_only = request.args.get("installed_only", False)    
-    runs = pcadb.runs_after_run(redis, start_run)
+    runs = pcadb.runs_after_run(start_run)
     # Deal with expired runs
     runs = [run for run in runs if (len(run) > 0)]      
     fibers = list()
@@ -632,7 +539,6 @@ def pcatellie():
        
     return render_template('pcatellie.html',
                            runs=runs,
-                           timefmt=timefmt,
                            boolfmt=boolfmt,
                            boolclass=boolclass,
                            fibers=fibers,

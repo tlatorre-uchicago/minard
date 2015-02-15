@@ -13,7 +13,7 @@ The INSTALL script will:
     * create a virtual environment in `/opt/minard`
     * install/update minard
     * install/update disp
-    * create users `gunicorn`, `spmon`, `nginx`
+    * create users `gunicorn`, `minard`, `nginx`
     * set up init scripts and configuration files for gunicorn, redis, and nginx
 
 
