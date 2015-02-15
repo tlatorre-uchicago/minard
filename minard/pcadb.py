@@ -36,7 +36,7 @@ FIBER_POSITION = [
     [24, 24, 'A', False, False, 'BULK', ''],
     [25, 25, 'A', False, False, 'BULK', ''],
     [26, 28, 'A', True, False, 'BULK', ''],
-    [27, 27, 'A', False, False, 'BULK', ''],
+    [27, 27, 'A', True, False, 'BULK', ''],
     [28, 26, 'A', True, False, 'BULK', ''],
     [29, 29, 'A', False, False, 'BULK', ''],
     [30, 30, 'A', False, False, 'BULK', ''],
