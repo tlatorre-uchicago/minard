@@ -29,7 +29,7 @@ def main():
     # Write the details to the DB,
     # start by building the hash
     eca_run_info = {
-        'run_number': 8523,
+        'run_number': 8525,
         'analyze_time': now,
         'run_time': run_time,
         'run_status': 0,
