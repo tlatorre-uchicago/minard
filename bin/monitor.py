@@ -132,7 +132,6 @@ def set_up_root_logger(host, name, auth=None):
     root_logger.setLevel(logging.DEBUG)
 
 if __name__ == '__main__':
-    import getpass
     import sys
     import optparse
     import sys
@@ -153,9 +152,8 @@ if __name__ == '__main__':
         host = 'localhost:50000'
         auth = None
     else:
-        host = 'snopl.us'
-        passwd = getpass.getpass()
-        auth = 'snoplus', passwd
+        host = 'minard.sp.snolab.ca'
+        auth = None
 
     post_heartbeat(host, name, auth)
     set_up_root_logger(host, name, auth)
