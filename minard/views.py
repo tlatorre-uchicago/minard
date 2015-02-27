@@ -71,11 +71,9 @@ PROGRAMS = [Program('builder','builder1', description="event builder"),
                     description="buffer -> grid transfer"),
             Program('builder_delete', 'buffer1',
                     description="builder deletion script"),
-            Program('PCA','nlug',
-                    link='http://snopluspmts.physics.berkeley.edu/pca',
+            Program('PCA','nlug', link='snopl.us/monitoring/pcatellie',
                     description="monitor PCA data"),
-            Program('ECA','nlug',
-                    link='http://snopluspmts.physics.berkeley.edu/eca',
+            Program('ECA','nlug', link='snopl.us/monitoring/eca',
                     description="monitor ECA data")]
 
 @app.template_filter('timefmt')
