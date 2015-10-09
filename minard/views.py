@@ -73,7 +73,12 @@ PROGRAMS = [Program('builder','builder1', description="event builder"),
                     description="builder deletion script"),
             Program('PCA','nlug', link='pcatellie',
 		    description="monitor PCA data"),
-            Program('ECA','nlug', link='eca', description="monitor ECA data")]
+            Program('ECA','nlug', link='eca', description="monitor ECA data"),
+            Program('mtc','sbc', description="mtc server"),
+            Program('data','daq1', description="data stream server"),
+            Program('xl3','daq1', description="xl3 server"),
+            Program('log','minard', description="log server")
+]
 
 @app.template_filter('timefmt')
 def timefmt(timestamp):
