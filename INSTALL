@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e; sudo -v || exit
 
+PATH=/usr/local/bin:$PATH
+
 check_install () {
     for prog in $@
     do

@@ -7,8 +7,8 @@
 # description: redis daemon
 
 REDISPORT=6379
-EXEC=redis-server
-CLIEXEC=redis-cli
+EXEC=/usr/local/bin/redis-server
+CLIEXEC=/usr/local/bin/redis-cli
 
 PIDFILE=/var/run/redis_${REDISPORT}.pid
 CONF="/etc/redis/${REDISPORT}.conf"
