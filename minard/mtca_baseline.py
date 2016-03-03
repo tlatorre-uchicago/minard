@@ -103,5 +103,5 @@ if __name__ == '__main__':
         sys.stderr = devNull
     PutBaselinesInDatabase()
     while(args.loop_forever):
-        time.sleep(1)
+        time.sleep(0.5)
         PutBaselinesInDatabase()
