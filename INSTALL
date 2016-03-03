@@ -27,7 +27,7 @@ add_service () {
     fi
 }
     
-check_install git virtualenv gcc nginx ntpd redis-server
+check_install git virtualenv gcc nginx ntpd redis-server snotdaq-utils
 
 if [ -f /etc/debian_version ]; then
     supervisord_init=supervisord_debian
