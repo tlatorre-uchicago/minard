@@ -1,18 +1,30 @@
 from minard.timeseries import INTERVALS, EXPIRE
 from redis import Redis
 from snotdaq import MTC, Logger
-import time, argparse
+import time, argparse, os,sys
 #The objective here is to retrieve and store baseline values into a redis db
 parser = argparse.ArgumentParser()
 parser.add_argument("--mtc-server",
 help="Set the IP of the MTC server whence the baselines can be retrieved. Default = sbc.snolab.ca",
 type=str,default='sbc.sp.snolab.ca')
+parser.add_argument("--enable-logging",help="Enables sending errors to log server",
+action="store_true")
 parser.add_argument("--log-server",help="Set the IP of the log server. Default = daq1.sbc.snolab.ca",
 type=str,default="daq1.sp.snolab.ca")
 parser.add_argument("--log-port",help="Set the port the log server is at. Default = 4001",
 type=int,default=4001)
+parser.add_argument("--loop-forever",help="Loops infinitely with 1 second frequency",
+action="store_true")
+parser.add_argument("--daemonize",help="Runs in background",
+action="store_true")
 args = parser.parse_args()
-logger = Logger("BaselineMonitor",args.log_server,args.log_port)
+if args.enable_logging:
+    logger = Logger("BaselineMonitor",args.log_server,args.log_port)
+else:
+    logger = False;
+def OptLog(priority,s):
+    if logger:
+        logger.log(priority,s)
 class mtca_baselines:
     def __init__(self):
 
@@ -35,7 +47,7 @@ class mtca_baselines:
         try:
             val = int(reply)
         except ValueError:
-            logger.log(2,"Could not get baselines")
+            OptLog(2,"Could not get baselines")
             return
         return self.convertCorrectionToDrift(val)
         #I think this should be float(reply) actually but idk
@@ -61,9 +73,8 @@ def PutBaselinesInDatabase():
     try:
         Baselines = mtca_baselines()
     except:
-        logger.log(2,"Could not connect to MTC")
+        OptLog(2,"Could not connect to MTC")
         return
-    #TODO throw an error if connection failed
     for interval in INTERVALS:
         p.incrby('ts:%i:%i:baseline-count' % (interval,now//interval),1)
         p.expire('ts:%i:%i:baseline-count' % (interval,now//interval),interval*EXPIRE);
@@ -75,4 +86,22 @@ def PutBaselinesInDatabase():
         Baselines.flush()
 
 if __name__ == '__main__':
+    if args.daemonize:
+        try:
+            pid = os.fork()
+            if pid>0:
+                #kill the parent
+                sys.exit(0)
+        except OSError,e:
+            sys.stderr.write("Failed to create fork: %d (%s)\n" %(e.errno,e.strerror))
+            sys.exit(1)
+        os.chdir("/")
+        os.setsid()
+        os.umask(0)
+        devNull = open(os.devnull,'w')
+        sys.stdout = devNull
+        sys.stderr = devNull
     PutBaselinesInDatabase()
+    while(args.loop_forever):
+        time.sleep(1)
+        PutBaselinesInDatabase()
