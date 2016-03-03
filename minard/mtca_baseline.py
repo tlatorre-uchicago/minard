@@ -1,10 +1,20 @@
 from minard.timeseries import INTERVALS, EXPIRE
 from redis import Redis
-from snotdaq import MTC
+from snotdaq import MTC, Logger
 import time, argparse
 #The objective here is to retrieve and store baseline values into a redis db
+parser = argparse.ArgumentParser()
+parser.add_argument("--mtc-server",
+help="Set the IP of the MTC server whence the baselines can be retrieved. Default = sbc.snolab.ca",
+type=str,default='sbc.sp.snolab.ca')
+parser.add_argument("--log-server",help="Set the IP of the log server. Default = daq1.sbc.snolab.ca",
+type=str,default="daq1.sp.snolab.ca")
+parser.add_argument("--log-port",help="Set the port the log server is at. Default = 4001",
+type=int,default=4001)
+args = parser.parse_args()
+logger = Logger("BaselineMonitor",args.log_server,args.log_port)
 class mtca_baselines:
-    def __init__(self,IP):
+    def __init__(self):
 
         self.DBToMTC = {"100H":"N100HI","100M":"N100MED","100L":"N100HI",
         "20":"N20","20LB":"N20LB","ESUMH":"ESUMHI","ESUML":"ESUMLO",
@@ -12,7 +22,7 @@ class mtca_baselines:
         self.baselines = {"100H":None,"100M":None,"100L":None,"20":None,
         "20LB":None,"ESUMH":None,"ESUML":None,"OWLEL":None,"OWLEH":None,
         "OWLN":None};
-        self.mtc = MTC(IP) #Connect to MTC server
+        self.mtc = MTC(parser.mtc_server) #Connect to MTC server
         self.ConversionFactor = -0.5 #TODO empircally determine this value
     def empty(self):
         for key in self.baselines:
@@ -25,7 +35,7 @@ class mtca_baselines:
         try:
             val = int(reply)
         except ValueError:
-            print "Could not get baselines"
+            logger.log(2,"Could not get baselines")
             return
         return self.convertCorrectionToDrift(val)
         #I think this should be float(reply) actually but idk
@@ -44,11 +54,15 @@ class mtca_baselines:
             for key in self.baselines:
                 yield (key,self.getBaseline(key))
 
-def PutBaselinesInDatabase(IP):
+def PutBaselinesInDatabase():
     redis = Redis()
     p = redis.pipeline()
     now = int(time.time())
-    Baselines = mtca_baselines(IP)
+    try:
+        Baselines = mtca_baselines()
+    except:
+        logger.log(2,"Could not connect to MTC")
+        return
     #TODO throw an error if connection failed
     for interval in INTERVALS:
         p.incrby('ts:%i:%i:baseline-count' % (interval,now//interval),1)
@@ -61,10 +75,4 @@ def PutBaselinesInDatabase(IP):
         Baselines.flush()
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--mtcIP",
-    help="Set the IP of the MTC server whence the baselines can be retrieved",
-    type=str)
-    args = parser.parse_args()
-    IP = args.mtcIP if args.mtcIP else 'sbc.sp.snolab.ca'
-    PutBaselinesInDatabase(IP)
+    PutBaselinesInDatabase()
