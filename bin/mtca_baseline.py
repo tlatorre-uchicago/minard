@@ -33,9 +33,9 @@ def OptLog(priority,s):
 class mtca_baselines:
     def __init__(self):
 
-        self.DBToMTC = {"100H":"N100HI","100M":"N100MED","100L":"N100HI",
+        self.DBToMTC = {"100H":"N100HI","100M":"N100MED","100L":"N100LO",
         "20":"N20","20LB":"N20LB","ESUMH":"ESUMHI","ESUML":"ESUMLO",
-        "OWLEH":"OWLEHI","OWLEL":"OWLEHI","OWLN":"OWLN"}
+        "OWLEH":"OWLEHI","OWLEL":"OWLELO","OWLN":"OWLN"}
         self.baselines = {"100H":None,"100M":None,"100L":None,"20":None,
         "20LB":None,"ESUMH":None,"ESUML":None,"OWLEL":None,"OWLEH":None,
         "OWLN":None};
@@ -65,7 +65,7 @@ class mtca_baselines:
             This function uses a calibrated value to convert from correction
             applied to baseline value.
             The conversion is a simple linear scaling"""
-        return self.ConversionFactor*correction/1000.0
+        return self.ConversionFactor*correction
     def items(self):
         if self.empty():
             for key in self.baselines:
