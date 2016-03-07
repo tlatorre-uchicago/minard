@@ -13,7 +13,7 @@ parser.add_argument("--log-server",help="Set the IP of the log server. Default =
 type=str,default="daq1.sp.snolab.ca")
 parser.add_argument("--log-port",help="Set the port the log server is at. Default = 4001",
 type=int,default=4001)
-parser.add_argument("--loop-forever",help="Loops infinitely with 1 second frequency",
+parser.add_argument("--loop-forever",help="Loops infinitely with 0.5 second period",
 action="store_true")
 parser.add_argument("--daemonize",help="Runs in background",
 action="store_true")
