@@ -169,6 +169,9 @@ sudo cp etc/$redis_conf /etc/redis/6379.conf
 # add redis service
 add_service redis_6379
 
+# add baseline_monitor
+sudo cp init/baseline_monitor /etc/init.d/baseline_monitor
+add_service baseline_monitor
 # echo commands from here
 set -x
 
@@ -177,3 +180,4 @@ sudo /etc/init.d/redis_6379 start
 sudo /etc/init.d/nginx restart
 sudo /etc/init.d/gunicorn restart
 sudo /etc/init.d/supervisord restart
+sudo /etc/init.d/baseline_monitor restart

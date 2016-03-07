@@ -1,7 +1,12 @@
+#!/usr/bin/env python
+import time, argparse, os,sys
 from minard.timeseries import INTERVALS, EXPIRE
 from redis import Redis
-from snotdaq import MTC, Logger
-import time, argparse, os,sys
+try:
+	from snotdaq import MTC, Logger
+except ImportError:
+	sys.path.append('/usr/local/lib/python2.6/site-packages/')
+	from snotdaq import MTC, Logger
 #The objective here is to retrieve and store baseline values into a redis db
 parser = argparse.ArgumentParser()
 parser.add_argument("--mtc-server",
