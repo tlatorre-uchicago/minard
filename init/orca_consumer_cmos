@@ -12,7 +12,7 @@ WORKERS=2
 
 case $1 in
     start)
-	for $i in `seq 1 $WORKERS`;
+	for $i in `seq 1 $WORKERS`; do
 	    LOGFILE=/var/log/minard/orca_consumer_cmos_$i.log
 	    daemon --user=$USER --check=$EXEC "nohup $EXEC > $LOGFILE 2>&1 &"
 	done
