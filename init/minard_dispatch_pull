@@ -12,9 +12,10 @@ WORKERS=4
 
 case $1 in
     start)
-	for $i in `seq 1 $WORKERS`; do
+	for i in `seq 1 $WORKERS`; do
 	    LOGFILE=/var/log/minard/minard_dispatch_pull_$i.log
 	    daemon --user=$USER --check=$EXEC "nohup $EXEC > $LOGFILE 2>&1 &"
+	    echo
 	done
 	;;
     stop)
@@ -26,6 +27,6 @@ case $1 in
 	$0 start
     ;;
     *)
-    echo "usage: $0 [start|stop|restart]
+    echo "usage: $0 [start|stop|restart]"
     ;;
 esac
