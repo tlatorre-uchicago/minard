@@ -3,3 +3,6 @@
 *.zip
 *.tar.gz
 doc/_build
+build
+dist
+minard.egg-info
