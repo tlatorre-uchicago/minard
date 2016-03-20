@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+from __future__ import print_function
+from minard.dispatch import push
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Process SNO+ events from a dispatch stream')
+    parser.add_argument('--host', default='builder1.sp.snolab.ca', help='hostname of the dispatcher')
+    args = parser.parse_args()
+
+    push(args.host)
