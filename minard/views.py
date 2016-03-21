@@ -203,12 +203,12 @@ def supervisor(path=None):
     resp = requests.get('http://127.0.0.1:9001' + request.full_path[11:])
     return resp.content, resp.status_code, resp.headers.items()
 
-@app.route('/doc/')
-@app.route('/doc/<filename>')
-@app.route('/doc/<dir>/<filename>')
-@app.route('/doc/<dir>/<subdir>/<filename>')
-def doc(dir='', subdir='', filename='index.html'):
-    path = join('doc', dir, subdir, filename)
+@app.route('/docs/')
+@app.route('/docs/<filename>')
+@app.route('/docs/<dir>/<filename>')
+@app.route('/docs/<dir>/<subdir>/<filename>')
+def docs(dir='', subdir='', filename='index.html'):
+    path = join('docs', dir, subdir, filename)
     return app.send_static_file(path)
 
 @app.route('/snostream')

@@ -6,3 +6,4 @@ docs/_build
 build
 dist
 minard.egg-info
+minard/static/docs
