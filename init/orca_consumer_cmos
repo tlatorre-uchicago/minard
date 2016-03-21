@@ -13,6 +13,7 @@ WORKERS=2
 case $1 in
     start)
 	for i in `seq 1 $WORKERS`; do
+	    echo -n "starting $EXEC"
 	    LOGFILE=/var/log/minard/orca_consumer_cmos_$i.log
 	    daemon --user=$USER --check=$EXEC "nohup $EXEC > $LOGFILE 2>&1 &"
 	    echo
@@ -25,8 +26,8 @@ case $1 in
 	$0 stop
 	sleep 1
 	$0 start
-    ;;
+	;;
     *)
-    echo "usage: $0 [start|stop|restart]"
-    ;;
+	echo "usage: $0 [start|stop|restart]"
+	;;
 esac
