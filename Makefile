@@ -13,6 +13,10 @@ build:
 
 install: /opt/minard/bin/activate
 	/opt/minard/bin/pip install .
+	mkdir -p /var/www/minard
+	# copy static files to /var/www/minard so that nginx
+	# can serve them instead of flask
+	cp -r minard/static /var/www/minard
 	$(INSTALL) init/gunicorn /etc/init.d/
 	$(INSTALL) init/gunicorn_snoplus_log /etc/init.d/
 	$(INSTALL) init/minard_dispatch_push /etc/init.d/
