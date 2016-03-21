@@ -6,7 +6,7 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='Process SNO+ events from a dispatch stream')
-    parser.add_argument('--host', default='builder1.sp.snolab.ca', help='hostname of the dispatcher')
+    parser.add_argument('--host', default='minard.sp.snolab.ca', help='hostname of the dispatcher')
     args = parser.parse_args()
 
     push(args.host)
