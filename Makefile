@@ -8,6 +8,9 @@ INSTALL=install
 build:
 	./setup.py build
 
+docs:
+	$(MAKE) -C docs html
+
 /opt/minard/bin/activate:
 	virtualenv --system-site-packages /opt/minard
 
@@ -35,4 +38,4 @@ install: /opt/minard/bin/activate
 	chkconfig orca_consumer_cmos on
 	chkconfig orca_consumer_base on
 
-.PHONY: install build
+.PHONY: install build docs
