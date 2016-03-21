@@ -2,7 +2,7 @@
 *.swp
 *.zip
 *.tar.gz
-doc/_build
+docs/_build
 build
 dist
 minard.egg-info
