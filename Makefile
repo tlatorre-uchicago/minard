@@ -8,7 +8,10 @@ INSTALL=install
 build:
 	./setup.py build
 
-install:
+/opt/minard/bin/activate:
+	virtualenv --system-site-packages /opt/minard
+
+install: /opt/minard/bin/activate
 	/opt/minard/bin/python setup.py install
 	$(INSTALL) init/gunicorn /etc/init.d/
 	$(INSTALL) init/gunicorn_snoplus_log /etc/init.d/
