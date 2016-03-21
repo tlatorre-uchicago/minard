@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# /etc/rc.d/mtca_baseline: start/stop mtca_baseline querying
+#
+
+case $1 in
+start)
+        python /usr/local/bin/mtca_baseline.py --daemonize --loop-forever --enable-logging
+        ;;
+stop)
+        pkill -f /usr/local/bin/mtca_baseline.py
+        ;;
+restart)
+        $0 stop
+        sleep 2
+        $0 start
+        ;;
+*)
+        echo "usage: $0 [start|stop|restart]"
+        ;;
+esac
