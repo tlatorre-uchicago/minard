@@ -10,11 +10,12 @@ build:
 
 docs:
 	$(MAKE) -C docs html
+	cp -r docs/_build/html minard/static/docs
 
 /opt/minard/bin/activate:
 	virtualenv --system-site-packages /opt/minard
 
-install: /opt/minard/bin/activate
+install: /opt/minard/bin/activate docs
 	/opt/minard/bin/pip install .
 	# need to install gunicorn in virtual environment so that the
 	# script /opt/minard/bin/gunicorn exists
