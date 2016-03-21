@@ -36,16 +36,13 @@ class ReverseProxied(object):
             environ['wsgi.url_scheme'] = scheme
         return self.app(environ, start_response)
 
-STATIC_FOLDER = join(sys.prefix,'www/static')
-TEMPLATE_FOLDER = join(sys.prefix,'www/templates')
 SECRET_KEY = "=S\t3w>zKIVy0n]b1h,<%|@EHBgfRJQ;A\rLC'[\x0blPF!` ai}/4W"
 PROJECT_NAME = 'minard'
 
-app = Flask(__name__, static_folder=STATIC_FOLDER, template_folder=TEMPLATE_FOLDER)
+app = Flask(__name__)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
-if exists('/etc/minard.conf'):
-    app.config.from_pyfile('/etc/minard.conf')
+app.config.from_envvar('MINARD_SETTINGS', silent=True)
 
 app.debug=False
 if not app.debug:

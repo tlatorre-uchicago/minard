@@ -3,12 +3,13 @@ from setuptools import setup
 from glob import glob
 
 setup(name='minard',
-      version='0.3',
+      version='1.0',
       description='Web App Monitoring Tools',
       author='Anthony LaTorre',
       author_email='tlatorre@uchicago.edu',
       url='snopl.us',
       packages=['minard','snoplus_log'],
+      include_package_data=True,
       scripts=glob('bin/*'),
       data_files = [# static files
                     ('www/static/css',    glob('minard/static/css/*')),
@@ -21,7 +22,7 @@ setup(name='minard',
                         'gunicorn',
                         'numpy',
                         'pyzmq',
-                        'redis',
+                        'redis>=2.10',
                         'argparse',
                         'sphinx',
                         'requests',
