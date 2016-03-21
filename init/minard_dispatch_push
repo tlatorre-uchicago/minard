@@ -16,7 +16,7 @@ case $1 in
 	echo
 	;;
     stop)
-	killall $EXEC
+	pkill -f $EXEC
 	;;
     restart)
 	$0 stop

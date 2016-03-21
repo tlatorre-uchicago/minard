@@ -20,7 +20,7 @@ case $1 in
 	done
 	;;
     stop)
-	killall $EXEC
+	pkill -f $EXEC
 	;;
     restart)
 	$0 stop
