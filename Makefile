@@ -12,7 +12,7 @@ build:
 	virtualenv --system-site-packages /opt/minard
 
 install: /opt/minard/bin/activate
-	/opt/minard/bin/python setup.py install
+	/opt/minard/bin/pip install .
 	$(INSTALL) init/gunicorn /etc/init.d/
 	$(INSTALL) init/gunicorn_snoplus_log /etc/init.d/
 	$(INSTALL) init/minard_dispatch_push /etc/init.d/
