@@ -15,7 +15,7 @@ docs:
 /opt/minard/bin/activate:
 	virtualenv --system-site-packages /opt/minard
 
-install: /opt/minard/bin/activate docs
+install: /opt/minard/bin/activate
 	/opt/minard/bin/pip install .
 	# need to install gunicorn in virtual environment so that the
 	# script /opt/minard/bin/gunicorn exists
@@ -31,6 +31,7 @@ install: /opt/minard/bin/activate docs
 	$(INSTALL) init/orca_producer /etc/init.d/
 	$(INSTALL) init/orca_consumer_cmos /etc/init.d/
 	$(INSTALL) init/orca_consumer_base /etc/init.d/
+	$(INSTALL) init/baseline_monitor /etc/init.d/
 	chkconfig gunicorn on
 	chkconfig gunicorn_snoplus_log on
 	chkconfig minard_dispatch_push on
@@ -38,5 +39,6 @@ install: /opt/minard/bin/activate docs
 	chkconfig orca_producer on
 	chkconfig orca_consumer_cmos on
 	chkconfig orca_consumer_base on
+	chkconfig baseline_monitor on
 
 .PHONY: install build docs
