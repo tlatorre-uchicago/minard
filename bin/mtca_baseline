@@ -6,6 +6,7 @@ import time, os, sys
 from minard.timeseries import INTERVALS, EXPIRE
 from redis import Redis
 from snotdaq import MTC, Logger
+from functools import wraps
 
 log = Logger()
 
@@ -20,6 +21,41 @@ DBToMTC = {"100H":"N100HI","100M":"N100MED","100L":"N100LO",
 # TODO empircally determine this value
 ConversionFactor = -0.5
 
+def retry(tries=None, delay=1, backoff=2):
+    """
+    Retry a function if it throws an Exception.
+
+    tries should be the number of tries, delay is the initial delay in
+    seconds, and backoff is the factor by which the delay is multiplied
+    after each failure.
+
+    See https://wiki.python.org/moin/PythonDecoratorLibrary#Retry
+    """
+    
+    def decorator(f):
+
+	@wraps(f)
+	def wrapper(*args, **kwargs):
+	    mtries, mdelay = tries, delay
+
+	    while mtries is None or mtries > 1:
+		try:
+		    return f(*args, **kwargs)
+		except Exception as e:
+		    if mtries is not None:
+			mtries -= 1
+
+		    time.sleep(mdelay)
+
+		    mdelay *= backoff
+
+	    return f(*args, **kwargs)
+
+	return wrapper
+
+    return decorator
+
+@retry()
 def PutBaselinesInDatabase(host):
     redis = Redis()
     p = redis.pipeline()
@@ -29,7 +65,7 @@ def PutBaselinesInDatabase(host):
         mtc = MTC(host)
     except Exception as e:
         log.warn("Could not connect to MTC: %s" % str(e))
-        return
+        raise
 
     baselines = {}
     for name, mtc_name in DBToMTC.iteritems():
