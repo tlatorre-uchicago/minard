@@ -96,6 +96,16 @@ def l2():
         return redirect(url_for('l2',step=step,height=height,_external=True))
     return render_template('l2.html',step=step,height=height)
 
+@app.route('/nearline')
+@app.route('/nearline/<int:run>')
+def nearline(run=None):
+    if run is None:
+	run = int(redis.get('nearline:current_run'))
+
+    programs = redis.hgetall('nearline:%i' % run)
+
+    return render_template('nearline.html', run=run, programs=programs)
+
 @app.route('/get_l2')
 def get_l2():
     name = request.args.get('name')

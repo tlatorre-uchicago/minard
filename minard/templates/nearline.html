@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block title %}Nearline{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+	<div class="row">
+	    <div class="col-md-6 col-md-offset-3">
+		<center>
+		    <h2> Run {{ run }} </h2>
+		</center>
+		<table class="table">
+		    <thead>
+			<tr>
+			    <th>Status</th>
+			    <th>Name</th>
+			</tr>
+		    </thead>
+		    {% for program, status in programs.iteritems() %}
+		    <tr>
+			{% if status|int == 1 %}
+			<th class="danger"> Failed </th>
+			{% elif status|int == 0 %}
+			<th class="success"> Success </th>
+			{% elif status|int == 99 %}
+			<th> In Progress </th>
+			{% else %}
+			<th class="warning"> Unknown </th>
+			{% endif %}
+			<th> {{ program }} </th>
+		    </tr>
+		    {% endfor %}
+		</table>
+	    </div>
+	</div>
+    </div>
+{% endblock %}
