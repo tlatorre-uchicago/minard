@@ -38,7 +38,7 @@ def PutBaselinesInDatabase(host):
     for interval in INTERVALS:
         p.incrby('ts:%i:%i:baseline-count' % (interval,now//interval),1)
         p.expire('ts:%i:%i:baseline-count' % (interval,now//interval),interval*EXPIRE);
-        for name, baseline in baselines:
+        for name, baseline in baselines.iteritems():
             key = 'ts:%i:%i:%s' % (interval,now//interval,name+"-Baseline")
             p.incrbyfloat(key,baseline)
             p.expire(key,interval*EXPIRE)
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("host",
+    parser.add_argument("host", nargs='?',
 			help="hostname of the MTC server whence the baselines can be retrieved.",
 			default='sbc.sp.snolab.ca')
     parser.add_argument("--enable-logging",
