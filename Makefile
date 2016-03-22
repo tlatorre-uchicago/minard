@@ -17,6 +17,9 @@ docs:
 
 install: /opt/minard/bin/activate
 	/opt/minard/bin/pip install .
+	# reinstall minard with -I flag so that it reinstalls even
+	# if the version doesn't change
+	/opt/minard/bin/pip install --no-deps -I .
 	# need to install gunicorn in virtual environment so that the
 	# script /opt/minard/bin/gunicorn exists
 	/opt/minard/bin/pip install -I gunicorn
