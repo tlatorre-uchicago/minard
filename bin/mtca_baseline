@@ -99,7 +99,7 @@ if __name__ == '__main__':
     parser.add_argument("--logfile", default=None, help="filename for log file")
     parser.add_argument("--log-server",
 			help="hostname of the log server.",
-			default="daq1.sp.snolab.ca")
+			default="minard.sp.snolab.ca")
     parser.add_argument("--log-port",
 			help="Set the port the log server is at.",
 			type=int, default=4001)
