@@ -14,7 +14,7 @@ LOGFILE=/var/log/minard/mtca_baseline.log
 case $1 in
 start)
 	echo -n "starting $EXEC"
-        daemon --user=$USER $EXEC -d --enable-logging --loop-forever
+        daemon --user=$USER $EXEC -d --logfile=$LOGFILE --enable-logging --loop-forever
 	echo
         ;;
 stop)

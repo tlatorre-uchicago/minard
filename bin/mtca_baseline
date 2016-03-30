@@ -14,13 +14,6 @@ DBToMTC = {"100H":"N100HI","100M":"N100MED","100L":"N100LO",
 "20":"N20","20LB":"N20LB","ESUMH":"ESUMHI","ESUML":"ESUMLO",
 "OWLEH":"OWLEHI","OWLEL":"OWLELO","OWLN":"OWLN"}
 
-# The MTCA reads out the amount of baseline correction applied.
-# This function uses a calibrated value to convert from correction
-# applied to baseline value.
-# The conversion is a simple linear scaling
-# TODO empircally determine this value
-ConversionFactor = -0.5
-
 def retry(tries=None, delay=1, backoff=2):
     """
     Retry a function if it throws an Exception.
@@ -69,7 +62,7 @@ def PutBaselinesInDatabase(host):
 
     baselines = {}
     for name, mtc_name in DBToMTC.iteritems():
-	baselines[name] = ConversionFactor*float(mtc.send('threshmon %s' % mtc_name))
+	baselines[name] = float(mtc.send('threshmon %s' % mtc_name))/1000
 
     for interval in INTERVALS:
         p.incrby('ts:%i:%i:baseline-count' % (interval,now//interval),1)
@@ -103,6 +96,7 @@ if __name__ == '__main__':
     parser.add_argument("--enable-logging",
 			help="Enables sending errors to log server",
 			action="store_true")
+    parser.add_argument("--logfile", default=None, help="filename for log file")
     parser.add_argument("--log-server",
 			help="hostname of the log server.",
 			default="daq1.sp.snolab.ca")
@@ -124,6 +118,9 @@ if __name__ == '__main__':
 	    sys.stderr.write("Failed to create fork: %d (%s)\n" % \
 		(e.errno,e.strerror))
 	    sys.exit(1)
+
+    if args.logfile:
+	log.set_logfile(args.logfile)
 
     if args.enable_logging:
 	try:
