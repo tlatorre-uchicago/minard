@@ -15,6 +15,7 @@ from timeseries import get_timeseries_field, get_hash_interval
 import numpy as np
 from math import isnan
 
+import detector_state
 import pcadb
 import ecadb
 
@@ -87,6 +88,38 @@ def timefmt(timestamp):
 @app.route('/status')
 def status():
     return render_template('status.html', programs=PROGRAMS)
+
+@app.route('/state')
+def state():
+    try:
+        run_state = detector_state.get_run_state(574)
+    except Exception as err:
+        return render_template('state.html',err = str(err))
+        
+    detector_control_state = None
+    if run_state['detector_control'] is not None:
+        detector_control_state = detector_state.get_detector_control_state(run_state['detector_control'])
+
+    mtc_state = None
+    if run_state['mtc'] is not None:
+        mtc_state = detector_state.get_mtc_state(run_state['mtc'])
+
+    caen_state = None
+    if run_state['caen'] is not None:
+        caen_state = detector_state.get_caen_state(run_state['caen'])
+
+    crates_state =[None]*20
+    for iCrate in range(20):
+        if run_state['crate'+str(iCrate)] is not None:
+            crates_state[iCrate] = detector_state.get_crate_state(run_state['crate'+str(iCrate)])
+
+        
+    return render_template('state.html',run_state = run_state,
+                                        detector_control_state = detector_control_state,
+                                        mtc_state = mtc_state,
+                                        caen_state = caen_state,
+                                        crates_state = crates_state,
+                                        err = None)
 
 @app.route('/l2')
 def l2():
