@@ -90,9 +90,6 @@ def status():
 def state(run=None):
     import detector_state
 
-    if run is None:
-	run = detector_state.get_latest_run()
-
     try:
         run_state = detector_state.get_run_state(run)
     except Exception as err:

@@ -2,31 +2,12 @@
 import sqlalchemy
 from minard import app
 
-def get_latest_run(key_name='key'):
-    """
-    Returns the run number of the latest run to be added to the database.
-    """
-    user = app.config['DB_USER']
-    password = app.config['DB_PASS']
-    host = app.config['DB_HOST']
-    database = app.config['DB_NAME']
-
-    engine = sqlalchemy.create_engine('postgresql://%s:%s@%s/%s' % (user, password, host, database))
-
-    conn = engine.connect()
-
-    res = conn.execute("select run from run_state order by run desc limit 1")
-
-    run = res.fetchone()[0]
-
-    return run
-
 def fetch_from_table_with_key(table_name,key,key_name='key'):
     user = app.config['DB_USER']
     password = app.config['DB_PASS']
     host = app.config['DB_HOST']
     database = app.config['DB_NAME']
-
+    if key is None: key = "(SELECT max("+key_name+") FROM "+table_name+")"
     engine = sqlalchemy.create_engine('postgresql://%s:%s@%s/%s' % (user, password, host, database))
 
     try:
