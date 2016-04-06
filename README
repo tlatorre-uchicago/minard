@@ -18,6 +18,6 @@ Now, clone the minard repository, and install the prerequisites:
 
 Now, you can start up the webserver:
 
-    $ ./runserver.py
+    $ gunicorn -b 0.0.0.0:5000 minard:app
 
 And you should be able to open your web browser to localhost:5000 and see it.

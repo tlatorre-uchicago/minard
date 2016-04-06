@@ -8,14 +8,11 @@ from redis import Redis
 from os.path import join
 import json
 from tools import total_seconds, parseiso
-import requests
 from collections import deque, namedtuple
 from timeseries import get_timeseries, get_interval, get_hash_timeseries
 from timeseries import get_timeseries_field, get_hash_interval
-import numpy as np
 from math import isnan
 
-import detector_state
 import pcadb
 import ecadb
 
@@ -92,6 +89,8 @@ def status():
 @app.route('/state')
 @app.route('/state/<int:run>')
 def state(run=None):
+    import detector_state
+
     if run is None:
 	run = detector_state.get_latest_run()
 
@@ -189,6 +188,8 @@ def view_log():
 @app.route('/log', methods=['POST'])
 def log():
     """Forward a POST request to the log server at port 8081."""
+    import requests
+
     resp = requests.post('http://127.0.0.1:8081', headers=request.headers, data=request.form)
     return resp.content, resp.status_code, resp.headers.items()
 
@@ -241,15 +242,6 @@ def tail():
 @app.route('/')
 def index():
     return redirect(url_for('snostream'))
-
-@app.route('/supervisor')
-@app.route('/supervisor/<path:path>')
-def supervisor(path=None):
-    if path is None:
-        return redirect(url_for('supervisor', path='index.html'))
-
-    resp = requests.get('http://127.0.0.1:9001' + request.full_path[11:])
-    return resp.content, resp.status_code, resp.headers.items()
 
 @app.route('/docs/')
 @app.route('/docs/<filename>')
@@ -382,6 +374,8 @@ def get_alarm():
 @app.route('/owl_tubes')
 def owl_tubes():
     """Returns the time series for the sum of all upward facing OWL tubes."""
+    import numpy as np
+
     name = request.args['name']
     start = request.args.get('start', type=parseiso)
     stop = request.args.get('stop', type=parseiso)
