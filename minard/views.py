@@ -90,9 +90,13 @@ def status():
     return render_template('status.html', programs=PROGRAMS)
 
 @app.route('/state')
-def state():
+@app.route('/state/<int:run>')
+def state(run=None):
+    if run is None:
+	run = detector_state.get_latest_run()
+
     try:
-        run_state = detector_state.get_run_state(574)
+        run_state = detector_state.get_run_state(run)
     except Exception as err:
         return render_template('state.html',err = str(err))
         
@@ -114,7 +118,8 @@ def state():
             crates_state[iCrate] = detector_state.get_crate_state(run_state['crate'+str(iCrate)])
 
         
-    return render_template('state.html',run_state = run_state,
+    return render_template('state.html',run=run,
+					run_state = run_state,
                                         detector_control_state = detector_control_state,
                                         mtc_state = mtc_state,
                                         caen_state = caen_state,
