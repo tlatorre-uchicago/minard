@@ -92,6 +92,7 @@ def state(run=None):
 
     try:
         run_state = detector_state.get_run_state(run)
+        run = run_state['run']
     except Exception as err:
         return render_template('state.html',err = str(err))
         
