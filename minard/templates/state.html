@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}State{% endblock %}
+{% block title %}Detector State{% endblock %}
 {% block head %}
     {{ super() }}
 {% endblock %}
@@ -57,43 +57,7 @@
     <script src="{{ url_for('static', filename='js/crate.js') }}"></script>
     <script src="{{ url_for('static', filename='js/histogram.js') }}"></script>
     <script type="text/javascript">
-        var mtc_data = {{mtc_state |tojson |safe }};
-
-        function display_triggers(maskVal) {
-            var wordlist=[];
-            var bit_to_string ={
-                                0 :"NHIT100LO",
-                                1 :"NHIT100MED",
-                                2 :"NHIT100HI",
-                                3 :"NHIT20",
-                                4 :"NHIT20LB",
-                                5 :"ESUMLO",
-                                6 :"ESUMHI",
-                                7 :"OWLN",
-                                8 :"OWLELO",
-                                9 :"OWLEHI",
-                                10:"PULSE_GT",
-                                11:"PRESCALE",
-                                12:"PEDESTAL",
-                                13:"PONG",
-                                14:"SYNC",
-                                15:"EXT_ASYNC",
-                                16:"EXT2",
-                                17:"EXT3",
-                                18:"EXT4",
-                                19:"EXT5",
-                                20:"EXT6",
-                                21:"EXT7",
-                                22:"EXT8_PULSE_ASYNC",
-                                23:"SPECIAL_RAW",
-                                24:"NCD",
-                                25:"SOFT_GT"
-                                };
-            for(i=25;i>=0;i--) {
-                if( (maskVal & 1<<i) >0){
-                    wordlist.push(bit_to_string[i]);
-                }
-            }
+        function display_triggers(wordlist) {
             var mtc = d3.select('#mtc');
             mtc.append("h3").text("Enabled Triggers");
             var trig_list = d3.select('#mtc').append('ul');
@@ -104,50 +68,16 @@
                      .text(function(d){ return d;});
         };
 
-        function display_ped_delay(coarseDelay_mask,fineDelay_mask) {
-            MIN_GT_DELAY = 18.35; //Taken from daq/src/mtc.c
-            AddelSlope = 0.1; //Taken from daq/src/mtc.c
-            var coarseDelay = ((~coarseDelay_mask)>>>0)*10;
-            var fine_delay = (fineDelay_mask & 0xFF) * AddelSlope;
-            var delay = coarseDelay + fine_delay;
+        function display_ped_delay(delay) {
             var mtc = d3.select('#mtc')
             mtc.append("h3").text("Pedestal Delay = "+ delay.toString());
 
         };
-        function display_lockout_width(lockoutMask) {
-            var lockout = (~lockoutMask) & 0xFF;
-            lockout*=20
+        function display_lockout_width(lockout) {
             var mtc = d3.select('#mtc')
             mtc.append("h3").text("Lockout Width = "+ lockout.toString());
         };
-        function display_control_reg(control_reg) {
-            var mtc = d3.select('#mtc');
-            var wordlist = [];
-            bit_to_string = {
-             0: "PED_EN",
-             1: "PULSE_EN",
-             2: "LOAD_ENPR",
-             3: "LOAD_ENPS",
-             4: "LOAD_ENPW",
-             5: "LOAD_ENLK",
-             6: "ASYNC_EN",
-             7: "RESYNC_EN",
-             8: "TESTGT",
-             9: "TEST50",
-             10: "kTEST10",
-             11: "kLOAD_ENGT",
-             12: "kLOAD_EN50",
-             13: "kLOAD_EN10",
-             14: "kTESTMEM1",
-             15: "kTESTMEM2",
-             16: "FIFO_RESET"
-            }
-            for(i=16;i>=0;i--) {
-                if( (control_reg & 1<<i) >0){
-                    wordlist.push(bit_to_string[i]);
-                }
-            }
-            console.log(wordlist);
+        function display_control_reg(wordlist) {
             mtc.append('h3').text("Control Register Values");
             var trig_list = mtc.append('ul');
             trig_list.selectAll('li')
@@ -156,10 +86,12 @@
                      .append('li')
                      .text(function(d){ return d;});
         };
-        display_triggers(mtc_data.gt_mask);
-        display_ped_delay(mtc_data.coarse_delay,mtc_data.fine_delay);
+        var mtc_data = {{mtc_state | mtc_human_readable|tojson |safe }};
+        console.log(mtc_data)
+        display_triggers(mtc_data.gt_words);
+        display_ped_delay( mtc_data.ped_delay)
         display_lockout_width(mtc_data.lockout_width)
-        display_control_reg(mtc_data.control_register);
+        display_control_reg(mtc_data.control_reg);
        </script>
 
     <script>

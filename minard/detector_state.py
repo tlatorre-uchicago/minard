@@ -1,4 +1,3 @@
-#from sqlalchemy import engine, create_engine
 import sqlalchemy
 from minard import app
 
@@ -42,3 +41,74 @@ def get_fec_state(key):
 
 def get_run_state(run):
     return fetch_from_table_with_key('run_state',run,key_name='run')
+def translate_trigger_mask(maskVal):
+    trigger_bit_to_string = [
+                                (0 ,"NHIT100LO"),
+                                (1 ,"NHIT100MED"),
+                                (2 ,"NHIT100HI"),
+                                (3 ,"NHIT20"),
+                                (4 ,"NHIT20LB"),
+                                (5 ,"ESUMLO"),
+                                (6 ,"ESUMHI"),
+                                (7 ,"OWLN"),
+                                (8 ,"OWLELO"),
+                                (9 ,"OWLEHI"),
+                                (10,"PULSE_GT"),
+                                (11,"PRESCALE"),
+                                (12,"PEDESTAL"),
+                                (13,"PONG"),
+                                (14,"SYNC"),
+                                (15,"EXT_ASYNC"),
+                                (16,"EXT2"),
+                                (17,"EXT3"),
+                                (18,"EXT4"),
+                                (19,"EXT5"),
+                                (20,"EXT6"),
+                                (21,"EXT7"),
+                                (22,"EXT8_PULSE_ASYNC"),
+                                (23,"SPECIAL_RAW"),
+                                (24,"NCD"),
+                                (25,"SOFT_GT")
+                            ]
+    triggers =  filter(lambda x: ((maskVal & 1<<x[0]) > 0),trigger_bit_to_string)
+    return map(lambda x: x[1],triggers)
+def translate_ped_delay(coarseDelay_mask,fineDelay_mask):
+    MIN_GT_DELAY = 18.35; #Taken from daq/src/mtc.c
+    AddelSlope = 0.1; #Taken from daq/src/mtc.c
+    coarseDelay = ((~coarseDelay_mask & 0xFF))*10;
+    fine_delay = (fineDelay_mask & 0xFF) * AddelSlope;
+    return coarseDelay + fine_delay;
+
+def translate_lockout_width(lockout_mask):
+    lockout = (~lockout_mask) & 0xFF;
+    return lockout*20
+def translate_control_reg(control_reg):
+    bit_to_string = [
+        (0, "PED_EN"),
+        (1, "PULSE_EN"),
+        (2, "LOAD_ENPR"),
+        (3, "LOAD_ENPS"),
+        (4, "LOAD_ENPW"),
+        (5, "LOAD_ENLK"),
+        (6, "ASYNC_EN"),
+        (7, "RESYNC_EN"),
+        (8, "TESTGT"),
+        (9, "TEST50"),
+        (10, "kTEST10"),
+        (11, "kLOAD_ENGT"),
+        (12, "kLOAD_EN50"),
+        (13, "kLOAD_EN10"),
+        (14, "kTESTMEM1"),
+        (15, "kTESTMEM2"),
+        (16, "FIFO_RESET")
+        ]
+    word_list = filter(lambda x:((control_reg & 1<<x[0]) >0), bit_to_string)
+    return map(lambda x:x[1], word_list)
+@app.template_filter('mtc_human_readable')
+def mtc_human_readable_filter(mtc):
+    ret = {}
+    ret['gt_words'] = translate_trigger_mask(mtc['gt_mask'])
+    ret['ped_delay'] = translate_ped_delay(mtc['coarse_delay'],mtc['fine_delay'])
+    ret['lockout_width'] = translate_lockout_width(mtc['lockout_width'])
+    ret['control_reg'] = translate_control_reg(mtc['control_register'])
+    return ret
