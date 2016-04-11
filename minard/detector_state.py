@@ -34,8 +34,14 @@ def get_mtc_state(key):
     return fetch_from_table_with_key('mtc',key)
 
 def get_crate_state(key):
-    return fetch_from_table_with_key('crate',key)
-
+    cards = fetch_from_table_with_key('crate',key)
+    ret={}
+    for card_num in range(16):
+        card_key = "mb%i"%card_num
+        ret[card_key] = fetch_from_table_with_key('fec',cards[card_key])
+#    for card_name,table_key  in filter(lambda x: 'mb' in x[0],cards.iteritems()):
+#        ret[card_name] = fetch_from_table_with_key('fec',table_key)
+    return ret
 def get_fec_state(key):
     return fetch_from_table_with_key('fec',key)
 
@@ -78,7 +84,6 @@ def translate_ped_delay(coarseDelay_mask,fineDelay_mask):
     coarseDelay = ((~coarseDelay_mask & 0xFF))*10;
     fine_delay = (fineDelay_mask & 0xFF) * AddelSlope;
     return coarseDelay + fine_delay;
-
 def translate_lockout_width(lockout_mask):
     lockout = (~lockout_mask) & 0xFF;
     return lockout*20
@@ -104,11 +109,27 @@ def translate_control_reg(control_reg):
         ]
     word_list = filter(lambda x:((control_reg & 1<<x[0]) >0), bit_to_string)
     return map(lambda x:x[1], word_list)
+def translate_crate_mask(mask):
+    return filter(lambda x: (mask & 1<<x) > 0,range(0,20))
+def translate_prescale(prescale):
+    return (~prescale & 0xFFFF)+1
 @app.template_filter('mtc_human_readable')
 def mtc_human_readable_filter(mtc):
     ret = {}
-    ret['gt_words'] = translate_trigger_mask(mtc['gt_mask'])
-    ret['ped_delay'] = translate_ped_delay(mtc['coarse_delay'],mtc['fine_delay'])
-    ret['lockout_width'] = translate_lockout_width(mtc['lockout_width'])
-    ret['control_reg'] = translate_control_reg(mtc['control_register'])
+    try:
+        ret['gt_words'] = translate_trigger_mask(mtc['gt_mask'])
+        ret['ped_delay'] = translate_ped_delay(mtc['coarse_delay'],mtc['fine_delay'])
+        ret['lockout_width'] = translate_lockout_width(mtc['lockout_width'])
+        ret['control_reg'] = translate_control_reg(mtc['control_register'])
+        ret['ped_crates'] = translate_crate_mask(mtc['pedestal_mask'])
+        ret['gt_crates'] = translate_crate_mask(mtc['gt_crate_mask'])
+        ret['prescale'] = translate_prescale(mtc['prescale'])
+        ret['N100_crates'] = translate_crate_mask(mtc['mtca_relays'][0])
+    except Exception:
+        return False
     return ret
+@app.template_filter('caen_human_readable')
+def caen_human_readable_filter(caen):
+    ret = {}
+    ret['post_trigger'] = caen['post_trigger']
+

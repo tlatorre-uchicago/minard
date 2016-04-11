@@ -11,51 +11,69 @@
         {% else %}
 	    <center><h1> Run {{ run }} </h1></center>
             {% if mtc_state %}
-                mtc_stuff </br>
-                <div id="mtc"></div>
+                <button data-toggle="collapse" data-target="#mtc">MTC</button>
+                <div id="mtc" class ="collapse">
                     <ul>
                     {% for key,val in mtc_state.iteritems() %}
                         <li>{{ key}} = {{val}}</li>
                     {% endfor %}
                     </ul>
+                    </div></br>
             {% endif %}
             {% if caen_state %}
+                <button data-toggle="collapse" data-target="#caen">CAEN</button>
+                <div id="caen" class="collapse" >
                 caen stuff</br>
                     <ul>
                     {% for key,val in caen_state.iteritems() %}
                         <li>{{ key}} = {{val}}</li>
                     {% endfor %}
                     </ul>
+            </div></br>
             {% endif %}
             {% if detector_control_state %}
-                    detector controll stuff </br>
+                <button data-toggle="collapse" data-target="#detector_control">Detector Control</button>
+                    <div id="detector_control" class="collapse">
                     <ul>
                     {% for key,val in detector_control_state.iteritems() %}
                         <li>{{ key}} = {{val}}</li>
                     {% endfor %}
                     </ul>
+                    </div></br>
             {% endif %}
             {% for i in range(20) %}
                  {% if crates_state[i] %}
-                    display crate {{i}} stuff
-                {% endif %}
-            {% endfor %}
-            {% if run_state %}
-                run stuff</br>
-                <ul>
-                {% for key,val in run_state.iteritems() %}
-                    <li>{{ key }} = {{val }} </li>
-                {% endfor %}
-                </ul>
+                    <button data-toggle="collapse" data-target="#crate{{i}}">Crate {{i}}</button>
+                    <div id="crate{{i}}" class="collapse crate">
+                        {% for key,val in crates_state[i].iteritems() %}
+                            <button data-toggle="collapse" data-target="#{{key}}">{{key}}</button>
+                            </br>
+                            <div id="{{key}}" class="collapse card">
+                            <ul>
+                            {% for card_key,card_val in val.iteritems() %}
+                                <li>{{card_key}} = {{card_val}}</li>
+                            {% endfor %}
+                            </div>
+                            </ul>
+                        {% endfor %}
+            </div></br>
+        {% endif %}
+    {% endfor %}
+    {% if run_state %}
+        <button data-toggle="collapse" data-target="#run">Run Info</button>
+        <div id="run" class="collapse">
+        <ul>
+        {% for key,val in run_state.iteritems() %}
+            <li>{{ key }} = {{val }} </li>
+        {% endfor %}
+        </ul>
+        <div></br>
             {% endif %}
         {% endif %}
     </div>
 {% endblock %}
 {% block script %}
-    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/colorbrewer.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/crate.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/histogram.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/d3.min.js') }}"></script>
     <script type="text/javascript">
         function display_triggers(wordlist) {
             var mtc = d3.select('#mtc');

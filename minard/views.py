@@ -113,9 +113,8 @@ def state(run=None):
         if run_state['crate'+str(iCrate)] is not None:
             crates_state[iCrate] = detector_state.get_crate_state(run_state['crate'+str(iCrate)])
 
-        
     return render_template('state.html',run=run,
-					run_state = run_state,
+                                        run_state = run_state,
                                         detector_control_state = detector_control_state,
                                         mtc_state = mtc_state,
                                         caen_state = caen_state,
