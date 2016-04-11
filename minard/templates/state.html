@@ -152,7 +152,7 @@
             var step_size = width/15;
             radius = step_size/4.0;
             var xpos_func = function(d,i) { return step_size+i*step_size; }
-            var ypos_func = function(d,i) { return height/2.0 + radius; }
+            var ypos_func = function(d,i) { return height/2.0; }
             var svg = det_cont.append("svg")
                 .attr("width",width)
                 .attr("height",height)
@@ -180,7 +180,6 @@
                 .attr("fill","white")
                 .attr("x",xpos_func)
                 .attr("y",function(d,i) { return ypos_func(d,i)+5;});
-                //.attr("y",function(d,i) {return ypos_func(d,i)-2*radius });
         }
         function display_triggers(wordlist) {
             var mtc = d3.select('#mtc');
