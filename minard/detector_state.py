@@ -128,8 +128,55 @@ def mtc_human_readable_filter(mtc):
     except Exception:
         return False
     return ret
+def translate_caen_front_panel_io_control(mask):
+    ret = {} 
+    ret["trigger_voltage_level"] = "TTL" if (mask & 1) >0 else "NIM"
+    ret["high_impedance_output"] = (mask & 1<<1) > 0
+    ret["lvds_input"] = [(mask & 1<<i) > 0 for i in range(2,6)]
+    bit_6 = (mask & i <<6)>0
+    bit_7 = (mask & i <<7)>0
+    ret["lvds_mode"] = "Programmed IO" if bit_6 else "Pattern" if bit_7 else "General Purpose"
+    ret["trig_out_logic_level"] = 1 if (mask & i<<14) >0 else 0
+    ret["io_test_mode"] = (mask & i<<15) >0
+    return ret
+def translate_caen_acquisition_control(mask):
+    ret = {}
+    bit_0 = (mask & 1) >0
+    bit_1 = (mask & 1<<1) >0
+    if bit_0:
+        ret["acquisition_mode"] = "Multi-board sync" if bit_1 else "S-IN Controlled Run"
+    else:
+        ret["acquisition_mode"] ="S-IN Gate" if bit_1 else "Register Controlled"
+    ret["acquiring"] = (mask & 1<<2) > 0
+    ret["count_all_triggers"] = (mask & 1<<2) >1
+    return ret
+def translate_caen_channel_configuaration(mask):
+    ret = {}
+    ret["trigger_overlapping"] = (mask & 1<<1) >0
+    ret["test_pattern_generation"] = (mask & 1<<3) > 0 #NOTE TEST THIS IT MIGHT BE BIT 2 see 4.12 of CAEN MANUAL
+    ret["sequential_memory_access"] = "Sequential" if (mask & 1<<4) >0 else "Random"
+    ret["downward_going_trigger"] = (mask & 1<<6) >0 #Might be bit 5 again see 4.12 of CAEN
+    ret["pack2.5"] = (mask & 1<<11) >0
+    bit_16 = (mask & 1<<16) >0
+    bit_17 = (mask & 1<<17) >0
+    ret["zero_suppresion_algorithm"] = "ZS AMP" if bit_16 else "ZLE" if bit_17 else "None"
+    return ret
+def translate_caen_trigger(trig_source_mask,trig_out_mask):
+    ret ={}
+    channels = []
+    for i in range(8):
+        channels.append([(trig_source_mask & 1<<i) >0,(trig_out_mask & 1<<i)>0])
+    ret["channel_triggers"] = channels
+    ret["external_trigger"] = [(trig_source_mask & 1<<30) > 0, trig_out_mask & 1<< 30 )> 0]
+    ret["software_trigger"] = [(trig_source_mask & 1<<31) > 0, trig_out_mask & 1<< 31 )> 0]
+    return ret
 @app.template_filter('caen_human_readable')
 def caen_human_readable_filter(caen):
     ret = {}
     ret['post_trigger'] = caen['post_trigger']
-
+    ret.update(translate_caen_front_panel_io_control(caen['front_panel_io_control']))
+    ret.update(translate_caen_acquisition_control(caen['front_panel_io_control']))
+    ret.update(translate_caen_channel_configuaration(caen['channel_configuration']))
+    ret['buffer_organization'] = hex(caen["buffer_organization"])
+    ret.update(translate_caen_trigger(caen["trigger_mask"],caen["trigger_out_mask"])
+    return ret
