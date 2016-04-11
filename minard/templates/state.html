@@ -11,86 +11,157 @@
         {% else %}
 	    <center><h1> Run {{ run }} </h1></center>
             {% if mtc_state %}
-                <button data-toggle="collapse" data-target="#mtc">MTC</button>
-                <div id="mtc" class ="collapse">
-                    <ul>
-                    {% for key,val in mtc_state.iteritems() %}
-                        <li>{{ key}} = {{val}}</li>
-                    {% endfor %}
-                    </ul>
-                    </div></br>
+            <div class="row">
+                <div class="col-md-10 col-md-offset-1">
+                    <div class="panel-group" id="accordion">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseMTC">
+                                        MTC
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="collapseMTC" class="panel-collapse collapse out">
+                                <div class="panel-body" id="mtc"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             {% endif %}
             {% if caen_state %}
-                <button data-toggle="collapse" data-target="#caen">CAEN</button>
-                <div id="caen" class="collapse" >
-                caen stuff</br>
-                    <ul>
-                    {% for key,val in caen_state.iteritems() %}
-                        <li>{{ key}} = {{val}}</li>
-                    {% endfor %}
-                    </ul>
-            </div></br>
+            <div class="row">
+                <div class="col-md-10 col-md-offset-1">
+                    <div class="panel-group" id="accordion">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion" href="#collapseCAEN">
+                                    CAEN
+                                </a>
+                                </h4>
+                            </div>
+                            <div id="collapseCAEN" class="panel-collapse collapse out">
+                                <div class="panel-body" id="caen">
+                                    <ul>
+                                    {% for key,val in caen_state.iteritems() %}
+                                        <li>{{ key}} = {{val}}</li>
+                                    {% endfor %}
+                                    </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
             {% endif %}
             {% if detector_control_state %}
-                <button data-toggle="collapse" data-target="#detector_control">Detector Control</button>
-                    <div id="detector_control" class="collapse">
-                    <ul>
-                    {% for key,val in detector_control_state.iteritems() %}
-                        <li>{{ key}} = {{val}}</li>
-                    {% endfor %}
-                    </ul>
-                    </div></br>
+            <div class="row">
+                <div class="col-md-10 col-md-offset-1">
+                    <div class="panel-group" id="accordion">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseDetectorControl">
+                                        Detector Control 
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="collapseDetectorControl" class="panel-collapse collapse out">
+                                <div class="panel-body" id="detector_control"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             {% endif %}
             {% for i in range(20) %}
-                 {% if crates_state[i] %}
-                    <button data-toggle="collapse" data-target="#crate{{i}}">Crate {{i}}</button>
-                    <div id="crate{{i}}" class="collapse crate">
-                        {% for key,val in crates_state[i].iteritems() %}
-                            <button data-toggle="collapse" data-target="#{{key}}">{{key}}</button>
-                            </br>
-                            <div id="{{key}}" class="collapse card">
-                            <ul>
-                            {% for card_key,card_val in val.iteritems() %}
-                                <li>{{card_key}} = {{card_val}}</li>
-                            {% endfor %}
+                {% if crates_state[i] %}
+                    <div class="row">
+                        <div class="col-md-10 col-md-offset-1">
+                            <div class="panel-group" id="accordion">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h4 class="panel-title">
+                                            <a data-toggle="collapse" data-parent="#accordion" href="#collapseCrate{{i}}">
+                                                Crate{{i}}
+                                            </a>
+                                        </h4>
+                                    </div>
+                                    <div id="collapseCrate{{i}}" class="panel-collapse collapse out">
+                                        <div class="panel-body" id="crate{{i}}">
+                                            {% for key,val in crates_state[i].iteritems() %}
+                                                <button data-toggle="collapse" data-target="#{{key}}">{{key}}</button>
+                                                </br>
+                                                <div id="{{key}}" class="collapse card">
+                                                <ul>
+                                                {% for card_key,card_val in val.iteritems() %}
+                                                    <li>{{card_key}} = {{card_val}}</li>
+                                                {% endfor %}
+                                                </div>
+                                                </ul>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            </ul>
-                        {% endfor %}
-            </div></br>
+                        </div>
+                    </div>
         {% endif %}
     {% endfor %}
     {% if run_state %}
-        <button data-toggle="collapse" data-target="#run">Run Info</button>
-        <div id="run" class="collapse">
-        <ul>
-        {% for key,val in run_state.iteritems() %}
-            <li>{{ key }} = {{val }} </li>
-        {% endfor %}
-        </ul>
+            <div class="row">
+                <div class="col-md-10 col-md-offset-1">
+                    <div class="panel-group" id="accordion">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseRun">
+                                        Run Info
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="collapseRun" class="panel-collapse collapse out">
+                                <div class="panel-body" id="run">
+                                    <ul>
+                                    {% for key,val in run_state.iteritems() %}
+                                        <li>{{ key }} = {{val }} </li>
+                                    {% endfor %}
+                                    </ul></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         <div></br>
             {% endif %}
+            <div class="col-md-10 col-md-offset-1" id="crate" style="text-align:center"></div>
         {% endif %}
     </div>
 {% endblock %}
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/crate.js') }}"></script>
     <script type="text/javascript">
         function display_detector_control(detector_control_info) {
+            var det_cont = d3.select("#detector_control");
+            var bounds = det_cont.node().parentElement.parentElement.clientWidth
             var height = 100;
-            var width = 800;
+            var width = bounds;
             var step_size = width/15;
             radius = step_size/4.0;
             var xpos_func = function(d,i) { return step_size+i*step_size; }
-            var ypos_func = function(d,i) { return height/2.0; }
-            var det_cont = d3.select("#detector_control");
+            var ypos_func = function(d,i) { return height/2.0 + radius; }
             var svg = det_cont.append("svg")
                 .attr("width",width)
-                .attr("height",height);
+                .attr("height",height)
+                .attr("viewBox","0 0 "+width.toString()+" "+height.toString());
             var arr = [];
+            arr.push(["T",detector_control_info["timing_rack"]]);
             for(var i=0;i<12;i++) {
-                arr.push(["Rack "+i.toString(),detector_control_info["rack"+i.toString()]]);
+                arr.push([i.toString(),detector_control_info["rack"+i.toString()]]);
             }
-            arr.push(["Timing Rack",detector_control_info["timing_rack"]]);
             svg.selectAll('circle')
                 .data(arr)
                 .enter()
@@ -105,8 +176,11 @@
                 .append('text')
                 .text(function(d){return d[0];})
                 .attr("text-anchor","middle")
+                .attr("font-size","16px")
+                .attr("fill","white")
                 .attr("x",xpos_func)
-                .attr("y",function(d,i) {return ypos_func(d,i)-2*radius })
+                .attr("y",function(d,i) { return ypos_func(d,i)+5;});
+                //.attr("y",function(d,i) {return ypos_func(d,i)-2*radius });
         }
         function display_triggers(wordlist) {
             var mtc = d3.select('#mtc');
@@ -166,6 +240,13 @@
             display_crates('N100 Crates',mtc_data.N100_crates);
         }
         display_detector_control(det_cont_info);
+        window.addEventListener("resize", function () {
+            var det_cont = d3.select("#detector_control")
+            if( det_cont){
+                var width = det_cont.node().parentElement.parentElement.clientWidth
+                var svg = det_cont.selectAll("svg").attr("width",width);
+            }
+        },false);
        </script>
 
     <script>
