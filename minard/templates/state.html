@@ -76,15 +76,37 @@
     <script src="{{ url_for('static', filename='js/d3.min.js') }}"></script>
     <script type="text/javascript">
         function display_detector_control(detector_control_info) {
-            det_cont = d3.select("#detector_control");
-            svg = mtc.append("svg");
-            svg.selectAll('cirlcle')
-                .data(detector_control_info)
+            var height = 100;
+            var width = 800;
+            var step_size = width/15;
+            radius = step_size/4.0;
+            var xpos_func = function(d,i) { return step_size+i*step_size; }
+            var ypos_func = function(d,i) { return height/2.0; }
+            var det_cont = d3.select("#detector_control");
+            var svg = det_cont.append("svg")
+                .attr("width",width)
+                .attr("height",height);
+            var arr = [];
+            for(var i=0;i<12;i++) {
+                arr.push(["Rack "+i.toString(),detector_control_info["rack"+i.toString()]]);
+            }
+            arr.push(["Timing Rack",detector_control_info["timing_rack"]]);
+            svg.selectAll('circle')
+                .data(arr)
                 .enter()
-                .append('cirlcle')
-                .attr("cx",function(i,d) { return 50+i*50; })
-                .attr("cy",function(i,d) { return 50; })
-                .attr("r",10)
+                .append('circle')
+                .attr("cx",xpos_func)
+                .attr("cy",ypos_func)
+                .attr("r",radius)
+                .attr("fill",function(d) { return d[1]==1 ? 'green' : 'red'; })
+            svg.selectAll('text')
+                .data(arr)
+                .enter()
+                .append('text')
+                .text(function(d){return d[0];})
+                .attr("text-anchor","middle")
+                .attr("x",xpos_func)
+                .attr("y",function(d,i) {return ypos_func(d,i)-2*radius })
         }
         function display_triggers(wordlist) {
             var mtc = d3.select('#mtc');
@@ -131,7 +153,7 @@
             mtc.append('h3').text('Prescale = '+prescale.toString());
         };
         var mtc_data = {{ mtc_state | mtc_human_readable | tojson |safe }};
-        var det_cont_info  = {{ detector_control | tojson | safe }};
+        var det_cont_info  = {{ detector_control_state | tojson | safe }};
         if (mtc_data) {
 
             display_triggers(mtc_data.gt_words);
@@ -143,7 +165,7 @@
             display_prescale(mtc_data.prescale);
             display_crates('N100 Crates',mtc_data.N100_crates);
         }
-        display_detector_control(
+        display_detector_control(det_cont_info);
        </script>
 
     <script>
