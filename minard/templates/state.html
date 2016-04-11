@@ -75,6 +75,17 @@
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.min.js') }}"></script>
     <script type="text/javascript">
+        function display_detector_control(detector_control_info) {
+            det_cont = d3.select("#detector_control");
+            svg = mtc.append("svg");
+            svg.selectAll('cirlcle')
+                .data(detector_control_info)
+                .enter()
+                .append('cirlcle')
+                .attr("cx",function(i,d) { return 50+i*50; })
+                .attr("cy",function(i,d) { return 50; })
+                .attr("r",10)
+        }
         function display_triggers(wordlist) {
             var mtc = d3.select('#mtc');
             mtc.append("h3").text("Enabled Triggers");
@@ -96,20 +107,43 @@
             mtc.append("h3").text("Lockout Width = "+ lockout.toString());
         };
         function display_control_reg(wordlist) {
+            var mtc = d3.select('#mtc')
             mtc.append('h3').text("Control Register Values");
-            var trig_list = mtc.append('ul');
-            trig_list.selectAll('li')
+            var list = mtc.append('ul');
+            list.selectAll('li')
                      .data(wordlist)
                      .enter()
                      .append('li')
                      .text(function(d){ return d;});
         };
-        var mtc_data = {{mtc_state | mtc_human_readable|tojson |safe }};
-        console.log(mtc_data)
-        display_triggers(mtc_data.gt_words);
-        display_ped_delay( mtc_data.ped_delay)
-        display_lockout_width(mtc_data.lockout_width)
-        display_control_reg(mtc_data.control_reg);
+        function display_crates(title,crates) {
+            var mtc = d3.select('#mtc');
+            mtc.append('h3').text(title);
+            var crate_list = mtc.append('ul');
+            crate_list.selectAll('li')
+                .data(crates)
+                .enter()
+                .append('li')
+                .text(function(d) { return d;});
+        };
+        function display_prescale(prescale) {
+            var mtc = d3.select('#mtc');
+            mtc.append('h3').text('Prescale = '+prescale.toString());
+        };
+        var mtc_data = {{ mtc_state | mtc_human_readable | tojson |safe }};
+        var det_cont_info  = {{ detector_control | tojson | safe }};
+        if (mtc_data) {
+
+            display_triggers(mtc_data.gt_words);
+            display_ped_delay( mtc_data.ped_delay);
+            display_lockout_width(mtc_data.lockout_width);
+            display_control_reg(mtc_data.control_reg);
+            display_crates('PED Crates',mtc_data.ped_crates);
+            display_crates('GT Crates', mtc_data.gt_crates);
+            display_prescale(mtc_data.prescale);
+            display_crates('N100 Crates',mtc_data.N100_crates);
+        }
+        display_detector_control(
        </script>
 
     <script>
