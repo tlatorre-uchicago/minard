@@ -225,7 +225,13 @@
             var mtc = d3.select('#mtc');
             mtc.append('h3').text('Prescale = '+prescale.toString());
         };
+        function display_caen(caen_info) {
+            console.log(caen_info);
+            var caen = d3.select("#caen");
+            caen.append('h4').text("Acquisition Mode = "+caen_info.acquisition_mode);
+        }
         var mtc_data = {{ mtc_state | mtc_human_readable | tojson |safe }};
+        var caen_data = {{ caen_state | caen_human_readable | tojson |safe }};
         var det_cont_info  = {{ detector_control_state | tojson | safe }};
         if (mtc_data) {
 
@@ -239,6 +245,9 @@
             display_crates('N100 Crates',mtc_data.N100_crates);
         }
         display_detector_control(det_cont_info);
+        if (caen_data) {
+            display_caen(caen_data);
+        }
         window.addEventListener("resize", function () {
             var det_cont = d3.select("#detector_control")
             if( det_cont){

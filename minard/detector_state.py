@@ -167,16 +167,20 @@ def translate_caen_trigger(trig_source_mask,trig_out_mask):
     for i in range(8):
         channels.append([(trig_source_mask & 1<<i) >0,(trig_out_mask & 1<<i)>0])
     ret["channel_triggers"] = channels
-    ret["external_trigger"] = [(trig_source_mask & 1<<30) > 0, trig_out_mask & 1<< 30 )> 0]
-    ret["software_trigger"] = [(trig_source_mask & 1<<31) > 0, trig_out_mask & 1<< 31 )> 0]
+    ret["external_trigger"] = [(trig_source_mask & 1<<30) > 0, (trig_out_mask & 1<< 30 )> 0]
+    ret["software_trigger"] = [(trig_source_mask & 1<<31) > 0, (trig_out_mask & 1<< 31 )> 0]
     return ret
 @app.template_filter('caen_human_readable')
 def caen_human_readable_filter(caen):
     ret = {}
-    ret['post_trigger'] = caen['post_trigger']
-    ret.update(translate_caen_front_panel_io_control(caen['front_panel_io_control']))
-    ret.update(translate_caen_acquisition_control(caen['front_panel_io_control']))
-    ret.update(translate_caen_channel_configuaration(caen['channel_configuration']))
-    ret['buffer_organization'] = hex(caen["buffer_organization"])
-    ret.update(translate_caen_trigger(caen["trigger_mask"],caen["trigger_out_mask"])
+    try:
+        ret['post_trigger'] = caen['post_trigger']
+        ret.update(translate_caen_front_panel_io_control(caen['front_panel_io_control']))
+        ret.update(translate_caen_acquisition_control(caen['front_panel_io_control']))
+        ret.update(translate_caen_channel_configuaration(caen['channel_configuration']))
+        ret['buffer_organization'] = hex(caen["buffer_organization"])
+        ret.update(translate_caen_trigger(caen["trigger_mask"],caen["trigger_out_mask"]))
+    except Exception as e:
+        print "CAEN translation error: %s" % e
+        return False
     return ret
