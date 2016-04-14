@@ -110,7 +110,7 @@ def translate_control_reg(control_reg):
     word_list = filter(lambda x:((control_reg & 1<<x[0]) >0), bit_to_string)
     return map(lambda x:x[1], word_list)
 def translate_crate_mask(mask):
-    return filter(lambda x: (mask & 1<<x) > 0,range(0,20))
+    return map(lambda x: (mask & 1<<x) > 0,range(0,20))
 def translate_prescale(prescale):
     return (~prescale & 0xFFFF)+1
 @app.template_filter('mtc_human_readable')
@@ -121,10 +121,16 @@ def mtc_human_readable_filter(mtc):
         ret['ped_delay'] = translate_ped_delay(mtc['coarse_delay'],mtc['fine_delay'])
         ret['lockout_width'] = translate_lockout_width(mtc['lockout_width'])
         ret['control_reg'] = translate_control_reg(mtc['control_register'])
-        ret['ped_crates'] = translate_crate_mask(mtc['pedestal_mask'])
-        ret['gt_crates'] = translate_crate_mask(mtc['gt_crate_mask'])
         ret['prescale'] = translate_prescale(mtc['prescale'])
+        ret['gt_crates'] = translate_crate_mask(mtc['gt_crate_mask'])
+        ret['ped_crates'] = translate_crate_mask(mtc['pedestal_mask'])
         ret['N100_crates'] = translate_crate_mask(mtc['mtca_relays'][0])
+        ret['N20_crates'] = translate_crate_mask(mtc['mtca_relays'][1])
+        ret['ESUMLO_crates'] = translate_crate_mask(mtc['mtca_relays'][2])
+        ret['ESUMHI_crates'] = translate_crate_mask(mtc['mtca_relays'][3])
+        ret['OWLELO_crates'] = translate_crate_mask(mtc['mtca_relays'][4])
+        ret['OWLEHI_crates'] = translate_crate_mask(mtc['mtca_relays'][5])
+        ret['OWLN_crates'] = translate_crate_mask(mtc['mtca_relays'][6])
     except Exception:
         return False
     return ret
