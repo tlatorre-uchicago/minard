@@ -248,13 +248,14 @@
             var step_size = width/21;
             var xpos_func = function(d,i) { return title_width+i*step_size; }
             var ypos_func = function(d,i) { return height/2.0; }
-            svg.selectAll("circle")
+            svg.selectAll("rect")
                 .data(mask)
                 .enter()
-                .append("circle")
-                .attr("cx",xpos_func)
-                .attr("cy",ypos_func)
-                .attr("r",10)
+                .append("rect")
+                .attr("x",function(d,i) { return xpos_func(d,i)-20})
+                .attr("y",function(d,i) { return ypos_func(d,i)-height/2.0})
+                .attr("width",41)
+                .attr("height",25)
                 .attr("class",function(d) { return d ? 'on' : 'off'; })
             svg.selectAll('text')
                 .data(mask)
