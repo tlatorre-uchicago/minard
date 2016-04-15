@@ -14,11 +14,11 @@
             {% if mtc_state %}
             <div class="row">
                 <div class="col-md-10 col-md-offset-1">
-                    <div class="panel-group" id="accordion">
+                    <div class="panel-group">
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h4 class="panel-title">
-                                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseMTC">
+                                    <a data-toggle="collapse" href="#collapseMTC">
                                         MTC
                                     </a>
                                 </h4>
@@ -34,11 +34,11 @@
             {% if caen_state %}
             <div class="row">
                 <div class="col-md-10 col-md-offset-1">
-                    <div class="panel-group" id="accordion">
+                    <div class="panel-group" >
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h4 class="panel-title">
-                                <a data-toggle="collapse" data-parent="#accordion" href="#collapseCAEN">
+                                <a data-toggle="collapse" href="#collapseCAEN">
                                     CAEN
                                 </a>
                                 </h4>
@@ -60,11 +60,11 @@
             {% if detector_control_state %}
             <div class="row">
                 <div class="col-md-10 col-md-offset-1">
-                    <div class="panel-group" id="accordion">
+                    <div class="panel-group" >
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h4 class="panel-title">
-                                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseDetectorControl">
+                                    <a data-toggle="collapse" href="#collapseDetectorControl">
                                         Detector Control 
                                     </a>
                                 </h4>
@@ -81,11 +81,11 @@
                 {% if crates_state[i] %}
                     <div class="row">
                         <div class="col-md-10 col-md-offset-1">
-                            <div class="panel-group" id="accordion">
+                            <div class="panel-group" >
                                 <div class="panel panel-default">
                                     <div class="panel-heading">
                                         <h4 class="panel-title">
-                                            <a data-toggle="collapse" data-parent="#accordion" href="#collapseCrate{{i}}">
+                                            <a data-toggle="collapse" href="#collapseCrate{{i}}">
                                                 Crate{{i}}
                                             </a>
                                         </h4>
@@ -114,11 +114,11 @@
     {% if run_state %}
             <div class="row">
                 <div class="col-md-10 col-md-offset-1">
-                    <div class="panel-group" id="accordion">
+                    <div class="panel-group" >
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h4 class="panel-title">
-                                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseRun">
+                                    <a data-toggle="collapse" href="#collapseRun">
                                         Run Info
                                     </a>
                                 </h4>
@@ -254,7 +254,7 @@
                 .append("circle")
                 .attr("cx",xpos_func)
                 .attr("cy",ypos_func)
-                .attr("r",10)
+                .attr("r",height/2.0)
                 .attr("class",function(d) { return d ? 'on' : 'off'; })
             svg.selectAll('text')
                 .data(mask)
