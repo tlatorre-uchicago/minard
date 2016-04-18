@@ -1,10 +1,7 @@
 from __future__ import division
-from xml.etree.ElementTree import XML
-from itertools import izip_longest, repeat
-import socket
+from itertools import repeat
 import struct
 import zmq
-from datetime import datetime, timedelta
 import numpy as np
 from redis import Redis
 import time
@@ -191,7 +188,7 @@ def data_producer(host, port=4000):
     base.bind('tcp://127.0.0.1:5558')
 
     while True:
-        id, rec = socket.recv_record()
+        id, rec = data.recv_record()
         if id == 'CMOS':
             cmos.send_pyobj((id,rec))
 
