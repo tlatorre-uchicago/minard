@@ -23,7 +23,7 @@ def parse_cmos(rec):
     # XL3 should really send us the timestamp, but for now
     # we just use the time we receive it
     timestamp = time.time()
-    return crate, slot_mask, channel_mask, delay, error_flags, counts, timestamp
+    return crate, slot_mask, channel_mask, error_flags, counts, timestamp
 
 def parse_base(rec):
     """Parse a base current record."""
@@ -98,8 +98,11 @@ def cmos_consumer(port):
         if id != 'CMOS':
             raise ValueError('Expected CMOS record, got record %i' % id)
 
-        crate, slotmask, channelmask, delay, error_flags, counts, timestamp = \
+        crate, slotmask, channelmask, error_flags, counts, timestamp = \
             parse_cmos(rec)
+
+	if slotmask == 0:
+	    continue
 
         cards = np.array([i for i in range(16) if (slotmask >> i) & 1])
         indices = (crate << 9 | cards[:,np.newaxis] << 5 | np.arange(32)).flatten()
@@ -167,7 +170,7 @@ def base_consumer(port):
 
                 index = crate << 9 | slot << 5 | j
 
-                base_currents[index] = value-127
+                base_currents[index] = value
 
 def data_producer(host, port=4000):
     """
@@ -176,7 +179,8 @@ def data_producer(host, port=4000):
     pushed to ports 5557 and 5558 respectively.
     See `zeromq.org <http://zeromq.org>`_ for more information.
     """
-    data = DataStream(host, port=port, subscriptions=['CMOS','BASE'])
+    data = DataStream(host, port=port, subscriptions=['CMOS','BASE'],
+		      timeout=None)
     data.connect()
 
     cmos_context = zmq.Context()
