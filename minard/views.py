@@ -1,15 +1,15 @@
 from __future__ import division, print_function
-from minard import app
+from . import app
 from flask import render_template, jsonify, request, redirect, url_for
 from itertools import product
 import time
 from redis import Redis
 from os.path import join
 import json
-from tools import total_seconds, parseiso
+from .tools import parseiso
 from collections import deque, namedtuple
-from timeseries import get_timeseries, get_interval, get_hash_timeseries
-from timeseries import get_timeseries_field, get_hash_interval
+from .timeseries import get_timeseries, get_interval, get_hash_timeseries
+from .timeseries import get_timeseries_field, get_hash_interval
 from math import isnan
 
 import pcadb
@@ -373,8 +373,6 @@ def get_alarm():
 @app.route('/owl_tubes')
 def owl_tubes():
     """Returns the time series for the sum of all upward facing OWL tubes."""
-    import numpy as np
-
     name = request.args['name']
     start = request.args.get('start', type=parseiso)
     stop = request.args.get('stop', type=parseiso)
@@ -393,17 +391,25 @@ def owl_tubes():
     stop = int(stop)
     step = int(step)
 
-    values = np.zeros((len(OWL_TUBES),len(range(start,stop,step))),float)
+    values = []
     for i, id in enumerate(OWL_TUBES):
         crate, card, channel = id >> 9, (id >> 5) & 0xf, id & 0x1f
-        values[i] = get_hash_timeseries(name,start,stop,step,crate,card,channel,method)
+        values.append(get_hash_timeseries(name,start,stop,step,crate,card,channel,method))
+
+    # transpose time series from (channel, index) -> (index, channel)
+    values = zip(*values)
+
+    # filter None values in sub lists
+    values = map(lambda x: filter(lambda x: x is not None, x), values)
 
     if method == 'max':
-        values = np.nanmax(values,axis=0)
+	# calculate max value in each time bin.
+        values = map(lambda x: max(x) if len(x) else None, values)
     else:
-        values = np.nanmean(values,axis=0)
+	# calculate mean value in each time bin
+        values = map(lambda x: sum(x)/len(x) if len(x) else None, values)
 
-    return jsonify(values=[None if isnan(x) else x for x in values])
+    return jsonify(values=values)
 
 @app.route('/metric_hash')
 def metric_hash():
