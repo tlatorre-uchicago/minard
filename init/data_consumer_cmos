@@ -1,11 +1,11 @@
 #!/bin/sh
 #
 # chkconfig: - 58 74
-# description: orca consumer cmos
+# description: data consumer cmos
 
 . /etc/init.d/functions
 
-EXEC=/opt/minard/bin/orca_consumer_cmos
+EXEC=/opt/minard/bin/data_consumer_cmos
 USER=minard
 
 WORKERS=2
@@ -14,7 +14,7 @@ case $1 in
     start)
 	for i in `seq 1 $WORKERS`; do
 	    echo -n "starting $EXEC"
-	    LOGFILE=/var/log/minard/orca_consumer_cmos_$i.log
+	    LOGFILE=/var/log/minard/data_consumer_cmos_$i.log
 	    daemon --user=$USER --check=$EXEC "nohup $EXEC > $LOGFILE 2>&1 &"
 	    echo
 	done

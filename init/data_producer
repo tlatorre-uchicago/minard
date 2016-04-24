@@ -1,13 +1,13 @@
 #!/bin/sh
 #
 # chkconfig: - 58 74
-# description: orca producer
+# description: data producer
 
 . /etc/init.d/functions
 
-EXEC=/opt/minard/bin/orca_producer
+EXEC=/opt/minard/bin/data_producer
 USER=minard
-LOGFILE=/var/log/minard/orca_producer.log
+LOGFILE=/var/log/minard/data_producer.log
 
 case $1 in
     start)
