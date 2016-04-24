@@ -36,17 +36,10 @@ class ReverseProxied(object):
             environ['wsgi.url_scheme'] = scheme
         return self.app(environ, start_response)
 
-SECRET_KEY = "=S\t3w>zKIVy0n]b1h,<%|@EHBgfRJQ;A\rLC'[\x0blPF!` ai}/4W"
-PROJECT_NAME = 'minard'
-
 app = Flask(__name__)
-app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 app.config.from_envvar('MINARD_SETTINGS', silent=True)
 
-app.debug=False
-if not app.debug:
-    import logging
-    app.logger.addHandler(logging.StreamHandler())
+app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 import minard.views

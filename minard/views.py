@@ -1,5 +1,4 @@
-from __future__ import division
-from __future__ import print_function
+from __future__ import division, print_function
 from minard import app
 from flask import render_template, jsonify, request, redirect, url_for
 from itertools import product
