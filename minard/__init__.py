@@ -1,7 +1,4 @@
-from __future__ import print_function
 from flask import Flask
-import sys
-from os.path import join, exists
 
 class ReverseProxied(object):
     '''Wrap the application in this middleware and configure the 
