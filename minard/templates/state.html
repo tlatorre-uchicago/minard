@@ -278,7 +278,7 @@
                 var svg = mtc.selectAll("svg").attr("width",width);
             }
         };
-        function display_run_type(run_type) {
+        function display_run_type(run_type,time_stamp) {
             var run_type_translation = {
             0:"Maintenance",
             1:"Transition",
@@ -328,7 +328,6 @@
                 run_desc.push("None");
             }
             var title = document.getElementById("run_title");
-
             var appendToTitle = function(type,desc){
                 var thisSubTitle = document.createElement('h2');
                 thisSubTitle.appendChild(document.createTextNode(desc.toString()));
@@ -341,6 +340,8 @@
             if(calib_desc.length >0){
                 appendToTitle('h3',det_state_desc);
             }
+            console.log(time_stamp);
+            appendToTitle('p',time_stamp);
         }
         {% if mtc_state %}
             var mtc_data = {{ mtc_state | mtc_human_readable | tojson |safe }};
@@ -376,7 +377,7 @@
             display_crate_mask(mtc_data.OWLN_crates,mtc,"OWLN",size_info);
         }
         if (run_data) {
-            display_run_type(run_data.run_type)
+            display_run_type(run_data.run_type,run_data.timestamp)
         }
         display_detector_control(det_cont_info);
         resize()
