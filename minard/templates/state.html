@@ -112,32 +112,7 @@
                     </div>
         {% endif %}
     {% endfor %}
-    {% if run_state %}
-            <div class="row">
-                    <div class="panel-group" >
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h4 class="panel-title">
-                                    <a data-toggle="collapse" href="#collapseRun">
-                                        Run Info
-                                    </a>
-                                </h4>
-                            </div>
-                            <div id="collapseRun" class="panel-collapse collapse out">
-                                <div class="panel-body" id="run">
-                                    <ul>
-                                    {% for key,val in run_state.iteritems() %}
-                                        <li>{{ key }} = {{val }} </li>
-                                    {% endfor %}
-                                    </ul></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-        <div></br>
-            {% endif %}
-            <div class="col-md-10 col-md-offset-1" id="crate" style="text-align:center"></div>
-        {% endif %}
+    {% endif %}
     </div>
 {% endblock %}
 {% block script %}
@@ -340,7 +315,6 @@
             if(calib_desc.length >0){
                 appendToTitle('h3',det_state_desc);
             }
-            console.log(time_stamp);
             appendToTitle('p',time_stamp);
         }
         {% if mtc_state %}
