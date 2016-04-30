@@ -86,6 +86,7 @@ def status():
     return render_template('status.html', programs=PROGRAMS)
 
 @app.route('/state')
+@app.route('/state/')
 @app.route('/state/<int:run>')
 def state(run=None):
     import detector_state
