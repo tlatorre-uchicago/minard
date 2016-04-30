@@ -342,11 +342,17 @@
                 appendToTitle('h3',det_state_desc);
             }
         }
-        var mtc_data = {{ mtc_state | mtc_human_readable | tojson |safe }};
-        var caen_data = {{ caen_state | caen_human_readable | tojson |safe }};
-        var run_data = {{ run_state | tojson | safe }}
+        {% if mtc_state %}
+            var mtc_data = {{ mtc_state | mtc_human_readable | tojson |safe }};
+        {% endif %}
+        {% if caen_state %}
+            var caen_data = {{ caen_state | caen_human_readable | tojson |safe }};
+        {% endif %}
+        {% if run_state %}
+            var run_data = {{ run_state | tojson | safe }}
+        {% endif %}
         {% if detector_control_state %}
-        var det_cont_info  = {{ detector_control_state | tojson | safe }};
+            var det_cont_info  = {{ detector_control_state | tojson | safe }};
         {% endif %}
         if (mtc_data) {
 
