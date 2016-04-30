@@ -96,22 +96,26 @@
                                                                         </a>
                                                                     </h4>
                                                                 </div>
-                                                                <div id="collapseFEC{{key}} class="panel-collapse collapse out">
-                                                <div id="{{key}}" class="collapse card">
-                                                <ul>
-                                                {% for card_key,card_val in val.iteritems() %}
-                                                    <li>{{card_key}} = {{card_val}}</li>
-                                                {% endfor %}
-                                                </div>
-                                                </ul>
+                                                                <div id="collapseFEC{{key}}" class="panel-collapse collapse out">
+                                                                    <div id="{{key}}" class="card">
+                                                                        <ul>
+                                                                        {% for card_key,card_val in val.iteritems() %}
+                                                                            <li>{{card_key}} = {{card_val}}</li>
+                                                                        {% endfor %}
+                                                                        </ul>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                               </div>
                                             {% endfor %}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                     </div>
-        {% endif %}
-    {% endfor %}
+                {% endif %}
+            {% endfor %}
     {% endif %}
     </div>
 {% endblock %}
@@ -241,18 +245,6 @@
                 .attr("x",xpos_func)
                 .attr("y",function(d,i) { return ypos_func(d,i)+3;});
         };
-        function resize() {
-            var det_cont = d3.select("#detector_control")
-            if( det_cont){
-                var width = det_cont.node().parentElement.parentElement.clientWidth
-                var svg = det_cont.selectAll("svg").attr("width",width);
-            }
-            var mtc = d3.select("#mtc")
-            if( mtc){
-                var width = mtc.node().parentElement.parentElement.clientWidth
-                var svg = mtc.selectAll("svg").attr("width",width);
-            }
-        };
         function display_run_type(run_type,time_stamp) {
             var run_type_translation = {
             0:"Maintenance",
@@ -317,17 +309,16 @@
             }
             appendToTitle('p',time_stamp);
         }
-        {% if mtc_state %}
-            var mtc_data = {{ mtc_state | mtc_human_readable | tojson |safe }};
-        {% endif %}
-        {% if caen_state %}
-            var caen_data = {{ caen_state | caen_human_readable | tojson |safe }};
-        {% endif %}
+
+        var mtc_data = {{ mtc_state | mtc_human_readable | tojson |safe }};
+        var caen_data = {{ caen_state | caen_human_readable | tojson |safe }};
+        var run_data = false;
+        var det_cont_info = false;
         {% if run_state %}
-            var run_data = {{ run_state | tojson | safe }}
+            run_data = {{ run_state | tojson | safe }}
         {% endif %}
         {% if detector_control_state %}
-            var det_cont_info  = {{ detector_control_state | tojson | safe }};
+            det_cont_info  = {{ detector_control_state | tojson | safe }};
         {% endif %}
         if (mtc_data) {
 
@@ -353,11 +344,25 @@
         if (run_data) {
             display_run_type(run_data.run_type,run_data.timestamp)
         }
-        display_detector_control(det_cont_info);
-        resize()
+        if (det_cont_info) {
+            display_detector_control(det_cont_info);
+        }
         if (caen_data) {
             display_caen(caen_data);
         }
+        resize = function() {
+            if(det_cont_info){
+                var det_cont = d3.select("#detector_control")
+                var width = det_cont.node().parentElement.parentElement.clientWidth
+                var svg = det_cont.selectAll("svg").attr("width",width);
+            }
+            if(mtc_data ){
+                var mtc = d3.select("#mtc")
+                var width = mtc.node().parentElement.parentElement.clientWidth
+                var svg = mtc.selectAll("svg").attr("width",width);
+            }
+        };
+        resize()
         window.addEventListener("resize", resize,false);
        </script>
 
