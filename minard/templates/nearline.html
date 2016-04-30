@@ -24,12 +24,12 @@
 			<th class="danger"> Failed </th>
 			{% elif status|int == 0 %}
 			<th class="success"> Success </th>
-            {% elif status|int == 2 %}
-            <th class="warning"> Warning </th>
-            {% elif status|int == 3 %}
-            <th> Debug </th>
-            {% elif status|int == 4 %}
-            <th> Not run </th>
+			{% elif status|int == 2 %}
+			<th class="warning"> Warning </th>
+			{% elif status|int == 3 %}
+			<th> Debug </th>
+			{% elif status|int == 4 %}
+			<th> Not run </th>
 			{% elif status|int == 99 %}
 			<th> In Progress </th>
 			{% else %}
