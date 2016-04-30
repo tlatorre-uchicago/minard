@@ -328,15 +328,19 @@
                 run_desc.push("None");
             }
             var title = document.getElementById("run_title");
-            var run_type_title = document.createElement('h2');
-            var calib_title = document.createElement('h3');
-            var det_state_title = document.createElement('h3');
-            run_type_title.appendChild(document.createTextNode(run_desc.toString()));
-            calib_title.appendChild(document.createTextNode(calib_desc.toString()));
-            det_state_title.appendChild(document.createTextNode(det_state_desc.toString()));
-            title.appendChild(run_type_title);
-            title.appendChild(calib_title);
-            title.appendChild(det_state_title);
+
+            var appendToTitle = function(type,desc){
+                var thisSubTitle = document.createElement('h2');
+                thisSubTitle.appendChild(document.createTextNode(desc.toString()));
+                title.appendChild(thisSubTitle);
+            }
+            appendToTitle('h2',run_desc);
+            if(calib_desc.length >0){
+                appendToTitle('h3',calib_desc);
+            }
+            if(calib_desc.length >0){
+                appendToTitle('h3',det_state_desc);
+            }
         }
         var mtc_data = {{ mtc_state | mtc_human_readable | tojson |safe }};
         var caen_data = {{ caen_state | caen_human_readable | tojson |safe }};
