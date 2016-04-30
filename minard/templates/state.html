@@ -10,7 +10,7 @@
         {% if err %}
             Error talking to the DB : {{ err }}
         {% else %}
-	    <center><h1> Run {{ run }} </h1></center>
+	    <center id="run_title"><h1> Run {{ run }} </h1></center>
             {% if mtc_state %}
             <div class="row">
                     <div class="panel-group">
@@ -277,9 +277,70 @@
                 var width = mtc.node().parentElement.parentElement.clientWidth
                 var svg = mtc.selectAll("svg").attr("width",width);
             }
+        };
+        function display_run_type(run_type) {
+            var run_type_translation = {
+            0:"Maintenance",
+            1:"Transition",
+            3:"Physics",
+            4:"Deployed Source",
+            5:"External Source",
+            6:"Diagnostic",
+            7:"Experimental",
+            };
+            var calib_translation = {
+            11:"TELLIE",
+            12:"SMELLIE",
+            13:"AMELLIE",
+            14:"PCA",
+            15:"ECA Pedestal",
+            16:"ECA Time Slope"
+            };
+            var detector_state_translation = {
+            21:"DCR Activity",
+            22:"Compensation Coils Off",
+            23:"PMTS Off",
+            24:"Bubblers On",
+            25:"Recirculation",
+            26:"SL Assay",
+            27:"Unusual Activity"
+            };
+            var flag = false;
+            var translator = function(low_bit,high_bit,trans_map){
+                ret = []
+                for(i=low_bit;i<=high_bit;i++)
+                {
+                    if(run_type & (1<<i)) {
+                        if(i-low_bit >= Object.keys(trans_map).length) {
+                           ret.push("SPARE (???)");
+                        }
+                        else {
+                            ret.push(trans_map[i]);
+                        }
+                    }
+                }
+                return ret;
+            };
+            var run_desc = translator(0,10,run_type_translation);
+            var calib_desc = translator(11,20,calib_translation);
+            var det_state_desc = translator(21,31,detector_state_translation);
+            if(run_desc.length == 0) {
+                run_desc.push("None");
+            }
+            var title = document.getElementById("run_title");
+            var run_type_title = document.createElement('h2');
+            var calib_title = document.createElement('h3');
+            var det_state_title = document.createElement('h3');
+            run_type_title.appendChild(document.createTextNode(run_desc.toString()));
+            calib_title.appendChild(document.createTextNode(calib_desc.toString()));
+            det_state_title.appendChild(document.createTextNode(det_state_desc.toString()));
+            title.appendChild(run_type_title);
+            title.appendChild(calib_title);
+            title.appendChild(det_state_title);
         }
         var mtc_data = {{ mtc_state | mtc_human_readable | tojson |safe }};
         var caen_data = {{ caen_state | caen_human_readable | tojson |safe }};
+        var run_data = {{ run_state | tojson | safe }}
         {% if detector_control_state %}
         var det_cont_info  = {{ detector_control_state | tojson | safe }};
         {% endif %}
@@ -303,6 +364,9 @@
             display_crate_mask(mtc_data.OWLELO_crates,mtc,"OWLE LO",size_info);
             display_crate_mask(mtc_data.OWLEHI_crates,mtc,"OWLE HI",size_info);
             display_crate_mask(mtc_data.OWLN_crates,mtc,"OWLN",size_info);
+        }
+        if (run_data) {
+            display_run_type(run_data.run_type)
         }
         display_detector_control(det_cont_info);
         resize()
