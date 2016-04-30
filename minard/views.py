@@ -113,7 +113,8 @@ def state(run=None):
     for iCrate in range(20):
         if run_state['crate'+str(iCrate)] is not None:
             crates_state[iCrate] = detector_state.get_crate_state(run_state['crate'+str(iCrate)])
-
+    if not any(crates_state):
+        crates_state = None;
     return render_template('state.html',run=run,
                                         run_state = run_state,
                                         detector_control_state = detector_control_state,

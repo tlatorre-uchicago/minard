@@ -38,9 +38,7 @@ def get_crate_state(key):
     ret={}
     for card_num in range(16):
         card_key = "mb%i"%card_num
-        ret[card_key] = fetch_from_table_with_key('fec',cards[card_key])
-#    for card_name,table_key  in filter(lambda x: 'mb' in x[0],cards.iteritems()):
-#        ret[card_name] = fetch_from_table_with_key('fec',table_key)
+        ret[card_num] = fetch_from_table_with_key('fec',cards[card_key])
     return ret
 def get_fec_state(key):
     return fetch_from_table_with_key('fec',key)
