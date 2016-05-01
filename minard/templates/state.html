@@ -99,7 +99,6 @@
                                                         <div id="collapseCrate{{i}}" class="panel-collapse collapse out">
                                                             <div class="panel-body" id="crate{{i}}">
                                                                 {% for j in range(0,15) %}
-                                                                {# for key,val in crates_state[i].iteritems() #}
                                                                     <div class="row">
                                                                         <div class="panel-group" >
                                                                             <div class="panel panel-default">
@@ -321,19 +320,59 @@
                 title.appendChild(thisSubTitle);
             }
             appendToTitle('h2',run_desc);
-            if(calib_desc.length >0){
+            if(calib_desc.length > 0){
                 appendToTitle('h3',calib_desc);
             }
-            if(calib_desc.length >0){
+            if(calib_desc.length > 0){
                 appendToTitle('h3',det_state_desc);
             }
             appendToTitle('p',time_stamp);
-        }
-
+        };
+        function display_mb(crateNum,cardNum,mb_data) {
+            var id ="#Crate"+crateNum+"MB"+cardNum
+            var thisCard = d3.select(id)
+            var size_info = {}
+            size_info['width'] = 200;
+            size_info['height'] = 100;
+            var width = size_info.width;
+            var height =size_info.height;
+            dv = thisCard.append("div");
+            dv.attr("class","LOOKHERE");
+            var svg = dv.append("svg")
+                .attr("width",width)
+                .attr("height",height)
+                .attr("viewBox","0 0 "+width.toString()+" "+height.toString())
+                .attr("class","crate_mask");
+            var step_size = 10;
+            var xpos_func = function(d,i) { return step_size+cardNum*step_size; }
+            var ypos_func = function(d,i) { return step_size+i*step_size; }
+            svg.selectAll("circle")
+                .data(mb_data['n100_triggers'])
+                .enter()
+                .append("circle")
+                .attr("cx",xpos_func)
+                .attr("cy",ypos_func)
+                .attr("r",5)
+                .attr("fill","red");
+        };
+        function display_crate_config(crateNum,crate_data) {
+            for (var i=0;i<16;i++) {
+                if(crate_data[i]) {
+                    display_mb(crateNum,i,crate_data[i]);
+                }
+            }
+        };
+        function display_all_crates(crates_data) {
+            for(var i=0;i<20;i++) {
+                if (crates_data[i]) {
+                    display_crate_config(i, crates_data[i]);
+                }
+            }
+        };
         var mtc_data = {{ mtc_state | mtc_human_readable | tojson |safe }};
         var caen_data = {{ caen_state | caen_human_readable | tojson |safe }};
         var crates_data = {{ crates_state | all_crates_human_readable |tojson |safe }};
-        console.log(crates_data);
+
         var run_data = false;
         var det_cont_info = false;
         {% if run_state %}
@@ -342,6 +381,9 @@
         {% if detector_control_state %}
             det_cont_info  = {{ detector_control_state | tojson | safe }};
         {% endif %}
+        if(crates_data) {
+            display_all_crates(crates_data)
+        }
         if (mtc_data) {
 
             display_triggers(mtc_data.gt_words);

@@ -190,6 +190,8 @@ def caen_human_readable_filter(caen):
     return ret
 @app.template_filter('all_crates_human_readable')
 def all_crates_human_readable(crates):
+    if crates is None:
+        return False
     return map(crate_human_readable_filter,crates)
 @app.template_filter('crate_human_readable')
 def crate_human_readable_filter(crate):
