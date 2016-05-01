@@ -332,6 +332,8 @@
 
         var mtc_data = {{ mtc_state | mtc_human_readable | tojson |safe }};
         var caen_data = {{ caen_state | caen_human_readable | tojson |safe }};
+        var crates_data = {{ crates_state | all_crates_human_readable |tojson |safe }};
+        console.log(crates_data);
         var run_data = false;
         var det_cont_info = false;
         {% if run_state %}

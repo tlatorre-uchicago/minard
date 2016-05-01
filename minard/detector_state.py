@@ -188,3 +188,34 @@ def caen_human_readable_filter(caen):
         print "CAEN translation error: %s" % e
         return False
     return ret
+@app.template_filter('all_crates_human_readable')
+def all_crates_human_readable(crates):
+    return map(crate_human_readable_filter,crates)
+@app.template_filter('crate_human_readable')
+def crate_human_readable_filter(crate):
+    if crate is None:
+        return False
+    ret = []
+    try:
+        for i in range(0,15):
+            ret.append(fec_human_readable_filter(crate[i]))
+    except Exception as e:
+        print "Crate translation error: %s" % e
+        return False
+    return ret
+@app.template_filter('fec_human_readable')
+def fec_human_readable_filter(fec):
+    if fec is None:
+        return False
+    ret = {}
+    try:
+        ret['n20_triggers'] = fec['tr20_mask']
+        ret['n100_triggers'] = fec['tr100_mask']
+        ret['num_n20_triggers'] = len(filter(lambda x :x,fec['tr20_mask']))
+        ret['num_n100_triggers'] = len(filter(lambda x :x,fec['tr100_mask']))
+        ret['DB_IDs'] = map(lambda x: '0x%x' % x,fec['dbid'])
+        ret['MB_ID'] = '0x%x' % fec['mbid']
+    except Exception as e:
+        print "FEC translation error : %s" % e
+        return False
+    return ret
