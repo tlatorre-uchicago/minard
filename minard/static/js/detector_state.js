@@ -37,7 +37,7 @@ function display_crate_view(key,crates_data,sizeinfo,node)
         .height(height)
         .width(width)
         .coloringFunction(coloringFunc);
-        var g = allCrates.append('div')
+        var g = node.append('div')
                 .attr('id','crate')
                 .attr('width',width)
                 .attr('height',height)
