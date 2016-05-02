@@ -83,7 +83,7 @@
                                 </h4>
                             </div>
                             <div id="collapseAllCrates" class="panel-collapse collapse out">
-                                <div class="panel-body" id = "allCrates" style="height: 500px">
+                                <div class="panel-body" id = "allCrates">
                                     {% for i in range(20) %}
                                         {% if crates_state[i] %}
                                             <div class="row">
@@ -136,33 +136,14 @@
             det_cont_info  = {{ detector_control_state | tojson | safe }};
         {% endif %}
         if(crates_data) {
-            var d = crates_data.map(function(crate,i) {
-                if(crate) {
-                    MBs =  crate.map(function(mb,i) {
-                        if(mb) {
-                            return mb['n100_triggers']
-                        }
-                        else {
-                           return Array.apply(null,Array(32)).map(function(x,i){return null;})
-                        }
-                    });
-                    return  [].concat.apply([],MBs);
-                    //return Array.apply(null,Array(512)).map(function(x,i){return 1;})
-                }
-                else {
-                    return Array.apply(null,Array(512)).map(function(x,i){return null;})
-
-                }
-            });
-            d = [].concat.apply([],d);
-            console.log(d)
             var allCrates = d3.select("#allCrates")
             var width = allCrates.node().parentElement.parentElement.clientWidth
             var height = 500;
-            allCrates.attr('width',width).attr('height',height);
-            var crate = crate_view().caption(true).height(height).width(width);
-            var g = allCrates.append('div').attr('id','crate').attr('width',width).attr('height',height).attr('class',"col-md-10 col-md-offset-1");
-            g.datum(d).call(crate);
+            sizeinfo = {};
+            sizeinfo.width = width;
+            sizeinfo.height = height;
+            display_crate_view('n100_triggers',crates_data,sizeinfo,allCrates)
+            display_crate_view('n20_triggers',crates_data,sizeinfo,allCrates)
         }
         if (mtc_data) {
 

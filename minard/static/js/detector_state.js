@@ -1,3 +1,49 @@
+function flattenArray(arr) {
+    return [].concat.apply([],arr);
+}
+function display_crate_view(key,crates_data,sizeinfo,node)
+{
+    var d = crates_data.map(function(crate,i) {
+    if(crate) {
+            MBs =  crate.map(function(mb,i) {
+                if(mb) {
+                    return mb[key];
+                }
+                else {
+                   return Array.apply(null,Array(32)).map(function(x,i){return null;})
+                }
+            });
+            return  flattenArray(MBs)
+        }
+        else {
+            return Array.apply(null,Array(512)).map(function(x,i){return null;})
+        }
+    });
+    d = flattenArray(d)
+
+    var coloringFunc = function(data) {
+        return function(k,i) {
+        var v = data[k];
+        if (v === null || typeof v === 'undefined')
+            return 'background-color:#e0e0e0';
+        else if (v===0) {
+            return 'background-color:grey';
+        }
+        else
+            return 'background-color:green';
+    };}
+    var crate = crate_view()
+        .caption(true)
+        .height(height)
+        .width(width)
+        .coloringFunction(coloringFunc);
+        var g = allCrates.append('div')
+                .attr('id','crate')
+                .attr('width',width)
+                .attr('height',height)
+                .attr('class',"col-md-10 col-md-offset-1");
+        g.datum(d).call(crate);
+}
 function display_detector_control(detector_control_info) {
     var det_cont = d3.select("#detector_control");
     var bounds = det_cont.node().parentElement.parentElement.clientWidth
