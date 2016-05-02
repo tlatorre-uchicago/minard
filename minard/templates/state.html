@@ -1,3 +1,23 @@
+{% macro collapsible_header(title,name) %}
+<div class="row">
+   <div class="panel-group">
+       <div class="panel panel-default">
+           <div class="panel-heading">
+               <h4 class="panel-title">
+                   <a data-toggle="collapse" href="#collapse{{name}}">
+                       {{title}}
+                   </a>
+               </h4>
+           </div>
+           <div id="collapse{{name}}" class="panel-collapse collapse out">
+               <div class='panel-body' id='{{name}}'>
+               {{ caller() }}
+               </div>
+           </div>
+       </div>
+    </div>
+</div>
+{% endmacro %}
 {% extends "layout.html" %}
 {% block title %}Detector State{% endblock %}
 {% block head %}
@@ -12,108 +32,44 @@
         {% else %}
 	    <center id="run_title"><h1> Run {{ run }} </h1></center>
             {% if mtc_state %}
-            <div class="row">
-                    <div class="panel-group">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h4 class="panel-title">
-                                    <a data-toggle="collapse" href="#collapseMTC">
-                                        MTC
-                                    </a>
-                                </h4>
-                            </div>
-                            <div id="collapseMTC" class="panel-collapse collapse out">
-                                <div class="panel-body" id="mtc"></div>
-                            </div>
-                        </div>
-                    </div>
-            </div>
+                {% call collapsible_header('MTC','mtc') %}
+                {% endcall %}
             {% endif %}
             {% if caen_state %}
-            <div class="row">
-                    <div class="panel-group" >
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h4 class="panel-title">
-                                <a data-toggle="collapse" href="#collapseCAEN">
-                                    CAEN
-                                </a>
-                                </h4>
-                            </div>
-                            <div id="collapseCAEN" class="panel-collapse collapse out">
-                                <div class="panel-body" id="caen">
-                                    <ul>
-                                    {% for key,val in caen_state.iteritems() %}
-                                        <li>{{ key}} = {{val}}</li>
-                                    {% endfor %}
-                                    </ul>
-                            </div>
-                        </div>
-                    </div>
-            </div>
-            </div>
+                {% call collapsible_header('CAEN','CAEN') %}
+                    <ul>
+                    {% for key,val in caen_state.iteritems() %}
+                        <li> {{key}} = {{ val }} </li>
+                    {% endfor %}
+                    </ul>
+                {% endcall %}
             {% endif %}
             {% if detector_control_state %}
-            <div class="row">
-                    <div class="panel-group" >
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h4 class="panel-title">
-                                    <a data-toggle="collapse" href="#collapseDetectorControl">
-                                        Detector Control
-                                    </a>
-                                </h4>
-                            </div>
-                            <div id="collapseDetectorControl" class="panel-collapse collapse out">
-                                <div class="panel-body" id="detector_control"></div>
-                            </div>
-                        </div>
-                    </div>
-            </div>
+                {% call collapsible_header('Detector Control','detector_control') %}
+                {% endcall %}
             {% endif %}
             {% if crates_state %}
-                <div class="row">
-                    <div class="panel-group" >
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h4 class="panel-title">
-                                    <a data-toggle="collapse" href="#collapseAllCrates">
-                                        Crates
-                                    </a>
-                                </h4>
-                            </div>
-                            <div id="collapseAllCrates" class="panel-collapse collapse out">
-                                <div class="panel-body" id = "allCrates">
-                                    {% for i in range(20) %}
-                                        {% if crates_state[i] %}
-                                            <div class="row">
-                                                <div class="panel-group" >
-                                                    <div class="panel panel-default">
-                                                        <div class="panel-heading">
-                                                            <h4 class="panel-title">
-                                                                <a data-toggle="collapse" href="#collapseCrate{{i}}">
-                                                                    Crate{{i}}
-                                                                </a>
-                                                            </h4>
-                                                        </div>
-                                                        <div id="collapseCrate{{i}}" class="panel-collapse collapse out">
-                                                            <div class="panel-body" id="crate{{i}}">
-                                                                {% for j in range(0,15) %}
-                                                                    <div id="Crate{{i}}MB{{j}}" class="card">
-                                                                    </div>
-                                                                {% endfor %}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {% call collapsible_header('Crates','allCrates') %}
+                   {% call collapsible_header('N100 Triggers','N100Triggers') %}
+                   {% endcall %}
+                   {% call collapsible_header('N20 Triggers','N20Triggers') %}
+                   {% endcall %}
+                   {% for i in range(20) %}
+                       {% if crates_state[i] %}
+                           {% call collapsible_header('Crate %i' % i,'crate%i' % i) %}
+                               {% for j in range(0,16) %}
+                                   {% call collapsible_header('Crate %i MB %i' % (i,j), 'Crate%iMB%i' % (i,j)) %}
+                                        <ul>
+                                        {% for key in crates_state[i][j] %}
+                                            <li>{{key}} = {{crates_state[i][j][key]}}</li>
+                                        {% endfor %}
+                                        </ul>
+                                   {% endcall %}
+                               {% endfor %}
+                           {% endcall %}
+                       {% endif %}
+                   {% endfor %}
+                {% endcall %}
             {% endif %}
     {% endif %}
     </div>
@@ -136,14 +92,15 @@
             det_cont_info  = {{ detector_control_state | tojson | safe }};
         {% endif %}
         if(crates_data) {
-            var allCrates = d3.select("#allCrates")
-            var width = allCrates.node().parentElement.parentElement.clientWidth
+            var N100 = d3.select("#N100Triggers")
+            var N20 = d3.select("#N20Triggers")
+            var width = N100.node().parentElement.parentElement.clientWidth
             var height = 500;
             sizeinfo = {};
             sizeinfo.width = width;
             sizeinfo.height = height;
-            display_crate_view('n100_triggers',crates_data,sizeinfo,allCrates)
-            display_crate_view('n20_triggers',crates_data,sizeinfo,allCrates)
+            display_crate_view('n100_triggers',crates_data,sizeinfo,N100)
+            display_crate_view('n20_triggers',crates_data,sizeinfo,N20)
         }
         if (mtc_data) {
 
