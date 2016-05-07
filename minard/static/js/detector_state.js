@@ -169,9 +169,10 @@ function display_run_type(run_type,time_stamp) {
     var run_type_translation = {
     0:"Maintenance",
     1:"Transition",
-    3:"Physics",
-    4:"Deployed Source",
-    5:"External Source",
+    2:"Physics",
+    3:"Deployed Source",
+    4:"External Source",
+    5:"ECA",
     6:"Diagnostic",
     7:"Experimental",
     };
