@@ -205,6 +205,8 @@ def crate_human_readable_filter(crate):
         print "Crate translation error: %s" % e
         return False
     return ret
+def translate_fec_disable_mask(mask):
+    return map(lambda x: 1 if ((mask & (1<<x))>0) else 0,range(32))
 @app.template_filter('fec_human_readable')
 def fec_human_readable_filter(fec):
     if fec is None:
@@ -217,6 +219,7 @@ def fec_human_readable_filter(fec):
         ret['num_n100_triggers'] = len(filter(lambda x :x,fec['tr100_mask']))
         ret['DB_IDs'] = map(lambda x: '0x%x' % x,fec['dbid'])
         ret['MB_ID'] = '0x%x' % fec['mbid']
+        ret['sequencers'] = translate_fec_disable_mask(fec['disable_mask'])
     except Exception as e:
         print "FEC translation error : %s" % e
         return False
