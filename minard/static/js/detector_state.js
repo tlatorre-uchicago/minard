@@ -60,7 +60,7 @@ function display_detector_control(detector_control_info) {
         .attr("class","rack_mask");
     var arr = [];
     arr.push(["T",detector_control_info["timing_rack"]]);
-    for(var i=0;i<12;i++) {
+    for(var i=1;i<12;i++) {
         arr.push([i.toString(),detector_control_info["rack"+i.toString()]]);
     }
     svg.selectAll('circle')
