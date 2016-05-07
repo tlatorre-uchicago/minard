@@ -127,7 +127,7 @@ function display_prescale(prescale) {
     mtc.append('h3').text('Prescale = '+prescale.toString());
 };
 function display_caen(caen_info) {
-    var caen = d3.select("#caen");
+    var caen = d3.select("#CAEN");
     caen.append('h4').text("Acquisition Mode = "+caen_info.acquisition_mode);
 }
 function display_crate_mask(mask,dom_node,title,size_info) {
