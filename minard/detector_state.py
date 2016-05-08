@@ -206,7 +206,7 @@ def crate_human_readable_filter(crate):
         return False
     return ret
 def translate_fec_disable_mask(mask):
-    return map(lambda x: 1 if ((mask & (1<<x))>0) else 0,range(32))
+    return map(lambda x: 0 if ((mask & (1<<x))>0) else 1,range(32))
 @app.template_filter('fec_human_readable')
 def fec_human_readable_filter(fec):
     if fec is None:
