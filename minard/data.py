@@ -30,8 +30,8 @@ def parse_base(rec):
     crate, slot_mask = struct.unpack('>II', rec[:8])
     channel_mask = np.frombuffer(rec[8:8+4*16], dtype='>u4')
     error_flags = struct.unpack('>I',rec[72:72+4])
-    counts = np.frombuffer(rec[76:76+16*32*4], dtype='>u4').reshape((16,-1))
-    busy = np.frombuffer(rec[76+16*32*4:76+16*32*4+16*32*4], dtype='>u4').reshape((16,-1))
+    counts = np.frombuffer(rec[76:76+16*32], dtype='>u1').reshape((16,-1))
+    busy = np.frombuffer(rec[76+16*32:76+16*32+16*32], dtype='>u1').reshape((16,-1))
     timestamp = time.time()
     return crate, slot_mask, channel_mask, error_flags, counts, busy, timestamp
 
