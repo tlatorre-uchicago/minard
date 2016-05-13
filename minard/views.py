@@ -84,7 +84,6 @@ def status():
     return render_template('status.html', programs=PROGRAMS)
 
 @app.route('/state')
-@app.route('/state/')
 @app.route('/state/<int:run>')
 def state(run=None):
     import detector_state
@@ -401,6 +400,9 @@ def owl_tubes():
     # filter None values in sub lists
     values = map(lambda x: filter(lambda x: x is not None, x), values)
 
+    # convert to floats
+    values = map(lambda x: map(float, x), values)
+
     if method == 'max':
 	# calculate max value in each time bin.
         values = map(lambda x: max(x) if len(x) else None, values)
@@ -513,7 +515,6 @@ def metric():
 
 @app.route('/eca')
 def eca():
-
     runs = ecadb.runs_after_run(0)      
     return render_template('eca.html', runs=runs)
  
