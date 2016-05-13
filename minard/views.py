@@ -46,12 +46,13 @@ TRIGGER_NAMES = \
 
 
 class Program(object):
-    def __init__(self, name, machine=None, link=None, description=None, expire=10):
+    def __init__(self, name, machine=None, link=None, description=None, expire=10, display_log=True):
         self.name = name
         self.machine = machine
         self.link = link
         self.description = description
         self.expire = expire
+        self.display_log = display_log
 
 redis = Redis()
 
@@ -64,10 +65,14 @@ PROGRAMS = [Program('builder','builder1', description="event builder"),
                     description="builder -> buffer transfer"),
             Program('buffer_copy', 'buffer1',
                     description="buffer -> grid transfer"),
-            Program('mtc','sbc', description="mtc server"),
-            Program('data','daq1', description="data stream server"),
-            Program('xl3','daq1', description="xl3 server"),
-            Program('log','minard', description="log server")
+            Program('mtc','sbc', description="mtc server",
+		    display_log=False),
+            Program('data','daq1', description="data stream server",
+		    display_log=False),
+            Program('xl3','daq1', description="xl3 server",
+		    display_log=False),
+            Program('log','minard', description="log server",
+		    display_log=False)
 ]
 
 @app.template_filter('timefmt')
