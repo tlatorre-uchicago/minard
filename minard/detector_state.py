@@ -6,22 +6,25 @@ def fetch_from_table_with_key(table_name,key,key_name='key'):
     password = app.config['DB_PASS']
     host = app.config['DB_HOST']
     database = app.config['DB_NAME']
-    if key is None: key = "(SELECT max("+key_name+") FROM "+table_name+")"
+
+    if key is None:
+	key = "(SELECT max(%s) FROM %s)" % (key_name, table_name)
+
     engine = sqlalchemy.create_engine('postgresql://%s:%s@%s/%s' % (user, password, host, database))
 
-    try:
-        conn = engine.connect()
-    except Exception as e:
-        #Do somethign here?
-        raise e;
-    command = "SELECT * FROM "+str(table_name)+" WHERE "+str(key_name)+" = "+str(key)
+    conn = engine.connect()
+
+    command = "SELECT * FROM %s WHERE %s = %s" % (table_name, key_name, key)
     res =  conn.execute(command)
+
     try:
         values = zip(res.keys(),res.fetchone())
     except TypeError:
-        #Chances are this failed b/c the SELECT command didn't find anything
-        raise ValueError(str(key_name)+" "+str(run)+" is not valid...probably")
+        # Chances are this failed b/c the SELECT command didn't find anything
+        raise ValueError("%s %s is not valid...probably" % (key_name, key))
+
     conn.close()
+
     return dict(values)
 
 def get_detector_control_state(key):
@@ -40,11 +43,13 @@ def get_crate_state(key):
         card_key = "mb%i"%card_num
         ret[card_num] = fetch_from_table_with_key('fec',cards[card_key])
     return ret
+
 def get_fec_state(key):
     return fetch_from_table_with_key('fec',key)
 
 def get_run_state(run):
     return fetch_from_table_with_key('run_state',run,key_name='run')
+
 def translate_trigger_mask(maskVal):
     trigger_bit_to_string = [
                                 (0 ,"NHIT100LO"),
@@ -76,15 +81,18 @@ def translate_trigger_mask(maskVal):
                             ]
     triggers =  filter(lambda x: ((maskVal & 1<<x[0]) > 0),trigger_bit_to_string)
     return map(lambda x: x[1],triggers)
+
 def translate_ped_delay(coarseDelay_mask,fineDelay_mask):
     MIN_GT_DELAY = 18.35; #Taken from daq/src/mtc.c
     AddelSlope = 0.1; #Taken from daq/src/mtc.c
     coarseDelay = ((~coarseDelay_mask & 0xFF))*10;
     fine_delay = (fineDelay_mask & 0xFF) * AddelSlope;
     return coarseDelay + fine_delay;
+
 def translate_lockout_width(lockout_mask):
     lockout = (~lockout_mask) & 0xFF;
     return lockout*20
+
 def translate_control_reg(control_reg):
     bit_to_string = [
         (0, "PED_EN"),
@@ -107,10 +115,13 @@ def translate_control_reg(control_reg):
         ]
     word_list = filter(lambda x:((control_reg & 1<<x[0]) >0), bit_to_string)
     return map(lambda x:x[1], word_list)
+
 def translate_crate_mask(mask):
     return map(lambda x: (mask & 1<<x) > 0,range(0,20))
+
 def translate_prescale(prescale):
     return (~prescale & 0xFFFF)+1
+
 @app.template_filter('mtc_human_readable')
 def mtc_human_readable_filter(mtc):
     ret = {}
@@ -132,6 +143,7 @@ def mtc_human_readable_filter(mtc):
     except Exception:
         return False
     return ret
+
 def translate_caen_front_panel_io_control(mask):
     ret = {} 
     ret["trigger_voltage_level"] = "TTL" if (mask & 1) >0 else "NIM"
@@ -143,6 +155,7 @@ def translate_caen_front_panel_io_control(mask):
     ret["trig_out_logic_level"] = 1 if (mask & i<<14) >0 else 0
     ret["io_test_mode"] = (mask & i<<15) >0
     return ret
+
 def translate_caen_acquisition_control(mask):
     ret = {}
     bit_0 = (mask & 1) >0
@@ -154,6 +167,7 @@ def translate_caen_acquisition_control(mask):
     ret["acquiring"] = (mask & 1<<2) > 0
     ret["count_all_triggers"] = (mask & 1<<2) >1
     return ret
+
 def translate_caen_channel_configuaration(mask):
     ret = {}
     ret["trigger_overlapping"] = (mask & 1<<1) >0
@@ -165,6 +179,7 @@ def translate_caen_channel_configuaration(mask):
     bit_17 = (mask & 1<<17) >0
     ret["zero_suppresion_algorithm"] = "ZS AMP" if bit_16 else "ZLE" if bit_17 else "None"
     return ret
+
 def translate_caen_trigger(trig_source_mask,trig_out_mask):
     ret ={}
     channels = []
@@ -174,6 +189,7 @@ def translate_caen_trigger(trig_source_mask,trig_out_mask):
     ret["external_trigger"] = [(trig_source_mask & 1<<30) > 0, (trig_out_mask & 1<< 30 )> 0]
     ret["software_trigger"] = [(trig_source_mask & 1<<31) > 0, (trig_out_mask & 1<< 31 )> 0]
     return ret
+
 @app.template_filter('caen_human_readable')
 def caen_human_readable_filter(caen):
     ret = {}
@@ -188,11 +204,13 @@ def caen_human_readable_filter(caen):
         print "CAEN translation error: %s" % e
         return False
     return ret
+
 @app.template_filter('all_crates_human_readable')
 def all_crates_human_readable(crates):
     if crates is None:
         return False
     return map(crate_human_readable_filter,crates)
+
 @app.template_filter('crate_human_readable')
 def crate_human_readable_filter(crate):
     if crate is None:
@@ -205,8 +223,10 @@ def crate_human_readable_filter(crate):
         print "Crate translation error: %s" % e
         return False
     return ret
+
 def translate_fec_disable_mask(mask):
     return map(lambda x: 0 if ((mask & (1<<x))>0) else 1,range(32))
+
 @app.template_filter('fec_human_readable')
 def fec_human_readable_filter(fec):
     if fec is None:
