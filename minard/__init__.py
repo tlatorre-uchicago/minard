@@ -35,8 +35,6 @@ class ReverseProxied(object):
 
 app = Flask(__name__)
 
-app.debug = True
-
 app.config.from_envvar('MINARD_SETTINGS', silent=True)
 
 app.wsgi_app = ReverseProxied(app.wsgi_app)
