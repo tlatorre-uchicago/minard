@@ -11,7 +11,7 @@ from collections import deque, namedtuple
 from .timeseries import get_timeseries, get_interval, get_hash_timeseries
 from .timeseries import get_timeseries_field, get_hash_interval
 from math import isnan
-
+import detector_state
 import pcadb
 import ecadb
 
@@ -86,8 +86,6 @@ def status():
 @app.route('/state')
 @app.route('/state/<int:run>')
 def state(run=None):
-    import detector_state
-
     try:
         run_state = detector_state.get_run_state(run)
         run = run_state['run']

@@ -1,16 +1,11 @@
 import sqlalchemy
 from minard import app
 
-def fetch_from_table_with_key(table_name,key,key_name='key'):
-    user = app.config['DB_USER']
-    password = app.config['DB_PASS']
-    host = app.config['DB_HOST']
-    database = app.config['DB_NAME']
+engine = sqlalchemy.create_engine('postgresql://%s:%s@%s/%s' % (app.config['DB_USER'], app.config['DB_PASS'], app.config['DB_HOST'], app.config['DB_NAME']))
 
+def fetch_from_table_with_key(table_name, key, key_name='key'):
     if key is None:
 	key = "(SELECT max(%s) FROM %s)" % (key_name, table_name)
-
-    engine = sqlalchemy.create_engine('postgresql://%s:%s@%s/%s' % (user, password, host, database))
 
     conn = engine.connect()
 
@@ -40,7 +35,7 @@ def get_crate_state(key):
     cards = fetch_from_table_with_key('crate',key)
     ret={}
     for card_num in range(16):
-        card_key = "mb%i"%card_num
+        card_key = "mb%i" % card_num
         ret[card_num] = fetch_from_table_with_key('fec',cards[card_key])
     return ret
 
