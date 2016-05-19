@@ -27,13 +27,15 @@
 			</tr>
 		    </thead>
 		    {% for row in results %}
-		    <tr>{{ row['timestamp']|str }}</tr>
-		    <tr>{{ row['name'] }}</tr>
-		    <tr>{{ row['crate'] }}</tr>
-		    <tr>{{ "0x%08x" % row['slot_mask'] }}</tr>
-		    <tr>{{ "0x%08x" % row['channel_mask'] }}</tr>
-		    <tr>{{ "%.2f" % row['baseline'] }}</tr>
-		    <tr>{{ "%.2f" % row['adc_per_nhit'] }}</tr>
+		    <tr>
+			<td>{{ row['timestamp'].strftime("%Y-%m-%d %H:%M:%S") }}</td>
+			<td>{{ row['name'] }}</td>
+			<td>{{ row['crate'] }}</td>
+			<td>{{ "0x%04x" % row['slot_mask'] }}</td>
+			<td>{{ "0x%08x" % row['channel_mask'] }}</td>
+			<td>{{ "%.2f" % row['baseline'] }}</td>
+			<td>{{ "%.2f" % row['adc_per_nhit'] }}</td>
+		    </tr>
 		    {% endfor %}
 		</table>
 	    </div>

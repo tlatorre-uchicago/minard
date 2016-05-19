@@ -15,7 +15,7 @@ def get_latest_trigger_scans():
 
     result = conn.execute("select distinct on (name) * from trigger_scan order by name, key desc")
 
-    if results is None:
+    if result is None:
 	return None
 
     keys = result.keys()
