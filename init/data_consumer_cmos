@@ -7,6 +7,9 @@
 
 EXEC=/opt/minard/bin/data_consumer_cmos
 USER=minard
+MINARD_SETTINGS=/etc/minard/settings.cfg
+
+export MINARD_SETTINGS
 
 WORKERS=2
 
