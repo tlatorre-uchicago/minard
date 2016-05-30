@@ -46,7 +46,7 @@
 	// of the main div and then plot the points from current_time - step*width to current_time in steps of step.
 	var width = $('#main').width();
 	var stop = moment();
-	var start = stop.subtract(this.value*width, 'seconds');
+	var start = stop.clone().subtract(this.value*width, 'seconds');
 	window.location.replace($SCRIPT_ROOT + "/graph?name={{ name }}&start=" + start.toISOString() + "&stop=" + stop.toISOString() + "&step=" + this.value);
     });
 
