@@ -137,6 +137,7 @@ MG.data_graphic = function(args) {
     x_label: '',
     x_sort: true,
     x_axis: true,
+    time_scale: null,
     y_axis: true,
     y_accessor: 'value',
     y_label: '',
@@ -1284,9 +1285,13 @@ function mg_define_x_scale (args) {
   mg_add_scale_function(args, 'xf', 'X', args.x_accessor);
   mg_find_min_max_x(args);
 
-  var time_scale = (args.utc_time)
-    ? d3.time.scale.utc()
-    : d3.time.scale();
+  if (args.time_scale) {
+    var time_scale = args.time_scale;
+  } else {
+    var time_scale = (args.utc_time)
+      ? d3.time.scale.utc()
+      : d3.time.scale();
+  }
 
   args.scales.X = (args.time_series)
     ? time_scale

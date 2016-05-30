@@ -43,6 +43,7 @@ function add_graph(name, start, stop, step)
                     height: 250,
                     show_years: false,
                     xax_tick: 0,
+		    time_scale: scale,
                     xax_format: scale.tickFormat(data.length),
                     y_extended_ticks: true,
                     target: "#main",
