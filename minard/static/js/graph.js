@@ -33,7 +33,7 @@ function add_graph(name, start, stop, step)
 
                 var valid = values.filter(isNumber);
 
-                data_graphic({
+                MG.data_graphic({
                     title: name,
                     chart_type: valid.length ? 'line' : 'missing-data',
                     area: false,
@@ -41,8 +41,8 @@ function add_graph(name, start, stop, step)
                     interpolate: 'linear',
                     width: $('#main').width(),
                     height: 250,
-                    show_years: false,
-                    xax_tick: 0,
+                    show_secondary_x_label: false,
+                    //xax_tick: 0,
 		    time_scale: scale,
                     xax_format: scale.tickFormat(data.length),
                     y_extended_ticks: true,
@@ -53,7 +53,7 @@ function add_graph(name, start, stop, step)
 
                 var width = $('#hist').width();
 
-                data_graphic({
+                MG.data_graphic({
                     data: valid,
                     chart_type: valid.length ? 'histogram' : 'missing-data',
                     width: width,
@@ -64,7 +64,7 @@ function add_graph(name, start, stop, step)
                 });
 
                 // log
-                data_graphic({
+                MG.data_graphic({
                     data: valid,
                     y_scale_type: 'log',
                     chart_type: valid.length ? 'histogram' : 'missing-data',
