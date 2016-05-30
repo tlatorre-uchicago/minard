@@ -29,7 +29,7 @@ function add_graph(name, start, stop, step)
                 var values = data.values;
                 var chart_data = format_data(values,start,stop,step);
                 var dates = chart_data.map(function(d) { return d['date']; });
-                var scale = d3.time.scale().domain(dates);
+                var scale = tzscale().domain(dates).zone('America/Toronto');
 
                 var valid = values.filter(isNumber);
 
