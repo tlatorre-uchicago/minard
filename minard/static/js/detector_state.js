@@ -129,7 +129,174 @@ function display_prescale(prescale) {
 function display_caen(caen_info) {
     var caen = d3.select("#CAEN");
     caen.append('h4').text("Acquisition Mode = "+caen_info.acquisition_mode);
-}
+};
+function display_tubii(tubii_info) {
+    var tubii = d3.select("#tubii");
+    var bounds = tubii.node().parentElement.parentElement.clientWidth
+	var height = 50;
+    var width = bounds;
+    var step_size = width/30;
+    radius = step_size;
+    var xpos_func = function(d,i) { return step_size+i*step_size; }
+    var ypos_func = function(d,i) { return height/4.0; }
+
+    tubii.append('h4').text("Trigger Mask");
+    var svg = tubii.append("svg")
+        .attr("width",width)
+        .attr("height",height)
+        .attr("viewBox","0 0 "+width.toString()+" "+height.toString())
+        .attr("class","rack_mask");
+    var arr = [];
+    console.log(tubii_data["trigger_mask"]);
+    for(var i=0;i<16;i++) {
+        arr.push([i.toString(),(tubii_data["trigger_mask"]&(1<<i))/(1<<i),"External Trigger " + i.toString()]);
+	console.log((tubii_data["trigger_mask"]&(1<<i))/(1<<i));
+    }
+    arr.push(["M1",(tubii_data["trigger_mask"]&(1<<16))/(1<<16),"MTCA Mimic 1"]);
+    arr.push(["M2",(tubii_data["trigger_mask"]&(1<<17))/(1<<17),"MTCA Mimic 2"]);
+    arr.push(["B",(tubii_data["trigger_mask"]&(1<<18))/(1<<18), "Burst Trigger"]);
+    arr.push(["C",(tubii_data["trigger_mask"]&(1<<19))/(1<<19), "Combo Trigger"]);
+    arr.push(["P",(tubii_data["trigger_mask"]&(1<<20))/(1<<20), "Prescale Trigger"]);
+    arr.push(["U",(tubii_data["trigger_mask"]&(1<<21))/(1<<21), "Unused Trigger"]);
+    arr.push(["T",(tubii_data["trigger_mask"]&(1<<22))/(1<<22), "TELLIE"]);
+    arr.push(["S",(tubii_data["trigger_mask"]&(1<<23))/(1<<23), "SMELLIE"]);
+    svg.selectAll('rect')
+        .data(arr)
+        .enter()
+        .append('rect')
+        .attr("x",xpos_func)
+        .attr("y",ypos_func)
+        .attr("width",radius)
+	.attr("height",radius)
+        .attr("fill",function(d) { return d[1]==1 ? 'green' : 'red'; })
+        .attr("class",function(d) { return d[1]==1 ? 'on' : 'off'; })
+	.append("svg:title")
+	.text(function(d){return d[2];});
+    svg.selectAll('text')
+        .data(arr)
+        .enter()
+        .append('text')
+        .text(function(d){return d[0];})
+        .attr("text-anchor","middle")
+        .attr("font-size","16px")
+        .attr("fill","white")
+        .attr("x",function(d,i) { return xpos_func(d,i)+0.5*radius;})
+        .attr("y",function(d,i) { return ypos_func(d,i)+0.5*radius+5;});
+
+    tubii.append('h4').text("Speaker Mask");
+    var svg = tubii.append("svg")
+        .attr("width",width)
+        .attr("height",height)
+        .attr("viewBox","0 0 "+width.toString()+" "+height.toString())
+        .attr("class","rack_mask");
+    var arr = [];
+    for(var i=0;i<16;i++) {
+        arr.push([i.toString(),(tubii_data["speaker_mask"]&(1<<i))/(1<<i),"External Trigger " + i.toString()]);
+    }
+    arr.push(["M1",(tubii_data["speaker_mask"]&(1<<16))/(1<<16),"MTCA Mimic 1"]);
+    arr.push(["M2",(tubii_data["speaker_mask"]&(1<<17))/(1<<17),"MTCA Mimic 2"]);
+    arr.push(["B",(tubii_data["speaker_mask"]&(1<<18))/(1<<18),"Burst Trigger"]);
+    arr.push(["C",(tubii_data["speaker_mask"]&(1<<19))/(1<<19),"Combo Trigger"]);
+    arr.push(["P",(tubii_data["speaker_mask"]&(1<<20))/(1<<20),"Prescale Trigger"]);
+    arr.push(["U",(tubii_data["speaker_mask"]&(1<<21))/(1<<21),"Unused Trigger"]);
+    arr.push(["T",(tubii_data["speaker_mask"]&(1<<22))/(1<<22),"TELLIE"]);
+    arr.push(["S",(tubii_data["speaker_mask"]&(1<<23))/(1<<23),"SMELLIE"]);
+    arr.push(["GT",(tubii_data["speaker_mask"]&(1<<24))/(1<<24),"Global Trigger"]);
+    svg.selectAll('rect')
+        .data(arr)
+        .enter()
+        .append('rect')
+        .attr("x",xpos_func)
+        .attr("y",ypos_func)
+        .attr("width",radius)
+        .attr("height",radius)
+        .attr("fill",function(d) { return d[1]==1 ? 'green' : 'red'; })
+        .attr("class",function(d) { return d[1]==1 ? 'on' : 'off'; })
+	.append("svg:title")
+	.text(function(d){return d[2];});
+    svg.selectAll('text')
+        .data(arr)
+        .enter()
+        .append('text')
+        .text(function(d){return d[0];})
+        .attr("text-anchor","middle")
+        .attr("font-size","16px")
+        .attr("fill","white")
+        .attr("x",function(d,i) { return xpos_func(d,i)+0.5*radius;})
+        .attr("y",function(d,i) { return ypos_func(d,i)+0.5*radius+5;});
+
+    tubii.append('h4').text("Counter Mask");
+    var svg = tubii.append("svg")
+        .attr("width",width)
+        .attr("height",height)
+        .attr("viewBox","0 0 "+width.toString()+" "+height.toString())
+        .attr("class","rack_mask");
+    var arr = [];
+    for(var i=0;i<16;i++) {
+        arr.push([i.toString(),(tubii_data["counter_mask"]&(1<<i))/(1<<i),"External Trigger " + i.toString()]);
+    }
+    arr.push(["M1",(tubii_data["counter_mask"]&(1<<16))/(1<<16),"MTCA Mimic 1"]);
+    arr.push(["M2",(tubii_data["counter_mask"]&(1<<17))/(1<<17),"MTCA Mimic 2"]);
+    arr.push(["B",(tubii_data["counter_mask"]&(1<<18))/(1<<18),"Burst Trigger"]);
+    arr.push(["C",(tubii_data["counter_mask"]&(1<<19))/(1<<19),"Combo Trigger"]);
+    arr.push(["P",(tubii_data["counter_mask"]&(1<<20))/(1<<20),"Prescale Trigger"]);
+    arr.push(["U",(tubii_data["counter_mask"]&(1<<21))/(1<<21),"Unused Trigger"]);
+    arr.push(["T",(tubii_data["counter_mask"]&(1<<22))/(1<<22),"TELLIE"]);
+    arr.push(["S",(tubii_data["counter_mask"]&(1<<23))/(1<<23),"SMELLIE"]);
+    arr.push(["GT",(tubii_data["counter_mask"]&(1<<24))/(1<<24),"Global Trigger"]);
+    svg.selectAll('rect')
+        .data(arr)
+        .enter()
+        .append('rect')
+        .attr("x",xpos_func)
+        .attr("y",ypos_func)
+        .attr("width",radius)
+        .attr("height",radius)
+        .attr("fill",function(d) { return d[1]==1 ? 'green' : 'red'; })
+        .attr("class",function(d) { return d[1]==1 ? 'on' : 'off'; })
+        .append("svg:title")
+        .text(function(d){return d[2];});
+    svg.selectAll('text')
+        .data(arr)
+        .enter()
+        .append('text')
+        .text(function(d){return d[0];})
+        .attr("text-anchor","middle")
+        .attr("font-size","16px")
+        .attr("fill","white")
+        .attr("x",function(d,i) { return xpos_func(d,i)+0.5*radius;})
+        .attr("y",function(d,i) { return ypos_func(d,i)+0.5*radius+5;});
+    var cmode;
+    if(tubii_data["counter_mode"]==1) cmode="Rate";
+    else cmode="Totaliser";
+    tubii.append('h5').text("Counter mode: " + cmode);
+    tubii.append('h5').text("Meta-Trigger settings go here...");
+
+    var csource, losource, cbackup, ecal;
+    if(tubii_data["clock_source"]==1) csource="TUBii";
+    else csource="TUB";
+    tubii.append('h5').text("Clock Source: " + csource);
+    if(tubii_data["clock_status"]==1) cbackup="BAD";
+    else cbackup="GOOD";
+    tubii.append('h5').text("Clock Status: " + cbackup);
+    if(tubii_data["lo_source"]==1) losource="TUBii";
+    else losource="TUB";
+    tubii.append('h5').text("Lockout Source: " + losource);
+    if(tubii_data["ecal"]==1) ecal="ON";
+    else ecal="OFF";
+    tubii.append('h5').text("ECAL Mode: " + ecal);
+
+    tubii.append('h5').text("CAEN Gain Path: " + tubii_data["caen_gain_path"]); // 1-8, high is attenuating
+    tubii.append('h5').text("CAEN Channel Selected: " + tubii_data["caen_channel_select"]);
+    // 1 means A9 goes to Scope/Caen Ch 1 instead of A1
+    // 2 means A10 goes to Scope/Caen Ch2 instead of A2
+    // 4 means A11 goes to Scope/Caen Ch3 instead of A3
+    // 8 means A8 to Scope/Caen Ch 0 instead of A0
+
+    tubii.append('h5').text("DGT: " + tubii_data["dgt_reg"] + " ns");
+    tubii.append('h5').text("LO: " + tubii_data["lockout_reg"] + " ns");
+    tubii.append('h5').text("DAC Thresh: " + tubii_data["dac_reg"] + " V");
+};
 function display_crate_mask(mask,dom_node,title,size_info) {
     var width = size_info.width;
     var height =size_info.height;

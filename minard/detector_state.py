@@ -28,6 +28,9 @@ def get_detector_control_state(key):
 def get_caen_state(key):
     return fetch_from_table_with_key('caen',key)
 
+def get_tubii_state(key):
+    return fetch_from_table_with_key('tubii',key)
+
 def get_mtc_state(key):
     return fetch_from_table_with_key('mtc',key)
 
@@ -197,6 +200,28 @@ def caen_human_readable_filter(caen):
         ret.update(translate_caen_trigger(caen["trigger_mask"],caen["trigger_out_mask"]))
     except Exception as e:
         print "CAEN translation error: %s" % e
+        return False
+    return ret
+
+@app.template_filter('tubii_human_readable')
+def tubii_human_readable_filter(tubii):
+    ret = {}
+    try:
+        ret['clock_source'] = tubii['control_reg'] & 1
+        ret['lo_source'] = (tubii['control_reg'] & 2)/2
+        ret['ecal'] = (tubii['control_reg'] & 4)/4
+        ret['clock_status'] = tubii['clock_status']
+        ret['trigger_mask'] = tubii['trigger_mask']
+        ret['counter_mask'] = tubii['counter_mask']
+        ret['counter_mode'] = tubii['counter_mode']
+        ret['speaker_mask'] = tubii['speaker_mask']
+        ret['caen_gain_path'] = tubii['caen_gain_reg']
+        ret['caen_channel_select'] = tubii['caen_channel_reg']
+        ret['lockout_reg'] = 5*tubii['lockout_reg']
+        ret['dgt_reg'] = 2*tubii['dgt_reg']
+        ret['dac_reg'] = (10/4096)*tubii['dac_reg'] -5
+    except Exception as e:
+        print "TUBii translation error: %s" % e
         return False
     return ret
 
