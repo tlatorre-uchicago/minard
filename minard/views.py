@@ -133,6 +133,15 @@ def l2():
         return redirect(url_for('l2',step=step,height=height,_external=True))
     return render_template('l2.html',step=step,height=height)
 
+@app.route('/trigger')
+def trigger():
+    results = detector_state.get_latest_trigger_scans()
+
+    if results is None:
+	return render_template('trigger.html', error="No trigger scans.")
+
+    return render_template('trigger.html', results=results)
+
 @app.route('/nearline')
 @app.route('/nearline/<int:run>')
 def nearline(run=None):

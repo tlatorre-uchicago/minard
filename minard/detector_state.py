@@ -3,6 +3,26 @@ from minard import app
 
 engine = sqlalchemy.create_engine('postgresql://%s:%s@%s/%s' % (app.config['DB_USER'], app.config['DB_PASS'], app.config['DB_HOST'], app.config['DB_NAME']))
 
+def get_latest_trigger_scans():
+    """
+    Returns a list of the latest trigger scans for each trigger type. Each item
+    in the returned list is a dictionary with keys from the columns of the
+    table and values from the rows.
+
+    Returns None if there are no trigger scans.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("select distinct on (name) * from trigger_scan order by name, key desc")
+
+    if result is None:
+	return None
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    return [dict(zip(keys,row)) for row in rows]
+
 def fetch_from_table_with_key(table_name, key, key_name='key'):
     if key is None:
 	key = "(SELECT max(%s) FROM %s)" % (key_name, table_name)

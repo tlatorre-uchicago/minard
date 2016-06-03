@@ -8,6 +8,9 @@
 EXEC=/opt/minard/bin/minard_dispatch_push
 USER=minard
 LOGFILE=/var/log/minard/minard_dispatch_push.log
+MINARD_SETTINGS=/etc/minard/settings.cfg
+
+export MINARD_SETTINGS
 
 case $1 in
     start)
