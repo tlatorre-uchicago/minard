@@ -225,7 +225,7 @@ function display_run_type(run_type,time_stamp) {
     if(calib_desc.length > 0){
         appendToTitle('h3',calib_desc);
     }
-    if(calib_desc.length > 0){
+    if(det_state_desc.length > 0){
         appendToTitle('h3',det_state_desc);
     }
     appendToTitle('p',time_stamp);
