@@ -104,8 +104,8 @@ def state(run=None):
     if run_state['caen'] is not None:
         caen_state = detector_state.get_caen_state(run_state['caen'])
 
-    #tubii_state = None
-    #if run_state['tubii'] is not None:
+    tubii_state = None
+    if run_state['tubii'] is not None:
         tubii_state = detector_state.get_tubii_state(run_state['tubii'])
 
     crates_state =[None]*20
