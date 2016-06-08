@@ -147,10 +147,8 @@ function display_tubii(tubii_info) {
         .attr("viewBox","0 0 "+width.toString()+" "+height.toString())
         .attr("class","rack_mask");
     var arr = [];
-    console.log(tubii_data["trigger_mask"]);
     for(var i=0;i<16;i++) {
         arr.push([i.toString(),(tubii_data["trigger_mask"]&(1<<i))/(1<<i),"External Trigger " + i.toString()]);
-	console.log((tubii_data["trigger_mask"]&(1<<i))/(1<<i));
     }
     arr.push(["M1",(tubii_data["trigger_mask"]&(1<<16))/(1<<16),"MTCA Mimic 1"]);
     arr.push(["M2",(tubii_data["trigger_mask"]&(1<<17))/(1<<17),"MTCA Mimic 2"]);
