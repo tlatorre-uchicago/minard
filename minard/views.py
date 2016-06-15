@@ -104,6 +104,10 @@ def state(run=None):
     if run_state['caen'] is not None:
         caen_state = detector_state.get_caen_state(run_state['caen'])
 
+    tubii_state = None
+    if run_state['tubii'] is not None:
+        tubii_state = detector_state.get_tubii_state(run_state['tubii'])
+
     crates_state =[None]*20
     for iCrate in range(20):
         if run_state['crate'+str(iCrate)] is not None:
@@ -117,6 +121,7 @@ def state(run=None):
                                         detector_control_state = detector_control_state,
                                         mtc_state = mtc_state,
                                         caen_state = caen_state,
+                                        tubii_state = tubii_state,
                                         crates_state = crates_state,
                                         err = None)
 

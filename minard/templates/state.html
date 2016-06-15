@@ -57,6 +57,10 @@
                     </ul>
                 {% endcall %}
             {% endif %}
+            {% if tubii_state %}
+                {% call collapsible_header('TUBii','tubii') %}
+                {% endcall %}
+            {% endif %}
             {% if detector_control_state %}
                 {% call collapsible_header('Detector Control','detector_control') %}
                 {% endcall %}
@@ -97,6 +101,7 @@
         var mtc_data = {{ mtc_state | mtc_human_readable | tojson |safe }};
         var caen_data = {{ caen_state | caen_human_readable | tojson |safe }};
         var crates_data = {{ crates_state | all_crates_human_readable |tojson |safe }};
+        var tubii_data = {{ tubii_state | tubii_human_readable | tojson |safe }};
 
         var run_data = false;
         var det_cont_info = false;
@@ -146,6 +151,9 @@
         if (det_cont_info) {
             display_detector_control(det_cont_info);
         }
+	if (tubii_data) {
+	    display_tubii(tubii_data);
+        }
         if (caen_data) {
             display_caen(caen_data);
         }
@@ -159,6 +167,11 @@
                 var mtc = d3.select("#mtc")
                 var width = mtc.node().parentElement.parentElement.clientWidth
                 var svg = mtc.selectAll("svg").attr("width",width);
+            }
+	    if(tubii_data ){
+	        var tubii = d3.select("#tubii")
+	        var width = tubii.node().parentElement.parentElement.clientWidth
+                var svg = tubii.selectAll("svg").attr("width",width);
             }
         };
         resize()
