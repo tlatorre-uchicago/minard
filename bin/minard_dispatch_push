@@ -4,9 +4,15 @@ from minard.dispatch import push
 
 if __name__ == '__main__':
     import argparse
+    import sys
 
     parser = argparse.ArgumentParser(description='Process SNO+ events from a dispatch stream')
     parser.add_argument('--host', default='minard.sp.snolab.ca', help='hostname of the dispatcher')
     args = parser.parse_args()
 
-    push(args.host)
+    while True:
+	try:
+	    push(args.host)
+	except Exception as e:
+	    print(str(e), file=sys.stderr)
+	    continue
