@@ -8,7 +8,7 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser('data stream producer')
-    parser.add_argument('--host',default='daq1.sp.snolab.ca')
+    parser.add_argument('--host',default='buffer1.sp.snolab.ca')
     parser.add_argument('--port',default=4000,type=int)
     args = parser.parse_args()
 
