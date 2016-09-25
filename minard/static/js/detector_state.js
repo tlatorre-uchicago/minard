@@ -38,7 +38,7 @@ function display_crate_view(key,crates_data,sizeinfo,node,coloringFunc)
 {
     var d = crates_data.map(function(crate,i) {
     if(crate) {
-            MBs =  crate.map(function(mb,i) {
+            MBs =  crate.fecs.map(function(mb,i) {
                 if(mb) {
                     return mb[key];
                 }

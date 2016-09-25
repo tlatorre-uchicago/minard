@@ -267,19 +267,32 @@ def tubii_human_readable_filter(tubii):
 def all_crates_human_readable(crates):
     if crates is None:
         return False
-    return map(crate_human_readable_filter,crates)
+    ret = {}
+    crates =  map(crate_human_readable_filter,crates)
+    ret['crates'] = crates
+    available_crates = filter(None,crates)
+    ret['num_n100_triggers'] = sum(map(lambda x:x['num_n100_triggers'],available_crates))
+    ret['num_n20_triggers'] = sum(map(lambda x:x['num_n20_triggers'],available_crates))
+    ret['num_sequencers'] = sum(map(lambda x:x['num_sequencers'],available_crates))
+    return ret
 
 @app.template_filter('crate_human_readable')
 def crate_human_readable_filter(crate):
     if crate is None:
         return False
-    ret = []
+    fecs = []
+    ret = {}
     try:
         for i in range(0,16):
-            ret.append(fec_human_readable_filter(crate[i]))
+            fecs.append(fec_human_readable_filter(crate[i]))
     except Exception as e:
         print "Crate translation error: %s" % e
         return False
+    ret['fecs'] = fecs
+    available_fecs = filter(None,fecs)
+    ret['num_n100_triggers'] = sum(map(lambda x:x['num_n100_triggers'],available_fecs))
+    ret['num_n20_triggers'] = sum(map(lambda x:x['num_n20_triggers'],available_fecs))
+    ret['num_sequencers'] = sum(map(lambda x:x['num_sequencers'],available_fecs))
     return ret
 
 def translate_fec_disable_mask(mask):
@@ -294,11 +307,12 @@ def fec_human_readable_filter(fec):
         ret['n20_triggers'] = fec['tr20_mask']
         ret['n100_triggers'] = fec['tr100_mask']
         ret['vthrs'] = fec['vthr']
-        ret['num_n20_triggers'] = len(filter(lambda x :x,fec['tr20_mask']))
-        ret['num_n100_triggers'] = len(filter(lambda x :x,fec['tr100_mask']))
+        ret['num_n20_triggers'] = len(filter(None,fec['tr20_mask']))
+        ret['num_n100_triggers'] = len(filter(None,fec['tr100_mask']))
         ret['DB_IDs'] = map(lambda x: '0x%x' % x,fec['dbid'])
         ret['MB_ID'] = '0x%x' % fec['mbid']
         ret['sequencers'] = translate_fec_disable_mask(fec['disable_mask'])
+        ret['num_sequencers'] = len(filter(None,ret['sequencers']))
     except Exception as e:
         print "FEC translation error : %s" % e
         return False

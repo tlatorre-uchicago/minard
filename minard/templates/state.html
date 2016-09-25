@@ -123,10 +123,13 @@
             sizeinfo = {};
             sizeinfo.width = width;
             sizeinfo.height = height;
-            display_binary_crate_view('n100_triggers',crates_data,sizeinfo,N100)
-            display_binary_crate_view('n20_triggers',crates_data,sizeinfo,N20)
-            display_binary_crate_view('sequencers',crates_data,sizeinfo,Seq)
-            display_continuous_crate_view('vthrs',crates_data,sizeinfo,vThr)
+            N100.append('h3').text("Num Enabled = "+crates_data['num_n100_triggers'].toString());
+            N20.append('h3').text("Num Enabled = "+crates_data['num_n20_triggers'].toString());
+            Seq.append('h3').text("Num Enabled = "+crates_data['num_sequencers'].toString());
+            display_binary_crate_view('n100_triggers',crates_data.crates,sizeinfo,N100)
+            display_binary_crate_view('n20_triggers',crates_data.crates,sizeinfo,N20)
+            display_binary_crate_view('sequencers',crates_data.crates,sizeinfo,Seq)
+            display_continuous_crate_view('vthrs',crates_data.crates,sizeinfo,vThr)
         }
         if (mtc_data) {
             display_triggers(mtc_data.gt_words);
