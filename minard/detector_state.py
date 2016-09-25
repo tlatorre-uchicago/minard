@@ -140,6 +140,20 @@ def translate_crate_mask(mask):
 def translate_prescale(prescale):
     return (~prescale & 0xFFFF)+1
 
+def translate_mtca_dacs(dacs):
+    ret = {}
+    ret["N100 LO"] = dacs[0]
+    ret["N100 MED"] = dacs[1]
+    ret["N100 HI"] = dacs[2]
+    ret["N20"] = dacs[3]
+    ret["N20 LB"] = dacs[4]
+    ret["ESUM LO"] = dacs[5]
+    ret["ESUM HI"] = dacs[6]
+    ret["OWLN"] = dacs[7]
+    ret["OWLE LO"] = dacs[8]
+    ret["OWLE HI"] = dacs[9]
+    #Not bothering with the spares (for now) (or ever probably)
+    return ret;
 @app.template_filter('mtc_human_readable')
 def mtc_human_readable_filter(mtc):
     ret = {}
@@ -158,6 +172,7 @@ def mtc_human_readable_filter(mtc):
         ret['OWLELO_crates'] = translate_crate_mask(mtc['mtca_relays'][4])
         ret['OWLEHI_crates'] = translate_crate_mask(mtc['mtca_relays'][5])
         ret['OWLN_crates'] = translate_crate_mask(mtc['mtca_relays'][6])
+        ret['MTCA_DACs'] = translate_mtca_dacs(mtc['mtca_dacs']);
     except Exception:
         return False
     return ret

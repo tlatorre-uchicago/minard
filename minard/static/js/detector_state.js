@@ -85,32 +85,20 @@ function display_detector_control(detector_control_info) {
 }
 function display_triggers(wordlist) {
     var mtc = d3.select('#mtc');
-    mtc.append("h3").text("Enabled Triggers");
-    var trig_list = d3.select('#mtc').append('ul');
-    trig_list.selectAll('li')
-             .data(wordlist)
-             .enter()
-             .append('li')
-             .text(function(d){ return d;});
+    display_array_as_list(mtc,wordlist,'Enabled Triggers');
 };
 function display_ped_delay(delay) {
     var mtc = d3.select('#mtc')
-    mtc.append("h3").text("Pedestal Delay = "+ delay.toString());
+    mtc.append("h3").text("Pedestal Delay = "+ delay.toString() +"ns");
 
 };
 function display_lockout_width(lockout) {
     var mtc = d3.select('#mtc')
-    mtc.append("h3").text("Lockout Width = "+ lockout.toString());
+    mtc.append("h3").text("Lockout Width = "+ lockout.toString()+"ns");
 };
 function display_control_reg(wordlist) {
     var mtc = d3.select('#mtc')
-    mtc.append('h3').text("Control Register Values");
-    var list = mtc.append('ul');
-    list.selectAll('li')
-             .data(wordlist)
-             .enter()
-             .append('li')
-             .text(function(d){ return d;});
+    display_array_as_list(mtc,wordlist,'Control Register Values');
 };
 function display_crates(title,crates) {
     var mtc = d3.select('#mtc');
@@ -295,6 +283,38 @@ function display_tubii(tubii_info) {
     tubii.append('h5').text("LO: " + tubii_data["lockout_reg"] + " ns");
     tubii.append('h5').text("DAC Thresh: " + tubii_data["dac_reg"] + " V");
 };
+function display_array_as_list(node,arr,title) {
+    node.append('h3').text(title);
+    var display_node = node.append('ul');
+    display_node.selectAll('li')
+        .data(arr)
+        .enter()
+        .append('li')
+        .text(function(d) { return d.toString();});
+
+}
+function display_dictionary_as_list(node,dict,title) {
+    keys =Object.keys(dict)
+    node.append('h3').text(title);
+    var display_node = node.append('ul');
+    display_node.selectAll('li')
+        .data(keys)
+        .enter()
+        .append('li')
+        .text(function(d) { return d+' = '+dict[d].toString();});
+
+}
+function display_mtca_thresholds(dacs){
+    var mtc = d3.select('#mtc');
+
+    function dac_to_volts(value) { return (10.0/4096)*value - 5.0; }
+    volt_dict = {}
+    for(var key in dacs)
+    { volt_dict[key] = dac_to_volts(dacs[key]).toFixed(2)+"V"; }
+
+    //Maybe someday tie this into the trigger scan
+    display_dictionary_as_list(mtc,volt_dict,'MTCA Thresholds');
+}
 function display_crate_mask(mask,dom_node,title,size_info) {
     var width = size_info.width;
     var height =size_info.height;

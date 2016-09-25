@@ -125,11 +125,12 @@
             display_crate_view('sequencers',crates_data,sizeinfo,Seq)
         }
         if (mtc_data) {
-
             display_triggers(mtc_data.gt_words);
-            display_ped_delay( mtc_data.ped_delay);
+            display_mtca_thresholds(mtc_data.MTCA_DACs);
             display_lockout_width(mtc_data.lockout_width);
             display_control_reg(mtc_data.control_reg);
+            if(mtc_data.control_reg.filter(function(x) { x.indexOf("PED") > -1;}))
+                {display_ped_delay( mtc_data.ped_delay);}
             display_prescale(mtc_data.prescale);
             var mtc = d3.select("#mtc")
             var size_info ={};
