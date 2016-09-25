@@ -1,7 +1,40 @@
 function flattenArray(arr) {
     return [].concat.apply([],arr);
 }
-function display_crate_view(key,crates_data,sizeinfo,node)
+function display_binary_crate_view(key,crates_data,sizeinfo,node)
+{
+    var coloringFunc = function(data) {
+        return function(k,i) {
+        var v = data[k];
+        if (v === null || typeof v === 'undefined')
+            return 'background-color:#e0e0e0';
+        else if (v===0) {
+            return 'background-color:grey';
+        }
+        else
+            return 'background-color:green';
+    };}
+
+    display_crate_view(key,crates_data,sizeinfo,node,coloringFunc);
+}
+function display_continuous_crate_view(key,crates_data,sizeinfo,node)
+{
+    // For now this just assumes a linear scale from 0-255.
+    // May have to generalize at some point.
+    var scale = d3.scale.linear().domain([0,255]).range(['#6666ff','#ff0000']);
+    var coloringFunc = function(data) {
+        return function(k, i) {
+            var v = data[k];
+            if (v === null || typeof v === 'undefined') {
+                return 'background-color:#e0e0e0';
+            }
+            else {
+
+                return 'background-color:' + scale(+v);
+    }};}
+    display_crate_view(key,crates_data,sizeinfo,node,coloringFunc);
+}
+function display_crate_view(key,crates_data,sizeinfo,node,coloringFunc)
 {
     var d = crates_data.map(function(crate,i) {
     if(crate) {
@@ -20,29 +53,19 @@ function display_crate_view(key,crates_data,sizeinfo,node)
         }
     });
     d = flattenArray(d)
-
-    var coloringFunc = function(data) {
-        return function(k,i) {
-        var v = data[k];
-        if (v === null || typeof v === 'undefined')
-            return 'background-color:#e0e0e0';
-        else if (v===0) {
-            return 'background-color:grey';
-        }
-        else
-            return 'background-color:green';
-    };}
     var crate = crate_view()
         .caption(true)
         .height(height)
-        .width(width)
-        .coloringFunction(coloringFunc);
-        var g = node.append('div')
-                .attr('id','crate')
-                .attr('width',width)
-                .attr('height',height)
-                .attr('class',"col-md-10 col-md-offset-1");
-        g.datum(d).call(crate);
+        .width(width);
+    if(coloringFunc){
+        crate.coloringFunction(coloringFunc)
+    }
+    var g = node.append('div')
+            .attr('id','crate')
+            .attr('width',width)
+            .attr('height',height)
+            .attr('class',"col-md-10 col-md-offset-1");
+    g.datum(d).call(crate);
 }
 function display_detector_control(detector_control_info) {
     var det_cont = d3.select("#detector_control");

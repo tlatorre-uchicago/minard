@@ -293,6 +293,7 @@ def fec_human_readable_filter(fec):
     try:
         ret['n20_triggers'] = fec['tr20_mask']
         ret['n100_triggers'] = fec['tr100_mask']
+        ret['vthrs'] = fec['vthr']
         ret['num_n20_triggers'] = len(filter(lambda x :x,fec['tr20_mask']))
         ret['num_n100_triggers'] = len(filter(lambda x :x,fec['tr100_mask']))
         ret['DB_IDs'] = map(lambda x: '0x%x' % x,fec['dbid'])

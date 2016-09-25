@@ -73,6 +73,8 @@
                    {% endcall %}
                    {% call collapsible_header('Sequencers','Sequencers') %}
                    {% endcall %}
+                   {% call collapsible_header('Channel Thresholds','VThr') %}
+                   {% endcall %}
                    {% for i in range(20) %}
                        {% if crates_state[i] %}
                            {% call collapsible_header('Crate %i' % i,'crate%i' % i) %}
@@ -112,17 +114,19 @@
             det_cont_info  = {{ detector_control_state | tojson | safe }};
         {% endif %}
         if(crates_data) {
-            var N100 = d3.select("#N100Triggers")
-            var N20 = d3.select("#N20Triggers")
-            var Seq = d3.select("#Sequencers")
+            var N100 = d3.select("#N100Triggers");
+            var N20 = d3.select("#N20Triggers");
+            var Seq = d3.select("#Sequencers");
+            var vThr = d3.select("#VThr");
             var width = N100.node().parentElement.parentElement.clientWidth
             var height = 500;
             sizeinfo = {};
             sizeinfo.width = width;
             sizeinfo.height = height;
-            display_crate_view('n100_triggers',crates_data,sizeinfo,N100)
-            display_crate_view('n20_triggers',crates_data,sizeinfo,N20)
-            display_crate_view('sequencers',crates_data,sizeinfo,Seq)
+            display_binary_crate_view('n100_triggers',crates_data,sizeinfo,N100)
+            display_binary_crate_view('n20_triggers',crates_data,sizeinfo,N20)
+            display_binary_crate_view('sequencers',crates_data,sizeinfo,Seq)
+            display_continuous_crate_view('vthrs',crates_data,sizeinfo,vThr)
         }
         if (mtc_data) {
             display_triggers(mtc_data.gt_words);
