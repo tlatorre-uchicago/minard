@@ -313,6 +313,8 @@ def fec_human_readable_filter(fec):
         ret['MB_ID'] = '0x%x' % fec['mbid']
         ret['sequencers'] = translate_fec_disable_mask(fec['disable_mask'])
         ret['num_sequencers'] = len(filter(None,ret['sequencers']))
+        ret['vbal_0'] = fec['vbal_0']
+        ret['vbal_1'] = fec['vbal_1']
     except Exception as e:
         print "FEC translation error : %s" % e
         return False
