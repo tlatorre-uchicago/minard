@@ -1,6 +1,6 @@
 {% macro collapsible_header(title,name) %}
 <div class="row">
-   <div class="panel-group">
+   <div class="panel-group" style="margin:10px">
        <div class="panel panel-default">
            <div class="panel-heading">
                <h4 class="panel-title">
@@ -172,7 +172,7 @@
             display_detector_control(det_cont_info);
         }
         if (tubii_data) {
-            display_tubii(tubii_data);
+    display_tubii(tubii_data);
         }
         if (caen_data) {
             display_caen(caen_data);
