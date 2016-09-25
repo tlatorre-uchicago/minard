@@ -421,40 +421,6 @@ function display_run_type(run_type,time_stamp) {
     str = str.replace('(EDT)','EDT').replace('(EST)','EST')
     appendToTitle('p',str);
 };
-function display_mb(crateNum,cardNum,mb_data) {
-    var id ="#Crate"+crateNum+"MB"+cardNum
-    var thisCard = d3.select(id)
-    var size_info = {}
-    size_info['width'] = 200;
-    size_info['height'] = 100;
-    var width = size_info.width;
-    var height =size_info.height;
-    dv = thisCard.append("div");
-    dv.attr("class","LOOKHERE");
-    var svg = dv.append("svg")
-        .attr("width",width)
-        .attr("height",height)
-        .attr("viewBox","0 0 "+width.toString()+" "+height.toString())
-        .attr("class","crate_mask");
-    var step_size = 10;
-    var xpos_func = function(d,i) { return step_size+cardNum*step_size; }
-    var ypos_func = function(d,i) { return step_size+i*step_size; }
-    svg.selectAll("circle")
-        .data(mb_data['n100_triggers'])
-        .enter()
-        .append("circle")
-        .attr("cx",xpos_func)
-        .attr("cy",ypos_func)
-        .attr("r",5)
-        .attr("fill","red");
-};
-function display_crate_config(svg,crate_data) {
-    for (var i=0;i<16;i++) {
-        if(crate_data[i]) {
-            display_mb(1,i,crate_data[i]);
-        }
-    }
-};
 function crate() {
     var width = 780;
     var height = 80;
@@ -479,15 +445,3 @@ function crate() {
 
     return my;
 }
-function display_all_crates(crates_data,svg) {
-    for(var i=0;i<20;i++) {
-        if (crates_data[i]) {
-            crate = d3.select("#crate"+i)
-            var thisSvg = crate.append("svg")
-                .attr("width",width)
-                .attr("height",height)
-                .attr("viewBox","0 0 "+width.toString()+" "+height.toString())
-            display_crate_config(svg, crates_data[i]);
-        }
-    }
-};
