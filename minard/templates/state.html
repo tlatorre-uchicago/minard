@@ -25,25 +25,25 @@
 {% endblock %}
 {% block body %}
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/detector_state.css') }}" media="screen">
-    {{ super() }}
-    <div class="container">
-        {% if err %}
-	    <div class="alert alert-danger" role="alert">
-	    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-            Error talking to the DB : {{ err }}
-	    </div>
-        {% else %}
-	    <div class="row">
-		<div class="col-md-6 col-md-offset-3">
-		    <center id="run_title">
-			<ul class="pager">
-			    <li class="previous"><a href="{{ url_for('state', run=run-1) }}">Prev</a></li>
-			    <li><h1 style="display:inline"> Run {{ run }} </h2></li>
-			    <li class="next"><a href="{{ url_for('state', run=run+1) }}">Next</a></li>
-			</ul>
-		    </center>
-		</div>
-	    </div>
+{{ super() }}
+<div class="container">
+    {% if err %}
+    <div class="alert alert-danger" role="alert">
+        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+        Error talking to the DB : {{ err }}
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <center id="run_title">
+                <ul class="pager">
+                    <li class="previous"><a href="{{ url_for('state', run=run-1) }}">Prev</a></li>
+                    <li><h1 style="display:inline"> Run {{ run }} </h2></li>
+                    <li class="next"><a href="{{ url_for('state', run=run+1) }}">Next</a></li>
+                </ul>
+            </center>
+        </div>
+    </div>
             {% if mtc_state %}
                 {% call collapsible_header('MTC','mtc') %}
                 {% endcall %}
@@ -171,8 +171,8 @@
         if (det_cont_info) {
             display_detector_control(det_cont_info);
         }
-	if (tubii_data) {
-	    display_tubii(tubii_data);
+        if (tubii_data) {
+            display_tubii(tubii_data);
         }
         if (caen_data) {
             display_caen(caen_data);
@@ -188,9 +188,9 @@
                 var width = mtc.node().parentElement.parentElement.clientWidth
                 var svg = mtc.selectAll("svg").attr("width",width);
             }
-	    if(tubii_data ){
-	        var tubii = d3.select("#tubii")
-	        var width = tubii.node().parentElement.parentElement.clientWidth
+            if(tubii_data ){
+                var tubii = d3.select("#tubii")
+                    var width = tubii.node().parentElement.parentElement.clientWidth
                 var svg = tubii.selectAll("svg").attr("width",width);
             }
         };
