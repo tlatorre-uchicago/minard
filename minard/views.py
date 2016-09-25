@@ -3,6 +3,7 @@ from . import app
 from flask import render_template, jsonify, request, redirect, url_for
 from itertools import product
 import time
+from pytz import timezone
 from redis import Redis
 from os.path import join
 import json
@@ -116,6 +117,11 @@ def state(run=None):
     if not any(crates_state):
         crates_state = None;
 
+    # The timestamp doesn't come with any timezone info. Here I'm adding that
+    # info by hand. If the DB isn't running in EST timezone then this will be
+    # wrong.
+    est = timezone('Canada/Eastern')
+    run_state['timestamp'] = est.localize(run_state['timestamp'])
     return render_template('state.html',run=run,
                                         run_state = run_state,
                                         detector_control_state = detector_control_state,
