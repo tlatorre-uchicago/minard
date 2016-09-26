@@ -108,7 +108,7 @@
         var caen_data = {{ caen_state | caen_human_readable | tojson |safe }};
         var crates_data = {{ crates_state | all_crates_human_readable |tojson |safe }};
         var tubii_data = {{ tubii_state | tubii_human_readable | tojson |safe }};
-
+        var trigger_scan = {{ trigger_scan |trigger_scan_human_readable | tojson |safe }};
         var run_data = false;
         var det_cont_info = false;
         {% if run_state %}
@@ -145,7 +145,7 @@
         }
         if (mtc_data) {
             display_triggers(mtc_data.gt_words);
-            display_mtca_thresholds(mtc_data.MTCA_DACs);
+            display_mtca_thresholds(mtc_data.MTCA_DACs,trigger_scan);
             display_lockout_width(mtc_data.lockout_width);
             display_control_reg(mtc_data.control_reg);
             if(mtc_data.control_reg.filter(function(x) { x.indexOf("PED") > -1;}))

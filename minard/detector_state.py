@@ -28,7 +28,7 @@ def get_latest_trigger_scans():
 
 def fetch_from_table_with_key(table_name, key, key_name='key'):
     if key is None:
-	key = "(SELECT max(%s) FROM %s)" % (key_name, table_name)
+        key = "(SELECT max(%s) FROM %s)" % (key_name, table_name)
 
     conn = engine.connect()
 
@@ -45,6 +45,21 @@ def fetch_from_table_with_key(table_name, key, key_name='key'):
 
     return dict(values)
 
+def get_trigger_scan_for_run(run):
+    # These names were taken from the trigger_scan source code in daq/utils/trigger_scan
+    # Should those names ever change, these names will need to be updated as well.
+    names = ['n100hi','n100lo','n100med','n20LB','n20']
+    results = []
+    for name in names:
+        key = "(SELECT key from trigger_scan where timestamp = "\
+                "(SELECT max(timestamp) FROM trigger_scan WHERE "\
+                "(timestamp < (SELECT timestamp FROM run_state WHERE run = %i)"\
+                " AND name='%s')))" % (run,name)
+        try:
+            results.append(fetch_from_table_with_key("trigger_scan",key))
+        except ValueError:
+            results.append(False)
+    return dict(zip(names,results))
 def get_detector_control_state(key):
     return fetch_from_table_with_key('detector_control',key)
     
@@ -319,3 +334,23 @@ def fec_human_readable_filter(fec):
         print "FEC translation error : %s" % e
         return False
     return ret
+
+# The trigger scan names aren't exactly the same as the MTCA names I used here.
+# By happy coincidence the only difference is I use upper case and have a ' '
+# between the n100/n20 and the gain. Should ESUM ever be added this will break
+def trigger_scan_string_translate(name):
+    index = name.rfind('0')
+    if(index <0):
+        return name
+    return (name[:index+1]+" "+name[index+1:]).upper()
+
+@app.template_filter('trigger_scan_human_readable')
+def trigger_scan_human_readable(trigger_scan):
+    res = {}
+    for name,obj in trigger_scan.iteritems():
+        name = trigger_scan_string_translate(name)
+        vals = False
+        if(obj):
+            vals = (obj['baseline'],obj['adc_per_nhit'])
+        res[name] = vals
+    return res

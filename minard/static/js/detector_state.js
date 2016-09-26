@@ -327,13 +327,21 @@ function display_dictionary_as_list(node,dict,title) {
         .text(function(d) { return d+' = '+dict[d].toString();});
 
 }
-function display_mtca_thresholds(dacs){
+function display_mtca_thresholds(dacs,trigger_scan){
     var mtc = d3.select('#mtc');
 
     function dac_to_volts(value) { return (10.0/4096)*value - 5.0; }
     volt_dict = {}
-    for(var key in dacs)
-    { volt_dict[key] = dac_to_volts(dacs[key]).toFixed(2)+"V"; }
+    for(var key in dacs) {
+        var dac_count = dacs[key];
+        volt_dict[key] = dac_to_volts(dac_count).toFixed(2)+"V";
+        if(trigger_scan[key]) {
+            var baseline = trigger_scan[key][0];
+            var adc_to_nhit = trigger_scan[key][1];
+            var nhits = (dac_count - baseline)*adc_to_nhit;
+            volt_dict[key] += " = "+nhits.toFixed(1)+" NHit";
+        }
+    }
 
     //Maybe someday tie this into the trigger scan
     display_dictionary_as_list(mtc,volt_dict,'MTCA Thresholds');

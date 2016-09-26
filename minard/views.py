@@ -117,7 +117,9 @@ def state(run=None):
 
     if not any(crates_state):
         crates_state = None;
-
+    trigger_scan = None
+    if run_state['timestamp'] is not None:
+        trigger_scan = detector_state.get_trigger_scan_for_run(run)
     # The timestamp doesn't come with any timezone info. Here I'm adding that
     # info by hand. If the DB isn't running in EST timezone then this will be
     # wrong.
@@ -130,6 +132,7 @@ def state(run=None):
                                         caen_state = caen_state,
                                         tubii_state = tubii_state,
                                         crates_state = crates_state,
+                                        trigger_scan = trigger_scan,
                                         err = None)
 
 @app.route('/l2')
