@@ -140,6 +140,7 @@ function display_prescale(prescale) {
 function display_caen(caen_info) {
     var caen = d3.select("#CAEN");
     caen.append('h4').text("Acquisition Mode = "+caen_info.acquisition_mode);
+    display_dictionary_as_list(caen,caen_info,"CAEN");
 };
 function display_tubii(tubii_info) {
     var tubii = d3.select("#tubii");

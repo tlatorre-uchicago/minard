@@ -50,11 +50,13 @@
             {% endif %}
             {% if caen_state %}
                 {% call collapsible_header('CAEN','CAEN') %}
-                    <ul>
-                    {% for key,val in caen_state.iteritems() %}
-                        <li> {{key}} = {{ val }} </li>
-                    {% endfor %}
-                    </ul>
+                    {% call collapsible_header('Dump Data','CAENDump') %}
+                        <ul>
+                        {% for key,val in caen_state.iteritems() %}
+                            <li> {{key}} = {{ val }} </li>
+                        {% endfor %}
+                        </ul>
+                    {% endcall %}
                 {% endcall %}
             {% endif %}
             {% if tubii_state %}
