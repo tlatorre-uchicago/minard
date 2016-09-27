@@ -34,6 +34,26 @@
     </div>
     {% else %}
     <div class="row">
+
+        <span>
+        <div id="on_colors" class="dropdown">
+        <button class="btn btn-default dropdown-toggle" type="button"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            <div class="dropdown_title"></div>
+        <span class="caret"></span>
+        </button>
+        <table class="dropdown-menu" aria-labelledby="dropdownMenu1">
+        </table>
+        </div>
+
+        <div id="off_colors" class="dropdown">
+        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            <div class="dropdown_title"></div>
+        <span class="caret"></span>
+        </button>
+        <table class="dropdown-menu" aria-labelledby="dropdownMenu1">
+        </table>
+        </div>
+        </span>
         <div class="col-md-6 col-md-offset-3">
             <center id="run_title">
                 <ul class="pager">
@@ -113,6 +133,10 @@
         var trigger_scan = {{ trigger_scan | trigger_scan_human_readable | tojson |safe }};
         var run_data = false;
         var det_cont_info = false;
+
+        create_color_picker(d3.select("#on_colors"),"On","on");
+        create_color_picker(d3.select("#off_colors"),"Off","off");
+
         {% if run_state %}
             run_data = {{ run_state | tojson | safe }}
         {% endif %}
