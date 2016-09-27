@@ -346,6 +346,8 @@ def trigger_scan_string_translate(name):
 
 @app.template_filter('trigger_scan_human_readable')
 def trigger_scan_human_readable(trigger_scan):
+    if trigger_scan is None:
+        return False
     res = {}
     for name,obj in trigger_scan.iteritems():
         name = trigger_scan_string_translate(name)

@@ -343,7 +343,6 @@ function display_mtca_thresholds(dacs,trigger_scan){
         }
     }
 
-    //Maybe someday tie this into the trigger scan
     display_dictionary_as_list(mtc,volt_dict,'MTCA Thresholds');
 }
 function display_crate_mask(mask,dom_node,title,size_info) {

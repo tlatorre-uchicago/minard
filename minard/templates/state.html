@@ -108,7 +108,7 @@
         var caen_data = {{ caen_state | caen_human_readable | tojson |safe }};
         var crates_data = {{ crates_state | all_crates_human_readable |tojson |safe }};
         var tubii_data = {{ tubii_state | tubii_human_readable | tojson |safe }};
-        var trigger_scan = {{ trigger_scan |trigger_scan_human_readable | tojson |safe }};
+        var trigger_scan = {{ trigger_scan | trigger_scan_human_readable | tojson |safe }};
         var run_data = false;
         var det_cont_info = false;
         {% if run_state %}
