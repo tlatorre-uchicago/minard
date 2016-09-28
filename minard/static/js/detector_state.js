@@ -3,6 +3,8 @@ function flattenArray(arr) {
 }
 function display_binary_crate_view(key,crates_data,sizeinfo,node)
 {
+    color_on = getComputedStyle(document.querySelector('.on')).fill;
+    console.log(color_on);
     var coloringFunc = function(data) {
         return function(k,i) {
         var v = data[k];
@@ -15,7 +17,7 @@ function display_binary_crate_view(key,crates_data,sizeinfo,node)
             return 'background-color:green';
     };}
 
-    display_crate_view(key,crates_data,sizeinfo,node,coloringFunc);
+    display_crate_view(key,crates_data,sizeinfo,node,{'attrib':'style','func':coloringFunc});
 }
 function display_continuous_crate_view(key,crates_data,sizeinfo,node)
 {
@@ -32,9 +34,9 @@ function display_continuous_crate_view(key,crates_data,sizeinfo,node)
 
                 return 'background-color:' + scale(+v);
     }};}
-    display_crate_view(key,crates_data,sizeinfo,node,coloringFunc);
+    display_crate_view(key,crates_data,sizeinfo,node,{'attrib':'style','func':coloringFunc});
 }
-function display_crate_view(key,crates_data,sizeinfo,node,coloringFunc)
+function display_crate_view(key,crates_data,sizeinfo,node,styling)
 {
     var d = crates_data.map(function(crate,i) {
     if(crate) {
@@ -57,9 +59,17 @@ function display_crate_view(key,crates_data,sizeinfo,node,coloringFunc)
         .caption(true)
         .height(height)
         .width(width);
-    if(coloringFunc){
-        crate.coloringFunction(coloringFunc)
+    if(styling){
+        stylingFunc = crate.stylingFunction;
+        if(styling.coloringFunc){
+            stylingFunction.coloringFunction = styling.coloringFunc;
+        }
+        if(styling.attrib){
+            stylingFunction.attrib = styling.attrib;
+        }
+        crate.stylingFunction(stylingFunc);
     }
+
     var g = node.append('div')
             .attr('id','crate')
             .attr('width',width)

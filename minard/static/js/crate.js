@@ -123,15 +123,36 @@ function crate_view() {
 
     var scale = d3.scale.threshold().domain([100]).range(['#bababa','#ca0020']);
 
-    var coloringFunction = function(data) {
-        return function(k, i) {
-            var v = data[k];
-            if (v === null || typeof v === 'undefined' || v === 0) {
-                return 'background-color:#e0e0e0';
-            }
-            else {
-                return 'background-color:' + scale(+v);
-    }};}
+    function MakeStylingFunction(){
+        var attribute = 'style';
+        var coloringFunction = function(data) {
+            return function(k, i) {
+                var v = data[k];
+                if (v === null || typeof v === 'undefined' || v === 0) {
+                    return 'background-color:#e0e0e0';
+                }
+                else {
+                    return 'background-color:' + scale(+v);
+        }};}
+        function stylingFunction(node,data) {
+                console.log(attribute);
+                console.log(node);
+                node.attr(attribute,coloringFunction(data));
+        }
+
+        stylingFunction.attribute = function(value) {
+            if(!arguments.length) return attribute;
+            attribute = value;
+            return stylingFunction;
+        }
+        stylingFunction.coloringFunction = function(value) {
+            if(!arguments.length) return coloringFunction;
+            coloringFunction = value;
+            return stylingFunction;
+        }
+        return stylingFunction;
+    }
+    stylingFunction = MakeStylingFunction();
 
     function chart(selection) {
         selection.each(function(data) {
@@ -171,8 +192,9 @@ function crate_view() {
 
         var select = d3.select(this).selectAll('#crate-view div table tr td')
 
-        select.attr('style',coloringFunction(data));
+        stylingFunction(select,data);
     });}
+
     chart.height = function(value) {
         if (!arguments.length) return height;
         height = value;
@@ -209,7 +231,8 @@ function crate_view() {
         scale = d3.scale.threshold().domain([threshold]).range(['#bababa','#ca0020']);
         return chart;
     }
-    chart.coloringFunction = function(value) {
+
+    chart.stylingFunction = function(value) {
         if(!arguments.length) return coloringFunction;
         coloringFunction = value;
         return chart;
