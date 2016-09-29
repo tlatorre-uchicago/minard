@@ -76,6 +76,36 @@ function display_crate_view(key,crates_data,sizeinfo,node,styling)
             .attr('class',"col-md-10 col-md-offset-1");
     g.datum(d).call(crate);
 }
+function get_crates_in_rack(irack) {
+    if(irack>11 || irack <=0) {
+        //Maybe should error?
+        return 0;
+    }
+    if([3,7,10].indexOf(irack) != -1)
+    {
+        return 1;
+    }
+    return 2;
+}
+function num_crates_on(det_cont_info) {
+    var count = 0;
+    if(det_cont_info['iboot'] == 0)
+    {
+        return 0;
+    }
+    for (var key in det_cont_info)
+    {
+        if(det_cont_info.hasOwnProperty(key)) {
+            if(key.indexOf('rack') != -1 && key.indexOf("timing") == -1) {
+                if(det_cont_info[key]) {
+                    count += get_crates_in_rack(parseInt(key.split('rack')[1]));
+                }
+            }
+        }
+    }
+    return count;
+
+}
 function display_detector_control(detector_control_info) {
     var det_cont = d3.select("#detector_control");
     var bounds = det_cont.node().parentElement.parentElement.clientWidth
@@ -114,22 +144,18 @@ function display_detector_control(detector_control_info) {
         .attr("x",xpos_func)
         .attr("y",function(d,i) { return ypos_func(d,i)+5;});
 }
-function display_triggers(wordlist) {
-    var mtc = d3.select('#mtc');
-    display_array_as_list(mtc,wordlist,'Enabled Triggers');
+function display_triggers(node,wordlist) {
+    display_array_as_list(node,wordlist,'Enabled Triggers');
 };
-function display_ped_delay(delay) {
-    var mtc = d3.select('#mtc')
-    mtc.append("h3").text("Pedestal Delay = "+ delay.toString() +"ns");
+function display_ped_delay(node,delay) {
+    node.append("h3").text("Pedestal Delay = "+ delay.toString() +"ns");
 
 };
-function display_lockout_width(lockout) {
-    var mtc = d3.select('#mtc')
-    mtc.append("h3").text("Lockout Width = "+ lockout.toString()+"ns");
+function display_lockout_width(node,lockout) {
+    node.append("h3").text("Lockout Width = "+ lockout.toString()+"ns");
 };
-function display_control_reg(wordlist) {
-    var mtc = d3.select('#mtc')
-    display_array_as_list(mtc,wordlist,'Control Register Values');
+function display_control_reg(node,wordlist) {
+    display_array_as_list(node,wordlist,'Control Register Values');
 };
 function display_crates(title,crates) {
     var mtc = d3.select('#mtc');
@@ -141,8 +167,7 @@ function display_crates(title,crates) {
         .append('li')
         .text(function(d) { return d;});
 };
-function display_prescale(prescale) {
-    var mtc = d3.select('#mtc');
+function display_prescale(node,prescale) {
     mtc.append('h3').text('Prescale = '+prescale.toString());
 };
 function display_caen(caen_info) {
@@ -336,8 +361,7 @@ function display_dictionary_as_list(node,dict,title) {
         .text(function(d) { return d+' = '+dict[d].toString();});
 
 }
-function display_mtca_thresholds(dacs,trigger_scan){
-    var mtc = d3.select('#mtc');
+function display_mtca_thresholds(node,dacs,trigger_scan){
 
     function dac_to_volts(value) { return (10.0/4096)*value - 5.0; }
     volt_dict = {}
@@ -352,7 +376,7 @@ function display_mtca_thresholds(dacs,trigger_scan){
         }
     }
 
-    display_dictionary_as_list(mtc,volt_dict,'MTCA Thresholds');
+    display_dictionary_as_list(node,volt_dict,'MTCA Thresholds');
 }
 function display_crate_mask(mask,dom_node,title,size_info) {
     var width = size_info.width;
