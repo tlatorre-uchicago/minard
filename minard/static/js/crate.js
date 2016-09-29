@@ -135,8 +135,6 @@ function crate_view() {
                     return 'background-color:' + scale(+v);
         }};}
         function stylingFunction(node,data) {
-                console.log(attribute);
-                console.log(node);
                 node.attr(attribute,coloringFunction(data));
         }
 
@@ -152,7 +150,7 @@ function crate_view() {
         }
         return stylingFunction;
     }
-    stylingFunction = MakeStylingFunction();
+    var stylingFunction = MakeStylingFunction();
 
     function chart(selection) {
         selection.each(function(data) {
@@ -187,8 +185,8 @@ function crate_view() {
 
         var td = tr2.selectAll('td')
             .data(function(d) { return d; }, function(d) { return d; })
-            .enter().append('td')
-            .attr('style','background-color:#e0e0e0');
+            .enter().append('td');
+//.attr('style','background-color:#e0e0e0');
 
         var select = d3.select(this).selectAll('#crate-view div table tr td')
 
@@ -233,8 +231,8 @@ function crate_view() {
     }
 
     chart.stylingFunction = function(value) {
-        if(!arguments.length) return coloringFunction;
-        coloringFunction = value;
+        if(!arguments.length) {return stylingFunction;}
+        stylingFunction = value;
         return chart;
     }
 

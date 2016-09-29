@@ -3,21 +3,20 @@ function flattenArray(arr) {
 }
 function display_binary_crate_view(key,crates_data,sizeinfo,node)
 {
-    color_on = getComputedStyle(document.querySelector('.on')).fill;
-    console.log(color_on);
+    //color_on = getComputedStyle(document.querySelector('.on')).fill;
     var coloringFunc = function(data) {
         return function(k,i) {
         var v = data[k];
         if (v === null || typeof v === 'undefined')
-            return 'background-color:#e0e0e0';
+            return 'unknown';
         else if (v===0) {
-            return 'background-color:grey';
+            return 'off';
         }
         else
-            return 'background-color:green';
+            return 'on';
     };}
 
-    display_crate_view(key,crates_data,sizeinfo,node,{'attrib':'style','func':coloringFunc});
+    display_crate_view(key,crates_data,sizeinfo,node,{'attrib':'class','func':coloringFunc});
 }
 function display_continuous_crate_view(key,crates_data,sizeinfo,node)
 {
@@ -60,14 +59,14 @@ function display_crate_view(key,crates_data,sizeinfo,node,styling)
         .height(height)
         .width(width);
     if(styling){
-        stylingFunc = crate.stylingFunction;
-        if(styling.coloringFunc){
-            stylingFunction.coloringFunction = styling.coloringFunc;
+        stylingFunc = crate.stylingFunction();
+        if(styling.func){
+            stylingFunc = stylingFunc.coloringFunction(styling.func);
         }
         if(styling.attrib){
-            stylingFunction.attrib = styling.attrib;
+            stylingFunc = stylingFunc.attribute(styling.attrib);
         }
-        crate.stylingFunction(stylingFunc);
+        crate = crate.stylingFunction(stylingFunc);
     }
 
     var g = node.append('div')
@@ -496,6 +495,7 @@ function create_color_picker(node,title,class_name) {
             var cols = document.getElementsByClassName(class_name);
             for(i=0;i<cols.length;i++) {
                 cols[i].style.fill = color;
+                cols[i].style['background-color'] = color;
             }
         }
         node.append('svg')
