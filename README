@@ -16,9 +16,22 @@ Now, clone the minard repository, and install the prerequisites:
     $ cd minard
     $ pip install -r requirements.txt
 
+Create a configuration file called settings.conf with the following values:
+
+    DB_HOST='dbug'
+    DB_PASS=[password]
+    DB_USER='snoplus'
+    DB_NAME='detector'
+    DB_PORT=5432
+
+Now, export the environment variable MINARD_SETTINGS to point to the
+configuration file:
+
+    $ export MINARD_SETTINGS=`pwd`/settings.conf
+
 Now, you can start up the webserver:
 
-    $ gunicorn -b 0.0.0.0:5000 minard:app
+    $ ./runserver.py
 
 And you should be able to open your web browser to localhost:5000 and see it.
 
