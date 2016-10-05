@@ -18,6 +18,8 @@ def get_latest_trigger_scans():
 
     result = conn.execute("select distinct on (name) * from trigger_scan order by name, key desc")
 
+    conn.close()
+
     if result is None:
 	return None
 
@@ -35,13 +37,13 @@ def fetch_from_table_with_key(table_name, key, key_name='key'):
     command = "SELECT * FROM %s WHERE %s = %s" % (table_name, key_name, key)
     res =  conn.execute(command)
 
+    conn.close()
     try:
         values = zip(res.keys(),res.fetchone())
     except TypeError:
         # Chances are this failed b/c the SELECT command didn't find anything
         raise ValueError("%s %s is not valid...probably" % (key_name, key))
 
-    conn.close()
 
     return dict(values)
 
