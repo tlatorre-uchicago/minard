@@ -344,15 +344,20 @@ def trigger_scan_string_translate(name):
         return name
     return (name[:index+1]+" "+name[index+1:]).upper()
 
+
 @app.template_filter('trigger_scan_human_readable')
 def trigger_scan_human_readable(trigger_scan):
     if trigger_scan is None:
         return False
     res = {}
-    for name,obj in trigger_scan.iteritems():
-        name = trigger_scan_string_translate(name)
-        vals = False
-        if(obj):
-            vals = (obj['baseline'],obj['adc_per_nhit'])
-        res[name] = vals
+    try:
+        for name, obj in trigger_scan.iteritems():
+            name = trigger_scan_string_translate(name)
+            vals = False
+            if(obj):
+                vals = (obj['baseline'], obj['adc_per_nhit'])
+            res[name] = vals
+    except Exception as e:
+        print "trigger scan translation error: %s" % e
+        return False
     return res
