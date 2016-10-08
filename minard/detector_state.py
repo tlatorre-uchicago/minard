@@ -21,7 +21,7 @@ def get_latest_trigger_scans():
     conn.close()
 
     if result is None:
-	return None
+        return None
 
     keys = result.keys()
     rows = result.fetchall()
@@ -64,7 +64,7 @@ def get_trigger_scan_for_run(run):
     return dict(zip(names,results))
 def get_detector_control_state(key):
     return fetch_from_table_with_key('detector_control',key)
-    
+
 def get_caen_state(key):
     return fetch_from_table_with_key('caen',key)
 
@@ -174,6 +174,7 @@ def translate_mtca_dacs(dacs):
     ret["OWLE HI"] = dacs[9]
     #Not bothering with the spares (for now) (or ever probably)
     return ret;
+
 @app.template_filter('mtc_human_readable')
 def mtc_human_readable_filter(mtc):
     ret = {}
