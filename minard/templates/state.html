@@ -34,7 +34,6 @@
     </div>
     {% else %}
     <div class="row">
-
         <span>
         <div id="on_colors" class="dropdown">
         <button class="btn btn-default dropdown-toggle" type="button"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -64,62 +63,62 @@
             </center>
         </div>
     </div>
-                {% call collapsible_header('Executive Summary','summary') %}
-                {% endcall %}
-            {% if mtc_state %}
-                {% call collapsible_header('MTC','mtc') %}
-                {% endcall %}
-            {% endif %}
-            {% if caen_state %}
-                {% call collapsible_header('CAEN','CAEN') %}
-                    {% call collapsible_header('Dump Data','CAENDump') %}
-                        <ul>
-                        {% for key,val in caen_state.iteritems() %}
-                            <li> {{key}} = {{ val }} </li>
-                        {% endfor %}
-                        </ul>
-                    {% endcall %}
-                {% endcall %}
-            {% endif %}
-            {% if tubii_state %}
-                {% call collapsible_header('TUBii','tubii') %}
-                {% endcall %}
-            {% endif %}
-            {% if detector_control_state %}
-                {% call collapsible_header('Detector Control','detector_control') %}
-                {% endcall %}
-            {% endif %}
-            {% if crates_state %}
-                {% call collapsible_header('Crates','allCrates') %}
-                   {% call collapsible_header('N100 Triggers','N100Triggers') %}
-                   {% endcall %}
-                   {% call collapsible_header('N20 Triggers','N20Triggers') %}
-                   {% endcall %}
-                   {% call collapsible_header('Sequencers','Sequencers') %}
-                   {% endcall %}
-                   {% call collapsible_header('Channel Thresholds','VThr') %}
-                   {% endcall %}
-                   {% call collapsible_header('VBal','VBal') %}
-                   {% endcall %}
-                   {% call collapsible_header('Data Dump','DataDump') %}
-                       {% for i in range(20) %}
-                           {% if crates_state[i] %}
-                               {% call collapsible_header('Crate %i' % i,'crate%i' % i) %}
-                                   {% for j in range(0,16) %}
-                                       {% call collapsible_header('Crate %i MB %i' % (i,j), 'Crate%iMB%i' % (i,j)) %}
-                                            <ul>
-                                            {% for key in crates_state[i][j] %}
-                                                <li>{{key}} = {{crates_state[i][j][key]}}</li>
-                                            {% endfor %}
-                                            </ul>
-                                       {% endcall %}
-                                   {% endfor %}
+    <div id='summary'></div>
+    <hr>
+    {% if mtc_state %}
+        {% call collapsible_header('MTC','mtc') %}
+        {% endcall %}
+    {% endif %}
+    {% if caen_state %}
+        {% call collapsible_header('CAEN','CAEN') %}
+            {% call collapsible_header('Dump Data','CAENDump') %}
+                <ul>
+                {% for key,val in caen_state.iteritems() %}
+                    <li> {{key}} = {{ val }} </li>
+                {% endfor %}
+                </ul>
+            {% endcall %}
+        {% endcall %}
+    {% endif %}
+    {% if tubii_state %}
+        {% call collapsible_header('TUBii','tubii') %}
+        {% endcall %}
+    {% endif %}
+    {% if detector_control_state %}
+        {% call collapsible_header('Detector Control','detector_control') %}
+        {% endcall %}
+    {% endif %}
+    {% if crates_state %}
+        {% call collapsible_header('Crates','allCrates') %}
+           {% call collapsible_header('N100 Triggers','N100Triggers') %}
+           {% endcall %}
+           {% call collapsible_header('N20 Triggers','N20Triggers') %}
+           {% endcall %}
+           {% call collapsible_header('Sequencers','Sequencers') %}
+           {% endcall %}
+           {% call collapsible_header('Channel Thresholds','VThr') %}
+           {% endcall %}
+           {% call collapsible_header('VBal','VBal') %}
+           {% endcall %}
+           {% call collapsible_header('Data Dump','DataDump') %}
+               {% for i in range(20) %}
+                   {% if crates_state[i] %}
+                       {% call collapsible_header('Crate %i' % i,'crate%i' % i) %}
+                           {% for j in range(0,16) %}
+                               {% call collapsible_header('Crate %i MB %i' % (i,j), 'Crate%iMB%i' % (i,j)) %}
+                                    <ul>
+                                    {% for key in crates_state[i][j] %}
+                                        <li>{{key}} = {{crates_state[i][j][key]}}</li>
+                                    {% endfor %}
+                                    </ul>
                                {% endcall %}
-                           {% endif %}
-                       {% endfor %}
-                    {% endcall %}
-                {% endcall %}
-            {% endif %}
+                           {% endfor %}
+                       {% endcall %}
+                   {% endif %}
+               {% endfor %}
+            {% endcall %}
+        {% endcall %}
+    {% endif %}
     {% endif %}
     </div>
 {% endblock %}
@@ -147,45 +146,18 @@
         {% endif %}
         d3.select("#collapsesummary").classed("in",true);
         var summary = d3.select("#summary");
-        if(crates_data) {
-            var N100 = d3.select("#N100Triggers");
-            var N20 = d3.select("#N20Triggers");
-            var Seq = d3.select("#Sequencers");
-            var vThr = d3.select("#VThr");
-            var VBal = d3.select("#VBal");
-            var width = N100.node().parentElement.parentElement.clientWidth
-            var height = 500;
-            sizeinfo = {};
-            sizeinfo.width = width;
-            sizeinfo.height = height;
-            add_line = function(node,text)
-            {
-                node.append('h3').text(text);
-            };
-            add_line(N100,"Num Enabled = "+crates_data['num_n100_triggers'].toString());
-            add_line(N20,"Num Enabled = "+crates_data['num_n20_triggers'].toString());
-            add_line(Seq,"Num Enabled = "+crates_data['num_sequencers'].toString());
-            add_line(summary,"Number of Sequencers Enabled = "+crates_data['num_sequencers'].toString());
-            add_line(summary,"Number of N100s Enabled = "+crates_data['num_n100_triggers'].toString());
-            add_line(summary,"Number of N20s Enabled = "+crates_data['num_n20_triggers'].toString());
-            display_binary_crate_view('n100_triggers',crates_data.crates,sizeinfo,N100)
-            display_binary_crate_view('n20_triggers',crates_data.crates,sizeinfo,N20)
-            display_binary_crate_view('sequencers',crates_data.crates,sizeinfo,Seq)
-            display_continuous_crate_view('vthrs',crates_data.crates,sizeinfo,vThr)
-            vbal_table = VBal.append('table');
-            vbal_table.append('tr').append('th').append('h3').text("VBal 0");
-            vbal0 = vbal_table.append('tr').append('th');
-            vbal_table.append('tr').append('th').append('h3').text("VBal 1");
-            vbal1 = vbal_table.append('tr').append('th');
-            display_continuous_crate_view('vbal_0',crates_data.crates,sizeinfo,vbal0)
-            display_continuous_crate_view('vbal_1',crates_data.crates,sizeinfo,vbal1)
-        }
         if (mtc_data) {
             var mtc = d3.select('#mtc');
             display_triggers(mtc,mtc_data.gt_words);
             display_triggers(summary,mtc_data.gt_words);
             display_mtca_thresholds(mtc,mtc_data.MTCA_DACs,trigger_scan);
-            display_mtca_thresholds(summary,mtc_data.MTCA_DACs,trigger_scan);
+
+            dacs = get_enabled_dacs(mtc_data.MTCA_DACs,mtc_data.gt_words);
+            node = summary.append('h3').text("Thresholds");
+            display_mtca_thresholds(summary,dacs,trigger_scan);
+
+
+
             display_lockout_width(mtc,mtc_data.lockout_width);
             display_control_reg(mtc,mtc_data.control_reg);
             if(mtc_data.control_reg.filter(function(x) { x.indexOf("PED") > -1;}))
@@ -207,8 +179,46 @@
         if (run_data) {
             display_run_type(run_data.run_type,run_data.timestamp)
         }
+        if(crates_data) {
+            var N100 = d3.select("#N100Triggers");
+            var N20 = d3.select("#N20Triggers");
+            var Seq = d3.select("#Sequencers");
+            var vThr = d3.select("#VThr");
+            var VBal = d3.select("#VBal");
+            var width = N100.node().parentElement.parentElement.clientWidth
+            var height = 500;
+            sizeinfo = {};
+            sizeinfo.width = width;
+            sizeinfo.height = height;
+            add_line = function(node,text)
+            {
+                node.append('h3').text(text);
+            };
+
+            table = summary.append('table').attr('class','table')
+            head = table.append('thead').append('tr')
+            head.append('th').text('# Sequencers')
+            head.append('th').text('# N100s')
+            head.append('th').text('# N20s')
+            row = table.append('tbody') .append('tr')
+            row.append('td').append('big').text(crates_data['num_sequencers'])
+            row.append('td').append('big').text(crates_data['num_n100_triggers'])
+            row.append('td').append('big').text(crates_data['num_n20_triggers'])
+
+            display_binary_crate_view('n100_triggers',crates_data.crates,sizeinfo,N100)
+            display_binary_crate_view('n20_triggers',crates_data.crates,sizeinfo,N20)
+            display_binary_crate_view('sequencers',crates_data.crates,sizeinfo,Seq)
+            display_continuous_crate_view('vthrs',crates_data.crates,sizeinfo,vThr)
+            vbal_table = VBal.append('table');
+            vbal_table.append('tr').append('th').append('h3').text("VBal 0");
+            vbal0 = vbal_table.append('tr').append('th');
+            vbal_table.append('tr').append('th').append('h3').text("VBal 1");
+            vbal1 = vbal_table.append('tr').append('th');
+            display_continuous_crate_view('vbal_0',crates_data.crates,sizeinfo,vbal0)
+            display_continuous_crate_view('vbal_1',crates_data.crates,sizeinfo,vbal1)
+        }
         if (det_cont_info) {
-            summary.append("h3").text("Number of Crates On = "+num_crates_on(det_cont_info));
+            summary.append("h3").text("Crates On = "+num_crates_on(det_cont_info));
             display_detector_control(det_cont_info);
         }
         if (tubii_data) {

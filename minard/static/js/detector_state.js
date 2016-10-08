@@ -361,22 +361,58 @@ function display_dictionary_as_list(node,dict,title) {
         .text(function(d) { return d+' = '+dict[d].toString();});
 
 }
-function display_mtca_thresholds(node,dacs,trigger_scan){
 
-    function dac_to_volts(value) { return (10.0/4096)*value - 5.0; }
-    volt_dict = {}
-    for(var key in dacs) {
-        var dac_count = dacs[key];
-        volt_dict[key] = dac_to_volts(dac_count).toFixed(2)+"V";
-        if(trigger_scan[key]) {
-            var baseline = trigger_scan[key][0];
-            var adc_to_nhit = trigger_scan[key][1];
-            var nhits = (dac_count - baseline)*adc_to_nhit;
-            volt_dict[key] += " = "+nhits.toFixed(1)+" NHit";
+function get_enabled_dacs(dacs,gt_mask)
+{
+    console.log(dacs);
+    console.log(gt_mask);
+    keys = Object.keys(dacs)
+    new_dict = {};
+    for(var i=0;i<keys.length;i++)
+    {
+        if(gt_mask.includes(keys[i].replace(' ','')))
+        {
+            new_dict[keys[i]] = dacs[keys[i]];
         }
     }
+    console.log(new_dict);
+    return new_dict;
+}
+function display_mtca_thresholds(node,dacs,trigger_scan){
+    function dac_to_volts(value) { return (10.0/4096)*value - 5.0; }
+    volt_dict = {}
 
-    display_dictionary_as_list(node,volt_dict,'MTCA Thresholds');
+    table = node.append('table').attr('class','table')
+    head = table.append('thead').append('tr')
+    head.append('th').text('Name')
+    head.append('th').text('Volts')
+    head.append('th').text('NHits')
+
+    keys = Object.keys(dacs)
+    table.append('tbody')
+        .selectAll('tr')
+        .data(keys)
+        .enter()
+        .append('tr')
+        .selectAll('td')
+        .data( function(key,i) {
+            dac_count = dacs[key];
+            volts = dac_to_volts(dac_count).toFixed(2);
+            nHit = '-';
+            if(trigger_scan[key])
+            {
+                baseline = trigger_scan[key][0];
+                adc_to_nhit = trigger_scan[key][1];
+                nHit = (dac_count - baseline)*adc_to_nhit;
+                nHit = nHit.toFixed(0)
+            }
+            return [key,volts,nHit];
+        })
+        .enter()
+        .append('td')
+        .text( function(row,i) {
+            return row;
+        });
 }
 function display_crate_mask(mask,dom_node,title,size_info) {
     var width = size_info.width;
