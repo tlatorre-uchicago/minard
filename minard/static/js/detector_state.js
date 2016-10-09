@@ -364,8 +364,6 @@ function display_dictionary_as_list(node,dict,title) {
 
 function get_enabled_dacs(dacs,gt_mask)
 {
-    console.log(dacs);
-    console.log(gt_mask);
     keys = Object.keys(dacs)
     new_dict = {};
     for(var i=0;i<keys.length;i++)
@@ -375,7 +373,6 @@ function get_enabled_dacs(dacs,gt_mask)
             new_dict[keys[i]] = dacs[keys[i]];
         }
     }
-    console.log(new_dict);
     return new_dict;
 }
 function display_mtca_thresholds(node,dacs,trigger_scan){
@@ -566,7 +563,7 @@ function create_color_picker(node,title,class_name) {
             .attr("cy",10)
             .attr("r",8)
             .attr("fill",color)
-            .on("click",change_colors );
+            .on("click",change_colors);
     }
 
         title_node.append('p').text(title)

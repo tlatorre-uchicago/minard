@@ -84,6 +84,7 @@ def timefmt(timestamp):
 def status():
     return render_template('status.html', programs=PROGRAMS)
 
+
 @app.route('/state')
 @app.route('/state/')
 @app.route('/state/<int:run>')
@@ -93,7 +94,7 @@ def state(run=None):
         run = run_state['run']
     except Exception as e:
         return render_template('state.html', err=str(e))
-        
+
     detector_control_state = None
     if run_state['detector_control'] is not None:
         detector_control_state = detector_state.get_detector_control_state(run_state['detector_control'])
@@ -110,13 +111,13 @@ def state(run=None):
     if run_state['tubii'] is not None:
         tubii_state = detector_state.get_tubii_state(run_state['tubii'])
 
-    crates_state =[None]*20
+    crates_state = [None]*20
     for iCrate in range(20):
         if run_state['crate'+str(iCrate)] is not None:
             crates_state[iCrate] = detector_state.get_crate_state(run_state['crate'+str(iCrate)])
 
     if not any(crates_state):
-        crates_state = None;
+        crates_state = None
     trigger_scan = None
     if run_state['timestamp'] is not None:
         trigger_scan = detector_state.get_trigger_scan_for_run(run)
@@ -125,15 +126,23 @@ def state(run=None):
     # wrong.
     est = timezone('Canada/Eastern')
     run_state['timestamp'] = est.localize(run_state['timestamp'])
-    return render_template('state.html',run=run,
-                                        run_state = run_state,
-                                        detector_control_state = detector_control_state,
-                                        mtc_state = mtc_state,
-                                        caen_state = caen_state,
-                                        tubii_state = tubii_state,
-                                        crates_state = crates_state,
-                                        trigger_scan = trigger_scan,
-                                        err = None)
+
+    oncolor = request.args.get('oncolor')
+    offcolor = request.args.get('offcolor')
+    if(oncolor or offcolor):
+        colors = [oncolor, offcolor]
+    print(colors)
+    return render_template('state.html', run=run,
+                           run_state=run_state,
+                           detector_control_state=detector_control_state,
+                           mtc_state=mtc_state,
+                           caen_state=caen_state,
+                           tubii_state=tubii_state,
+                           crates_state=crates_state,
+                           trigger_scan=trigger_scan,
+                           colors=colors,
+                           err=None)
+
 
 @app.route('/l2')
 def l2():
