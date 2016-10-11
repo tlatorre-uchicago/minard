@@ -34,31 +34,30 @@
     </div>
     {% else %}
     <div class="row">
-        <span>
-        <div id="on_colors" class="dropdown">
-        <button class="btn btn-default dropdown-toggle" type="button"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-            <div class="dropdown_title"></div>
-        <span class="caret"></span>
-        </button>
-        <table class="dropdown-menu" aria-labelledby="dropdownMenu1">
-        </table>
-        </div>
-
-        <div id="off_colors" class="dropdown">
-        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-            <div class="dropdown_title"></div>
-        <span class="caret"></span>
-        </button>
-        <table class="dropdown-menu" aria-labelledby="dropdownMenu1">
-        </table>
-        </div>
-        </span>
         <div class="col-md-6 col-md-offset-3">
             <center id="run_title">
                 <ul class="pager">
-                    <li class="previous"><a href="{{ url_for('state', run=run-1) }}">Prev</a></li>
+                    {% if colors[0] and not colors[1] %}
+                        <li class="previous"><a href="{{ url_for('state', run=run-1,oncolor=colors[0]) }}">Prev</a></li>
+                    {% elif not colors[0] and colors[1] %}
+                        <li class="previous"><a href="{{ url_for('state', run=run-1,offcolor=colors[1]) }}">Prev</a></li>
+                    {% elif colors[0] and colors[1]  %}
+                        <li class="previous"><a href="{{ url_for('state', run=run-1,oncolor=colors[0],offcolor=colors[1]) }}">Prev</a></li>
+                    {% else %}
+                        <li class="previous"><a href="{{ url_for('state', run=run-1)}}">Prev</a></li>
+                    {% endif %}
+
                     <li><h1 style="display:inline"> Run {{ run }} </h2></li>
-                    <li class="next"><a href="{{ url_for('state', run=run+1) }}">Next</a></li>
+
+                    {% if colors[0] and not colors[1] %}
+                        <li class="next"><a href="{{ url_for('state', run=run+1,oncolor=colors[0]) }}">Next</a></li>
+                    {% elif not colors[0] and colors[1] %}
+                        <li class="next"><a href="{{ url_for('state', run=run+1,offcolor=colors[1]) }}">Next</a></li>
+                    {% elif colors[0] and colors[1]  %}
+                        <li class="next"><a href="{{ url_for('state', run=run+1,oncolor=colors[0],offcolor=colors[1]) }}">Next</a></li>
+                    {% else %}
+                        <li class="next"><a href="{{ url_for('state', run=run+1)}}">Next</a></li>
+                    {% endif %}
                 </ul>
             </center>
         </div>
