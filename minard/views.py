@@ -129,8 +129,13 @@ def state(run=None):
 
     oncolor = request.args.get('oncolor')
     offcolor = request.args.get('offcolor')
-    if(oncolor or offcolor):
-        colors = [oncolor, offcolor]
+    colors = [oncolor, offcolor]
+
+    if(not oncolor):
+        colors[0] = False
+    if(not offcolor):
+        colors[1] = False
+
     print(colors)
     return render_template('state.html', run=run,
                            run_state=run_state,

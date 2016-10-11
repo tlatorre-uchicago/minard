@@ -135,8 +135,6 @@
         var run_data = false;
         var det_cont_info = false;
 
-        create_color_picker(d3.select("#on_colors"),"On","on");
-        create_color_picker(d3.select("#off_colors"),"Off","off");
 
         {% if run_state %}
             run_data = {{ run_state | tojson | safe }}
@@ -144,6 +142,20 @@
         {% if detector_control_state %}
             det_cont_info  = {{ detector_control_state | tojson | safe }};
         {% endif %}
+        {% if colors %}
+            colors = {{ colors | tojson | safe }}
+        {% endif %}
+        console.log(colors);
+        function change_colors(class_name,color) {
+            var cols = document.getElementsByClassName(class_name);
+            console.log(cols.length);
+            for(i=0;i<cols.length;i++) {
+                console.log(color);
+                cols[i].style.fill = color;
+                cols[i].style['background-color'] = color;
+            }
+        }
+
         d3.select("#collapsesummary").classed("in",true);
         var summary = d3.select("#summary");
         if (mtc_data) {
@@ -244,6 +256,14 @@
                 var svg = tubii.selectAll("svg").attr("width",width);
             }
         };
+
+        // The coloring has to go last so it can color everything drawn above
+        if(colors[0]){
+           change_colors("on",colors[0]);
+        }
+        if(colors[1]) {
+            change_colors("off",colors[1]);
+        }
         resize()
         window.addEventListener("resize", resize,false);
        </script>
