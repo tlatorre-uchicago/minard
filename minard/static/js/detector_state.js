@@ -584,5 +584,10 @@ function create_color_picker(node,title,class_name) {
                 append_square(row.append("th"),colors[i*colors_per_row+j]);
             }
         }
+function change_colors(class_name,color) {
+    var cols = document.getElementsByClassName(class_name);
+    for(i=0;i<cols.length;i++) {
+        cols[i].style.fill = color;
+        cols[i].style['background-color'] = color;
     }
 }
