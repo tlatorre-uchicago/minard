@@ -540,50 +540,6 @@ function crate() {
     }
     return my;
 }
-function create_color_picker(node,title,class_name) {
-    var title_node = node.selectAll(".dropdown_title");
-    var menu_node = node.select(".dropdown-menu");
-    var colors= ['aqua', 'black', 'blue', 'fuchsia', 'gray', 'green',
-    'lime', 'maroon', 'navy', 'olive', 'orange', 'purple','lightpurlpe',
-    'red', 'silver', 'teal', 'azure', 'yellow', 'beige','darkslategrey'];
-
-    function append_square(node,color) {
-        function change_colors() {
-            var cols = document.getElementsByClassName(class_name);
-            for(i=0;i<cols.length;i++) {
-                cols[i].style.fill = color;
-                cols[i].style['background-color'] = color;
-            }
-        }
-        node.append('svg')
-            .attr("width",20)
-            .attr('height',20)
-            .append('circle')
-            .attr("cx",10)
-            .attr("cy",10)
-            .attr("r",8)
-            .attr("fill",color)
-            .on("click",change_colors);
-    }
-
-        title_node.append('p').text(title)
-        title_node.append('svg')
-            .attr("width",20)
-            .attr('height',20)
-            .append('circle')
-            .attr("cx",10)
-            .attr("cy",10)
-            .attr("r",8)
-            .attr("class",class_name);
-
-    var colors_per_row = 10
-    for(var i = 0;i<Math.ceil(colors.length/colors_per_row);i++) {
-        row = menu_node.append("tr");
-        for(var j = 0;j<colors_per_row;j++) {
-            if(i*colors_per_row+j < colors.length){
-                append_square(row.append("th"),colors[i*colors_per_row+j]);
-            }
-        }
 function change_colors(class_name,color) {
     var cols = document.getElementsByClassName(class_name);
     for(i=0;i<cols.length;i++) {
