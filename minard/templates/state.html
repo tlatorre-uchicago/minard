@@ -144,12 +144,9 @@
         {% if colors %}
             colors = {{ colors | tojson | safe }}
         {% endif %}
-        console.log(colors);
         function change_colors(class_name,color) {
             var cols = document.getElementsByClassName(class_name);
-            console.log(cols.length);
             for(i=0;i<cols.length;i++) {
-                console.log(color);
                 cols[i].style.fill = color;
                 cols[i].style['background-color'] = color;
             }

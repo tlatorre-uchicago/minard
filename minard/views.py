@@ -136,7 +136,6 @@ def state(run=None):
     if(not offcolor):
         colors[1] = False
 
-    print(colors)
     return render_template('state.html', run=run,
                            run_state=run_state,
                            detector_control_state=detector_control_state,
