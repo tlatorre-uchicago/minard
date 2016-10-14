@@ -144,19 +144,24 @@ function display_detector_control(detector_control_info) {
         .attr("x",xpos_func)
         .attr("y",function(d,i) { return ypos_func(d,i)+5;});
 }
+
 function display_triggers(node,wordlist) {
     display_array_as_list(node,wordlist,'Enabled Triggers');
 };
+
 function display_ped_delay(node,delay) {
     node.append("h3").text("Pedestal Delay = "+ delay.toString() +"ns");
 
 };
+
 function display_lockout_width(node,lockout) {
     node.append("h3").text("Lockout Width = "+ lockout.toString()+"ns");
 };
+
 function display_control_reg(node,wordlist) {
     display_array_as_list(node,wordlist,'Control Register Values');
 };
+
 function display_crates(title,crates) {
     var mtc = d3.select('#mtc');
     mtc.append('h3').text(title);
@@ -167,6 +172,7 @@ function display_crates(title,crates) {
         .append('li')
         .text(function(d) { return d;});
 };
+
 function display_prescale(node,prescale) {
     mtc.append('h3').text('Prescale = '+prescale.toString());
 };
@@ -175,10 +181,11 @@ function display_caen(caen_info) {
     caen.append('h4').text("Acquisition Mode = "+caen_info.acquisition_mode);
     display_dictionary_as_list(caen,caen_info,"CAEN");
 };
+
 function display_tubii(tubii_info) {
     var tubii = d3.select("#tubii");
     var bounds = tubii.node().parentElement.parentElement.clientWidth
-	var height = 50;
+    var height = 50;
     var width = bounds;
     var step_size = width/30;
     radius = step_size;
@@ -255,8 +262,8 @@ function display_tubii(tubii_info) {
         .attr("height",radius)
         .attr("fill",function(d) { return d[1]==1 ? 'green' : 'red'; })
         .attr("class",function(d) { return d[1]==1 ? 'on' : 'off'; })
-	.append("svg:title")
-	.text(function(d){return d[2];});
+        .append("svg:title")
+        .text(function(d){return d[2];});
     svg.selectAll('text')
         .data(arr)
         .enter()

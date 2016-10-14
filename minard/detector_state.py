@@ -88,6 +88,8 @@ def get_fec_state(key):
 def get_run_state(run):
     return fetch_from_table_with_key('run_state',run,key_name='run')
 
+
+
 def translate_trigger_mask(maskVal):
     trigger_bit_to_string = [
                                 (0 ,"NHIT100LO"),
