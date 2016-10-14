@@ -259,7 +259,16 @@ def caen_human_readable_filter(caen):
         ret.update(translate_caen_acquisition_control(caen['front_panel_io_control']))
         ret.update(translate_caen_channel_configuaration(caen['channel_configuration']))
         ret['buffer_organization'] = hex(caen["buffer_organization"])
-        ret.update(translate_caen_trigger(caen["trigger_mask"],caen["trigger_out_mask"]))
+        ret.update(translate_caen_trigger(caen["trigger_mask"], caen["trigger_out_mask"]))
+
+        # channel_dacs was added to the DB later than everything else.
+        # So a number of runs don't have channel_offset info.
+        # Therefore it's afforded special treatment
+        try:
+            ret['channel_offsets'] = [x/2**16-1.0 for x in caen['channel_dacs']]
+        except TypeError:
+            ret['channel_offsets'] = 0
+
     except Exception as e:
         print "CAEN translation error: %s" % e
         return False
