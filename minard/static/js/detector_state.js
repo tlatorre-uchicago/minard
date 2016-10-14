@@ -22,7 +22,7 @@ function display_continuous_crate_view(key,crates_data,sizeinfo,node)
 {
     // For now this just assumes a linear scale from 0-255.
     // May have to generalize at some point.
-    var scale = d3.scale.linear().domain([0,255]).range(['#6666ff','#ff0000']);
+    var scale = d3.scale.linear().domain([0,255]).range(['#6666ff','#ffcc00']);
     var coloringFunc = function(data) {
         return function(k, i) {
             var v = data[k];
