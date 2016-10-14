@@ -246,11 +246,15 @@ def translate_caen_trigger(trig_source_mask,trig_out_mask):
     ret["software_trigger"] = [(trig_source_mask & 1<<31) > 0, (trig_out_mask & 1<< 31 )> 0]
     return ret
 
+
 @app.template_filter('caen_human_readable')
 def caen_human_readable_filter(caen):
     ret = {}
     try:
         ret['post_trigger'] = caen['post_trigger']
+        ret['enabled_channels'] = \
+            map(lambda x: (1 << x & caen['channel_mask']) > 0, range(8))
+
         ret.update(translate_caen_front_panel_io_control(caen['front_panel_io_control']))
         ret.update(translate_caen_acquisition_control(caen['front_panel_io_control']))
         ret.update(translate_caen_channel_configuaration(caen['channel_configuration']))
