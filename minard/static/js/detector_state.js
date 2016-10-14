@@ -176,10 +176,27 @@ function display_crates(title,crates) {
 function display_prescale(node,prescale) {
     mtc.append('h3').text('Prescale = '+prescale.toString());
 };
-function display_caen(caen_info) {
-    var caen = d3.select("#CAEN");
-    caen.append('h4').text("Acquisition Mode = "+caen_info.acquisition_mode);
-    display_dictionary_as_list(caen,caen_info,"CAEN");
+
+function display_caen(node,caen_info) {
+    var size_info = {};
+    size_info['width'] = node.node().parentElement.parentElement.parentElement.clientWidth;
+    size_info['height'] = 25;
+    display_bit_mask(caen_info.enabled_channels,node,"Enabled Channels" ,size_info);
+    node.append('h4').text("Acquisition Mode = "+caen_info.acquisition_mode);
+    node.append('h4').text("Trigger Logic Levels = "+caen_info.trigger_voltage_level);
+    node.append('h4').text("Number of Post Trigger Samples = "+ caen_info.post_trigger);
+    node.append('h4').text("LVDS Mode = "+ caen_info.lvds_mode);
+    if (caen_info.channel_offsets){
+        var offset_list = node.append('h4').text("Channel Offsets")
+        node.append('ul')
+            .selectAll('li')
+            .data(caen_info.channel_offsets)
+            .enter()
+            .append('li')
+            .text(function(d,i) {
+                unit = d == 1 || d == -1 ? "Volt" : "Volts";
+                return "Channel "+i+" = "+d+" "+unit;});
+    }
 };
 
 function display_tubii(tubii_info) {
@@ -418,7 +435,7 @@ function display_mtca_thresholds(node,dacs,trigger_scan){
             return row;
         });
 }
-function display_crate_mask(mask,dom_node,title,size_info) {
+function display_bit_mask(mask,dom_node,title,size_info) {
     var width = size_info.width;
     var height =size_info.height;
     dv = dom_node.append("div");
@@ -431,7 +448,7 @@ function display_crate_mask(mask,dom_node,title,size_info) {
     var title_percent = 0.10;
     var title_width = title_percent*width;
     width=(1- title_percent)*width;
-    var step_size = width/21;
+    var step_size = width/(mask.length+1);
     var xpos_func = function(d,i) { return title_width+i*step_size; }
     var ypos_func = function(d,i) { return height/2.0; }
     svg.selectAll("circle")

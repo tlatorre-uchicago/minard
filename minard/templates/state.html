@@ -167,15 +167,15 @@
             var size_info ={};
             size_info['width']= mtc.node().parentElement.parentElement.clientWidth
             size_info['height']= 25;
-            display_crate_mask(mtc_data.gt_crates,mtc,"GT",size_info);
-            display_crate_mask(mtc_data.ped_crates,mtc,"PED",size_info);
-            display_crate_mask(mtc_data.N100_crates,mtc,"N100",size_info);
-            display_crate_mask(mtc_data.N20_crates,mtc,"N20",size_info);
-            display_crate_mask(mtc_data.ESUMHI_crates,mtc,"ESUM HI",size_info);
-            display_crate_mask(mtc_data.ESUMLO_crates,mtc,"ESUM LO",size_info);
-            display_crate_mask(mtc_data.OWLELO_crates,mtc,"OWLE LO",size_info);
-            display_crate_mask(mtc_data.OWLEHI_crates,mtc,"OWLE HI",size_info);
-            display_crate_mask(mtc_data.OWLN_crates,mtc,"OWLN",size_info);
+            display_bit_mask(mtc_data.gt_crates,mtc,"GT",size_info);
+            display_bit_mask(mtc_data.ped_crates,mtc,"PED",size_info);
+            display_bit_mask(mtc_data.N100_crates,mtc,"N100",size_info);
+            display_bit_mask(mtc_data.N20_crates,mtc,"N20",size_info);
+            display_bit_mask(mtc_data.ESUMHI_crates,mtc,"ESUM HI",size_info);
+            display_bit_mask(mtc_data.ESUMLO_crates,mtc,"ESUM LO",size_info);
+            display_bit_mask(mtc_data.OWLELO_crates,mtc,"OWLE LO",size_info);
+            display_bit_mask(mtc_data.OWLEHI_crates,mtc,"OWLE HI",size_info);
+            display_bit_mask(mtc_data.OWLN_crates,mtc,"OWLN",size_info);
         }
         if (run_data) {
             display_run_type(run_data.run_type,run_data.timestamp)
@@ -226,7 +226,9 @@
     display_tubii(tubii_data);
         }
         if (caen_data) {
-            display_caen(caen_data);
+            caen = d3.select("#CAEN");
+            node = caen.insert("div",":first-child");
+            display_caen(node,caen_data);
         }
         resize = function() {
             if(det_cont_info){
