@@ -3,7 +3,6 @@ from . import app
 from flask import render_template, jsonify, request, redirect, url_for
 from itertools import product
 import time
-from pytz import timezone
 from redis import Redis
 from os.path import join
 import json
@@ -121,11 +120,6 @@ def state(run=None):
     trigger_scan = None
     if run_state['timestamp'] is not None:
         trigger_scan = detector_state.get_trigger_scan_for_run(run)
-    # The timestamp doesn't come with any timezone info. Here I'm adding that
-    # info by hand. If the DB isn't running in EST timezone then this will be
-    # wrong.
-    est = timezone('Canada/Eastern')
-    run_state['timestamp'] = est.localize(run_state['timestamp'])
 
     oncolor = request.args.get('oncolor')
     offcolor = request.args.get('offcolor')

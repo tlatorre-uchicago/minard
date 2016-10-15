@@ -533,12 +533,16 @@ function display_run_type(run_type,time_stamp) {
     if(det_state_desc.length > 0){
         appendToTitle('h3',det_state_desc);
     }
+
+    // The date object passed in from the DB has no timezone info,
+    // so JS assumes it's in GMT. So by printing it as a GMT time
+    // then editing the output timezone info in the string you
+    // end up at the right answer.
+    // Unfortunately the user has no way of seeing if the time is EST or EDT.
     date = new Date(Date.parse(time_stamp))
-    str= date.toString()
-    // This will probably break during when changing to/from DST
-    // JS doesn't seem to contain a good way for displaying a date with a tz
-    str = str.replace('GMT-0400 ','').replace('GMT-0500 ','')
-    str = str.replace('(EDT)','EDT').replace('(EST)','EST')
+    str= date.toUTCString()
+    str = str.replace('GMT','Eastern')
+
     appendToTitle('p',str);
 };
 function crate() {
