@@ -550,10 +550,10 @@ function display_run_type(run_type,time_stamp) {
         {
             if(run_type & (1<<i)) {
                 if(i-low_bit >= Object.keys(trans_map).length) {
-                   ret.push("SPARE (???)");
+                   ret.push(" SPARE (???)");
                 }
                 else {
-                    ret.push(trans_map[i]);
+                    ret.push(" "+trans_map[i]);
                 }
             }
         }
