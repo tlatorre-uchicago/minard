@@ -20,20 +20,31 @@ function display_binary_crate_view(key,crates_data,sizeinfo,node)
 }
 function display_continuous_crate_view(key,crates_data,sizeinfo,node)
 {
+    // This function draws a crate view at the given node and returns
+    // a function that will re-draw view for different colors.
+    //
     // For now this just assumes a linear scale from 0-255.
     // May have to generalize at some point.
-    var scale = d3.scale.linear().domain([0,255]).range(['#6666ff','#ffcc00']);
-    var coloringFunc = function(data) {
-        return function(k, i) {
-            var v = data[k];
-            if (v === null || typeof v === 'undefined') {
-                return 'background-color:#e0e0e0';
-            }
-            else {
+    function draw_continous_crate_view(color_scale){
+        var scale = d3.scale.linear().domain([0,255]).range(color_scale);
+        var coloringFunc = function(data) {
+            return function(k, i) {
+                var v = data[k];
+                if (v === null || typeof v === 'undefined') {
+                    return 'background-color:#e0e0e0';
+                }
+                else {
 
-                return 'background-color:' + scale(+v);
-    }};}
-    display_crate_view(key,crates_data,sizeinfo,node,{'attrib':'style','func':coloringFunc});
+                    return 'background-color:' + scale(+v);
+        }};}
+        return display_crate_view(key,crates_data,sizeinfo,node,{'attrib':'style','func':coloringFunc});
+    }
+    crate_node = draw_continous_crate_view(colorbrewer['BuPu'][3]);
+    function redraw(color_scale){
+        node.select("#crate").remove()
+        draw_continous_crate_view(color_scale)
+    }
+    return redraw
 }
 function display_crate_view(key,crates_data,sizeinfo,node,styling)
 {
@@ -151,7 +162,6 @@ function display_triggers(node,wordlist) {
 
 function display_ped_delay(node,delay) {
     node.append("h3").text("Pedestal Delay = "+ delay.toString() +"ns");
-
 };
 
 function display_lockout_width(node,lockout) {
