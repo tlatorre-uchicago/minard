@@ -18,7 +18,42 @@ function display_binary_crate_view(key,crates_data,sizeinfo,node)
 
     display_crate_view(key,crates_data,sizeinfo,node,{'attrib':'class','func':coloringFunc});
 }
-function display_continuous_crate_view(key,crates_data,sizeinfo,node)
+
+function get_colors() {
+    var color_scales = {};
+    for (var key in colorbrewer) {
+        color_scales[key] = colorbrewer[key][5];
+    }
+    return d3.entries(color_scales);
+}
+
+function display_colorable_continuous_crate_view(key,crates_data,sizeinfo,node)
+{
+    node = node.append("div").attr("class","colorable_crate");
+    color_menu = node.append("select")
+        .attr("id","color-scale-menu")
+        .attr('class','pull-right');
+
+    var color_scales = get_colors()
+    color_menu.selectAll("option")
+        .data(color_scales)
+      .enter().append("option")
+        .text(function(d) { return d.key; });
+
+    default_index = 2;
+    var default_color_scale = color_scales[default_index].value;
+    color_menu.property("selectedIndex", default_index);
+
+    var redraw = display_continuous_crate_view(key,crates_data,sizeinfo,default_color_scale,node);
+
+    function change_color_scale() {
+        scale = color_scales[this.selectedIndex].value;
+        redraw(scale);
+    }
+    color_menu.on("change", change_color_scale);
+}
+
+function display_continuous_crate_view(key,crates_data,sizeinfo,color_scale,node)
 {
     // This function draws a crate view at the given node and returns
     // a function that will re-draw view for different colors.
@@ -39,7 +74,7 @@ function display_continuous_crate_view(key,crates_data,sizeinfo,node)
         }};}
         return display_crate_view(key,crates_data,sizeinfo,node,{'attrib':'style','func':coloringFunc});
     }
-    crate_node = draw_continous_crate_view(colorbrewer['BuPu'][3]);
+    crate_node = draw_continous_crate_view(color_scale);
     function redraw(color_scale){
         node.select("#crate").remove()
         draw_continous_crate_view(color_scale)

@@ -123,6 +123,7 @@
 {% endblock %}
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/colorbrewer.js') }}"></script>
     <script src="{{ url_for('static', filename='js/crate.js') }}"></script>
     <script src="{{ url_for('static', filename='js/detector_state.js') }}"></script>
     <script type="text/javascript">
@@ -208,14 +209,14 @@
             display_binary_crate_view('n100_triggers',crates_data.crates,sizeinfo,N100)
             display_binary_crate_view('n20_triggers',crates_data.crates,sizeinfo,N20)
             display_binary_crate_view('sequencers',crates_data.crates,sizeinfo,Seq)
-            display_continuous_crate_view('vthrs',crates_data.crates,sizeinfo,vThr)
+            display_colorable_continuous_crate_view('vthrs',crates_data.crates,sizeinfo,vThr);
             vbal_table = VBal.append('table');
             vbal_table.append('tr').append('th').append('h3').text("VBal 0");
             vbal0 = vbal_table.append('tr').append('th');
             vbal_table.append('tr').append('th').append('h3').text("VBal 1");
             vbal1 = vbal_table.append('tr').append('th');
-            display_continuous_crate_view('vbal_0',crates_data.crates,sizeinfo,vbal0)
-            display_continuous_crate_view('vbal_1',crates_data.crates,sizeinfo,vbal1)
+            display_colorable_continuous_crate_view('vbal_0',crates_data.crates,sizeinfo,vbal0);
+            display_colorable_continuous_crate_view('vbal_1',crates_data.crates,sizeinfo,vbal1);
         }
         if (det_cont_info) {
             summary.append("h3").text("Crates On = "+num_crates_on(det_cont_info));
