@@ -33,6 +33,50 @@ function get_colors() {
     return d3.entries(color_scales);
 }
 
+function create_hover_text_color_bar(node,colors)
+{
+    function draw_bar(colors) {
+        percents = linspace(0,100,colors.length);
+        var draw_node = node.append('div')
+                .style("display",'inline')
+                .attr('id','color-bar');
+        help_ico = draw_node.append('div')
+            .attr('class',"glyphicon glyphicon-question-sign");
+        var svg = draw_node.append('svg').attr("height",20);
+        var defs = svg.append('defs')
+        var linearGradient = defs.append('linearGradient')
+            .attr('id', 'linear-gradient');
+        linearGradient
+            .attr('x1', '0%')
+            .attr('x2', '100%')
+        for(var i=0; i<colors.length;i++)
+        {
+        linearGradient.append('stop')
+            .attr('offset',percents[i]+'%')
+            .attr('stop-color', colors[i]);
+        }
+        var bar = svg.append("rect")
+            .attr('x','10px')
+            .attr("width", '95%')
+            .attr("height", '100%')
+            .style("fill", "url(#linear-gradient)")
+            .attr('rx',6)
+            .attr('ry',6)
+            .attr('opacity',0)
+        help_ico.on('mouseover',function() {
+            bar.transition().duration(1000).attr('opacity',1)});
+        help_ico.on('mouseout',function() {
+            bar.transition().duration(1000).attr('opacity',0)});
+    }
+
+    draw_bar(colors);
+    redraw = function(new_colors) {
+        node.select("#color-bar").remove();
+        draw_bar(new_colors);
+    }
+    return redraw;
+}
+
 function display_colorable_continuous_crate_view(key,crates_data,sizeinfo,node)
 {
     node = node.append("div").attr("class","colorable_crate");
