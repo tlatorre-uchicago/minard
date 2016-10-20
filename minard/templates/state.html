@@ -149,6 +149,13 @@
             size_info['height']= 25;
             display_bit_mask(mtc_data.gt_crates,mtc,"GT",size_info);
             display_bit_mask(mtc_data.ped_crates,mtc,"PED",size_info);
+
+            mtc.append('h3')
+                .text("MTCA Relays")
+                .append('div')
+                .attr('class',"col-xs-12")
+                .append('hr');
+
             display_bit_mask(mtc_data.N100_crates,mtc,"N100",size_info);
             display_bit_mask(mtc_data.N20_crates,mtc,"N20",size_info);
             display_bit_mask(mtc_data.ESUMHI_crates,mtc,"ESUM HI",size_info);
