@@ -1,9 +1,15 @@
 function flattenArray(arr) {
     return [].concat.apply([],arr);
 }
+function linspace(min, max, N) {
+    var a = [];
+    for (var i=0; i < N; i++) {
+        a[i] = min + (max-min)*i/(N-1);
+    }
+    return a;
+}
 function display_binary_crate_view(key,crates_data,sizeinfo,node)
 {
-    //color_on = getComputedStyle(document.querySelector('.on')).fill;
     var coloringFunc = function(data) {
         return function(k,i) {
         var v = data[k];
@@ -61,7 +67,7 @@ function display_continuous_crate_view(key,crates_data,sizeinfo,color_scale,node
     // For now this just assumes a linear scale from 0-255.
     // May have to generalize at some point.
     function draw_continous_crate_view(color_scale){
-        var scale = d3.scale.linear().domain([0,255]).range(color_scale);
+        var scale = d3.scale.linear().domain(linspace(0,255,color_scale.length)).range(color_scale);
         var coloringFunc = function(data) {
             return function(k, i) {
                 var v = data[k];
@@ -69,8 +75,7 @@ function display_continuous_crate_view(key,crates_data,sizeinfo,color_scale,node
                     return 'background-color:#e0e0e0';
                 }
                 else {
-
-                    return 'background-color:' + scale(+v);
+                    return 'background-color:' + scale(v);
         }};}
         return display_crate_view(key,crates_data,sizeinfo,node,{'attrib':'style','func':coloringFunc});
     }
