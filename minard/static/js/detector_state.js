@@ -444,7 +444,7 @@ function get_enabled_dacs(dacs,gt_mask)
     }
     return new_dict;
 }
-function display_mtca_thresholds(node,dacs,trigger_scan){
+function display_mtca_thresholds(node,dacs,trigger_scan,enabled_dacs){
     function dac_to_volts(value) { return (10.0/4096)*value - 5.0; }
     volt_dict = {}
 
@@ -460,6 +460,13 @@ function display_mtca_thresholds(node,dacs,trigger_scan){
         .data(keys)
         .enter()
         .append('tr')
+        .attr('class',function(key) {
+            if(!enabled_dacs)
+            { return ""; }
+            if(enabled_dacs && enabled_dacs[key])
+            { return 'on'; }
+            return 'off';
+        })
         .selectAll('td')
         .data( function(key,i) {
             dac_count = dacs[key];

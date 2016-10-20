@@ -125,17 +125,17 @@
         {% endif %}
         colors = [url_params.oncolor, url_params.offcolor];
 
-        d3.select("#collapsesummary").classed("in",true);
         var summary = d3.select("#summary");
         if (mtc_data) {
             var mtc = d3.select('#mtc');
             display_triggers(mtc,mtc_data.gt_words);
             display_triggers(summary,mtc_data.gt_words);
-            display_mtca_thresholds(mtc,mtc_data.MTCA_DACs,trigger_scan);
 
-            dacs = get_enabled_dacs(mtc_data.MTCA_DACs,mtc_data.gt_words);
+            enabled_dacs = get_enabled_dacs(mtc_data.MTCA_DACs,mtc_data.gt_words);
+            display_mtca_thresholds(mtc,mtc_data.MTCA_DACs,trigger_scan,enabled_dacs);
+
             node = summary.append('h3').text("Thresholds");
-            display_mtca_thresholds(summary,dacs,trigger_scan);
+            display_mtca_thresholds(summary,enabled_dacs,trigger_scan);
 
 
 
