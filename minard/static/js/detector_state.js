@@ -33,19 +33,18 @@ function get_colors() {
     return d3.entries(color_scales);
 }
 
-function create_hover_text_color_bar(node,colors)
+function create_hover_text_color_bar(key,node,colors)
 {
-    function draw_bar(colors) {
+    var draw_bar = function(colors) {
         percents = linspace(0,100,colors.length);
         var draw_node = node.append('div')
                 .style("display",'inline')
-                .attr('id','color-bar');
+                .attr('class','color-bar');
         help_ico = draw_node.append('div')
             .attr('class',"glyphicon glyphicon-question-sign");
         var svg = draw_node.append('svg').attr("height",20);
-        var defs = svg.append('defs')
-        var linearGradient = defs.append('linearGradient')
-            .attr('id', 'linear-gradient');
+        var linearGradient = svg.append('linearGradient')
+            .attr('id', key+'-linear-gradient');
         linearGradient
             .attr('x1', '0%')
             .attr('x2', '100%')
@@ -59,7 +58,7 @@ function create_hover_text_color_bar(node,colors)
             .attr('x','10px')
             .attr("width", '95%')
             .attr("height", '100%')
-            .style("fill", "url(#linear-gradient)")
+            .style("fill", "url(#"+key+"-linear-gradient)")
             .attr('rx',6)
             .attr('ry',6)
             .attr('opacity',0)
@@ -70,8 +69,8 @@ function create_hover_text_color_bar(node,colors)
     }
 
     draw_bar(colors);
-    redraw = function(new_colors) {
-        node.select("#color-bar").remove();
+    var redraw = function(new_colors) {
+        node.select(".color-bar").remove();
         draw_bar(new_colors);
     }
     return redraw;
