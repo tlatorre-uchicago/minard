@@ -3,7 +3,7 @@
    <div class="panel-group" style="margin:10px">
        <div class="panel panel-default">
            <div class="panel-heading">
-               <h4 class="panel-title">
+               <h4 id="title-{{name}}" class="panel-title">
                    <a data-toggle="collapse" href="#collapse{{name}}">
                        {{title}}
                    </a>
@@ -196,14 +196,17 @@
             display_binary_crate_view('n100_triggers',crates_data.crates,sizeinfo,N100)
             display_binary_crate_view('n20_triggers',crates_data.crates,sizeinfo,N20)
             display_binary_crate_view('sequencers',crates_data.crates,sizeinfo,Seq)
-            display_colorable_continuous_crate_view('vthrs',crates_data.crates,sizeinfo,vThr);
+            bar_node = d3.select("#title-VThr");
+            display_colorable_continuous_crate_view('vthrs',crates_data.crates,sizeinfo,vThr,bar_node)
+
             vbal_table = VBal.append('table');
-            vbal_table.append('tr').append('th').append('h3').text("VBal 0");
+            vbal0_bar_node = vbal_table.append('tr').append('th').append('h4').text("VBal 0 ");
             vbal0 = vbal_table.append('tr').append('th');
-            vbal_table.append('tr').append('th').append('h3').text("VBal 1");
+            vbal1_bar_node = vbal_table.append('tr').append('th').append('h4').text("VBal 1 ");
             vbal1 = vbal_table.append('tr').append('th');
-            display_colorable_continuous_crate_view('vbal_0',crates_data.crates,sizeinfo,vbal0);
-            display_colorable_continuous_crate_view('vbal_1',crates_data.crates,sizeinfo,vbal1);
+
+            display_colorable_continuous_crate_view('vbal_0',crates_data.crates,sizeinfo,vbal0,vbal0_bar_node);
+            display_colorable_continuous_crate_view('vbal_1',crates_data.crates,sizeinfo,vbal1,vbal1_bar_node);
         }
         if (det_cont_info) {
             summary.append("h3").text("Crates On = "+num_crates_on(det_cont_info));

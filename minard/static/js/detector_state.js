@@ -76,7 +76,7 @@ function create_hover_text_color_bar(key,node,colors)
     return redraw;
 }
 
-function display_colorable_continuous_crate_view(key,crates_data,sizeinfo,node)
+function display_colorable_continuous_crate_view(key,crates_data,sizeinfo,node,bar_node)
 {
     node = node.append("div").attr("class","colorable_crate");
     color_menu = node.append("select")
@@ -88,16 +88,18 @@ function display_colorable_continuous_crate_view(key,crates_data,sizeinfo,node)
         .data(color_scales)
       .enter().append("option")
         .text(function(d) { return d.key; });
-
     default_index = 2;
     var default_color_scale = color_scales[default_index].value;
     color_menu.property("selectedIndex", default_index);
+
+    var bar_redraw = create_hover_text_color_bar(key, bar_node,default_color_scale);
 
     var redraw = display_continuous_crate_view(key,crates_data,sizeinfo,default_color_scale,node);
 
     function change_color_scale() {
         scale = color_scales[this.selectedIndex].value;
         redraw(scale);
+        bar_redraw(scale);
     }
     color_menu.on("change", change_color_scale);
 }
