@@ -37,27 +37,9 @@
         <div class="col-md-6 col-md-offset-3">
             <center id="run_title">
                 <ul class="pager">
-                    {% if colors[0] and not colors[1] %}
-                        <li class="previous"><a href="{{ url_for('state', run=run-1,oncolor=colors[0]) }}">Prev</a></li>
-                    {% elif not colors[0] and colors[1] %}
-                        <li class="previous"><a href="{{ url_for('state', run=run-1,offcolor=colors[1]) }}">Prev</a></li>
-                    {% elif colors[0] and colors[1]  %}
-                        <li class="previous"><a href="{{ url_for('state', run=run-1,oncolor=colors[0],offcolor=colors[1]) }}">Prev</a></li>
-                    {% else %}
-                        <li class="previous"><a href="{{ url_for('state', run=run-1)}}">Prev</a></li>
-                    {% endif %}
-
+                    <li class="previous"><a id="prev-link" href="{{ url_for('state', run=run-1)}}">Prev</a></li>
                     <li><h1 style="display:inline"> Run {{ run }} </h1></li>
-
-                    {% if colors[0] and not colors[1] %}
-                        <li class="next"><a href="{{ url_for('state', run=run+1,oncolor=colors[0]) }}">Next</a></li>
-                    {% elif not colors[0] and colors[1] %}
-                        <li class="next"><a href="{{ url_for('state', run=run+1,offcolor=colors[1]) }}">Next</a></li>
-                    {% elif colors[0] and colors[1]  %}
-                        <li class="next"><a href="{{ url_for('state', run=run+1,oncolor=colors[0],offcolor=colors[1]) }}">Next</a></li>
-                    {% else %}
-                        <li class="next"><a href="{{ url_for('state', run=run+1)}}">Next</a></li>
-                    {% endif %}
+                    <li class="next"><a id="next-link" href="{{ url_for('state', run=run+1)}}">Next</a></li>
                 </ul>
             </center>
         </div>
@@ -141,9 +123,7 @@
         {% if detector_control_state %}
             det_cont_info  = {{ detector_control_state | tojson | safe }};
         {% endif %}
-        {% if colors %}
-            colors = {{ colors | tojson | safe }}
-        {% endif %}
+        colors = [url_params.oncolor, url_params.offcolor];
 
         d3.select("#collapsesummary").classed("in",true);
         var summary = d3.select("#summary");
@@ -249,12 +229,25 @@
         };
 
         // The coloring has to go last so it can color everything drawn above
-        if(colors[0]){
-           change_colors("on",colors[0]);
+        url_str = ""
+        if(colors[0] && colors[1])
+        {
+            change_colors("on",colors[0]);
+            change_colors("off",colors[1]);
+            url_str = "?oncolor="+colors[0]+"&offcolor="+colors[1];
         }
-        if(colors[1]) {
+        else if(colors[0]){
+            url_str = "?oncolor="+colors[0];
+            change_colors("on",colors[0]);
+        }
+        else if(colors[1]) {
+            url_str = "?offcolor="+colors[1];
             change_colors("off",colors[1]);
         }
+        prev_link = document.getElementById("prev-link");
+        next_link = document.getElementById("next-link");
+        prev_link.setAttribute('href', prev_link.getAttribute('href')+url_str);
+        next_link.setAttribute('href', next_link.getAttribute('href')+url_str);
         resize()
         window.addEventListener("resize", resize,false);
        </script>

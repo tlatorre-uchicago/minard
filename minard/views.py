@@ -121,15 +121,6 @@ def state(run=None):
     if run_state['timestamp'] is not None:
         trigger_scan = detector_state.get_trigger_scan_for_run(run)
 
-    oncolor = request.args.get('oncolor')
-    offcolor = request.args.get('offcolor')
-    colors = [oncolor, offcolor]
-
-    if(not oncolor):
-        colors[0] = False
-    if(not offcolor):
-        colors[1] = False
-
     return render_template('state.html', run=run,
                            run_state=run_state,
                            detector_control_state=detector_control_state,
@@ -138,7 +129,6 @@ def state(run=None):
                            tubii_state=tubii_state,
                            crates_state=crates_state,
                            trigger_scan=trigger_scan,
-                           colors=colors,
                            err=None)
 
 
