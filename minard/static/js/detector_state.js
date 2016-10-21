@@ -194,7 +194,6 @@ function get_crates_in_rack(irack) {
     for(var i=1; i<irack;i++){
         crates_below += num_crates_in_rack(i);
     }
-    console.log(irack+" "+num_crates_in_rack(irack));
     if(num_crates_in_rack(irack) == 1)
     {
         return [crates_below];
