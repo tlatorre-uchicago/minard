@@ -515,7 +515,7 @@ function display_mtca_thresholds(node,dacs,trigger_scan,enabled_dacs){
             { return ""; }
             if(enabled_dacs && enabled_dacs[key])
             { return 'on'; }
-            return 'off';
+            return '';
         })
         .selectAll('td')
         .data( function(key,i) {
@@ -651,9 +651,7 @@ function crate() {
     var width = 780;
     var height = 80;
 
-    function my(){
-
-    }
+    function my(){ }
     my.width = function(value) {
         if(!arguments.length) {
             return width;
@@ -671,9 +669,11 @@ function crate() {
     return my;
 }
 function change_colors(class_name,color) {
-    var cols = document.getElementsByClassName(class_name);
-    for(i=0;i<cols.length;i++) {
-        cols[i].style.fill = color;
-        cols[i].style['background-color'] = color;
-    }
+    crate_elements = d3.selectAll("td."+class_name)
+    text_elements = d3.selectAll("tr."+class_name)
+    other_elements = d3.selectAll("."+class_name+":not(tr):not(td)")
+    crate_elements.attr("style","background-color:"+color)
+    other_elements.attr("style","fill:"+color);
+    text_elements = d3.selectAll("tr."+class_name);
+    text_elements.attr("style","color:"+color);
 }
