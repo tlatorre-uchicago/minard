@@ -201,6 +201,7 @@ function get_crates_in_rack(irack) {
     }
     return  [crates_below,crates_below+1];
 }
+
 function num_crates_on(det_cont_info) {
     var count = 0;
     if(det_cont_info['iboot'] == 0)
@@ -218,8 +219,8 @@ function num_crates_on(det_cont_info) {
         }
     }
     return count;
-
 }
+
 function display_detector_control(detector_control_info) {
     var det_cont = d3.select("#detector_control");
     var bounds = det_cont.node().parentElement.parentElement.clientWidth
@@ -229,34 +230,54 @@ function display_detector_control(detector_control_info) {
     radius = step_size/4.0;
     var xpos_func = function(d,i) { return step_size+i*step_size; }
     var ypos_func = function(d,i) { return height/2.0; }
+
     var svg = det_cont.append("svg")
         .attr("width",width)
         .attr("height",height)
         .attr("viewBox","0 0 "+width.toString()+" "+height.toString())
         .attr("class","rack_mask");
+
     var arr = [];
     arr.push(["T",detector_control_info["timing_rack"]]);
     for(var i=1;i<12;i++) {
         arr.push([i.toString(),detector_control_info["rack"+i.toString()]]);
     }
-    svg.selectAll('circle')
+    nodes = svg.append('g').selectAll('circle')
         .data(arr)
         .enter()
-        .append('circle')
-        .attr("cx",xpos_func)
-        .attr("cy",ypos_func)
+        .append('g')
+        .attr("transform",function(d,i){
+            d.x = xpos_func(d,i);
+            d.y = ypos_func(d,i);
+            return "translate(" + d.x+","+d.y+")";
+        });
+
+    nodes.append("title").text(function(d,i){
+        str = ""
+        if(d[0] == "T"){ str = "Timing Rack: ";}
+        else {
+            crates = get_crates_in_rack(d[0])
+            crate_str = "";
+            if(crates.length == 1){
+                crate_str = "crate "+crates[0];
+            }
+            else{
+                crate_str = "crates "+crates[0]+" and "+crates[1];
+            }
+            str = "Rack "+d[0]+" ("+crate_str+"): ";
+        }
+        str = str + (d[1]==1 ? 'on' : 'off');
+        return str;
+    });
+    nodes.append('circle')
         .attr("r",radius)
         .attr("class",function(d) { return d[1]==1 ? 'on' : 'off'; });
-    svg.selectAll('text')
-        .data(arr)
-        .enter()
-        .append('text')
+    nodes.append('text')
         .text(function(d){return d[0];})
         .attr("text-anchor","middle")
         .attr("font-size","16px")
         .attr("fill","white")
-        .attr("x",xpos_func)
-        .attr("y",function(d,i) { return ypos_func(d,i)+5;});
+        .attr("y",function(d,i) { return 5;});
 }
 
 function display_triggers(node,wordlist) {
