@@ -488,7 +488,10 @@ function get_enabled_dacs(dacs,gt_mask)
     new_dict = {};
     for(var i=0;i<keys.length;i++)
     {
-        if(gt_mask.includes(keys[i].replace(' ','')))
+        if(gt_mask.includes(
+                keys[i].replace(' ','')
+                .replace('N100','NHIT100')
+                .replace('N20',"NHIT20")))
         {
             new_dict[keys[i]] = dacs[keys[i]];
         }
