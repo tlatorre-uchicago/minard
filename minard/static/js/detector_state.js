@@ -555,11 +555,16 @@ function display_mtc(node,mtc_data){
     var size_info ={};
     size_info['width']= node.node().parentElement.parentElement.clientWidth
     size_info['height']= 25;
-    mtcd_mask_text_factory = function(name) {
-        return function(d,i) {
-            return "Sending "+name+" signal to crate "+i+": "+(d ? "enabled" : "disabled");
+
+    text_factory =function(verb,direction){
+        return function(name){
+            return function(d,i) {
+                return verb+" "+name+" signal "+direction+" crate "+i+": "+(d ? "enabled" : "disabled");
+            }
         }
     }
+    mtcd_mask_text_factory = text_factory("Sending","to");
+
     display_bit_mask(mtc_data.gt_crates,node,"GT",size_info,mtcd_mask_text_factory("GT"));
     display_bit_mask(mtc_data.ped_crates,node,"PED",size_info,mtcd_mask_text_factory("PED"));
 
@@ -569,11 +574,7 @@ function display_mtc(node,mtc_data){
         .attr('class',"col-xs-12")
         .append('hr');
 
-    mtca_relay_text_factory = function(name){
-        return function(d,i){
-            return "Summing "+name+" from crate "+i+": "+(d ? "enabled" : "disabled");
-        }
-    }
+    mtca_relay_text_factory = text_factory("Summing","from");
     display_bit_mask(mtc_data.N100_crates,node,"N100",size_info,mtca_relay_text_factory("N100"));
     display_bit_mask(mtc_data.N20_crates,node,"N20",size_info,mtca_relay_text_factory("N20"));
     display_bit_mask(mtc_data.ESUMHI_crates,node,"ESUM HI",size_info,mtca_relay_text_factory("ESUM HI"));
