@@ -174,9 +174,8 @@ function display_crate_view(key,crates_data,sizeinfo,node,styling)
             .attr('class',"col-md-10 col-md-offset-1");
     g.datum(d).call(crate);
 }
-function get_crates_in_rack(irack) {
+function num_crates_in_rack(irack) {
     if(irack>11 || irack <=0) {
-        //Maybe should error?
         return 0;
     }
     if([3,7,10].indexOf(irack) != -1)
@@ -184,6 +183,23 @@ function get_crates_in_rack(irack) {
         return 1;
     }
     return 2;
+}
+function get_crates_in_rack(irack) {
+    if (irack>11 || irack<= 0)
+    {return -1;}
+    if(typeof(irack) != 'number'){
+        irack = parseInt(irack);
+    }
+    crates_below = 0;
+    for(var i=1; i<irack;i++){
+        crates_below += num_crates_in_rack(i);
+    }
+    console.log(irack+" "+num_crates_in_rack(irack));
+    if(num_crates_in_rack(irack) == 1)
+    {
+        return [crates_below];
+    }
+    return  [crates_below,crates_below+1];
 }
 function num_crates_on(det_cont_info) {
     var count = 0;
@@ -196,7 +212,7 @@ function num_crates_on(det_cont_info) {
         if(det_cont_info.hasOwnProperty(key)) {
             if(key.indexOf('rack') != -1 && key.indexOf("timing") == -1) {
                 if(det_cont_info[key]) {
-                    count += get_crates_in_rack(parseInt(key.split('rack')[1]));
+                    count += num_crates_in_rack(parseInt(key.split('rack')[1]));
                 }
             }
         }
