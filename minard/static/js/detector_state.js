@@ -314,7 +314,11 @@ function display_caen(node,caen_info) {
     var size_info = {};
     size_info['width'] = node.node().parentElement.parentElement.parentElement.clientWidth;
     size_info['height'] = 25;
-    display_bit_mask(caen_info.enabled_channels,node,"Enabled Channels" ,size_info);
+    channel_text = function(d,i){
+        str = "Channel "+i+": ";
+        return str +(d ? "enabled" : "disabled");
+    }
+    display_bit_mask(caen_info.enabled_channels,node,"Enabled Channels" ,size_info,channel_text);
     node.append('h4').text("Acquisition Mode = "+caen_info.acquisition_mode);
     node.append('h4').text("Trigger Logic Levels = "+caen_info.trigger_voltage_level);
     node.append('h4').text("Number of Post Trigger Samples = "+ caen_info.post_trigger);
