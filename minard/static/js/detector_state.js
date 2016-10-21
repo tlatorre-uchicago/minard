@@ -539,6 +539,40 @@ function get_enabled_dacs(dacs,gt_mask)
     }
     return new_dict;
 }
+
+function display_mtc(node,mtc_data){
+
+    display_triggers(node,mtc_data.gt_words);
+
+    enabled_dacs = get_enabled_dacs(mtc_data.MTCA_DACs,mtc_data.gt_words);
+    display_mtca_thresholds(node,mtc_data.MTCA_DACs,trigger_scan,enabled_dacs);
+
+    display_lockout_width(node,mtc_data.lockout_width);
+    display_control_reg(node,mtc_data.control_reg);
+    if(mtc_data.control_reg.filter(function(x) { x.indexOf("PED") > -1;}))
+    {display_ped_delay(node,mtc_data.ped_delay);}
+    display_prescale(node,mtc_data.prescale);
+    var size_info ={};
+    size_info['width']= node.node().parentElement.parentElement.clientWidth
+    size_info['height']= 25;
+    display_bit_mask(mtc_data.gt_crates,node,"GT",size_info);
+    display_bit_mask(mtc_data.ped_crates,node,"PED",size_info);
+
+    node.append('h3')
+        .text("MTCA Relays")
+        .append('div')
+        .attr('class',"col-xs-12")
+        .append('hr');
+
+    display_bit_mask(mtc_data.N100_crates,node,"N100",size_info);
+    display_bit_mask(mtc_data.N20_crates,node,"N20",size_info);
+    display_bit_mask(mtc_data.ESUMHI_crates,node,"ESUM HI",size_info);
+    display_bit_mask(mtc_data.ESUMLO_crates,node,"ESUM LO",size_info);
+    display_bit_mask(mtc_data.OWLELO_crates,node,"OWLE LO",size_info);
+    display_bit_mask(mtc_data.OWLEHI_crates,node,"OWLE HI",size_info);
+    display_bit_mask(mtc_data.OWLN_crates,node,"OWLN",size_info);
+}
+
 function display_mtca_thresholds(node,dacs,trigger_scan,enabled_dacs){
     function dac_to_volts(value) { return (10.0/4096)*value - 5.0; }
     volt_dict = {}

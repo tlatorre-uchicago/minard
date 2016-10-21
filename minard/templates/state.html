@@ -127,44 +127,15 @@
 
         var summary = d3.select("#summary");
         if (mtc_data) {
-            var mtc = d3.select('#mtc');
-            display_triggers(mtc,mtc_data.gt_words);
             enabled_triggers_node = summary.append("div").attr('class','col-sm-3');
-            thresholds_node = summary.append("div")
-                        .attr('class','col-sm-9');
-
+            thresholds_node = summary.append("div").attr('class','col-sm-9');
             display_triggers(enabled_triggers_node,mtc_data.gt_words);
-
             enabled_dacs = get_enabled_dacs(mtc_data.MTCA_DACs,mtc_data.gt_words);
-            display_mtca_thresholds(mtc,mtc_data.MTCA_DACs,trigger_scan,enabled_dacs);
-
-            node = thresholds_node.append('h3').text("Thresholds");
+            thresholds_node.append('h3').text("Thresholds");
             display_mtca_thresholds(thresholds_node,enabled_dacs,trigger_scan);
 
-            display_lockout_width(mtc,mtc_data.lockout_width);
-            display_control_reg(mtc,mtc_data.control_reg);
-            if(mtc_data.control_reg.filter(function(x) { x.indexOf("PED") > -1;}))
-                {display_ped_delay(mtc,mtc_data.ped_delay);}
-            display_prescale(mtc,mtc_data.prescale);
-            var size_info ={};
-            size_info['width']= mtc.node().parentElement.parentElement.clientWidth
-            size_info['height']= 25;
-            display_bit_mask(mtc_data.gt_crates,mtc,"GT",size_info);
-            display_bit_mask(mtc_data.ped_crates,mtc,"PED",size_info);
-
-            mtc.append('h3')
-                .text("MTCA Relays")
-                .append('div')
-                .attr('class',"col-xs-12")
-                .append('hr');
-
-            display_bit_mask(mtc_data.N100_crates,mtc,"N100",size_info);
-            display_bit_mask(mtc_data.N20_crates,mtc,"N20",size_info);
-            display_bit_mask(mtc_data.ESUMHI_crates,mtc,"ESUM HI",size_info);
-            display_bit_mask(mtc_data.ESUMLO_crates,mtc,"ESUM LO",size_info);
-            display_bit_mask(mtc_data.OWLELO_crates,mtc,"OWLE LO",size_info);
-            display_bit_mask(mtc_data.OWLEHI_crates,mtc,"OWLE HI",size_info);
-            display_bit_mask(mtc_data.OWLN_crates,mtc,"OWLN",size_info);
+            var mtc = d3.select('#mtc');
+            display_mtc(mtc,mtc_data)
         }
         if (run_data) {
             display_run_type(run_data.run_type,run_data.timestamp)
