@@ -41,7 +41,8 @@ function create_hover_text_color_bar(key,node,colors)
                 .style("display",'inline')
                 .attr('class','color-bar');
         help_ico = draw_node.append('div')
-            .attr('class',"glyphicon glyphicon-question-sign");
+            .attr('class',"glyphicon glyphicon-info-sign")
+            .attr('title', "Color scale 0 - 255");
         var svg = draw_node.append('svg').attr("height",20);
         var linearGradient = svg.append('linearGradient')
             .attr('id', key+'-linear-gradient');
