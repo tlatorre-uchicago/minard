@@ -514,8 +514,8 @@ function display_mtca_thresholds(node,dacs,trigger_scan,enabled_dacs){
             if(!enabled_dacs)
             { return ""; }
             if(enabled_dacs && enabled_dacs[key])
-            { return 'on'; }
-            return 'off';
+            { return 'success'; }
+            return '';
         })
         .selectAll('td')
         .data( function(key,i) {

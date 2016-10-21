@@ -6,17 +6,6 @@
     fill:green;
     background-color:green
 }
-tr.on{
-    color:green;
-    font-weight:bold;
-    fill:initial;
-    background-color:initial
-}
-tr.off{
-    fill:initial;
-    background-color:initial
-
-}
 .off{
     fill:grey;
     background-color:grey;
