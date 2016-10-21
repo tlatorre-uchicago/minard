@@ -594,24 +594,24 @@ function display_bit_mask(mask,dom_node,title,size_info) {
     var step_size = width/(mask.length+1);
     var xpos_func = function(d,i) { return title_width+i*step_size; }
     var ypos_func = function(d,i) { return height/2.0; }
-    svg.selectAll("circle")
+
+    nodes = svg.append('g').selectAll("circle")
         .data(mask)
         .enter()
-        .append("circle")
-        .attr("cx",xpos_func)
-        .attr("cy",ypos_func)
+        .append('g')
+        .attr('transform',function(d,i){
+            return "translate("+xpos_func(d,i)+", "+ypos_func(d,i)+")";});
+
+    nodes.append("circle")
         .attr("r",height/2.0)
         .attr("class",function(d) { return d ? 'on' : 'off'; })
-    svg.selectAll('text')
-        .data(mask)
-        .enter()
-        .append('text')
+
+    nodes.append('text')
         .text(function(d,i){return i.toString();})
         .attr("text-anchor","middle")
         .attr("font-size","10px")
         .attr("fill","white")
-        .attr("x",xpos_func)
-        .attr("y",function(d,i) { return ypos_func(d,i)+3;});
+        .attr("y",function(d,i) { return 3;});
 };
 function display_run_type(run_type,time_stamp) {
     var run_type_translation = {
