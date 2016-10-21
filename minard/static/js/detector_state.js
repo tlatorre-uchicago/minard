@@ -575,7 +575,7 @@ function display_mtc(node,mtc_data){
         }
     }
     display_bit_mask(mtc_data.N100_crates,node,"N100",size_info,mtca_relay_text_factory("N100"));
-    display_bit_mask(mtc_data.N20_crates,node,"N20",size_info,mtca_relay_text_factory("N100"));
+    display_bit_mask(mtc_data.N20_crates,node,"N20",size_info,mtca_relay_text_factory("N20"));
     display_bit_mask(mtc_data.ESUMHI_crates,node,"ESUM HI",size_info,mtca_relay_text_factory("ESUM HI"));
     display_bit_mask(mtc_data.ESUMLO_crates,node,"ESUM LO",size_info,mtca_relay_text_factory("ESUM LO"));
     display_bit_mask(mtc_data.OWLELO_crates,node,"OWLE LO",size_info,mtca_relay_text_factory("OWLE LO"));
