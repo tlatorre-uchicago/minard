@@ -601,11 +601,14 @@ function display_mtca_thresholds(node,dacs,trigger_scan,enabled_dacs){
         .enter()
         .append('tr')
         .attr('class',function(key) {
-            if(!enabled_dacs)
-            { return ""; }
             if(enabled_dacs && enabled_dacs[key])
             { return 'success'; }
             return '';
+        })
+        .attr('title',function(key){
+            if(enabled_dacs && enabled_dacs[key])
+            { return key+' is masked in'; }
+            return key+' is NOT masked in';
         })
         .selectAll('td')
         .data( function(key,i) {
