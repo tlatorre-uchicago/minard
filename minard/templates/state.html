@@ -129,15 +129,17 @@
         if (mtc_data) {
             var mtc = d3.select('#mtc');
             display_triggers(mtc,mtc_data.gt_words);
-            display_triggers(summary,mtc_data.gt_words);
+            enabled_triggers_node = summary.append("div").attr('class','col-sm-3');
+            thresholds_node = summary.append("div")
+                        .attr('class','col-sm-9');
+
+            display_triggers(enabled_triggers_node,mtc_data.gt_words);
 
             enabled_dacs = get_enabled_dacs(mtc_data.MTCA_DACs,mtc_data.gt_words);
             display_mtca_thresholds(mtc,mtc_data.MTCA_DACs,trigger_scan,enabled_dacs);
 
-            node = summary.append('h3').text("Thresholds");
-            display_mtca_thresholds(summary,enabled_dacs,trigger_scan);
-
-
+            node = thresholds_node.append('h3').text("Thresholds");
+            display_mtca_thresholds(thresholds_node,enabled_dacs,trigger_scan);
 
             display_lockout_width(mtc,mtc_data.lockout_width);
             display_control_reg(mtc,mtc_data.control_reg);
@@ -183,7 +185,8 @@
                 node.append('h3').text(text);
             };
 
-            table = summary.append('table').attr('class','table')
+            table = summary.append('div').attr('class','col-md-12')
+                           .append('table').attr('class','table')
             head = table.append('thead').append('tr')
             head.append('th').text('# Sequencers')
             head.append('th').text('# N100s')

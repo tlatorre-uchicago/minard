@@ -85,6 +85,7 @@ function display_colorable_continuous_crate_view(key,crates_data,sizeinfo,node,b
         .attr('class','pull-right');
 
     var color_scales = get_colors()
+
     color_menu.selectAll("option")
         .data(color_scales)
       .enter().append("option")
