@@ -578,7 +578,7 @@ function display_mtca_thresholds(node,dacs,trigger_scan,enabled_dacs){
             return row;
         });
 }
-function display_bit_mask(mask,dom_node,title,size_info) {
+function display_bit_mask(mask,dom_node,title,size_info,title_text) {
     var width = size_info.width;
     var height =size_info.height;
     dv = dom_node.append("div");
@@ -601,6 +601,11 @@ function display_bit_mask(mask,dom_node,title,size_info) {
         .append('g')
         .attr('transform',function(d,i){
             return "translate("+xpos_func(d,i)+", "+ypos_func(d,i)+")";});
+
+    if(title_text)
+    {
+        nodes.append("title").text(title_text);
+    }
 
     nodes.append("circle")
         .attr("r",height/2.0)
