@@ -555,8 +555,13 @@ function display_mtc(node,mtc_data){
     var size_info ={};
     size_info['width']= node.node().parentElement.parentElement.clientWidth
     size_info['height']= 25;
-    display_bit_mask(mtc_data.gt_crates,node,"GT",size_info);
-    display_bit_mask(mtc_data.ped_crates,node,"PED",size_info);
+    mtcd_mask_text_factory = function(name) {
+        return function(d,i) {
+            return "Sending "+name+" signal to crate "+i+": "+(d ? "enabled" : "disabled");
+        }
+    }
+    display_bit_mask(mtc_data.gt_crates,node,"GT",size_info,mtcd_mask_text_factory("GT"));
+    display_bit_mask(mtc_data.ped_crates,node,"PED",size_info,mtcd_mask_text_factory("PED"));
 
     node.append('h3')
         .text("MTCA Relays")
@@ -564,13 +569,18 @@ function display_mtc(node,mtc_data){
         .attr('class',"col-xs-12")
         .append('hr');
 
-    display_bit_mask(mtc_data.N100_crates,node,"N100",size_info);
-    display_bit_mask(mtc_data.N20_crates,node,"N20",size_info);
-    display_bit_mask(mtc_data.ESUMHI_crates,node,"ESUM HI",size_info);
-    display_bit_mask(mtc_data.ESUMLO_crates,node,"ESUM LO",size_info);
-    display_bit_mask(mtc_data.OWLELO_crates,node,"OWLE LO",size_info);
-    display_bit_mask(mtc_data.OWLEHI_crates,node,"OWLE HI",size_info);
-    display_bit_mask(mtc_data.OWLN_crates,node,"OWLN",size_info);
+    mtca_relay_text_factory = function(name){
+        return function(d,i){
+            return "Summing "+name+" from crate "+i+": "+(d ? "enabled" : "disabled");
+        }
+    }
+    display_bit_mask(mtc_data.N100_crates,node,"N100",size_info,mtca_relay_text_factory("N100"));
+    display_bit_mask(mtc_data.N20_crates,node,"N20",size_info,mtca_relay_text_factory("N100"));
+    display_bit_mask(mtc_data.ESUMHI_crates,node,"ESUM HI",size_info,mtca_relay_text_factory("ESUM HI"));
+    display_bit_mask(mtc_data.ESUMLO_crates,node,"ESUM LO",size_info,mtca_relay_text_factory("ESUM LO"));
+    display_bit_mask(mtc_data.OWLELO_crates,node,"OWLE LO",size_info,mtca_relay_text_factory("OWLE LO"));
+    display_bit_mask(mtc_data.OWLEHI_crates,node,"OWLE HI",size_info,mtca_relay_text_factory("OWLE HI"));
+    display_bit_mask(mtc_data.OWLN_crates,node,"OWLN",size_info,mtca_relay_text_factory("OWLN"));
 }
 
 function display_mtca_thresholds(node,dacs,trigger_scan,enabled_dacs){
