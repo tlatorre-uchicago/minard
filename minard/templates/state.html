@@ -127,12 +127,16 @@
 
         var summary = d3.select("#summary");
         if (mtc_data) {
-            enabled_triggers_node = summary.append("div").attr('class','col-sm-3');
-            thresholds_node = summary.append("div").attr('class','col-sm-9');
-            display_triggers(enabled_triggers_node,mtc_data.gt_words);
             enabled_dacs = get_enabled_dacs(mtc_data.MTCA_DACs,mtc_data.gt_words);
-            thresholds_node.append('h3').text("Thresholds");
-            display_mtca_thresholds(thresholds_node,enabled_dacs,trigger_scan);
+            enabled_triggers_node = summary.append("div");
+            //Only display threhsold info if there's some enabled triggers in it
+            if (Object.keys(enabled_dacs).length){
+                enabled_triggers_node.attr('class','col-sm-3');
+                thresholds_node = summary.append("div").attr('class','col-sm-9');
+                thresholds_node.append('h3').text("Thresholds");
+                display_mtca_thresholds(thresholds_node,enabled_dacs,trigger_scan);
+            }
+            display_triggers(enabled_triggers_node,mtc_data.gt_words);
 
             var mtc = d3.select('#mtc');
             display_mtc(mtc,mtc_data)
