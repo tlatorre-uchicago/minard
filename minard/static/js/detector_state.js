@@ -22,7 +22,20 @@ function display_binary_crate_view(key,crates_data,sizeinfo,node)
             return 'on';
     };}
 
-    display_crate_view(key,crates_data,sizeinfo,node,{'attrib':'class','func':coloringFunc});
+    hover_text_func = function(data) {
+    return function(d,i) {
+        v = data[d];
+        if(v == null){
+            return "Unknown";
+        }
+        else if(v ==0){
+            return "off";
+        }
+        return "on";
+    }};
+
+    display_crate_view(key,crates_data,sizeinfo,node,
+            {'attrib':'class','func':coloringFunc},hover_text_func);
 }
 
 function get_colors() {
@@ -124,7 +137,16 @@ function display_continuous_crate_view(key,crates_data,sizeinfo,color_scale,node
                 else {
                     return 'background-color:' + scale(v);
         }};}
-        return display_crate_view(key,crates_data,sizeinfo,node,{'attrib':'style','func':coloringFunc});
+        hover_text_func = function(data) {
+        return function(d,i) {
+            v = data[d];
+            if(v == null){
+                return "Unknown";
+            }
+            return v;
+        }};
+        return display_crate_view(key,crates_data,sizeinfo,node,
+                {'attrib':'style','func':coloringFunc},hover_text_func);
     }
     crate_node = draw_continous_crate_view(color_scale);
     function redraw(color_scale){
@@ -133,7 +155,7 @@ function display_continuous_crate_view(key,crates_data,sizeinfo,color_scale,node
     }
     return redraw
 }
-function display_crate_view(key,crates_data,sizeinfo,node,styling)
+function display_crate_view(key,crates_data,sizeinfo,node,styling,hover_text)
 {
     var d = crates_data.map(function(crate,i) {
     if(crate) {
@@ -156,6 +178,9 @@ function display_crate_view(key,crates_data,sizeinfo,node,styling)
         .caption(true)
         .height(height)
         .width(width);
+    if(hover_text){
+    crate.hover_text(hover_text);
+    }
     if(styling){
         stylingFunc = crate.stylingFunction();
         if(styling.func){

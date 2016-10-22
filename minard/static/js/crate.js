@@ -121,6 +121,8 @@ function crate_view() {
 
     var caption = true;
 
+    var hover_text = false;
+
     var scale = d3.scale.threshold().domain([100]).range(['#bababa','#ca0020']);
 
     function MakeStylingFunction(){
@@ -173,7 +175,6 @@ function crate_view() {
             .attr("id", function(d, i) { return "crate" + i;})
           .append('table')
             .attr('style','padding:2px;border-collapse:separate;border-spacing:1px')
-            .attr('title', function(d, i) { return 'Crate ' + i; });
 
         if (caption) {
             tr1.insert('caption').text(function(d, i) { return i; })
@@ -186,7 +187,17 @@ function crate_view() {
         var td = tr2.selectAll('td')
             .data(function(d) { return d; }, function(d) { return d; })
             .enter().append('td');
-//.attr('style','background-color:#e0e0e0');
+        if(hover_text){
+            if(typeof hover_text === "function"){
+                td.attr('title',hover_text(data));
+            }
+            else{
+                td.attr('title',hover_text);
+            }
+        }
+        else{
+            tr1.attr('title', function(d, i) { return 'Crate ' + i; });
+        }
 
         var select = d3.select(this).selectAll('#crate-view div table tr td')
 
@@ -233,6 +244,12 @@ function crate_view() {
     chart.stylingFunction = function(value) {
         if(!arguments.length) {return stylingFunction;}
         stylingFunction = value;
+        return chart;
+    }
+
+    chart.hover_text = function(value) {
+        if(!arguments.length) {return hover_text;}
+        hover_text = value;
         return chart;
     }
 
