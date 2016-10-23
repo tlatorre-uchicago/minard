@@ -356,8 +356,7 @@ function display_caen(node,caen_info) {
             .enter()
             .append('li')
             .text(function(d,i) {
-                unit = d == 1 || d == -1 ? "Volt" : "Volts";
-                return "Channel "+i+" = "+d+" "+unit;});
+                return "Channel "+i+" = "+d+"V";});
     }
 };
 
