@@ -762,7 +762,7 @@ function display_run_type(run_type,time_stamp) {
     // Passed time stamp is assumed to be in Eastern time.
     // The DB should always be in Sudbury so this is safe
     date = moment.tz(time_stamp, "America/Toronto");
-    str = date.format("MMMM Do YYYY - h:mm:ss z");
+    str = date.format("MMMM Do YYYY - HH:mm:ss z");
     appendToTitle('p',str);
 };
 function crate() {
