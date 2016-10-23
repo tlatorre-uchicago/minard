@@ -613,6 +613,7 @@ function display_mtca_thresholds(node,dacs,trigger_scan,enabled_dacs){
     function dac_to_volts(value) { return (10.0/4096)*value - 5.0; }
     volt_dict = {}
 
+    node.append("h3").text("Thresholds");
     table = node.append('table').attr('class','table')
     head = table.append('thead').append('tr')
     head.append('th').text('Name')

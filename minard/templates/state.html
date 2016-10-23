@@ -133,7 +133,6 @@
             if (Object.keys(enabled_dacs).length){
                 enabled_triggers_node.attr('class','col-sm-3');
                 thresholds_node = summary.append("div").attr('class','col-sm-9');
-                thresholds_node.append('h3').text("Thresholds");
                 display_mtca_thresholds(thresholds_node,enabled_dacs,trigger_scan);
             }
             display_triggers(enabled_triggers_node,mtc_data.gt_words);
