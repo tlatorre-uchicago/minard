@@ -93,7 +93,9 @@ def state(run=None):
         run = run_state['run']
         # Have to put these in ISO foramt so flask doesn't mangle it later
         run_state['timestamp'] = run_state['timestamp'].isoformat()
-        run_state['end_timestamp'] = run_state['end_timestamp'].isoformat()
+        # end_timestamp isn't that important. If it's not there, it's ignored
+        if(run_state['end_timestamp']):
+            run_state['end_timestamp'] = run_state['end_timestamp'].isoformat()
     except Exception as e:
         return render_template('state.html', err=str(e))
 
