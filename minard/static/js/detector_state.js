@@ -26,7 +26,7 @@ function display_binary_crate_view(key,crates_data,sizeinfo,node)
     return function(d,i) {
         v = data[d];
         if(v == null){
-            return "Unknown";
+            return "Unknown/Crate Off";
         }
         else if(v ==0){
             return "off";
@@ -141,7 +141,7 @@ function display_continuous_crate_view(key,crates_data,sizeinfo,color_scale,node
         return function(d,i) {
             v = data[d];
             if(v == null){
-                return "Unknown";
+                return "Unknown/Crate Off";
             }
             return v;
         }};
