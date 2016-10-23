@@ -760,15 +760,10 @@ function display_run_type(run_type,time_stamp) {
         appendToTitle('h3',det_state_desc);
     }
 
-    // The date object passed in from the DB has no timezone info,
-    // so JS assumes it's in GMT. So by printing it as a GMT time
-    // then editing the output timezone info in the string you
-    // end up at the right answer.
-    // Unfortunately the user has no way of seeing if the time is EST or EDT.
-    date = new Date(Date.parse(time_stamp))
-    str= date.toUTCString()
-    str = str.replace('GMT','Eastern')
-
+    // Passed time stamp is assumed to be in Eastern time.
+    // The DB should always be in Sudbury so this is safe
+    date = moment.tz(time_stamp, "America/Toronto");
+    str = date.format("MMMM Do YYYY - h:mm:ss z");
     appendToTitle('p',str);
 };
 function crate() {

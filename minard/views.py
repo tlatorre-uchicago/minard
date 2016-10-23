@@ -91,6 +91,9 @@ def state(run=None):
     try:
         run_state = detector_state.get_run_state(run)
         run = run_state['run']
+        # Have to put these in ISO foramt so flask doesn't mangle it later
+        run_state['timestamp'] = run_state['timestamp'].isoformat()
+        run_state['end_timestamp'] = run_state['end_timestamp'].isoformat()
     except Exception as e:
         return render_template('state.html', err=str(e))
 
