@@ -8,6 +8,9 @@ PIDFILE=/var/run/gunicorn_snoplus_log.pid
 LOGFILE=/var/log/gunicorn_snoplus_log.log
 APP=snoplus_log:app
 USER=gunicorn
+MINARD_SETTINGS=/etc/minard/settings.cfg
+
+export MINARD_SETTINGS
 
 case "$1" in
     start)
