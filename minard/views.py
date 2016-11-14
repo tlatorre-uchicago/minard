@@ -69,7 +69,7 @@ PROGRAMS = [Program('builder','builder1', description="event builder"),
 		    display_log=False),
             Program('data','buffer1', description="data stream server",
 		    display_log=False),
-            Program('xl3','daq1', description="xl3 server",
+            Program('xl3','buffer1', description="xl3 server",
 		    display_log=False),
             Program('log','minard', description="log server",
 		    display_log=False)
