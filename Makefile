@@ -16,6 +16,9 @@ docs:
 	virtualenv --system-site-packages /opt/minard
 
 install: /opt/minard/bin/activate
+	# clean the build/ directory since it contains scripts with the shebang
+	# pointing to /usr/bin/python after running make build
+	python setup.py clean --all
 	/opt/minard/bin/pip install .
 	# reinstall minard with -I flag so that it reinstalls even
 	# if the version doesn't change
