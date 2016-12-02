@@ -14,12 +14,10 @@ DBToMTC = {"100H":"N100HI","100M":"N100MED","100L":"N100LO",
 "20":"N20","20LB":"N20LB","ESUMH":"ESUMHI","ESUML":"ESUMLO",
 "OWLEH":"OWLEHI","OWLEL":"OWLELO","OWLN":"OWLN"}
 
-def PutBaselinesInDatabase(host):
+def PutBaselinesInDatabase(mtc):
     redis = Redis()
     p = redis.pipeline()
     now = int(time.time())
-
-    mtc = MTC(host)
 
     baselines = {}
     for name, mtc_name in DBToMTC.iteritems():
@@ -93,10 +91,12 @@ if __name__ == '__main__':
 			     (args.log_server, str(e)))
 	    sys.stderr.flush()
 
+    mtc = MTC(args.host)
+
     if args.loop_forever:
 	while True:
 	    try:
-		PutBaselinesInDatabase(args.host)
+		PutBaselinesInDatabase(mtc)
 	    except KeyboardInterrupt:
 		break
 	    except Exception as e:
@@ -106,6 +106,6 @@ if __name__ == '__main__':
 		time.sleep(0.5)
     else:
 	try:
-	    PutBaselinesInDatabase(args.host)
+	    PutBaselinesInDatabase(mtc)
 	except Exception as e:
 	    log.warn("couldn't update MTCA baselines: %s" % str(e))
