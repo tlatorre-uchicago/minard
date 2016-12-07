@@ -6,6 +6,7 @@ import time
 
 if __name__ == '__main__':
     import argparse
+    import sys
 
     parser = argparse.ArgumentParser('data stream producer')
     parser.add_argument('--host',default='buffer1.sp.snolab.ca')
@@ -16,5 +17,5 @@ if __name__ == '__main__':
 	try:
 	    data_producer(args.host,args.port)
 	except socket.error as e:
-	    print('failed to connect to data: %s' % str(e))
+	    print('failed to connect to data: %s' % str(e), file=sys.stderr)
 	    time.sleep(60)
