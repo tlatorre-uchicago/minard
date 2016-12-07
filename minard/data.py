@@ -170,7 +170,7 @@ def base_consumer(port):
 
                 index = crate << 9 | slot << 5 | j
 
-                base_currents[index] = value
+                base_currents[index] = value - 127
 
 def data_producer(host, port=4000):
     """
