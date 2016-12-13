@@ -49,6 +49,7 @@ function add_graph(name, start, stop, step)
                     target: "#main",
                     x_accessor:'date',
                     y_accessor:'value',
+		    min_y_from_data: true,
                 });
 
                 var width = $('#hist').width();
