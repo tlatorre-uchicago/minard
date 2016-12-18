@@ -56,7 +56,7 @@ class Program(object):
 
 redis = Redis()
 
-PROGRAMS = [Program('builder','builder1', description="event builder"),
+PROGRAMS = [#Program('builder','builder1', description="event builder"),
             Program('L2-client','buffer1', description="L2 processor"),
             Program('L2-convert','buffer1',
                     description="zdab -> ROOT conversion"),
