@@ -33,7 +33,7 @@ function add_graph(name, start, stop, step)
 
                 var valid = values.filter(isNumber);
 
-		var time_fmt = 'MM Do YYYY';
+		var time_fmt = 'MMM Do YYYY';
 
 		if (step < 1) {
 		    time_fmt = 'ddd MMM Do YYYY, h:mm:ss.SSS a';
