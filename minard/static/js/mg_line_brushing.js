@@ -240,6 +240,11 @@ function brushing() {
             args.brushed_max_x = +xBounds[1];
             xScale.domain(xBounds);
 
+	    // filter null values so they don't affect the y bounds calculation
+	    boundedData = boundedData.filter(function(d) {
+		return d[args.y_accessor] !== null;
+	    });
+
             yBounds = d3.extent(boundedData, mapDtoY);
             // add 10% padding on the y axis for better display
             // @TODO: make this an option
