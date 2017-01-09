@@ -243,8 +243,8 @@ function brushing() {
             yBounds = d3.extent(boundedData, mapDtoY);
             // add 10% padding on the y axis for better display
             // @TODO: make this an option
-            args.brushed_min_y = yBounds[0] * 0.9;
-            args.brushed_max_y = yBounds[1] * 1.1;
+            args.brushed_min_y = yBounds[0];// * 0.9;
+            args.brushed_max_y = yBounds[1];// * 1.1;
             yScale.domain(yBounds);
         }
         // zooming out on click, maintaining the step history
