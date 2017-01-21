@@ -1,5 +1,6 @@
 {% macro collapsible_header(title,name) %}
-<div class="row col-md-12">
+<div class="row">
+<div class="col-md-12">
    <div class="panel-group" style="margin:10px">
        <div class="panel panel-default">
            <div class="panel-heading">
@@ -16,6 +17,7 @@
            </div>
        </div>
     </div>
+</div>
 </div>
 {% endmacro %}
 {% extends "layout.html" %}
@@ -45,18 +47,31 @@
         </div>
     </div>
     <div id='summary'>
+<div class="row">
 <div id="summary_triggers_info">
 <div id="summary_enabled_triggers"></div>
 <div id="summary_thresholds"></div>
 </div>
+</div>
+<div class="row">
 <div id="summary_table_trigger_crates" class="col-md-12"></div>
+</div>
+<div class="row">
 <div id="summary_crates_on_display"></div>
-<!--<div id="summary_high_voltage"></div>find database in .py files and cleanly call the data to HTML-->
+</div>
+<div class="row">
 <div id="summary_n100triggers" class="col-md-12"></div>
+</div>
+<div class="row">
 <div id="summary_n20triggers" class="col-md-12"></div>
+</div>
+<div class="row">
 <div id="summary_sequencers" class="col-md-12"></div>
+</div>
     </div>
+<div class="row">
     <hr>
+</div>
 
     {% if mtc_state %}
         {% call collapsible_header('MTC','mtc') %}
@@ -141,11 +156,11 @@
         if (mtc_data) {
             enabled_dacs = get_enabled_dacs(mtc_data.MTCA_DACs,mtc_data.gt_words);
             enabled_triggers_node = d3.select("#summary_enabled_triggers");
-		thresholds_node = d3.select("#summary_thresholds").attr('class','col-sm-9');
+		thresholds_node = d3.select("#summary_thresholds").attr('class','col-md-9');
             //Only display threhsold info if there's some enabled triggers in it
             if (Object.keys(enabled_dacs).length){
-                enabled_triggers_node.attr('class','col-sm-3');
-                thresholds_node = d3.select("#summary_thresholds").attr('class','col-sm-9');
+                enabled_triggers_node.attr('class','col-md-3');
+                thresholds_node = d3.select("#summary_thresholds").attr('class','col-md-9');
                 display_mtca_thresholds(thresholds_node,enabled_dacs,trigger_scan);
             }
             display_triggers(enabled_triggers_node,mtc_data.gt_words);
@@ -184,26 +199,14 @@
             row = summ_table.append('tbody') .append('tr')
             row.append('td').append('big').text(crates_data['num_sequencers'])
             row.append('td').append('big').text(crates_data['num_n100_triggers'])
-            row.append('td').append('big').text(crates_data['num_n20_triggers'])
-
-//if (hv_data) {
-	//var hv = d3.select('#summary_high_voltage');
-		//hv.append('h3').text(title);
-	//var svg = hv.append("svg").attr("width",width).attr("height",height).attr("viewBox","0 0 "+width.toString()+" "+height.toString())
-	//(circles),text for svg(detector.js),color for svg--incorporated in svg
-	//}
-
-	high_voltage_status=d3.select("#summary_high_voltage");
-	high_voltage_status=high_voltage_status.append("h4").text("HV Status")//.append('div')
-
+            row.append('td').append('big').text(crates_data['num_n20_triggers'])	
 		n100_triggers_summ=d3.select("#summary_n100triggers");
 		n100_triggers_summ=n100_triggers_summ.append("h4").text("N100 Triggers")
-
 		n20_triggers_summ=d3.select("#summary_n20triggers");
 			n20_triggers_summ=n20_triggers_summ.append("h4").text("N20 Triggers")
-
 		sequencers_summ=d3.select("#summary_sequencers");
 			sequencers_summ=sequencers_summ.append("h4").text("Sequencers")
+		sequencers_summ.append("br")
 
             display_binary_crate_view('n100_triggers',crates_data.crates,sizeinfo,n100_triggers_summ)
             display_binary_crate_view('n20_triggers',crates_data.crates,sizeinfo,n20_triggers_summ)
