@@ -1,5 +1,5 @@
 {% macro collapsible_header(title,name) %}
-<div class="row">
+<div class="row col-md-12">
    <div class="panel-group" style="margin:10px">
        <div class="panel panel-default">
            <div class="panel-heading">
@@ -44,8 +44,20 @@
             </center>
         </div>
     </div>
-    <div id='summary'></div>
+    <div id='summary'>
+<div id="summary_triggers_info">
+<div id="summary_enabled_triggers"></div>
+<div id="summary_thresholds"></div>
+</div>
+<div id="summary_table_trigger_crates" class="col-md-12"></div>
+<div id="summary_crates_on_display"></div>
+<!--<div id="summary_high_voltage"></div>find database in .py files and cleanly call the data to HTML-->
+<div id="summary_n100triggers" class="col-md-12"></div>
+<div id="summary_n20triggers" class="col-md-12"></div>
+<div id="summary_sequencers" class="col-md-12"></div>
+    </div>
     <hr>
+
     {% if mtc_state %}
         {% call collapsible_header('MTC','mtc') %}
         {% endcall %}
@@ -118,7 +130,6 @@
         var trigger_scan = {{ trigger_scan | trigger_scan_human_readable | tojson |safe }};
         var run_data = false;
         var det_cont_info = false;
-
         {% if run_state %}
             run_data = {{ run_state | tojson | safe }}
         {% endif %}
@@ -126,24 +137,28 @@
             det_cont_info  = {{ detector_control_state | tojson | safe }};
         {% endif %}
         colors = [url_params.oncolor, url_params.offcolor];
-
         var summary = d3.select("#summary");
         if (mtc_data) {
             enabled_dacs = get_enabled_dacs(mtc_data.MTCA_DACs,mtc_data.gt_words);
-            enabled_triggers_node = summary.append("div");
+            enabled_triggers_node = d3.select("#summary_enabled_triggers");
+		thresholds_node = d3.select("#summary_thresholds").attr('class','col-sm-9');
             //Only display threhsold info if there's some enabled triggers in it
             if (Object.keys(enabled_dacs).length){
                 enabled_triggers_node.attr('class','col-sm-3');
-                thresholds_node = summary.append("div").attr('class','col-sm-9');
+                thresholds_node = d3.select("#summary_thresholds").attr('class','col-sm-9');
                 display_mtca_thresholds(thresholds_node,enabled_dacs,trigger_scan);
             }
             display_triggers(enabled_triggers_node,mtc_data.gt_words);
-
             var mtc = d3.select('#mtc');
             display_mtc(mtc,mtc_data)
         }
         if (run_data) {
             display_run_type(run_data.run_type,run_data.timestamp)
+        }
+        if (det_cont_info) {
+		crate = d3.select("#summary_crates_on_display");
+            crate.append("h3").text("Crates On = "+num_crates_on(det_cont_info));
+            display_detector_control(det_cont_info);
         }
         if(crates_data) {
             var N100 = d3.select("#N100Triggers");
@@ -160,37 +175,55 @@
             {
                 node.append('h3').text(text);
             };
-
-            table = summary.append('div').attr('class','col-md-12')
-                           .append('table').attr('class','table')
-            head = table.append('thead').append('tr')
+            summ_table = d3.select("#summary_table_trigger_crates")
+		summ_table=summ_table.attr('class','col-md-12').append('table').attr('class','table')
+            head = summ_table.append('thead').append('tr')
             head.append('th').text('# Sequencers')
             head.append('th').text('# N100s')
             head.append('th').text('# N20s')
-            row = table.append('tbody') .append('tr')
+            row = summ_table.append('tbody') .append('tr')
             row.append('td').append('big').text(crates_data['num_sequencers'])
             row.append('td').append('big').text(crates_data['num_n100_triggers'])
             row.append('td').append('big').text(crates_data['num_n20_triggers'])
 
+//if (hv_data) {
+	//var hv = d3.select('#summary_high_voltage');
+		//hv.append('h3').text(title);
+	//var svg = hv.append("svg").attr("width",width).attr("height",height).attr("viewBox","0 0 "+width.toString()+" "+height.toString())
+	//(circles),text for svg(detector.js),color for svg--incorporated in svg
+	//}
+
+	high_voltage_status=d3.select("#summary_high_voltage");
+	high_voltage_status=high_voltage_status.append("h4").text("HV Status")//.append('div')
+
+		n100_triggers_summ=d3.select("#summary_n100triggers");
+		n100_triggers_summ=n100_triggers_summ.append("h4").text("N100 Triggers")
+
+		n20_triggers_summ=d3.select("#summary_n20triggers");
+			n20_triggers_summ=n20_triggers_summ.append("h4").text("N20 Triggers")
+
+		sequencers_summ=d3.select("#summary_sequencers");
+			sequencers_summ=sequencers_summ.append("h4").text("Sequencers")
+
+            display_binary_crate_view('n100_triggers',crates_data.crates,sizeinfo,n100_triggers_summ)
+            display_binary_crate_view('n20_triggers',crates_data.crates,sizeinfo,n20_triggers_summ)
+            display_binary_crate_view('sequencers',crates_data.crates,sizeinfo,sequencers_summ)
+
             display_binary_crate_view('n100_triggers',crates_data.crates,sizeinfo,N100)
             display_binary_crate_view('n20_triggers',crates_data.crates,sizeinfo,N20)
             display_binary_crate_view('sequencers',crates_data.crates,sizeinfo,Seq)
+
             bar_node = d3.select("#title-VThr");
             display_colorable_continuous_crate_view('vthrs',crates_data.crates,sizeinfo,vThr,bar_node)
-
             vbal_table = VBal.append('table');
             vbal0_bar_node = vbal_table.append('tr').append('th').append('h4').text("VBal 0 ");
             vbal0 = vbal_table.append('tr').append('th');
             vbal1_bar_node = vbal_table.append('tr').append('th').append('h4').text("VBal 1 ");
             vbal1 = vbal_table.append('tr').append('th');
-
             display_colorable_continuous_crate_view('vbal_0',crates_data.crates,sizeinfo,vbal0,vbal0_bar_node);
             display_colorable_continuous_crate_view('vbal_1',crates_data.crates,sizeinfo,vbal1,vbal1_bar_node);
         }
-        if (det_cont_info) {
-            summary.append("h3").text("Crates On = "+num_crates_on(det_cont_info));
-            display_detector_control(det_cont_info);
-        }
+
         if (tubii_data) {
     display_tubii(tubii_data);
         }
@@ -216,7 +249,6 @@
                 var svg = tubii.selectAll("svg").attr("width",width);
             }
         };
-
         // The coloring has to go last so it can color everything drawn above
         url_str = ""
         if(colors[0] && colors[1])

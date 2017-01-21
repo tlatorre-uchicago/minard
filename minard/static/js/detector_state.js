@@ -8,7 +8,7 @@ function linspace(min, max, N) {
     }
     return a;
 }
-function display_binary_crate_view(key,crates_data,sizeinfo,node)
+function display_binary_crate_view(key,crates_data,sizeinfo,node) //has the crate, channel, card info. in crates_datat
 {
     var coloringFunc = function(data) {
         return function(k,i) {
@@ -22,16 +22,20 @@ function display_binary_crate_view(key,crates_data,sizeinfo,node)
             return 'on';
     };}
 
+
     hover_text_func = function(data) {
     return function(d,i) {
         v = data[d];
+        d= d % 32; //ex: 511 (fills crate) % 32 = 31 and 9727 (fills all on/off crates/trig) % 32 = 31
+        console.log(d); //print in js to see what value of d is here
         if(v == null){
             return "Unknown/Crate Off";
         }
         else if(v ==0){
-            return "off";
+            return String(i+" / "+d+" off"); //format of crate, card, channel reading (crate 0 card 1 channel 1: 0/1/1)
         }
-        return "on";
+        return String(i+" / "+d+" on");
+
     }};
 
     display_crate_view(key,crates_data,sizeinfo,node,
@@ -356,7 +360,7 @@ function display_caen(node,caen_info) {
             .enter()
             .append('li')
             .text(function(d,i) {
-                return "Channel "+i+" = "+d+"V";});
+                return "Channel "+i+" = "+d+"V";}); //what is d(-1V)? what is i (channel)?
     }
 };
 
@@ -395,11 +399,11 @@ function display_tubii(tubii_info) {
         .attr("x",xpos_func)
         .attr("y",ypos_func)
         .attr("width",radius)
-	.attr("height",radius)
+    .attr("height",radius)
         .attr("fill",function(d) { return d[1]==1 ? 'green' : 'red'; })
         .attr("class",function(d) { return d[1]==1 ? 'on' : 'off'; })
-	.append("svg:title")
-	.text(function(d){return d[2];});
+    .append("svg:title")
+    .text(function(d){return d[2];});
     svg.selectAll('text')
         .data(arr)
         .enter()
