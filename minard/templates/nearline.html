@@ -38,6 +38,8 @@
 			<th> Debug </th>
 			{% elif status|int == 4 %}
 			<th> Not run </th>
+                       {% elif status|int == 98 %}
+                       <th class="warning"> Not executable </th>
 			{% elif status|int == 99 %}
 			<th> In Progress </th>
 			{% else %}
