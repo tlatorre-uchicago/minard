@@ -164,7 +164,7 @@ def base_consumer(port):
             parse_base(rec)
 
         for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
-            for j, value in enumerate(map(int,counts[i])):
+            for j, value in enumerate(map(int,counts[slot])):
                 if not channelmask[slot] & (1 << j) or value >> 31:
                     continue
 
