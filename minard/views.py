@@ -14,6 +14,8 @@ from math import isnan
 import detector_state
 import pcadb
 import ecadb
+import nlrat
+
 
 TRIGGER_NAMES = \
 ['100L',
@@ -279,6 +281,14 @@ def snostream():
 @app.route('/nhit')
 def nhit():
   return render_template('nhit.html')
+
+@app.route('/rat')
+def rathome():
+    return render_template('rathome.html', runs=nlrat.available_runs())
+    
+@app.route('/rat/<int:run>')
+def ratrun(run = 0):
+    return render_template("ratrun.html", run=nlrat.Run(run), error= not nlrat.hists_available(run))
 
 @app.route('/l2_filter')
 def l2_filter():
