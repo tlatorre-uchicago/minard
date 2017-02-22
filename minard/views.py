@@ -6,11 +6,17 @@ import time
 from redis import Redis
 from os.path import join
 import json
+import tools
+import HLDQTools
+import requests
 from .tools import parseiso
 from collections import deque, namedtuple
 from .timeseries import get_timeseries, get_interval, get_hash_timeseries
 from .timeseries import get_timeseries_field, get_hash_interval
 from math import isnan
+import os
+import sys
+import random
 import detector_state
 import pcadb
 import ecadb
@@ -618,5 +624,39 @@ def pca_run_detail(run_number):
     
     return render_template('pca_run_detail.html',
                             run_number=run_number)      
-   
 
+@app.route('/calibdq')
+def calibdq():
+        return render_template('calibdq.html')
+   
+@app.route('/calibdq_tellie')
+def calibdq_tellie():
+    run_dict = {}
+    run_numbers = HLDQTools.import_TELLIE_runnumbers()
+    for num in run_numbers:
+            run_num, check_params, runInformation =  HLDQTools.import_TELLIEDQ_ratdb(num)
+            #If we cant find DQ info skip
+            if check_params == -1 or runInformation == -1:
+                continue
+            run_dict[num] = check_params
+
+    return render_template('calibdq_tellie.html',run_numbers=run_dict.keys(),run_info=run_dict.values())
+
+@app.route('/calibdq_tellie/<run_number>/')
+def calibdq_tellie_run_number(run_number):
+    run_num, check_params, runInfo=  HLDQTools.import_TELLIEDQ_ratdb(int(run_number))
+    return render_template('calibdq_tellie_run.html',run_number=run_number, runInformation=runInfo)
+
+
+@app.route('/calibdq_tellie/<run_number>/<subrun_number>')
+def calibdq_tellie_subrun_number(run_number,subrun_number):
+    run_num = 0
+    subrun_index = -999
+    root_dir = os.path.join(app.static_folder,"images/DQ/TELLIE/TELLIE_DQ_IMAGES_"+str(run_number))
+    run_num, check_params, runInfo=  HLDQTools.import_TELLIEDQ_ratdb(int(run_number))
+    #Find the index
+    for i in range(len(runInfo["subrun_numbers"])):
+        if int(runInfo["subrun_numbers"][i]) == int(subrun_number):
+            subrun_index = i
+    #Array to store the titles of the plots
+    return render_template('calibdq_tellie_subrun.html',run_number=run_number,subrun_index=subrun_index, runInformation=runInfo)
