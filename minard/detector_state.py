@@ -6,6 +6,33 @@ engine = sqlalchemy.create_engine('postgresql://%s:%s@%s:%i/%s' %
                                   app.config['DB_HOST'], app.config['DB_PORT'],
                                   app.config['DB_NAME']))
 
+def get_detector_state(run=0):
+    """
+    Returns a dictionary of the crate settings for a given run.
+    """
+    detector_state = dict((i, None) for i in range(20))
+
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM detector_state WHERE run = %s", (run,))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+
+    for row in result:
+        crate = row[keys.index('crate')]
+
+        if detector_state[crate] is None:
+            detector_state[crate] = dict((i, None) for i in range(16))
+
+        slot = row[keys.index('slot')]
+
+        detector_state[crate][slot] = dict(zip(keys,row))
+
+    return detector_state
+
 def get_nhit_monitor_thresholds(limit=100):
     """
     Returns a list of the latest nhit monitor records in the database.
@@ -91,6 +118,7 @@ def get_trigger_scan_for_run(run):
         except ValueError:
             results.append(False)
     return dict(zip(names,results))
+
 def get_detector_control_state(key):
     return fetch_from_table_with_key('detector_control',key)
 
@@ -324,11 +352,17 @@ def tubii_human_readable_filter(tubii):
     return ret
 
 @app.template_filter('all_crates_human_readable')
-def all_crates_human_readable(crates):
-    if crates is None:
+def all_crates_human_readable(detector_state):
+    if detector_state is None:
         return False
+    crates = []
     ret = {}
-    crates =  map(crate_human_readable_filter,crates)
+    try:
+        for i in range(20):
+            crates.append(crate_human_readable_filter(detector_state[i]))
+    except Exception as e:
+        print "Crate translation error: %s" % e
+        return False
     ret['crates'] = crates
     available_crates = filter(None,crates)
     ret['num_n100_triggers'] = sum(map(lambda x:x['num_n100_triggers'],available_crates))
@@ -346,7 +380,7 @@ def crate_human_readable_filter(crate):
         for i in range(0,16):
             fecs.append(fec_human_readable_filter(crate[i]))
     except Exception as e:
-        print "Crate translation error: %s" % e
+        print "FEC translation error: %s" % e
         return False
     ret['fecs'] = fecs
     available_fecs = filter(None,fecs)
@@ -388,7 +422,6 @@ def trigger_scan_string_translate(name):
     if(index <0):
         return name
     return (name[:index+1]+" "+name[index+1:]).upper()
-
 
 @app.template_filter('trigger_scan_human_readable')
 def trigger_scan_human_readable(trigger_scan):

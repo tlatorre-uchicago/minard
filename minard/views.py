@@ -119,13 +119,11 @@ def state(run=None):
     if run_state['tubii'] is not None:
         tubii_state = detector_state.get_tubii_state(run_state['tubii'])
 
-    crates_state = [None]*20
-    for iCrate in range(20):
-        if run_state['crate'+str(iCrate)] is not None:
-            crates_state[iCrate] = detector_state.get_crate_state(run_state['crate'+str(iCrate)])
+    crates_state = detector_state.get_detector_state(run)
 
-    if not any(crates_state):
+    if not any(crates_state.values()):
         crates_state = None
+
     trigger_scan = None
     if run_state['timestamp'] is not None:
         trigger_scan = detector_state.get_trigger_scan_for_run(run)
