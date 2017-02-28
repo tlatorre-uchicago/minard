@@ -50,89 +50,96 @@
             </center>
         </div>
     </div>
-    <div id='summary'>
-<div class="row">
-<div id="summary_triggers_info">
-<div id="summary_enabled_triggers"></div>
-<div id="summary_thresholds"></div>
-</div>
-</div>
-<div class="row">
-<div id="summary_table_trigger_crates" class="col-md-12"></div>
-</div>
-<div class="row">
-<div id="summary_crates_on_display"></div>
-</div>
-<div class="row">
-<div id="summary_n100triggers" class="col-md-12"></div>
-</div>
-<div class="row">
-<div id="summary_n20triggers" class="col-md-12"></div>
-</div>
-<div class="row">
-<div id="summary_sequencers" class="col-md-12"></div>
-</div>
-    </div>
-<div class="row">
-    <hr>
-</div>
 
-    {% if mtc_state %}
-        {% call collapsible_header('MTC','mtc') %}
-        {% endcall %}
-    {% endif %}
-    {% if caen_state %}
-        {% call collapsible_header('CAEN','CAEN') %}
-            {% call collapsible_header('Dump Data','CAENDump') %}
-                <ul>
-                {% for key,val in caen_state.iteritems() %}
-                    <li> {{key}} = {{ val }} </li>
-                {% endfor %}
-                </ul>
+    <div id='summary'>
+        <div class="row">
+            <div id="summary_triggers_info">
+                <div id="summary_enabled_triggers"></div>
+                <div id="summary_thresholds"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div id="summary_table_trigger_crates" class="col-md-12"></div>
+        </div>
+
+        <div class="row">
+            <div id="summary_crates_on_display"></div>
+        </div>
+
+        <div class="row">
+            <div id="n100-triggers" class="col-md-12">
+            <h4> N100 Triggers </h4>
+            </div>
+        </div>
+
+        <div class="row">
+            <div id="n20-triggers" class="col-md-12">
+                <h4> N20 Triggers </h4>
+            </div>
+        </div>
+
+        <div class="row">
+            <div id="sequencers" class="col-md-12">
+                <h4> Sequencers </h4>
+            </div>
+        </div>
+            </div>
+
+        <div class="row">
+            <hr>
+        </div>
+
+        {% if mtc_state %}
+            {% call collapsible_header('MTC','mtc') %}
             {% endcall %}
-        {% endcall %}
-    {% endif %}
-    {% if tubii_state %}
-        {% call collapsible_header('TUBii','tubii') %}
-        {% endcall %}
-    {% endif %}
-    {% if detector_control_state %}
-        {% call collapsible_header('Detector Control','detector_control') %}
-        {% endcall %}
-    {% endif %}
-    {% if crates_state %}
-        {% call collapsible_header('Crates','allCrates') %}
-           {% call collapsible_header('N100 Triggers','N100Triggers') %}
-           {% endcall %}
-           {% call collapsible_header('N20 Triggers','N20Triggers') %}
-           {% endcall %}
-           {% call collapsible_header('Sequencers','Sequencers') %}
-           {% endcall %}
-           {% call collapsible_header('Channel Thresholds','VThr') %}
-           {% endcall %}
-           {% call collapsible_header('VBal','VBal') %}
-           {% endcall %}
-           {% call collapsible_header('Data Dump','DataDump') %}
-               {% for i in range(20) %}
-                   {% if crates_state[i] %}
-                       {% call collapsible_header('Crate %i' % i,'crate%i' % i) %}
-                           {% for j in range(0,16) %}
-                               {% call collapsible_header('Crate %i MB %i' % (i,j), 'Crate%iMB%i' % (i,j)) %}
-                                    <ul>
-                                    {% for key in crates_state[i][j] %}
-                                        <li>{{key}} = {{crates_state[i][j][key]}}</li>
-                                    {% endfor %}
-                                    </ul>
-                               {% endcall %}
-                           {% endfor %}
-                       {% endcall %}
-                   {% endif %}
-               {% endfor %}
+        {% endif %}
+        {% if caen_state %}
+            {% call collapsible_header('CAEN','CAEN') %}
+                {% call collapsible_header('Dump Data','CAENDump') %}
+                    <ul>
+                    {% for key,val in caen_state.iteritems() %}
+                        <li> {{key}} = {{ val }} </li>
+                    {% endfor %}
+                    </ul>
+                {% endcall %}
             {% endcall %}
-        {% endcall %}
-    {% endif %}
-    {% endif %}
-    </div>
+        {% endif %}
+        {% if tubii_state %}
+            {% call collapsible_header('TUBii','tubii') %}
+            {% endcall %}
+        {% endif %}
+        {% if detector_control_state %}
+            {% call collapsible_header('Detector Control','detector_control') %}
+            {% endcall %}
+        {% endif %}
+        {% if crates_state %}
+            {% call collapsible_header('Crates','allCrates') %}
+               {% call collapsible_header('Channel Thresholds','VThr') %}
+               {% endcall %}
+               {% call collapsible_header('VBal','VBal') %}
+               {% endcall %}
+               {% call collapsible_header('Data Dump','DataDump') %}
+                   {% for i in range(20) %}
+                       {% if crates_state[i] %}
+                           {% call collapsible_header('Crate %i' % i,'crate%i' % i) %}
+                               {% for j in range(0,16) %}
+                                   {% call collapsible_header('Crate %i MB %i' % (i,j), 'Crate%iMB%i' % (i,j)) %}
+                                        <ul>
+                                        {% for key in crates_state[i][j] %}
+                                            <li>{{key}} = {{crates_state[i][j][key]}}</li>
+                                        {% endfor %}
+                                        </ul>
+                                   {% endcall %}
+                               {% endfor %}
+                           {% endcall %}
+                       {% endif %}
+                   {% endfor %}
+                {% endcall %}
+            {% endcall %}
+        {% endif %}
+        {% endif %}
+</div>
 {% endblock %}
 {% block script %}
     <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
@@ -188,16 +195,12 @@
             display_detector_control(det_cont_info);
         }
         if(crates_data) {
-            var N100 = d3.select("#N100Triggers");
-            var N20 = d3.select("#N20Triggers");
-            var Seq = d3.select("#Sequencers");
+            var N100 = d3.select("#n100-triggers");
+            var N20 = d3.select("#n20-triggers");
+            var Seq = d3.select("#sequencers");
             var vThr = d3.select("#VThr");
             var VBal = d3.select("#VBal");
-            var width = N100.node().parentElement.parentElement.clientWidth
-            var height = 500;
-            sizeinfo = {};
-            sizeinfo.width = width;
-            sizeinfo.height = height;
+            var sizeinfo = {width: $('#n100-triggers').width(), height: 500};
             add_line = function(node,text)
             {
                 node.append('h3').text(text);
@@ -212,18 +215,6 @@
             row.append('td').append('big').text(crates_data['num_sequencers'])
             row.append('td').append('big').text(crates_data['num_n100_triggers'])
             row.append('td').append('big').text(crates_data['num_n20_triggers'])	
-		n100_triggers_summ=d3.select("#summary_n100triggers");
-		n100_triggers_summ=n100_triggers_summ.append("h4").text("N100 Triggers")
-		n20_triggers_summ=d3.select("#summary_n20triggers");
-			n20_triggers_summ=n20_triggers_summ.append("h4").text("N20 Triggers")
-		sequencers_summ=d3.select("#summary_sequencers");
-			sequencers_summ=sequencers_summ.append("h4").text("Sequencers")
-		sequencers_summ.append("br")
-
-            display_binary_crate_view('n100_triggers',crates_data.crates,sizeinfo,n100_triggers_summ)
-            display_binary_crate_view('n20_triggers',crates_data.crates,sizeinfo,n20_triggers_summ)
-            display_binary_crate_view('sequencers',crates_data.crates,sizeinfo,sequencers_summ)
-
             display_binary_crate_view('n100_triggers',crates_data.crates,sizeinfo,N100)
             display_binary_crate_view('n20_triggers',crates_data.crates,sizeinfo,N20)
             display_binary_crate_view('sequencers',crates_data.crates,sizeinfo,Seq)
@@ -287,5 +278,4 @@
         resize()
         window.addEventListener("resize", resize,false);
        </script>
-
 {% endblock %}

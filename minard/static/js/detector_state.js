@@ -27,7 +27,6 @@ function display_binary_crate_view(key,crates_data,sizeinfo,node) //has the crat
     return function(d,i) {
         v = data[d];
         d= d % 32; //ex: 511 (fills crate) % 32 = 31 and 9727 (fills all on/off crates/trig) % 32 = 31
-        console.log(d); //print in js to see what value of d is here
         if(v == null){
             return "Unknown/Crate Off";
         }
@@ -180,8 +179,8 @@ function display_crate_view(key,crates_data,sizeinfo,node,styling,hover_text)
     d = flattenArray(d)
     var crate = crate_view()
         .caption(true)
-        .height(height)
-        .width(width);
+        .height(sizeinfo.height)
+        .width(sizeinfo.width);
     if(hover_text){
     crate.hover_text(hover_text);
     }
@@ -198,8 +197,8 @@ function display_crate_view(key,crates_data,sizeinfo,node,styling,hover_text)
 
     var g = node.append('div')
             .attr('id','crate')
-            .attr('width',width)
-            .attr('height',height)
+            .attr('width',sizeinfo.width)
+            .attr('height',sizeinfo.height)
             .attr('class',"col-md-10 col-md-offset-1");
     g.datum(d).call(crate);
 }
