@@ -40,13 +40,19 @@
                         {{ nav_link('status', 'Status') }}
                         {{ nav_link('l2', 'L2') }}
                         {{ nav_link('snostream', 'Stream') }}
-                        {{ nav_link('nhit', 'NHit') }}
-                        {{ nav_link('detector', 'Detector') }}
-                        {{ nav_link('daq', 'DAQ') }}
+                        <!-- Dropdown Detector -->
+                        <li class='dropdown'>
+			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Detector <b class='caret'></b></a>
+                            <ul class='dropdown-menu'>
+                                {{ nav_link('detector', 'Occupancy') }}
+                                {{ nav_link('nhit', 'Nhit Distribution') }}
+                                {{ nav_link('daq', 'DAQ') }}
+                                {{ nav_link('nhit_monitor_thresholds', 'Nhit Monitor') }}
+                                {{ nav_link('trigger', 'Trigger Scans') }}
+                                {{ nav_link('state', 'Detector State') }}
+                            </ul>
                         {{ nav_link('nearline', 'Nearline') }}
                         {{ nav_link('rathome', 'RAT') }}
-                        {{ nav_link('nhit_monitor_thresholds', 'Nhit Monitor') }}
-                        {{ nav_link('trigger', 'Trigger Scans') }}
                         <!-- Dropdown PMTcal -->
                         <li class='dropdown'>
 			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>PMTcal <b class='caret'></b></a>
@@ -54,14 +60,13 @@
                                 {{ nav_link('eca', 'ECA') }}
                                 {{ nav_link('pcatellie', 'PCA Tellie') }}
                             </ul>
-                            <!-- Dropdown Data Quality -->
-                            <li class='dropdown'>
-                                <a href='#' class='dropdown-toggle' data-toggle='dropdown'>Data Quality <b class='caret'></b></a>
-                                <ul class='dropdown-menu'>
-                                    {{ nav_link('calibdq', 'Calibration Data Quality') }}
-                                </ul>
+                        <!-- Dropdown Data Quality -->
+                        <li class='dropdown'>
+                            <a href='#' class='dropdown-toggle' data-toggle='dropdown'>Data Quality <b class='caret'></b></a>
+                            <ul class='dropdown-menu'>
+                                {{ nav_link('calibdq', 'Calibration Data Quality') }}
+                            </ul>
                         {{ nav_link('alarms', 'Alarms') }}
-                        {{ nav_link('state', 'Detector State') }}
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
                         <li><a href="{{ url_for('docs') }}">Docs</a></li>
