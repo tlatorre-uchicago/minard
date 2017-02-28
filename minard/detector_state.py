@@ -106,7 +106,7 @@ def fetch_from_table_with_key(table_name, key, key_name='key'):
 def get_trigger_scan_for_run(run):
     # These names were taken from the trigger_scan source code in daq/utils/trigger_scan
     # Should those names ever change, these names will need to be updated as well.
-    names = ['n100hi','n100lo','n100med','n20LB','n20']
+    names = ['N100HI','N100LO','N100MED','N20LB','N20']
     results = []
     for name in names:
         key = "(SELECT key from trigger_scan where timestamp = "\
@@ -414,14 +414,23 @@ def fec_human_readable_filter(fec):
         return False
     return ret
 
-# The trigger scan names aren't exactly the same as the MTCA names I used here.
-# By happy coincidence the only difference is I use upper case and have a ' '
-# between the n100/n20 and the gain. Should ESUM ever be added this will break
 def trigger_scan_string_translate(name):
-    index = name.rfind('0')
-    if(index <0):
-        return name
-    return (name[:index+1]+" "+name[index+1:]).upper()
+    if name == 'N100LO':
+        return 'N100 LO'
+    elif name == 'N100MED':
+        return 'N100 MED'
+    elif name == 'N100HI':
+        return 'N100 HI'
+    elif name == 'ESUMHI':
+        return 'ESUM HI'
+    elif name == 'ESUMLO':
+        return 'ESUM LO'
+    elif name == 'OWLEHI':
+        return 'OWLE HI'
+    elif name == 'OWLELO':
+        return 'OWLE LO'
+
+    return name
 
 @app.template_filter('trigger_scan_human_readable')
 def trigger_scan_human_readable(trigger_scan):

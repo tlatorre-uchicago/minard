@@ -646,9 +646,9 @@ function display_mtca_thresholds(node,dacs,trigger_scan,enabled_dacs){
             if(trigger_scan[key])
             {
                 baseline = trigger_scan[key][0];
-                adc_to_nhit = trigger_scan[key][1];
-                nHit = (dac_count - baseline)*adc_to_nhit;
-                nHit = nHit.toFixed(0)
+                adc_per_nhit = trigger_scan[key][1];
+                nHit = (dac_count - baseline)/adc_per_nhit;
+                nHit = nHit.toFixed(2)
             }
             return [key,volts,nHit];
         })
