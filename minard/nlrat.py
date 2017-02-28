@@ -16,6 +16,7 @@ RUN_TYPES = {
     5:"ECA",
     6:"Diagnostic",
     7:"Experimental",
+    8:"Supernova",
     }
 
 def extract_run_type(run_word):
