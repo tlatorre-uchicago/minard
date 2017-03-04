@@ -177,16 +177,9 @@ def translate_trigger_mask(maskVal):
     triggers =  filter(lambda x: ((maskVal & 1<<x[0]) > 0),trigger_bit_to_string)
     return map(lambda x: x[1],triggers)
 
-def translate_ped_delay(coarseDelay_mask,fineDelay_mask):
-    MIN_GT_DELAY = 18.35; #Taken from daq/src/mtc.c
-    AddelSlope = 0.1; #Taken from daq/src/mtc.c
-    coarseDelay = ((~coarseDelay_mask & 0xFF))*10;
-    fine_delay = (fineDelay_mask & 0xFF) * AddelSlope;
-    return coarseDelay + fine_delay;
-
-def translate_lockout_width(lockout_mask):
-    lockout = (~lockout_mask) & 0xFF;
-    return lockout*20
+def translate_ped_delay(coarse_delay, fine_delay):
+    MIN_GT_DELAY = 18.35; # Taken from daq/src/mtc.c
+    return MIN_GT_DELAY + coarse_delay + fine_delay/1000.0;
 
 def translate_control_reg(control_reg):
     bit_to_string = [
@@ -214,9 +207,6 @@ def translate_control_reg(control_reg):
 def translate_crate_mask(mask):
     return map(lambda x: (mask & 1<<x) > 0,range(0,20))
 
-def translate_prescale(prescale):
-    return (~prescale & 0xFFFF)+1
-
 def translate_mtca_dacs(dacs):
     ret = {}
     ret["N100 LO"] = dacs[0]
@@ -238,9 +228,9 @@ def mtc_human_readable_filter(mtc):
     try:
         ret['gt_words'] = translate_trigger_mask(mtc['gt_mask'])
         ret['ped_delay'] = translate_ped_delay(mtc['coarse_delay'],mtc['fine_delay'])
-        ret['lockout_width'] = translate_lockout_width(mtc['lockout_width'])
+        ret['lockout_width'] = mtc['lockout_width']
         ret['control_reg'] = translate_control_reg(mtc['control_register'])
-        ret['prescale'] = translate_prescale(mtc['prescale'])
+        ret['prescale'] = mtc['prescale']
         ret['gt_crates'] = translate_crate_mask(mtc['gt_crate_mask'])
         ret['ped_crates'] = translate_crate_mask(mtc['pedestal_mask'])
         ret['N100_crates'] = translate_crate_mask(mtc['mtca_relays'][0])
