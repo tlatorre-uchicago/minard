@@ -24,6 +24,7 @@
 			<tr>
 			    <th>Status</th>
 			    <th>Name</th>
+			    <th>Log File</th>
 			</tr>
 		    </thead>
 		    {% for program, status in programs.iteritems() %}
@@ -46,6 +47,9 @@
 			<th class="warning"> Unknown </th>
 			{% endif %}
 			<th> {{ program }} </th>
+                        <th>
+                            <a href="{{ "nearline/logs/%i/%s.log" % (run,program) }}">{{ program }}.log</a>
+                        </th>
 		    </tr>
 		    {% endfor %}
 		</table>
