@@ -21,7 +21,7 @@ import detector_state
 import pcadb
 import ecadb
 import nlrat
-from channeldb import ChannelStatusForm
+from channeldb import ChannelStatusForm, upload_channel_status
 
 TRIGGER_NAMES = \
 ['100L',
@@ -100,8 +100,12 @@ def channel_status():
 def update_channel_status():
     form = ChannelStatusForm(request.form)
     if request.method == "POST" and form.validate():
-            flash("Successfully submitted", 'success')
-            return redirect(url_for('channel_status'))
+        try:
+            upload_channel_status(form)
+        except Exception as e:
+            return render_template('update_channel_status.html', form=form, error=str(e))
+        flash("Successfully submitted", 'success')
+        return redirect(url_for('channel_status'))
     return render_template('update_channel_status.html', form=form)
 
 @app.route('/state')

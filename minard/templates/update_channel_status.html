@@ -99,42 +99,23 @@
                             <option value="31">31</option>
                         </select>
                     </div>
-                    <div class="checkbox">
-                        <label><input type="checkbox" name="low_occupancy">Low Occupancy</input></label>
-                    </div>
-                    <div class="checkbox">
-                        <label><input type="checkbox" name="zero_occupancy">Zero Occupancy</input></label>
-                    </div>
-                    <div class="checkbox">
-                        <label><input type="checkbox" name="screamer">Screamer</input></label>
-                    </div>
-                    <div class="checkbox">
-                        <label><input type="checkbox" name="bad_discriminator">Bad Discriminator</input></label>
-                    </div>
-                    <div class="checkbox">
-                        <label><input type="checkbox" name="no_n100">No N100</input></label>
-                    </div>
-                    <div class="checkbox">
-                        <label><input type="checkbox" name="no_n20">No N20</input></label>
-                    </div>
-                    <div class="checkbox">
-                        <label><input type="checkbox" name="no_esum">No ESUM</input></label>
-                    </div>
-                    <div class="checkbox">
-                        <label><input type="checkbox" name="cable_pulled">Cable pulled</input></label>
-                    </div>
-                    <div class="checkbox">
-                        <label><input type="checkbox" name="bad_cable">Bad Cable</input></label>
-                    </div>
-                    <div class="checkbox">
-                        <label><input type="checkbox" name="resistor_pulled">Resistor Pulled</input></label>
-                    </div>
-                    <div class="checkbox">
-                        <label><input type="checkbox" name="other">Other</input></label>
-                    </div>
-                    <div class="checkbox">
-                        <label><input type="checkbox" name="bad_base_current">Bad Base Current</input></label>
-                    </div>
+                    {% macro form_checkbox(field) -%}
+                        <div class="checkbox">
+                            <label><input type="checkbox" name="{{ field.name }}">{{ field.label.text }}</input></label>
+                        </div>
+                    {%- endmacro %}
+                    {{ form_checkbox(form.low_occupancy) }}
+                    {{ form_checkbox(form.zero_occupancy) }}
+                    {{ form_checkbox(form.screamer) }}
+                    {{ form_checkbox(form.bad_discriminator) }}
+                    {{ form_checkbox(form.no_n100) }}
+                    {{ form_checkbox(form.no_n20) }}
+                    {{ form_checkbox(form.no_esum) }}
+                    {{ form_checkbox(form.cable_pulled) }}
+                    {{ form_checkbox(form.bad_cable) }}
+                    {{ form_checkbox(form.resistor_pulled) }}
+                    {{ form_checkbox(form.other) }}
+                    {{ form_checkbox(form.bad_base_current) }}
                     {% if form.info.errors %}
                     <div class="form-group has-error">
                     {% else %}
