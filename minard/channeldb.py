@@ -34,9 +34,9 @@ def get_channels(crate=None, slot=None, channel=None, limit=100):
         filter.append("channel = %i" % channel)
 
     if len(filter):
-        query = "SELECT * FROM channeldb WHERE %s LIMIT %i" % (" AND ".join(filter), limit)
+        query = "SELECT DISTINCT ON (crate, slot, channel) * FROM channeldb WHERE %s ORDER BY crate, slot, channel, timestamp DESC LIMIT %i" % (" AND ".join(filter), limit)
     else:
-        query = "SELECT * FROM channeldb LIMIT %i" % limit
+        query = "SELECT DISTINCT ON (crate, slot, channel) * FROM channeldb ORDER BY crate, slot, channel, timestamp DESC LIMIT %i" % limit
 
     result = conn.execute(query)
 

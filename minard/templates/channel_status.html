@@ -102,7 +102,6 @@
                             <option value="31">31</option>
                         </select>
                     </div>
-                    <button type="button" class="btn btn-default" id="update-channel-status">Update</button>
                 </form>
             </div>
         </div>
@@ -111,7 +110,6 @@
 		<table class="table">
 		    <thead>
 			<tr>
-			    <th>Timestamp</th>
 			    <th>Crate</th>
 			    <th>Slot</th>
 			    <th>Channel</th>
@@ -125,14 +123,11 @@
 			    <th>Cable pulled</th>
 			    <th>Bad Cable</th>
 			    <th>Resistor pulled</th>
-			    <th>Other</th>
 			    <th>Bad Base Current</th>
-			    <th>Info</th>
 			</tr>
 		    </thead>
 		    {% for row in results %}
 		    <tr>
-			<td>{{ row['timestamp'].strftime("%Y-%m-%d %H:%M:%S") }}</td>
 			<td>{{ row['crate'] }}</td>
 			<td>{{ row['slot'] }}</td>
 			<td>{{ row['channel'] }}</td>
@@ -146,9 +141,7 @@
 			<td>{{ row['cable_pulled'] }}</td>
 			<td>{{ row['bad_cable'] }}</td>
 			<td>{{ row['resistor_pulled'] }}</td>
-			<td>{{ row['other'] }}</td>
 			<td>{{ row['bad_base_current'] }}</td>
-			<td>{{ row['info'] }}</td>
 		    </tr>
 		    {% endfor %}
 		</table>
@@ -168,7 +161,7 @@
         if (url_params.channel) {
             document.getElementById("channel").value = url_params.channel;
         }
-        $("#update-channel-status").click(function() {
+        $("#crate, #slot, #channel").on("change", function() {
             var params = {};
             if (document.getElementById("crate").value != -1) {
                 params['crate'] = document.getElementById("crate").value;
