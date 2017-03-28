@@ -20,6 +20,10 @@ def import_TELLIE_runnumbers():
     for row in tellieDB.view('_design/ratdb/_view/select_time'):
         if row.key[0] != "TELLIE_RUN":
             continue
+        runDocId = row['id']
+        #Skip TELLIE runs where TELLIE hasn't been fired.
+        if len(tellieDB.get(runDocId)["sub_run_info"]) == 0:
+            continue
         runNum = int(row.key[1])
         if runNum not in runNumbers:
             runNumbers.append(runNum)
