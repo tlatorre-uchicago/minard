@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 from . import app
-from flask import render_template, jsonify, request, redirect, url_for
+from flask import render_template, jsonify, request, redirect, url_for, flash
 from itertools import product
 import time
 from redis import Redis
@@ -21,7 +21,7 @@ import detector_state
 import pcadb
 import ecadb
 import nlrat
-
+from channeldb import ChannelStatusForm
 
 TRIGGER_NAMES = \
 ['100L',
@@ -95,6 +95,14 @@ def channel_status():
     limit = request.args.get("limit", 100, type=int)
     results = detector_state.get_channel_status(crate, slot, channel, limit)
     return render_template('channel_status.html', results=results)
+
+@app.route('/update-channel-status', methods=["GET", "POST"])
+def update_channel_status():
+    form = ChannelStatusForm(request.form)
+    if request.method == "POST" and form.validate():
+            flash("Successfully submitted", 'success')
+            return redirect(url_for('channel_status'))
+    return render_template('update_channel_status.html', form=form)
 
 @app.route('/state')
 @app.route('/state/')
