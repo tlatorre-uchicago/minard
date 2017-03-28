@@ -87,6 +87,14 @@ def timefmt(timestamp):
 def status():
     return render_template('status.html', programs=PROGRAMS)
 
+@app.route('/channel-status')
+def channel_status():
+    crate = request.args.get("crate", None, type=int)
+    slot = request.args.get("slot", None, type=int)
+    channel = request.args.get("channel", None, type=int)
+    limit = request.args.get("limit", 100, type=int)
+    results = detector_state.get_channel_status(crate, slot, channel, limit)
+    return render_template('channel_status.html', results=results)
 
 @app.route('/state')
 @app.route('/state/')

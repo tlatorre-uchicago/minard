@@ -1,0 +1,176 @@
+{% extends "layout.html" %}
+{% block title %}Channel Status{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+	{% if error %}
+	<div class="alert alert-danger" role="alert">
+	<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+	Error: {{ error }}
+	</div>
+	{% else %}
+	<div class="row">
+	    <div class="col-md-3">
+                Crate:
+                <select class="form-control" id="crate">
+                    <option value="-1">Anything</option>
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                </select>
+                Slot:
+                <select class="form-control" id="slot">
+                    <option value="-1">Anything</option>
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                </select>
+                Channel:
+                <select class="form-control" id="channel">
+                    <option value="-1">Anything</option>
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                    <option value="21">21</option>
+                    <option value="22">22</option>
+                    <option value="23">23</option>
+                    <option value="24">24</option>
+                    <option value="25">25</option>
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                    <option value="30">30</option>
+                    <option value="31">31</option>
+                </select>
+                <button type="button" class="btn btn-default" id="update-channel-status">Update</button>
+            </div>
+        </div>
+	<div class="row">
+	    <div class="col-md-12">
+		<table class="table">
+		    <thead>
+			<tr>
+			    <th>Timestamp</th>
+			    <th>Crate</th>
+			    <th>Slot</th>
+			    <th>Channel</th>
+			    <th>Low Occ.</th>
+			    <th>Zero Occ.</th>
+			    <th>Screamer</th>
+			    <th>Bad Discriminator</th>
+			    <th>No N100</th>
+			    <th>No N20</th>
+			    <th>No ESUM</th>
+			    <th>Cable pulled</th>
+			    <th>Bad Cable</th>
+			    <th>Resistor pulled</th>
+			    <th>Other</th>
+			    <th>Bad Base Current</th>
+			</tr>
+		    </thead>
+		    {% for row in results %}
+		    <tr>
+			<td>{{ row['timestamp'].strftime("%Y-%m-%d %H:%M:%S") }}</td>
+			<td>{{ row['crate'] }}</td>
+			<td>{{ row['slot'] }}</td>
+			<td>{{ row['channel'] }}</td>
+			<td>{{ row['low_occupancy'] }}</td>
+			<td>{{ row['zero_occupancy'] }}</td>
+			<td>{{ row['screamer'] }}</td>
+			<td>{{ row['bad_discriminator'] }}</td>
+			<td>{{ row['no_n100'] }}</td>
+			<td>{{ row['no_n20'] }}</td>
+			<td>{{ row['no_esum'] }}</td>
+			<td>{{ row['cable_pulled'] }}</td>
+			<td>{{ row['bad_cable'] }}</td>
+			<td>{{ row['resistor_pulled'] }}</td>
+			<td>{{ row['other'] }}</td>
+			<td>{{ row['bad_base_current'] }}</td>
+		    </tr>
+		    {% endfor %}
+		</table>
+	    </div>
+	</div>
+	{% endif %}
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        if (url_params.crate) {
+            document.getElementById("crate").value = url_params.crate;
+        }
+        if (url_params.slot) {
+            document.getElementById("slot").value = url_params.slot;
+        }
+        if (url_params.channel) {
+            document.getElementById("channel").value = url_params.channel;
+        }
+        $("#update-channel-status").click(function() {
+            console.log("hello world");
+            var params = {};
+            if (document.getElementById("crate").value != -1) {
+                params['crate'] = document.getElementById("crate").value;
+            }
+            if (document.getElementById("slot").value != -1) {
+                params['slot'] = document.getElementById("slot").value;
+            }
+            if (document.getElementById("channel").value != -1) {
+                params['channel'] = document.getElementById("channel").value;
+            }
+            window.location.replace($SCRIPT_ROOT + "/channel-status?" + $.param(params));
+        });
+    </script>
+{% endblock %}

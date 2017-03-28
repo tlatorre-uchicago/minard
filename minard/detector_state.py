@@ -6,6 +6,35 @@ engine = sqlalchemy.create_engine('postgresql://%s:%s@%s:%i/%s' %
                                   app.config['DB_HOST'], app.config['DB_PORT'],
                                   app.config['DB_NAME']))
 
+def get_channel_status(crate=None, slot=None, channel=None, limit=100):
+    """
+    Returns a dictionary of the channel status for multiple channels in the detector.
+    """
+    conn = engine.connect()
+
+    filter = []
+    if crate is not None:
+        filter.append("crate = %i" % crate)
+    if slot is not None:
+        filter.append("slot = %i" % slot)
+    if channel is not None:
+        filter.append("channel = %i" % channel)
+
+    if len(filter):
+        query = "SELECT * FROM channeldb WHERE %s LIMIT %i" % (" AND ".join(filter), limit)
+    else:
+        query = "SELECT * FROM channeldb LIMIT %i" % limit
+
+    result = conn.execute(query)
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    return [dict(zip(keys,row)) for row in rows]
+
 def get_detector_state(run=0):
     """
     Returns a dictionary of the crate settings for a given run.
