@@ -13,7 +13,7 @@
     {% endif %}
     <div class="container">
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-6 col-md-offset-3">
                 <form action="update-channel-status" method="POST" role="form">
                     <div class="form-group">
                         <label for="Crate">Crate</label>
@@ -101,7 +101,7 @@
                     </div>
                     {% macro form_checkbox(field) -%}
                         <div class="checkbox">
-                            <label><input type="checkbox" name="{{ field.name }}">{{ field.label.text }}</input></label>
+                            <label class="active"><input type="checkbox" name="{{ field.name }}" {% if field.data %}checked="checked"{% endif %}>{{ field.label.text }}</input></label>
                         </div>
                     {%- endmacro %}
                     {{ form_checkbox(form.low_occupancy) }}
@@ -123,12 +123,12 @@
                     {% endif %}
                         <label for="info">{{ form.info.label }}</label>
                         <textarea class="form-control" rows="3" name="{{ form.info.name }}"></textarea>
-                    </div>
                     {% if form.info.errors %}
                         {% for error in form.info.errors %}
                             <span class="help-block">{{ error }}</span>
                         {% endfor %}
                     {% endif %}
+                    </div>
                     <button type="submit" class="btn btn-default">Submit</button>
                 </form>
             </div>
@@ -137,14 +137,14 @@
 {% endblock %}
 {% block script %}
     <script>
-        if (url_params.crate) {
-            document.getElementById("crate").value = url_params.crate;
+        $("#crate").val("{{ form.crate.data }}");
+        $("#slot").val("{{ form.slot.data }}");
+        $("#channel").val("{{ form.channel.data }}");
+        function update_page() {
+            window.location.replace($SCRIPT_ROOT + "/update-channel-status?" + $.param({'crate': $('#crate').val(), 'slot': $('#slot').val(), 'channel': $('#channel').val()}));
         }
-        if (url_params.slot) {
-            document.getElementById("slot").value = url_params.slot;
-        }
-        if (url_params.channel) {
-            document.getElementById("channel").value = url_params.channel;
-        }
+        $("#crate").on("change", update_page);
+        $("#slot").on("change", update_page);
+        $("#channel").on("change", update_page);
     </script>
 {% endblock %}

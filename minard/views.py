@@ -21,7 +21,7 @@ import detector_state
 import pcadb
 import ecadb
 import nlrat
-from channeldb import ChannelStatusForm, upload_channel_status
+from channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form
 
 TRIGGER_NAMES = \
 ['100L',
@@ -93,12 +93,22 @@ def channel_status():
     slot = request.args.get("slot", None, type=int)
     channel = request.args.get("channel", None, type=int)
     limit = request.args.get("limit", 100, type=int)
-    results = detector_state.get_channel_status(crate, slot, channel, limit)
+    results = get_channels(crate, slot, channel, limit)
     return render_template('channel_status.html', results=results)
 
 @app.route('/update-channel-status', methods=["GET", "POST"])
 def update_channel_status():
-    form = ChannelStatusForm(request.form)
+    if request.form:
+        form = ChannelStatusForm(request.form)
+    else:
+        crate = request.args.get("crate", 0, type=int)
+        slot = request.args.get("slot", 0, type=int)
+        channel = request.args.get("channel", 0, type=int)
+        try:
+            form = get_channel_status_form(crate, slot, channel)
+        except Exception as e:
+            form = ChannelStatusForm(crate=crate, slot=slot, channel=channel)
+
     if request.method == "POST" and form.validate():
         try:
             upload_channel_status(form)
