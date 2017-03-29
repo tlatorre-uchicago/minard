@@ -25,9 +25,21 @@ class ChannelStatusForm(Form):
 
 def get_channels(kwargs, limit=100):
     """
-    Returns a dictionary of the channel status for multiple channels in the detector.
+    Returns a list of the current channel statuses for multiple channels in the
+    detector. `kwargs` should be a dictionary containing fields and their
+    associated values to select on. For example, to select only channels that
+    have low occupancy:
+
+        >>> get_channels({'low_occupancy': True})
+
+    `limit` should be the maximum number of records returned.
     """
     conn = engine.connect()
+
+    fields = [field.name for field in ChannelStatusForm()]
+
+    # make sure all the values in kwargs are actual fields
+    kwargs = dict(zip(item for item in kwargs.items() if item[0] in field))
 
     query = "SELECT DISTINCT ON (crate, slot, channel) * FROM channeldb "
     if len(kwargs):
@@ -46,7 +58,8 @@ def get_channels(kwargs, limit=100):
 
 def get_channel_history(crate, slot, channel, limit=100):
     """
-    Returns a dictionary of the channel status for multiple channels in the detector.
+    Returns a list of the channel statuses for a single channel in the
+    detector. `limit` is the maximum number of records to return.
     """
     conn = engine.connect()
 
@@ -81,7 +94,7 @@ def get_pmt_info(crate, slot, channel):
 
 def get_channel_status(crate, slot, channel):
     """
-    Returns a dictionary of the channel status for multiple channels in the detector.
+    Returns a dictionary of the channel status for a single channel in the detector.
     """
     conn = engine.connect()
 
@@ -96,9 +109,16 @@ def get_channel_status(crate, slot, channel):
     return dict(zip(keys,row))
 
 def get_channel_status_form(crate, slot, channel):
+    """
+    Returns a channel status form filled in with the current channel status for
+    a single channel in the detector.
+    """
     return ChannelStatusForm(**get_channel_status(crate, slot, channel))
 
 def upload_channel_status(form):
+    """
+    Upload a new channel status record in the database.
+    """
     conn = engine.connect()
     result = conn.execute("INSERT INTO channeldb (crate, slot, channel, pmt_removed, pmt_reinstalled, low_occupancy, zero_occupancy, screamer, bad_discriminator, no_n100, no_n20, no_esum, cable_pulled, bad_cable, resistor_pulled, disable_n100, disable_n20, bad_base_current, name, info) VALUES (%(crate)s, %(slot)s, %(channel)s, %(pmt_removed)s, %(pmt_reinstalled)s, %(low_occupancy)s, %(zero_occupancy)s, %(screamer)s, %(bad_discriminator)s, %(no_n100)s, %(no_n20)s, %(no_esum)s, %(cable_pulled)s, %(bad_cable)s, %(resistor_pulled)s, %(disable_n100)s, %(disable_n20)s, %(bad_base_current)s, %(name)s, %(info)s)", **form.data)
     return result
