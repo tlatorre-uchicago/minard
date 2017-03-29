@@ -103,6 +103,31 @@
                         </select>
                     </div>
                 </form>
+                <form class="form-inline">
+                    <div class="form-group">
+                        <select class="form-control" id="setting">
+			    <option value="pmt_removed">PMT Removed</option>
+			    <option value="pmt_reinstalled">PMT Reinstalled</option>
+			    <option value="low_occupancy">Low Occ.</option>
+			    <option value="zero_occupancy">Zero Occ.</option>
+			    <option value="screamer">Screamer</option>
+			    <option value="bad_discriminator">Bad Disc.</option>
+			    <option value="no_n100">No N100</option>
+			    <option value="no_n20">No N20</option>
+			    <option value="no_esum">No ESUM</option>
+			    <option value="cable_pulled">Cable pulled</option>
+			    <option value="bad_cable">Bad Cable</option>
+			    <option value="resistor_pulled">Resistor pulled</option>
+			    <option value="bad_base_current">Bad Base Current</option>
+                        </select>
+                        is
+                        <select class="form-control" id="bool">
+                            <option value="-1">Anything</option>
+                            <option value="true">True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </div>
+                </form>
             </div>
         {% macro status(data) %}
             <td>
@@ -160,16 +185,23 @@
 {% endblock %}
 {% block script %}
     <script>
-        if (url_params.crate) {
-            document.getElementById("crate").value = url_params.crate;
+        for (var key in url_params) {
+            if (url_params.hasOwnProperty(key)) {
+                if (key == 'crate') {
+                    document.getElementById("crate").value = url_params.crate;
+                } else if (key == 'slot') {
+                    document.getElementById("slot").value = url_params.slot;
+                } else if (key == 'channel') {
+                    document.getElementById("channel").value = url_params.channel;
+                } else if ($.map(document.getElementById("setting").options, function(option) { return option.value }).indexOf(key) >= 0) {
+                    document.getElementById("setting").value = key;
+                    document.getElementById("bool").value = url_params[key];
+                }
+            }
         }
-        if (url_params.slot) {
-            document.getElementById("slot").value = url_params.slot;
-        }
-        if (url_params.channel) {
-            document.getElementById("channel").value = url_params.channel;
-        }
-        $("#crate, #slot, #channel").on("change", function() {
+        $("#setting").on("change", function() {
+            if (document.getElementById("bool").value == -1) return;
+
             var params = {};
             if (document.getElementById("crate").value != -1) {
                 params['crate'] = document.getElementById("crate").value;
@@ -179,6 +211,25 @@
             }
             if (document.getElementById("channel").value != -1) {
                 params['channel'] = document.getElementById("channel").value;
+            }
+            if (document.getElementById("bool").value != -1) {
+                params[document.getElementById("setting").value] = document.getElementById("bool").value;
+            }
+            window.location.replace($SCRIPT_ROOT + "/channel-database?" + $.param(params));
+        });
+        $("#crate, #slot, #channel, #bool").on("change", function() {
+            var params = {};
+            if (document.getElementById("crate").value != -1) {
+                params['crate'] = document.getElementById("crate").value;
+            }
+            if (document.getElementById("slot").value != -1) {
+                params['slot'] = document.getElementById("slot").value;
+            }
+            if (document.getElementById("channel").value != -1) {
+                params['channel'] = document.getElementById("channel").value;
+            }
+            if (document.getElementById("bool").value != -1) {
+                params[document.getElementById("setting").value] = document.getElementById("bool").value;
             }
             window.location.replace($SCRIPT_ROOT + "/channel-database?" + $.param(params));
         });
