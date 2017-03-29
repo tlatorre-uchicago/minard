@@ -665,8 +665,11 @@ def calibdq_tellie():
             if check_params == -1 or runInformation == -1:
                 continue
             run_dict[num] = check_params
-
-    return render_template('calibdq_tellie.html',run_numbers=sorted(run_dict.keys(),reverse=True),run_info=run_dict.values())
+    run_numbers_sorted = sorted(run_dict.keys(),reverse=True)
+    run_vals_sorted = []
+    for runNum in run_numbers_sorted:
+        run_vals_sorted.append(run_dict[runNum])
+    return render_template('calibdq_tellie.html',run_numbers=run_numbers_sorted,run_info=run_vals_sorted)
 
 @app.route('/calibdq_tellie/<run_number>/')
 def calibdq_tellie_run_number(run_number):
