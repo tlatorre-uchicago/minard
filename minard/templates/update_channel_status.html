@@ -16,7 +16,7 @@
             <div class="col-md-6">
                 <form action="update-channel-status" method="POST" role="form">
                     <div class="form-group">
-                        <label for="Crate">Crate</label>
+                        <label for="crate">Crate</label>
                         <select class="form-control" id="crate" name="crate">
                             <option value="0">0</option>
                             <option value="1">1</option>
@@ -41,7 +41,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Slot</label>
+                        <label for="slot">Slot</label>
                         <select class="form-control" id="slot" name="slot">
                             <option value="0">0</option>
                             <option value="1">1</option>
@@ -63,7 +63,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Channel</label>
+                        <label for="channel">Channel</label>
                         <select class="form-control" id="channel" name="channel">
                             <option value="0">0</option>
                             <option value="1">1</option>
@@ -105,7 +105,7 @@
                         </div>
                     {%- endmacro %}
                     <div class="alert alert-info">
-                    <p>Note: When you press Submit, this will become the new current state, so don't update any check boxes unless the status has changed.
+                        <p>Note: When you press Submit, this will become the new current state, so don't update any check boxes unless the status has changed.
                     </div>
                     {{ form_checkbox(form.pmt_removed) }}
                     {{ form_checkbox(form.pmt_reinstalled) }}
