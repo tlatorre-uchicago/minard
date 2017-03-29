@@ -89,11 +89,8 @@ def status():
 
 @app.route('/channel-database')
 def channel_database():
-    crate = request.args.get("crate", None, type=int)
-    slot = request.args.get("slot", None, type=int)
-    channel = request.args.get("channel", None, type=int)
     limit = request.args.get("limit", 100, type=int)
-    results = get_channels(crate, slot, channel, limit)
+    results = get_channels(request.args, limit)
     return render_template('channel_database.html', results=results)
 
 @app.route('/channel-status')

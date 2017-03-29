@@ -23,26 +23,18 @@ class ChannelStatusForm(Form):
     name =               StringField('Name', [validators.Length(min=1)])
     info =               StringField('Info', [validators.Length(min=1)])
 
-def get_channels(crate=None, slot=None, channel=None, limit=100):
+def get_channels(kwargs, limit=100):
     """
     Returns a dictionary of the channel status for multiple channels in the detector.
     """
     conn = engine.connect()
 
-    filter = []
-    if crate is not None:
-        filter.append("crate = %i" % crate)
-    if slot is not None:
-        filter.append("slot = %i" % slot)
-    if channel is not None:
-        filter.append("channel = %i" % channel)
+    query = "SELECT DISTINCT ON (crate, slot, channel) * FROM channeldb "
+    if len(kwargs):
+        query += "WHERE %s " % (" AND ".join(["%s = %%(%s)s" % (item[0], item[0]) for item in kwargs.items()]))
+    query += "ORDER BY crate, slot, channel, timestamp DESC LIMIT %i" % limit
 
-    if len(filter):
-        query = "SELECT DISTINCT ON (crate, slot, channel) * FROM channeldb WHERE %s ORDER BY crate, slot, channel, timestamp DESC LIMIT %i" % (" AND ".join(filter), limit)
-    else:
-        query = "SELECT DISTINCT ON (crate, slot, channel) * FROM channeldb ORDER BY crate, slot, channel, timestamp DESC LIMIT %i" % limit
-
-    result = conn.execute(query)
+    result = conn.execute(query, kwargs)
 
     if result is None:
         return None
