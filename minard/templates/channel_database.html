@@ -112,7 +112,7 @@
             </td>
         {% endmacro %}
 	    <div class="col-md-10">
-		<table class="table text-center">
+		<table class="table table-hover text-center">
 		    <thead>
 			<tr>
 			    <th>Crate</th>
@@ -121,7 +121,7 @@
 			    <th>Low Occ.</th>
 			    <th>Zero Occ.</th>
 			    <th>Screamer</th>
-			    <th>Bad Discriminator</th>
+			    <th>Bad Disc.</th>
 			    <th>No N100</th>
 			    <th>No N20</th>
 			    <th>No ESUM</th>
@@ -129,11 +129,10 @@
 			    <th>Bad Cable</th>
 			    <th>Resistor pulled</th>
 			    <th>Bad Base Current</th>
-			    <th>History</th>
 			</tr>
 		    </thead>
 		    {% for row in results %}
-		    <tr>
+		    <tr onclick="window.document.location = '{{ "channel-status?crate=%i&slot=%i&channel=%i" % (row['crate'], row['slot'], row['channel']) }}';">
 			<td>{{ row['crate'] }}</td>
 			<td>{{ row['slot'] }}</td>
 			<td>{{ row['channel'] }}</td>
@@ -148,7 +147,6 @@
 			{{ status(row['bad_cable']) }}
 			{{ status(row['resistor_pulled']) }}
 			{{ status(row['bad_base_current']) }}
-			<td><a href="{{ "channel-status?crate=%i&slot=%i&channel=%i" % (row['crate'], row['slot'], row['channel']) }}">History</a></td>
 		    </tr>
 		    {% endfor %}
 		</table>
