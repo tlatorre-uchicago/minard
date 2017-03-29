@@ -21,7 +21,7 @@ import detector_state
 import pcadb
 import ecadb
 import nlrat
-from channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form
+from channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info
 
 TRIGGER_NAMES = \
 ['100L',
@@ -87,14 +87,24 @@ def timefmt(timestamp):
 def status():
     return render_template('status.html', programs=PROGRAMS)
 
-@app.route('/channel-status')
-def channel_status():
+@app.route('/channel-database')
+def channel_database():
     crate = request.args.get("crate", None, type=int)
     slot = request.args.get("slot", None, type=int)
     channel = request.args.get("channel", None, type=int)
     limit = request.args.get("limit", 100, type=int)
     results = get_channels(crate, slot, channel, limit)
-    return render_template('channel_status.html', results=results)
+    return render_template('channel_database.html', results=results)
+
+@app.route('/channel-status')
+def channel_status():
+    crate = request.args.get("crate", 0, type=int)
+    slot = request.args.get("slot", 0, type=int)
+    channel = request.args.get("channel", 0, type=int)
+    limit = request.args.get("limit", 100, type=int)
+    results = get_channel_history(crate, slot, channel, limit)
+    pmt_info = get_pmt_info(crate, slot, channel)
+    return render_template('channel_status.html', results=results, pmt_info=pmt_info)
 
 @app.route('/update-channel-status', methods=["GET", "POST"])
 def update_channel_status():

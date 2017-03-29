@@ -48,6 +48,41 @@ def get_channels(crate=None, slot=None, channel=None, limit=100):
 
     return [dict(zip(keys,row)) for row in rows]
 
+def get_channel_history(crate, slot, channel, limit=100):
+    """
+    Returns a dictionary of the channel status for multiple channels in the detector.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM channeldb WHERE crate = %s AND slot = %s AND channel = %s ORDER BY timestamp DESC LIMIT %s", (crate,slot,channel,limit))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    return [dict(zip(keys,row)) for row in rows]
+
+def get_pmt_info(crate, slot, channel):
+    """
+    Returns a dictionary of the pmt info for a given channel.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM pmt_info WHERE crate = %s AND slot = %s AND channel = %s", (crate, slot, channel))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    row = result.fetchone()
+
+    if row is None:
+        return None
+
+    return dict(zip(keys,row))
+
 def get_channel_status(crate, slot, channel):
     """
     Returns a dictionary of the channel status for multiple channels in the detector.
