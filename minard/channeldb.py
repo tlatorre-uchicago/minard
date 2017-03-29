@@ -5,6 +5,8 @@ class ChannelStatusForm(Form):
     crate =              IntegerField('crate', [validators.NumberRange(min=0,max=19)])
     slot =               IntegerField('slot', [validators.NumberRange(min=0,max=15)])
     channel =            IntegerField('channel', [validators.NumberRange(min=0,max=31)])
+    pmt_removed =        BooleanField('PMT removed')
+    pmt_reinstalled =    BooleanField('PMT reinstalled')
     low_occupancy =      BooleanField('Low Occupancy')
     zero_occupancy =     BooleanField('Zero Occupancy')
     screamer =           BooleanField('Screamer')
@@ -106,5 +108,5 @@ def get_channel_status_form(crate, slot, channel):
 
 def upload_channel_status(form):
     conn = engine.connect()
-    result = conn.execute("INSERT INTO channeldb (crate, slot, channel, low_occupancy, zero_occupancy, screamer, bad_discriminator, no_n100, no_n20, no_esum, cable_pulled, bad_cable, resistor_pulled, disable_n100, disable_n20, bad_base_current, name, info) VALUES (%(crate)s, %(slot)s, %(channel)s, %(low_occupancy)s, %(zero_occupancy)s, %(screamer)s, %(bad_discriminator)s, %(no_n100)s, %(no_n20)s, %(no_esum)s, %(cable_pulled)s, %(bad_cable)s, %(resistor_pulled)s, %(disable_n100)s, %(disable_n20)s, %(bad_base_current)s, %(name)s, %(info)s)", **form.data)
+    result = conn.execute("INSERT INTO channeldb (crate, slot, channel, pmt_removed, pmt_reinstalled, low_occupancy, zero_occupancy, screamer, bad_discriminator, no_n100, no_n20, no_esum, cable_pulled, bad_cable, resistor_pulled, disable_n100, disable_n20, bad_base_current, name, info) VALUES (%(crate)s, %(slot)s, %(channel)s, %(pmt_removed)s, %(pmt_reinstalled)s, %(low_occupancy)s, %(zero_occupancy)s, %(screamer)s, %(bad_discriminator)s, %(no_n100)s, %(no_n20)s, %(no_esum)s, %(cable_pulled)s, %(bad_cable)s, %(resistor_pulled)s, %(disable_n100)s, %(disable_n20)s, %(bad_base_current)s, %(name)s, %(info)s)", **form.data)
     return result

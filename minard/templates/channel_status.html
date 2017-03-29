@@ -117,6 +117,8 @@
 		    <thead>
 			<tr>
 			    <th>Date</th>
+			    <th>PMT Removed</th>
+			    <th>PMT Reinstalled</th>
 			    <th>Low Occ.</th>
 			    <th>Zero Occ.</th>
 			    <th>Screamer</th>
@@ -137,6 +139,8 @@
 		    {% for row in results %}
 		    <tr>
 			<td>{{ row['timestamp'].strftime("%Y-%m-%d") }}</td>
+			{{ status(row['pmt_removed']) }}
+			{{ status(row['pmt_reinstalled']) }}
 			{{ status(row['low_occupancy']) }}
 			{{ status(row['zero_occupancy']) }}
 			{{ status(row['screamer']) }}

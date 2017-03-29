@@ -104,6 +104,8 @@
                             <label class="active"><input type="checkbox" name="{{ field.name }}" {% if field.data %}checked="checked"{% endif %}>{{ field.label.text }}</input></label>
                         </div>
                     {%- endmacro %}
+                    {{ form_checkbox(form.pmt_removed) }}
+                    {{ form_checkbox(form.pmt_reinstalled) }}
                     {{ form_checkbox(form.low_occupancy) }}
                     {{ form_checkbox(form.zero_occupancy) }}
                     {{ form_checkbox(form.screamer) }}

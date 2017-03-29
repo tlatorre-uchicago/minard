@@ -118,6 +118,8 @@
 			    <th>Crate</th>
 			    <th>Slot</th>
 			    <th>Channel</th>
+			    <th>PMT Removed</th>
+			    <th>PMT Reinstalled</th>
 			    <th>Low Occ.</th>
 			    <th>Zero Occ.</th>
 			    <th>Screamer</th>
@@ -136,6 +138,8 @@
 			<td>{{ row['crate'] }}</td>
 			<td>{{ row['slot'] }}</td>
 			<td>{{ row['channel'] }}</td>
+			{{ status(row['pmt_removed']) }}
+			{{ status(row['pmt_reinstalled']) }}
 			{{ status(row['low_occupancy']) }}
 			{{ status(row['zero_occupancy']) }}
 			{{ status(row['screamer']) }}
