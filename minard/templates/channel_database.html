@@ -104,10 +104,15 @@
                     </div>
                 </form>
             </div>
-        </div>
-	<div class="row">
-	    <div class="col-md-12">
-		<table class="table">
+        {% macro status(data) %}
+            <td>
+            {% if data %}
+                <span class="glyphicon glyphicon-ok"></span>
+            {% endif %}
+            </td>
+        {% endmacro %}
+	    <div class="col-md-10">
+		<table class="table text-center">
 		    <thead>
 			<tr>
 			    <th>Crate</th>
@@ -124,6 +129,7 @@
 			    <th>Bad Cable</th>
 			    <th>Resistor pulled</th>
 			    <th>Bad Base Current</th>
+			    <th>History</th>
 			</tr>
 		    </thead>
 		    {% for row in results %}
@@ -131,17 +137,18 @@
 			<td>{{ row['crate'] }}</td>
 			<td>{{ row['slot'] }}</td>
 			<td>{{ row['channel'] }}</td>
-			<td>{{ row['low_occupancy'] }}</td>
-			<td>{{ row['zero_occupancy'] }}</td>
-			<td>{{ row['screamer'] }}</td>
-			<td>{{ row['bad_discriminator'] }}</td>
-			<td>{{ row['no_n100'] }}</td>
-			<td>{{ row['no_n20'] }}</td>
-			<td>{{ row['no_esum'] }}</td>
-			<td>{{ row['cable_pulled'] }}</td>
-			<td>{{ row['bad_cable'] }}</td>
-			<td>{{ row['resistor_pulled'] }}</td>
-			<td>{{ row['bad_base_current'] }}</td>
+			{{ status(row['low_occupancy']) }}
+			{{ status(row['zero_occupancy']) }}
+			{{ status(row['screamer']) }}
+			{{ status(row['bad_discriminator']) }}
+			{{ status(row['no_n100']) }}
+			{{ status(row['no_n20']) }}
+			{{ status(row['no_esum']) }}
+			{{ status(row['cable_pulled']) }}
+			{{ status(row['bad_cable']) }}
+			{{ status(row['resistor_pulled']) }}
+			{{ status(row['bad_base_current']) }}
+			<td><a href="{{ "channel-status?crate=%i&slot=%i&channel=%i" % (row['crate'], row['slot'], row['channel']) }}">History</a></td>
 		    </tr>
 		    {% endfor %}
 		</table>
@@ -171,7 +178,7 @@
             if (document.getElementById("channel").value != -1) {
                 params['channel'] = document.getElementById("channel").value;
             }
-            window.location.replace($SCRIPT_ROOT + "/channel-status?" + $.param(params));
+            window.location.replace($SCRIPT_ROOT + "/channel-database?" + $.param(params));
         });
     </script>
 {% endblock %}

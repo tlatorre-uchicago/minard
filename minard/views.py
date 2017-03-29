@@ -125,7 +125,7 @@ def update_channel_status():
         except Exception as e:
             return render_template('update_channel_status.html', form=form, error=str(e))
         flash("Successfully submitted", 'success')
-        return redirect(url_for('channel_status'))
+        return redirect(url_for('channel_status', crate=form.crate.data, slot=form.slot.data, channel=form.channel.data))
     return render_template('update_channel_status.html', form=form)
 
 @app.route('/state')

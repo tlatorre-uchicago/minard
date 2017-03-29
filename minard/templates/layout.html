@@ -19,7 +19,7 @@
     <body>
         {% block body %}
         {% macro nav_link(endpoint, name) -%}
-            {% if request.endpoint.endswith(endpoint) %}
+            {% if request.endpoint == endpoint %}
                 <li class="active"><a href="{{ url_for(endpoint) }}">{{ name }}</a></li>
             {% else %}
                 <li><a href="{{ url_for(endpoint) }}">{{ name }}</a></li>
@@ -50,6 +50,14 @@
                                 {{ nav_link('nhit_monitor_thresholds', 'Nhit Monitor') }}
                                 {{ nav_link('trigger', 'Trigger Scans') }}
                                 {{ nav_link('state', 'Detector State') }}
+                            </ul>
+                        <!-- Dropdown Channel -->
+                        <li class='dropdown'>
+			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Channel DB <b class='caret'></b></a>
+                            <ul class='dropdown-menu'>
+                                {{ nav_link('channel_database', 'Channel Database') }}
+                                {{ nav_link('channel_status', 'Channel Status') }}
+                                {{ nav_link('update_channel_status', 'Update Channel Status') }}
                             </ul>
                         {{ nav_link('nearline', 'Nearline') }}
                         {{ nav_link('rathome', 'RAT') }}
