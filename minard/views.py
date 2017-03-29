@@ -116,6 +116,9 @@ def update_channel_status():
         channel = request.args.get("channel", 0, type=int)
         try:
             form = get_channel_status_form(crate, slot, channel)
+            # don't add the name and info fields if they just go to the page.
+            form.name.data = None
+            form.info.data = None
         except Exception as e:
             form = ChannelStatusForm(crate=crate, slot=slot, channel=channel)
 

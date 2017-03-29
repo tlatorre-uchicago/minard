@@ -123,7 +123,7 @@
                     <div class="form-group">
                     {% endif %}
                         <label for="name">{{ form.name.label }}</label>
-                        <input type="text" class="form-control" name="{{ form.name.name }}" placeholder="Neil George"></input>
+                        <input type="text" class="form-control" name="{{ form.name.name }}" placeholder="Neil George" {% if form.name.data %}value="{{ form.name.data }}"{% endif %}></input>
                     {% if form.name.errors %}
                         {% for error in form.name.errors %}
                             <span class="help-block">{{ error }}</span>
@@ -136,7 +136,7 @@
                     <div class="form-group">
                     {% endif %}
                         <label for="info">{{ form.info.label }}</label>
-                        <textarea class="form-control" rows="3" name="{{ form.info.name }}"></textarea>
+                        <textarea class="form-control" rows="3" name="{{ form.info.name }}" placeholder="Information about the update"></textarea>
                     {% if form.info.errors %}
                         {% for error in form.info.errors %}
                             <span class="help-block">{{ error }}</span>
