@@ -127,7 +127,10 @@
 			    <th>Cable pulled</th>
 			    <th>Bad Cable</th>
 			    <th>Resistor pulled</th>
+			    <th>Disable N100</th>
+			    <th>Disable N20</th>
 			    <th>Bad Base Current</th>
+			    <th>Name</th>
 			    <th>Info</th>
 			</tr>
 		    </thead>
@@ -144,7 +147,10 @@
 			{{ status(row['cable_pulled']) }}
 			{{ status(row['bad_cable']) }}
 			{{ status(row['resistor_pulled']) }}
+			{{ status(row['disable_n100']) }}
+			{{ status(row['disable_n20']) }}
 			{{ status(row['bad_base_current']) }}
+                        <td>{{ row['name'] }}</td>
                         <td>{{ row['info'] }}</td>
 		    </tr>
 		    {% endfor %}
@@ -171,6 +177,27 @@
 			</tr>
 		    </thead>
 		    <tr>
+                        {% macro pmt_type_hex_to_description(type) %}
+                            {% if type == '0x03'|int(base=16) %}
+                                Normal
+                            {% elif type == '0x21'|int(base=16) %}
+                                Low Gain
+                            {% elif type == '0x41'|int(base=16) %}
+                                OWL
+                            {% elif type == '0x10'|int(base=16) %}
+                                FECD
+                            {% elif type == '0x09'|int(base=16) %}
+                                Neck
+                            {% elif type == '0x81'|int(base=16) %}
+                                Butt
+                            {% elif type == '0x00'|int(base=16) %}
+                                No PMT
+                            {% elif type == '0x100'|int(base=16) %}
+                                HQE PMT
+                            {% else %}
+                                Unknown ({{ type }})
+                            {% endif %}
+                        {% endmacro %}
                         {% if pmt_info %}
 			<td>{{ pmt_info['cable'] }}</td>
 			<td>{{ pmt_info['pmt'] }}</td>
@@ -178,7 +205,7 @@
 			<td>{{ pmt_info['qccc'] }}</td>
 			<td>{{ pmt_info['bundle'] }}</td>
 			<td>{{ pmt_info['hv'] }}</td>
-			<td>{{ pmt_info['type'] }}</td>
+			<td>{{ pmt_type_hex_to_description(pmt_info['type']) }}</td>
 			<td>{{ pmt_info['x'] }}</td>
 			<td>{{ pmt_info['y'] }}</td>
 			<td>{{ pmt_info['z'] }}</td>
