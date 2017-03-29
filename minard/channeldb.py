@@ -39,7 +39,7 @@ def get_channels(kwargs, limit=100):
     fields = [field.name for field in ChannelStatusForm()]
 
     # make sure all the values in kwargs are actual fields
-    kwargs = dict(zip(item for item in kwargs.items() if item[0] in field))
+    kwargs = dict(item for item in kwargs.items() if item[0] in fields)
 
     query = "SELECT DISTINCT ON (crate, slot, channel) * FROM channeldb "
     if len(kwargs):

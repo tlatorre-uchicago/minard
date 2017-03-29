@@ -111,7 +111,7 @@
             </td>
         {% endmacro %}
 	    <div class="col-md-12">
-                <h3>Channel History</h3> (<a href="{{ "update-channel-status?crate=%i&slot=%i&channel=%i" % (crate,slot,channel) }}">Update</a>)
+                <h3>Channel History (<a href="{{ "update-channel-status?crate=%i&slot=%i&channel=%i" % (crate,slot,channel) }}">Update</a>)</h3>
 		<table class="table table-condensed text-center">
 		    <thead>
 			<tr>
@@ -160,62 +160,78 @@
 		</table>
 	    </div>
 	</div>
+        {% macro pmt_type_hex_to_description(type) %}
+            {% if type == '0x03'|int(base=16) %}
+                Normal
+            {% elif type == '0x21'|int(base=16) %}
+                Low Gain
+            {% elif type == '0x41'|int(base=16) %}
+                OWL
+            {% elif type == '0x10'|int(base=16) %}
+                FECD
+            {% elif type == '0x09'|int(base=16) %}
+                Neck
+            {% elif type == '0x81'|int(base=16) %}
+                Butt
+            {% elif type == '0x00'|int(base=16) %}
+                No PMT
+            {% elif type == '0x100'|int(base=16) %}
+                HQE PMT
+            {% else %}
+                Unknown ({{ type }})
+            {% endif %}
+        {% endmacro %}
 	<div class="row">
-	    <div class="col-md-12">
-                <h2>PMT Info</h2>
-		<table class="table">
-		    <thead>
-			<tr>
-			    <th>Cable</th>
-			    <th>PMT</th>
-			    <th>PC</th>
-			    <th>QCCC</th>
-			    <th>Bundle</th>
-			    <th>HV</th>
-			    <th>Type</th>
-			    <th>x</th>
-			    <th>y</th>
-			    <th>z</th>
-			    <th>Panel</th>
-			</tr>
-		    </thead>
-		    <tr>
-                        {% macro pmt_type_hex_to_description(type) %}
-                            {% if type == '0x03'|int(base=16) %}
-                                Normal
-                            {% elif type == '0x21'|int(base=16) %}
-                                Low Gain
-                            {% elif type == '0x41'|int(base=16) %}
-                                OWL
-                            {% elif type == '0x10'|int(base=16) %}
-                                FECD
-                            {% elif type == '0x09'|int(base=16) %}
-                                Neck
-                            {% elif type == '0x81'|int(base=16) %}
-                                Butt
-                            {% elif type == '0x00'|int(base=16) %}
-                                No PMT
-                            {% elif type == '0x100'|int(base=16) %}
-                                HQE PMT
-                            {% else %}
-                                Unknown ({{ type }})
-                            {% endif %}
-                        {% endmacro %}
-                        {% if pmt_info %}
-			<td>{{ pmt_info['cable'] }}</td>
-			<td>{{ pmt_info['pmt'] }}</td>
-			<td>{{ pmt_info['pc'] }}</td>
-			<td>{{ pmt_info['qccc'] }}</td>
-			<td>{{ pmt_info['bundle'] }}</td>
-			<td>{{ pmt_info['hv'] }}</td>
-			<td>{{ pmt_type_hex_to_description(pmt_info['type']) }}</td>
-			<td>{{ pmt_info['x'] }}</td>
-			<td>{{ pmt_info['y'] }}</td>
-			<td>{{ pmt_info['z'] }}</td>
-			<td>{{ pmt_info['panel'] }}</td>
-                        {% endif %}
-		    </tr>
-		</table>
+	    <div class="col-md-2">
+                <h3>PMT Info</h3>
+                {% if pmt_info %}
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Cable</th>
+                        <td>{{ pmt_info['cable'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>PMT</th>
+                        <td>{{ pmt_info['pmt'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>PC</th>
+                        <td>{{ pmt_info['pc'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>QCCC</th>
+                        <td>{{ pmt_info['qccc'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>Bundle</th>
+                        <td>{{ pmt_info['bundle'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>HV</th>
+                        <td>{{ pmt_info['hv'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>Type</th>
+                        <td>{{ pmt_type_hex_to_description(pmt_info['type']) }}</td>
+                    </tr>
+                    <tr>
+                        <th>x</th>
+                        <td>{{ pmt_info['x'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>y</th>
+                        <td>{{ pmt_info['y'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>z</th>
+                        <td>{{ pmt_info['z'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>Panel</th>
+                        <td>{{ pmt_info['panel'] }}</td>
+                    </tr>
+                </table>
+                {% endif %}
 	    </div>
 	</div>
     </div>
