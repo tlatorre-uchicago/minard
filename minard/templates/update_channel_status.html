@@ -136,7 +136,7 @@
                     <div class="form-group">
                     {% endif %}
                         <label for="info">{{ form.info.label }}</label>
-                        <textarea class="form-control" rows="3" name="{{ form.info.name }}" placeholder="Information about the update"></textarea>
+                        <textarea class="form-control" rows="3" name="{{ form.info.name }}" placeholder="Information about the update">{% if form.info.data %}{{ form.info.data }}{% endif %}</textarea>
                     {% if form.info.errors %}
                         {% for error in form.info.errors %}
                             <span class="help-block">{{ error }}</span>
