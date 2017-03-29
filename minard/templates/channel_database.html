@@ -13,10 +13,10 @@
 	</div>
 	{% endif %}
 	<div class="row">
-	    <div class="col-md-2">
-                <form>
+	    <div class="col-md-12">
+                <form class="form-inline">
                     <div class="form-group">
-                        <label for="Crate">Crate</label>
+                        <label for="crate">Crate</label>
                         <select class="form-control" id="crate">
                             <option value="-1">Anything</option>
                             <option value="0">0</option>
@@ -42,7 +42,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Slot</label>
+                        <label for="slot">Card</label>
                         <select class="form-control" id="slot">
                             <option value="-1">Anything</option>
                             <option value="0">0</option>
@@ -65,7 +65,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Channel</label>
+                        <label for="channel">Channel</label>
                         <select class="form-control" id="channel">
                             <option value="-1">Anything</option>
                             <option value="0">0</option>
@@ -102,8 +102,7 @@
                             <option value="31">31</option>
                         </select>
                     </div>
-                </form>
-                <form class="form-inline">
+                    and
                     <div class="form-group">
                         <select class="form-control" id="setting">
 			    <option value="pmt_removed">PMT Removed</option>
@@ -129,6 +128,8 @@
                     </div>
                 </form>
             </div>
+        </div>
+        <div class="row">
         {% macro status(data) %}
             <td>
             {% if data %}
@@ -136,7 +137,7 @@
             {% endif %}
             </td>
         {% endmacro %}
-	    <div class="col-md-10">
+	    <div class="col-md-12">
 		<table class="table table-hover text-center">
 		    <thead>
 			<tr>
