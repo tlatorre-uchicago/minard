@@ -101,7 +101,7 @@ def channel_status():
     limit = request.args.get("limit", 100, type=int)
     results = get_channel_history(crate, slot, channel, limit)
     pmt_info = get_pmt_info(crate, slot, channel)
-    return render_template('channel_status.html', results=results, pmt_info=pmt_info)
+    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info)
 
 @app.route('/update-channel-status', methods=["GET", "POST"])
 def update_channel_status():

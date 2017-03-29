@@ -215,7 +215,11 @@
             if (document.getElementById("bool").value != -1) {
                 params[document.getElementById("setting").value] = document.getElementById("bool").value;
             }
-            window.location.replace($SCRIPT_ROOT + "/channel-database?" + $.param(params));
+            if (Object.keys(params).length > 0) {
+                window.location.replace($SCRIPT_ROOT + "/channel-database?" + $.param(params));
+            } else {
+                window.location.replace($SCRIPT_ROOT + "/channel-database");
+            }
         });
         $("#crate, #slot, #channel, #bool").on("change", function() {
             var params = {};
@@ -231,7 +235,11 @@
             if (document.getElementById("bool").value != -1) {
                 params[document.getElementById("setting").value] = document.getElementById("bool").value;
             }
-            window.location.replace($SCRIPT_ROOT + "/channel-database?" + $.param(params));
+            if (Object.keys(params).length > 0) {
+                window.location.replace($SCRIPT_ROOT + "/channel-database?" + $.param(params));
+            } else {
+                window.location.replace($SCRIPT_ROOT + "/channel-database");
+            }
         });
     </script>
 {% endblock %}

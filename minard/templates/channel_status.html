@@ -99,7 +99,6 @@
                             <option value="31">31</option>
                         </select>
                     </div>
-                    <button type="button" class="btn btn-primary" id="update">Update</button>
                 </form>
             </div>
         </div>
@@ -112,7 +111,7 @@
             </td>
         {% endmacro %}
 	    <div class="col-md-12">
-                <h2>Channel History</h2>
+                <h3>Channel History</h3> (<a href="{{ "update-channel-status?crate=%i&slot=%i&channel=%i" % (crate,slot,channel) }}">Update</a>)
 		<table class="table table-condensed text-center">
 		    <thead>
 			<tr>
@@ -244,10 +243,6 @@
                 params['channel'] = document.getElementById("channel").value;
             }
             window.location.replace($SCRIPT_ROOT + "/channel-status?" + $.param(params));
-        });
-        $("#update").click(function () {
-            var params = {'crate': $("#crate").val(), 'slot': $('#slot').val(), 'channel': $("#channel").val()};
-            window.location.href = $SCRIPT_ROOT + "/update-channel-status?" + $.param(params);
         });
     </script>
 {% endblock %}
