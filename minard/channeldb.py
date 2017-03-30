@@ -23,6 +23,31 @@ class ChannelStatusForm(Form):
     name =               StringField('Name', [validators.Length(min=1)])
     info =               StringField('Info', [validators.Length(min=1)])
 
+def pmt_type_hex_to_description(pmt_type):
+    """
+    Converts a PMT type -> useful description.
+    """
+    active, pmt_type = pmt_type & 0x1, pmt_type & 0xfe
+
+    if pmt_type == 0x03:
+        return "Normal"
+    elif pmt_type == 0x21:
+        return "Low Gain"
+    elif pmt_type == 0x41:
+        return "OWL"
+    elif pmt_type == 0x10:
+        return "FECD"
+    elif pmt_type == 0x09:
+        return "Neck"
+    elif pmt_type == 0x81:
+        return "Butt"
+    elif pmt_type == 0x00:
+        return "No PMT"
+    elif pmt_type == 0x100:
+        return "HQE PMT"
+    else:
+        return "Unknown type 0x%02x" % pmt_type
+
 def get_channels(kwargs, limit=100):
     """
     Returns a list of the current channel statuses for multiple channels in the
