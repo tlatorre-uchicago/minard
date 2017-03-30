@@ -1,5 +1,6 @@
 from wtforms import Form, BooleanField, StringField, validators, IntegerField
 from detector_state import engine
+from .views import app
 
 class ChannelStatusForm(Form):
     crate =              IntegerField('crate', [validators.NumberRange(min=0,max=19)])
@@ -23,30 +24,35 @@ class ChannelStatusForm(Form):
     name =               StringField('Name', [validators.Length(min=1)])
     info =               StringField('Info', [validators.Length(min=1)])
 
-def pmt_type_hex_to_description(pmt_type):
+@app.template_filter('pmt_type_description')
+def pmt_type_description(pmt_type):
     """
     Converts a PMT type -> useful description.
     """
-    active, pmt_type = pmt_type & 0x1, pmt_type & 0xfe
+    active, pmt_type = pmt_type & 0x1, pmt_type & 0xfffe
 
-    if pmt_type == 0x03:
+    if pmt_type == 0x2:
         return "Normal"
-    elif pmt_type == 0x21:
-        return "Low Gain"
-    elif pmt_type == 0x41:
-        return "OWL"
+    elif pmt_type == 0x4:
+        return "Rope"
+    elif pmt_type == 0x8:
+        return "Neck"
     elif pmt_type == 0x10:
         return "FECD"
-    elif pmt_type == 0x09:
-        return "Neck"
-    elif pmt_type == 0x81:
+    elif pmt_type == 0x20:
+        return "Low Gain"
+    elif pmt_type == 0x40:
+        return "OWL"
+    elif pmt_type == 0x80:
         return "Butt"
+    elif pmt_type == 0x12:
+        return "Petal-less PMT"
     elif pmt_type == 0x00:
         return "No PMT"
     elif pmt_type == 0x100:
         return "HQE PMT"
     else:
-        return "Unknown type 0x%02x" % pmt_type
+        return "Unknown type 0x%04x" % pmt_type
 
 def get_channels(kwargs, limit=100):
     """

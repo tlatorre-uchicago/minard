@@ -183,7 +183,15 @@
                     </tr>
                     <tr>
                         <th>Type</th>
-                        <td>{{ pmt_type_hex_to_description(pmt_info['type']) }}</td>
+                        <td>{{ pmt_info['type'] | pmt_type_description }}</td>
+                    </tr>
+                    <tr>
+                        <th>Active</th>
+                        {% if pmt_info['type'] % 2 == 1 %}
+                            <td>Yes</td>
+                        {% else %}
+                            <td>No</td>
+                        {% endif %}
                     </tr>
                     <tr>
                         <th>x</th>
