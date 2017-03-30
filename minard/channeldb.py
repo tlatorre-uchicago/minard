@@ -41,10 +41,10 @@ def get_channels(kwargs, limit=100):
     # make sure all the values in kwargs are actual fields
     kwargs = dict(item for item in kwargs.items() if item[0] in fields)
 
-    query = "SELECT DISTINCT ON (crate, slot, channel) * FROM channeldb "
+    query = "SELECT * FROM current_channel_status "
     if len(kwargs):
         query += "WHERE %s " % (" AND ".join(["%s = %%(%s)s" % (item[0], item[0]) for item in kwargs.items()]))
-    query += "ORDER BY crate, slot, channel, timestamp DESC LIMIT %i" % limit
+    query += "ORDER BY crate, slot, channel LIMIT %i" % limit
 
     result = conn.execute(query, kwargs)
 
@@ -63,7 +63,7 @@ def get_channel_history(crate, slot, channel, limit=100):
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT * FROM channeldb WHERE crate = %s AND slot = %s AND channel = %s ORDER BY timestamp DESC LIMIT %s", (crate,slot,channel,limit))
+    result = conn.execute("SELECT * FROM channel_status WHERE crate = %s AND slot = %s AND channel = %s ORDER BY timestamp DESC LIMIT %s", (crate,slot,channel,limit))
 
     if result is None:
         return None
@@ -98,7 +98,7 @@ def get_channel_status(crate, slot, channel):
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT * FROM channeldb WHERE crate = %s AND slot = %s AND channel = %s ORDER BY timestamp DESC LIMIT 1", (crate,slot,channel))
+    result = conn.execute("SELECT * FROM channel_status WHERE crate = %s AND slot = %s AND channel = %s ORDER BY timestamp DESC LIMIT 1", (crate,slot,channel))
 
     if result is None:
         return None
@@ -120,5 +120,5 @@ def upload_channel_status(form):
     Upload a new channel status record in the database.
     """
     conn = engine.connect()
-    result = conn.execute("INSERT INTO channeldb (crate, slot, channel, pmt_removed, pmt_reinstalled, low_occupancy, zero_occupancy, screamer, bad_discriminator, no_n100, no_n20, no_esum, cable_pulled, bad_cable, resistor_pulled, disable_n100, disable_n20, bad_base_current, name, info) VALUES (%(crate)s, %(slot)s, %(channel)s, %(pmt_removed)s, %(pmt_reinstalled)s, %(low_occupancy)s, %(zero_occupancy)s, %(screamer)s, %(bad_discriminator)s, %(no_n100)s, %(no_n20)s, %(no_esum)s, %(cable_pulled)s, %(bad_cable)s, %(resistor_pulled)s, %(disable_n100)s, %(disable_n20)s, %(bad_base_current)s, %(name)s, %(info)s)", **form.data)
+    result = conn.execute("INSERT INTO channel_status (crate, slot, channel, pmt_removed, pmt_reinstalled, low_occupancy, zero_occupancy, screamer, bad_discriminator, no_n100, no_n20, no_esum, cable_pulled, bad_cable, resistor_pulled, disable_n100, disable_n20, bad_base_current, name, info) VALUES (%(crate)s, %(slot)s, %(channel)s, %(pmt_removed)s, %(pmt_reinstalled)s, %(low_occupancy)s, %(zero_occupancy)s, %(screamer)s, %(bad_discriminator)s, %(no_n100)s, %(no_n20)s, %(no_esum)s, %(cable_pulled)s, %(bad_cable)s, %(resistor_pulled)s, %(disable_n100)s, %(disable_n20)s, %(bad_base_current)s, %(name)s, %(info)s)", **form.data)
     return result
