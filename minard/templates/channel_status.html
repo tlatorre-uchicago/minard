@@ -214,6 +214,25 @@
                 </table>
                 {% endif %}
 	    </div>
+	    <div class="col-md-2">
+                <h3>Nominal Settings</h3>
+                {% if nominal_settings %}
+                <table class="table table-bordered">
+                    <tr>
+                        <th>N100</th>
+                        <td>{{ nominal_settings['n100'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>N20</th>
+                        <td>{{ nominal_settings['n20'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>Sequencer</th>
+                        <td>{{ nominal_settings['sequencer'] }}</td>
+                    </tr>
+                </table>
+                {% endif %}
+	    </div>
 	</div>
     </div>
 {% endblock %}

@@ -21,7 +21,7 @@ import detector_state
 import pcadb
 import ecadb
 import nlrat
-from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info
+from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
 
 TRIGGER_NAMES = \
 ['100L',
@@ -100,7 +100,8 @@ def channel_status():
     channel = request.args.get("channel", 0, type=int)
     results = get_channel_history(crate, slot, channel)
     pmt_info = get_pmt_info(crate, slot, channel)
-    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info)
+    nominal_settings = get_nominal_settings(crate, slot, channel)
+    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings)
 
 @app.route('/update-channel-status', methods=["GET", "POST"])
 def update_channel_status():

@@ -129,6 +129,22 @@ def get_pmt_info(crate, slot, channel):
 
     return dict(zip(keys,row))
 
+def get_nominal_settings(crate, slot, channel):
+    """
+    Returns a dictionary of the current nominal settings for a single channel in the detector.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM current_nominal_settings WHERE crate = %s AND slot = %s AND channel = %s", (crate,slot,channel))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    row = result.fetchone()
+
+    return dict(zip(keys,row))
+
 def get_channel_status(crate, slot, channel):
     """
     Returns a dictionary of the channel status for a single channel in the detector.
