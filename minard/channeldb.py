@@ -1,5 +1,5 @@
 from wtforms import Form, BooleanField, StringField, validators, IntegerField
-from detector_state import engine
+from .detector_state import engine
 from .views import app
 
 class ChannelStatusForm(Form):
@@ -88,14 +88,19 @@ def get_channels(kwargs, limit=100):
 
     return [dict(zip(keys,row)) for row in rows]
 
-def get_channel_history(crate, slot, channel, limit=100):
+def get_channel_history(crate, slot, channel, limit=None):
     """
     Returns a list of the channel statuses for a single channel in the
     detector. `limit` is the maximum number of records to return.
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT * FROM channel_status WHERE crate = %s AND slot = %s AND channel = %s ORDER BY timestamp DESC LIMIT %s", (crate,slot,channel,limit))
+    query = "SELECT * FROM channel_status WHERE crate = %s AND slot = %s AND channel = %s ORDER BY timestamp DESC"
+
+    if limit is not None:
+        query += " LIMIT %i" % limit
+
+    result = conn.execute(query, (crate,slot,channel))
 
     if result is None:
         return None
@@ -130,7 +135,7 @@ def get_channel_status(crate, slot, channel):
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT * FROM channel_status WHERE crate = %s AND slot = %s AND channel = %s ORDER BY timestamp DESC LIMIT 1", (crate,slot,channel))
+    result = conn.execute("SELECT * FROM current_channel_status WHERE crate = %s AND slot = %s AND channel = %s", (crate,slot,channel))
 
     if result is None:
         return None

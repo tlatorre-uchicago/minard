@@ -21,7 +21,7 @@ import detector_state
 import pcadb
 import ecadb
 import nlrat
-from channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info
+from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info
 
 TRIGGER_NAMES = \
 ['100L',
@@ -98,8 +98,7 @@ def channel_status():
     crate = request.args.get("crate", 0, type=int)
     slot = request.args.get("slot", 0, type=int)
     channel = request.args.get("channel", 0, type=int)
-    limit = request.args.get("limit", 100, type=int)
-    results = get_channel_history(crate, slot, channel, limit)
+    results = get_channel_history(crate, slot, channel)
     pmt_info = get_pmt_info(crate, slot, channel)
     return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info)
 
@@ -116,8 +115,9 @@ def update_channel_status():
         channel = request.args.get("channel", 0, type=int)
         try:
             form = get_channel_status_form(crate, slot, channel)
-            # don't add the name and info fields if they just go to the page.
+            # don't add the name, reason, or info fields if they just go to the page.
             form.name.data = None
+            form.reason.data = None
             form.info.data = None
         except Exception as e:
             form = ChannelStatusForm(crate=crate, slot=slot, channel=channel)
@@ -182,7 +182,6 @@ def state(run=None):
                            crates_state=crates_state,
                            trigger_scan=trigger_scan,
                            err=None)
-
 
 @app.route('/l2')
 def l2():
