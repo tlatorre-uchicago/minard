@@ -91,7 +91,7 @@ def status():
 def channel_database():
     limit = request.args.get("limit", 100, type=int)
     results = get_channels(request.args, limit)
-    return render_template('channel_database.html', results=results)
+    return render_template('channel_database.html', results=results, limit=limit)
 
 @app.route('/channel-status')
 def channel_status():

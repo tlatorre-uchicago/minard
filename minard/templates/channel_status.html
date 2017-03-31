@@ -220,15 +220,15 @@
                 <table class="table table-bordered">
                     <tr>
                         <th>N100</th>
-                        <td>{{ nominal_settings['n100'] }}</td>
+                        <td>{% if nominal_settings['n100'] %}On{% else %}Off{% endif %}</td>
                     </tr>
                     <tr>
                         <th>N20</th>
-                        <td>{{ nominal_settings['n20'] }}</td>
+                        <td>{% if nominal_settings['n20'] %}On{% else %}Off{% endif %}</td>
                     </tr>
                     <tr>
                         <th>Sequencer</th>
-                        <td>{{ nominal_settings['sequencer'] }}</td>
+                        <td>{% if nominal_settings['sequencer'] %}Enabled{% else %}Disabled{% endif %}</td>
                     </tr>
                 </table>
                 {% endif %}
