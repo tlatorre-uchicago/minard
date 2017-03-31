@@ -13,7 +13,7 @@
 	</div>
 	{% endif %}
 	<div class="row">
-	    <div class="col-md-12">
+	    <div class="col-md-12" style="margin-bottom:20px">
                 <label for="crate">Crate</label>
                 <select id="crate">
                     <option value="-1">Anything</option>
@@ -96,7 +96,7 @@
                     <option value="31">31</option>
                 </select>
                 and
-                <select id="setting">
+                <select id="setting1">
                     <option value="pmt_removed">PMT Removed</option>
                     <option value="pmt_reinstalled">PMT Reinstalled</option>
                     <option value="low_occupancy">Low Occ.</option>
@@ -112,10 +112,41 @@
                     <option value="bad_base_current">Bad Base Current</option>
                 </select>
                 is
-                <select id="bool">
+                <select id="bool1">
                     <option value="-1">Anything</option>
                     <option value="true">True</option>
                     <option value="false">False</option>
+                </select>
+                and
+                <select id="setting2">
+                    <option value="pmt_removed">PMT Removed</option>
+                    <option value="pmt_reinstalled">PMT Reinstalled</option>
+                    <option value="low_occupancy">Low Occ.</option>
+                    <option value="zero_occupancy">Zero Occ.</option>
+                    <option value="screamer">Screamer</option>
+                    <option value="bad_discriminator">Bad Disc.</option>
+                    <option value="no_n100">No N100</option>
+                    <option value="no_n20">No N20</option>
+                    <option value="no_esum">No ESUM</option>
+                    <option value="cable_pulled">Cable pulled</option>
+                    <option value="bad_cable">Bad Cable</option>
+                    <option value="resistor_pulled">Resistor pulled</option>
+                    <option value="bad_base_current">Bad Base Current</option>
+                </select>
+                is
+                <select id="bool2">
+                    <option value="-1">Anything</option>
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                </select>
+                Number of Results
+                <select id="limit">
+                    <option value="10">10</option>
+                    <option value="100">100</option>
+                    <option value="200">200</option>
+                    <option value="300">300</option>
+                    <option value="400">400</option>
+                    <option value="500">500</option>
                 </select>
             </div>
         </div>
@@ -176,6 +207,7 @@
 {% endblock %}
 {% block script %}
     <script>
+        var setting = 0;
         for (var key in url_params) {
             if (url_params.hasOwnProperty(key)) {
                 if (key == 'crate') {
@@ -184,14 +216,22 @@
                     document.getElementById("slot").value = url_params.slot;
                 } else if (key == 'channel') {
                     document.getElementById("channel").value = url_params.channel;
-                } else if ($.map(document.getElementById("setting").options, function(option) { return option.value }).indexOf(key) >= 0) {
-                    document.getElementById("setting").value = key;
-                    document.getElementById("bool").value = url_params[key];
+                } else if (key == 'limit') {
+                    document.getElementById("limit").value = url_params.limit;
+                } else if ($.map(document.getElementById("setting1").options, function(option) { return option.value }).indexOf(key) >= 0) {
+                    if (setting == 0) {
+                        document.getElementById("setting1").value = key;
+                        document.getElementById("bool1").value = url_params[key];
+                    } else if (setting == 1) {
+                        document.getElementById("setting2").value = key;
+                        document.getElementById("bool2").value = url_params[key];
+                    }
+                    setting += 1;
                 }
             }
         }
-        $("#setting").on("change", function() {
-            if (document.getElementById("bool").value == -1) return;
+        $("#setting1").on("change", function() {
+            if (document.getElementById("bool1").value == -1) return;
 
             var params = {};
             if (document.getElementById("crate").value != -1) {
@@ -203,16 +243,24 @@
             if (document.getElementById("channel").value != -1) {
                 params['channel'] = document.getElementById("channel").value;
             }
-            if (document.getElementById("bool").value != -1) {
-                params[document.getElementById("setting").value] = document.getElementById("bool").value;
+            if (document.getElementById("bool1").value != -1) {
+                params[document.getElementById("setting1").value] = document.getElementById("bool1").value;
             }
+            if (document.getElementById("bool2").value != -1) {
+                params[document.getElementById("setting2").value] = document.getElementById("bool2").value;
+            }
+
+            params["limit"] = document.getElementById("limit").value;
+
             if (Object.keys(params).length > 0) {
                 window.location.replace($SCRIPT_ROOT + "/channel-database?" + $.param(params));
             } else {
                 window.location.replace($SCRIPT_ROOT + "/channel-database");
             }
         });
-        $("#crate, #slot, #channel, #bool").on("change", function() {
+        $("#setting2").on("change", function() {
+            if (document.getElementById("bool2").value == -1) return;
+
             var params = {};
             if (document.getElementById("crate").value != -1) {
                 params['crate'] = document.getElementById("crate").value;
@@ -223,9 +271,41 @@
             if (document.getElementById("channel").value != -1) {
                 params['channel'] = document.getElementById("channel").value;
             }
-            if (document.getElementById("bool").value != -1) {
-                params[document.getElementById("setting").value] = document.getElementById("bool").value;
+            if (document.getElementById("bool1").value != -1) {
+                params[document.getElementById("setting1").value] = document.getElementById("bool1").value;
             }
+            if (document.getElementById("bool2").value != -1) {
+                params[document.getElementById("setting2").value] = document.getElementById("bool2").value;
+            }
+
+            params["limit"] = document.getElementById("limit").value;
+
+            if (Object.keys(params).length > 0) {
+                window.location.replace($SCRIPT_ROOT + "/channel-database?" + $.param(params));
+            } else {
+                window.location.replace($SCRIPT_ROOT + "/channel-database");
+            }
+        });
+        $("#crate, #slot, #channel, #bool1, #bool2, #limit").on("change", function() {
+            var params = {};
+            if (document.getElementById("crate").value != -1) {
+                params['crate'] = document.getElementById("crate").value;
+            }
+            if (document.getElementById("slot").value != -1) {
+                params['slot'] = document.getElementById("slot").value;
+            }
+            if (document.getElementById("channel").value != -1) {
+                params['channel'] = document.getElementById("channel").value;
+            }
+            if (document.getElementById("bool1").value != -1) {
+                params[document.getElementById("setting1").value] = document.getElementById("bool1").value;
+            }
+            if (document.getElementById("bool2").value != -1) {
+                params[document.getElementById("setting2").value] = document.getElementById("bool2").value;
+            }
+
+            params["limit"] = document.getElementById("limit").value;
+
             if (Object.keys(params).length > 0) {
                 window.location.replace($SCRIPT_ROOT + "/channel-database?" + $.param(params));
             } else {
