@@ -131,6 +131,38 @@
                         {% endfor %}
                     {% endif %}
                     </div>
+                    {% if form.reason.errors %}
+                    <div class="form-group has-error" id="reason">
+                    {% else %}
+                    <div class="form-group" id="reason">
+                    {% endif %}
+                        <label for="reason">{{ form.reason.label }}</label>
+                        <select class="form-control" name="reason">
+                            <option value=""></option>
+                            <option value="installed">install feed resistor</option>
+                            <option value="DEB">(DEB) Dry End Breakdown, no light</option>
+                            <option value="WEB">(WEB) Wet End Breakdown & flat tac</option>
+                            <option value="FWEB">(FWEB) Friendly WEB, intermittent</option>
+                            <option value="GLOW">(GLOW) glowing tube, special form of WEB</option>
+                            <option value="SWEB">(SWEB) Silent WEB, low occupancy with blown feed resistor</option>
+                            <option value="OCC">(OCC) low occupancy - <15%, feed resistor OK</option>
+                            <option value="ZOCC">(ZOCC) ~zero occupancy, feed resistor, eca, base_i all OK</option>
+                            <option value="BASE">(BASE) bad base, resistance/current</option>
+                            <option value="ECA">(ECA) ~zero events in eca runs</option>
+                            <option value="DIG">(DIG) digital, other than ECA</option>
+                            <option value="SHARK">(SHARK) sharkfin, repetitive esum pulses</option>
+                            <option value="SEI">(SEI) seismic event</option>
+                            <option value="SCR">(SCR) screamer</option>
+                            <option value="PMTIC">(PMTIC) problem with pmtic</option>
+                            <option value="ROPE">(ROPE) rope pmt removed</option>
+                            <option value="NOPMT">(NOPMT) pmt (non-rope) removed</option>
+                        </select>
+                    {% if form.reason.errors %}
+                        {% for error in form.reason.errors %}
+                            <span class="help-block">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                    </div>
                     {% if form.info.errors %}
                     <div class="form-group has-error">
                     {% else %}
@@ -190,6 +222,18 @@
         $("#crate").val("{{ form.crate.data }}");
         $("#slot").val("{{ form.slot.data }}");
         $("#channel").val("{{ form.channel.data }}");
+        if ($('[name=resistor_pulled]').prop("checked") == {{ status.resistor_pulled | tojson }}) {
+            $("#reason").hide();
+        } else {
+            $("#reason").show();
+        }
+        $('[name=resistor_pulled]').on("change", function() {
+            if ($('[name=resistor_pulled]').prop("checked") == {{ status.resistor_pulled | tojson }}) {
+                $("#reason").hide();
+            } else {
+                $("#reason").show();
+            }
+        });
         function update_page() {
             window.location.replace($SCRIPT_ROOT + "/update-channel-status?" + $.param({'crate': $('#crate').val(), 'slot': $('#slot').val(), 'channel': $('#channel').val()}));
         }

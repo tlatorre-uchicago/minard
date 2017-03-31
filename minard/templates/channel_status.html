@@ -14,7 +14,7 @@
 	{% endif %}
 	<div class="row">
 	    <div class="col-md-12">
-                <label for="crate">Crate</label>
+                Crate/Card/Channel
                 <select id="crate">
                     <option value="0">0</option>
                     <option value="1">1</option>
@@ -37,7 +37,7 @@
                     <option value="18">18</option>
                     <option value="19">19</option>
                 </select>
-                <label for="slot">Card</label>
+                /
                 <select id="slot">
                     <option value="0">0</option>
                     <option value="1">1</option>
@@ -57,7 +57,7 @@
                     <option value="15">15</option>
                     <option value="16">16</option>
                 </select>
-                <label for="channel">Channel</label>
+                /
                 <select id="channel">
                     <option value="0">0</option>
                     <option value="1">1</option>
@@ -124,6 +124,7 @@
 			    <th>Disable N20</th>
 			    <th>Bad Base Current</th>
 			    <th>Name</th>
+			    <th>Reason</th>
 			    <th>Info</th>
 			</tr>
 		    </thead>
@@ -146,6 +147,7 @@
 			{{ status(row['disable_n20']) }}
 			{{ status(row['bad_base_current']) }}
                         <td>{{ row['name'] }}</td>
+                        <td>{{ row['reason'] }}</td>
                         <td>{{ row['info'] }}</td>
 		    </tr>
 		    {% endfor %}

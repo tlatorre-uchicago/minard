@@ -107,6 +107,9 @@ def channel_status():
 def update_channel_status():
     if request.form:
         form = ChannelStatusForm(request.form)
+        crate = form.crate.data
+        slot = form.slot.data
+        channel = form.channel.data
     else:
         crate = request.args.get("crate", 0, type=int)
         slot = request.args.get("slot", 0, type=int)
@@ -119,14 +122,16 @@ def update_channel_status():
         except Exception as e:
             form = ChannelStatusForm(crate=crate, slot=slot, channel=channel)
 
+    channel_status = get_channel_status(crate, slot, channel)
+
     if request.method == "POST" and form.validate():
         try:
             upload_channel_status(form)
         except Exception as e:
-            return render_template('update_channel_status.html', form=form, error=str(e))
+            return render_template('update_channel_status.html', form=form, error=str(e), status=channel_status)
         flash("Successfully submitted", 'success')
         return redirect(url_for('channel_status', crate=form.crate.data, slot=form.slot.data, channel=form.channel.data))
-    return render_template('update_channel_status.html', form=form)
+    return render_template('update_channel_status.html', form=form, status=channel_status)
 
 @app.route('/state')
 @app.route('/state/')

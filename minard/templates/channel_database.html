@@ -13,10 +13,10 @@
 	</div>
 	{% endif %}
 	<div class="row">
-	    <div class="col-md-12" style="margin-bottom:20px">
+	    <div class="col-md-10" style="margin-bottom:20px">
                 <label for="crate">Crate</label>
                 <select id="crate">
-                    <option value="-1">Anything</option>
+                    <option value="-1">-</option>
                     <option value="0">0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -40,7 +40,7 @@
                 </select>
                 <label for="slot">Card</label>
                 <select id="slot">
-                    <option value="-1">Anything</option>
+                    <option value="-1">-</option>
                     <option value="0">0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -61,7 +61,7 @@
                 </select>
                 <label for="channel">Channel</label>
                 <select id="channel">
-                    <option value="-1">Anything</option>
+                    <option value="-1">-</option>
                     <option value="0">0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -113,7 +113,7 @@
                 </select>
                 is
                 <select id="bool1">
-                    <option value="-1">Anything</option>
+                    <option value="-1">-</option>
                     <option value="true">True</option>
                     <option value="false">False</option>
                 </select>
@@ -135,11 +135,13 @@
                 </select>
                 is
                 <select id="bool2">
-                    <option value="-1">Anything</option>
+                    <option value="-1">-</option>
                     <option value="true">True</option>
                     <option value="false">False</option>
                 </select>
-                Number of Results
+            </div>
+            <div class="col-md-2 text-right">
+                Results
                 <select id="limit">
                     <option value="10">10</option>
                     <option value="100">100</option>

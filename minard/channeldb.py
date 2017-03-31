@@ -22,6 +22,7 @@ class ChannelStatusForm(Form):
     disable_n20 =        BooleanField('Disable N20')
     bad_base_current =   BooleanField('Bad Base Current')
     name =               StringField('Name', [validators.Length(min=1)])
+    reason =             StringField('Reason')
     info =               StringField('Info', [validators.Length(min=1)])
 
 @app.template_filter('pmt_type_description')
@@ -151,5 +152,5 @@ def upload_channel_status(form):
     Upload a new channel status record in the database.
     """
     conn = engine.connect()
-    result = conn.execute("INSERT INTO channel_status (crate, slot, channel, pmt_removed, pmt_reinstalled, low_occupancy, zero_occupancy, screamer, bad_discriminator, no_n100, no_n20, no_esum, cable_pulled, bad_cable, resistor_pulled, disable_n100, disable_n20, bad_base_current, name, info) VALUES (%(crate)s, %(slot)s, %(channel)s, %(pmt_removed)s, %(pmt_reinstalled)s, %(low_occupancy)s, %(zero_occupancy)s, %(screamer)s, %(bad_discriminator)s, %(no_n100)s, %(no_n20)s, %(no_esum)s, %(cable_pulled)s, %(bad_cable)s, %(resistor_pulled)s, %(disable_n100)s, %(disable_n20)s, %(bad_base_current)s, %(name)s, %(info)s)", **form.data)
+    result = conn.execute("INSERT INTO channel_status (crate, slot, channel, pmt_removed, pmt_reinstalled, low_occupancy, zero_occupancy, screamer, bad_discriminator, no_n100, no_n20, no_esum, cable_pulled, bad_cable, resistor_pulled, disable_n100, disable_n20, bad_base_current, name, reason, info) VALUES (%(crate)s, %(slot)s, %(channel)s, %(pmt_removed)s, %(pmt_reinstalled)s, %(low_occupancy)s, %(zero_occupancy)s, %(screamer)s, %(bad_discriminator)s, %(no_n100)s, %(no_n20)s, %(no_esum)s, %(cable_pulled)s, %(bad_cable)s, %(resistor_pulled)s, %(disable_n100)s, %(disable_n20)s, %(bad_base_current)s, %(name)s, %(reason)s, %(info)s)", **form.data)
     return result
