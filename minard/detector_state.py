@@ -6,7 +6,7 @@ engine = sqlalchemy.create_engine('postgresql://%s:%s@%s:%i/%s' %
                                   app.config['DB_HOST'], app.config['DB_PORT'],
                                   app.config['DB_NAME']))
 
-from .channeldb import get_nominal_settings_for_run
+from .channeldb import get_nominal_settings_for_run, get_pmt_types
 
 def get_detector_state(run=0):
     """
@@ -54,27 +54,63 @@ def get_detector_state_check(run=0):
     nominal_settings = get_nominal_settings_for_run(run)
 
     channels = []
+    messages = []
 
     for crate in range(20):
         if detector_state[crate] is None:
+            messages.append("Crate %i is off" % crate)
             continue
 
         hv_relay_mask1 = detector_state[crate]['hv_relay_mask1']
         hv_relay_mask2 = detector_state[crate]['hv_relay_mask2']
 
         if hv_relay_mask1 is None or hv_relay_mask2 is None:
+            messages.append("Crate %i relay settings are unknown" % crate)
             continue
 
         hv_relay_mask = hv_relay_mask2 << 32 | hv_relay_mask1
         for slot in range(16):
+            if detector_state[crate][slot] is None:
+                # slot is not in
+                messages.append("Crate %i, slot %i is offline" % (crate, slot))
+                continue
             for channel in range(32):
                 hv_enabled = hv_relay_mask & (1 << (slot*4 + channel//8))
-                if hv_enabled and detector_state[crate][slot]['tr100_mask'][channel]:
-                    channels.append((crate,slot,channel,"HV relay is open, but N100 triggers are on"))
-                if hv_enabled and detector_state[crate][slot]['tr20_mask'][channel]:
-                    channels.append((crate,slot,channel,"HV relay is open, but N20 triggers are on"))
+                if detector_state[crate][slot]['tr100_mask'] is None:
+                    messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
+                    continue
+                if detector_state[crate][slot]['tr20_mask'] is None:
+                    messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
+                    continue
+                if detector_state[crate][slot]['disable_mask'] is None:
+                    messages.append("sequencer settings unknown for crate %i, slot %i" % (crate, slot))
+                    continue
+                n100 = bool(detector_state[crate][slot]['tr100_mask'][channel])
+                n20 = bool(detector_state[crate][slot]['tr20_mask'][channel])
+                sequencer = bool(detector_state[crate][slot]['disable_mask'] & (1 << channel))
+                try:
+                    n100_nominal, n20_nominal, sequencer_nominal = nominal_settings[crate][slot][channel]
+                except KeyError:
+                    messages.append("unable to get nominal settings for %i/%i/%i" % (crate, slot, channel))
+                    continue
 
-    return channels
+                if not hv_enabled:
+                    if n100:
+                        channels.append((crate,slot,channel,"HV relay is open, but N100 trigger is on"))
+                    if n20:
+                        channels.append((crate,slot,channel,"HV relay is open, but N20 trigger is on"))
+                else:
+                    if n100_nominal != n100:
+                        channels.append((crate, slot, channel, "N100 trigger is %s, but nominal settings are %s" % \
+                            ("on" if n100 else "off", "on" if n100_nominal else "off")))
+                    if n20_nominal != n20:
+                        channels.append((crate, slot, channel, "N20 trigger is %s, but nominal settings are %s" % \
+                            ("on" if n20 else "off", "on" if n20_nominal else "off")))
+                    if sequencer_nominal != sequencer:
+                        channels.append((crate, slot, channel, "sequencer is %s, but nominal settings are %s" % \
+                            ("on" if sequencer else "off", "on" if sequencer_nominal else "off")))
+
+    return messages, channels
 
 def get_nhit_monitor_thresholds(limit=100):
     """

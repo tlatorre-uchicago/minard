@@ -129,6 +129,30 @@ def get_pmt_info(crate, slot, channel):
 
     return dict(zip(keys,row))
 
+def get_pmt_types():
+    """
+    Returns a list of the pmt types for all channels.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT crate, slot, channel, type FROM pmt_info")
+
+    if result is None:
+        return None
+
+    rows = result.fetchall()
+
+    pmt_info = {}
+    for row in rows:
+        crate, slot, channel, type = row
+        if crate not in pmt_info:
+            pmt_info[crate] = {}
+        if slot not in pmt_info[crate]:
+            pmt_info[crate][slot] = {}
+        pmt_info[crate][slot][channel] = type
+
+    return pmt_info
+
 def get_nominal_settings_for_run(run=0):
     """
     Returns a dictionary of the nominal settings for all the channels in the
@@ -136,7 +160,11 @@ def get_nominal_settings_for_run(run=0):
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) * FROM nominal_settings WHERE timestamp < (SELECT timestamp FROM run_state WHERE run = %s) ORDER BY crate, slot, channel, timestamp DESC", (run,))
+    if run == 0:
+        # current nominal settings
+        result = conn.execute("SELECT crate, slot, channel, n100, n20, sequencer FROM current_nominal_settings")
+    else:
+        result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) crate, slot, channel, n100, n20, sequencer FROM nominal_settings WHERE timestamp < (SELECT timestamp FROM run_state WHERE run = %s) ORDER BY crate, slot, channel, timestamp DESC", (run,))
 
     if result is None:
         return None
@@ -144,7 +172,16 @@ def get_nominal_settings_for_run(run=0):
     keys = result.keys()
     rows = result.fetchall()
 
-    return [dict(zip(keys,row)) for row in rows]
+    channels = {}
+    for row in rows:
+        crate, slot, channel, n100, n20, sequencer = row
+        if crate not in channels:
+            channels[crate] = {}
+        if slot not in channels[crate]:
+            channels[crate][slot] = {}
+        channels[crate][slot][channel] = n100, n20, sequencer
+
+    return channels
 
 def get_nominal_settings(crate, slot, channel):
     """
