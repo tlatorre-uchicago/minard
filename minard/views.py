@@ -22,6 +22,7 @@ import pcadb
 import ecadb
 import nlrat
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
+import re
 
 TRIGGER_NAMES = \
 ['100L',
@@ -87,12 +88,28 @@ def timefmt(timestamp):
 def status():
     return render_template('status.html', programs=PROGRAMS)
 
+def get_daq_log_warnings(run):
+    warnings = []
+    with open(os.path.join(app.config["DAQ_LOG_DIR"], "daq_%08i.log" % run)) as f:
+        for line in f:
+            # match the log level
+            match = re.match('.+? ([.\-*#])', line)
+
+            if match and match.group(1) == '#':
+                warnings.append(line)
+    return warnings
+
 @app.route('/detector-state-check')
 @app.route('/detector-state-check/<int:run>')
 def detector_state_check(run=0):
+    error = None
     messages, channels = detector_state.get_detector_state_check(run)
     alarms = detector_state.get_alarms(run)
-    return render_template('detector_state_check.html', run=run, messages=messages, channels=channels, alarms=alarms)
+    try:
+        warnings = get_daq_log_warnings(run)
+    except IOError:
+        error = "Unable to find daq log file."
+    return render_template('detector_state_check.html', run=run, messages=messages, channels=channels, alarms=alarms, warnings=warnings, error=error)
 
 @app.route('/channel-database')
 def channel_database():
