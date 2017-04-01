@@ -89,8 +89,9 @@ def status():
 
 @app.route('/detector-state-check')
 @app.route('/detector-state-check/<int:run>')
-def detector_state_check(run=None):
-    return render_template('detector_state_check.html')
+def detector_state_check(run=0):
+    channels = detector_state.get_detector_state_check(run)
+    return render_template('detector_state_check.html', run=run, channels=channels)
 
 @app.route('/channel-database')
 def channel_database():

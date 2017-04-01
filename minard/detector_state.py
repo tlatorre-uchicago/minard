@@ -1,10 +1,12 @@
 import sqlalchemy
-from minard import app
+from .views import app
 
 engine = sqlalchemy.create_engine('postgresql://%s:%s@%s:%i/%s' %
                                  (app.config['DB_USER'], app.config['DB_PASS'],
                                   app.config['DB_HOST'], app.config['DB_PORT'],
                                   app.config['DB_NAME']))
+
+from .channeldb import get_nominal_settings_for_run
 
 def get_detector_state(run=0):
     """
@@ -46,6 +48,33 @@ def get_detector_state(run=0):
                 detector_state[crate][key] = row[i]
 
     return detector_state
+
+def get_detector_state_check(run=0):
+    detector_state = get_detector_state(run)
+    nominal_settings = get_nominal_settings_for_run(run)
+
+    channels = []
+
+    for crate in range(20):
+        if detector_state[crate] is None:
+            continue
+
+        hv_relay_mask1 = detector_state[crate]['hv_relay_mask1']
+        hv_relay_mask2 = detector_state[crate]['hv_relay_mask2']
+
+        if hv_relay_mask1 is None or hv_relay_mask2 is None:
+            continue
+
+        hv_relay_mask = hv_relay_mask2 << 32 | hv_relay_mask1
+        for slot in range(16):
+            for channel in range(32):
+                hv_enabled = hv_relay_mask & (1 << (slot*4 + channel//8))
+                if hv_enabled and detector_state[crate][slot]['tr100_mask'][channel]:
+                    channels.append((crate,slot,channel,"HV relay is open, but N100 triggers are on"))
+                if hv_enabled and detector_state[crate][slot]['tr20_mask'][channel]:
+                    channels.append((crate,slot,channel,"HV relay is open, but N20 triggers are on"))
+
+    return channels
 
 def get_nhit_monitor_thresholds(limit=100):
     """

@@ -129,6 +129,23 @@ def get_pmt_info(crate, slot, channel):
 
     return dict(zip(keys,row))
 
+def get_nominal_settings_for_run(run=0):
+    """
+    Returns a dictionary of the nominal settings for all the channels in the
+    detector for a given run.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) * FROM nominal_settings WHERE timestamp < (SELECT timestamp FROM run_state WHERE run = %s) ORDER BY crate, slot, channel, timestamp DESC", (run,))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    return [dict(zip(keys,row)) for row in rows]
+
 def get_nominal_settings(crate, slot, channel):
     """
     Returns a dictionary of the current nominal settings for a single channel in the detector.

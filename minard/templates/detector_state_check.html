@@ -14,6 +14,9 @@
         {% endif %}
         <div class="row">
             <div class="col-md-12">
+                {% for crate, card, channel, message in channels %}
+                    <p>{{ "%i/%i/%i - %s" % (crate, card, channel, message) }}
+                {% endfor %}
             </div>
         </div>
     </div>
