@@ -87,6 +87,11 @@ def timefmt(timestamp):
 def status():
     return render_template('status.html', programs=PROGRAMS)
 
+@app.route('/detector-state-check')
+@app.route('/detector-state-check/<int:run>')
+def detector_state_check(run=None):
+    return render_template('detector_state_check.html')
+
 @app.route('/channel-database')
 def channel_database():
     limit = request.args.get("limit", 100, type=int)
@@ -141,7 +146,7 @@ def state(run=None):
     try:
         run_state = detector_state.get_run_state(run)
         run = run_state['run']
-        # Have to put these in ISO foramt so flask doesn't mangle it later
+        # Have to put these in ISO format so flask doesn't mangle it later
         run_state['timestamp'] = run_state['timestamp'].isoformat()
         # end_timestamp isn't that important. If it's not there, it's ignored
         if(run_state['end_timestamp']):

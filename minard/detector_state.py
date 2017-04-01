@@ -31,6 +31,20 @@ def get_detector_state(run=0):
 
         detector_state[crate][slot] = dict(zip(keys,row))
 
+    result = conn.execute("SELECT * FROM crate_state WHERE run = %s", (run,))
+
+    if result is not None:
+        keys = result.keys()
+
+        for row in result:
+            crate = row[keys.index('crate')]
+
+            if detector_state[crate] is None:
+                detector_state[crate] = dict((i, None) for i in range(16))
+
+            for i, key in enumerate(keys):
+                detector_state[crate][key] = row[i]
+
     return detector_state
 
 def get_nhit_monitor_thresholds(limit=100):
