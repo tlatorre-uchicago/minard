@@ -13,17 +13,27 @@
         </div>
         {% endif %}
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-4">
+                <h2>Detector State</h2>
                 <ul>
                 {% for message in messages %}
                     <li>{{ message }}
                 {% endfor %}
                 </ul>
             </div>
-            <div class="col-md-12">
+            <div class="col-md-4">
+                <h2>Channel Settings</h2>
                 <ul>
                 {% for crate, card, channel, message in channels %}
                     <li>{{ "%i/%i/%i - %s" % (crate, card, channel, message) }}
+                {% endfor %}
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h2>Active Alarms</h2>
+                <ul>
+                {% for alarm in alarms %}
+                    <li>{{ alarm['description'] }}
                 {% endfor %}
                 </ul>
             </div>

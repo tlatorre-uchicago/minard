@@ -91,7 +91,8 @@ def status():
 @app.route('/detector-state-check/<int:run>')
 def detector_state_check(run=0):
     messages, channels = detector_state.get_detector_state_check(run)
-    return render_template('detector_state_check.html', run=run, messages=messages, channels=channels)
+    alarms = detector_state.get_alarms(run)
+    return render_template('detector_state_check.html', run=run, messages=messages, channels=channels, alarms=alarms)
 
 @app.route('/channel-database')
 def channel_database():

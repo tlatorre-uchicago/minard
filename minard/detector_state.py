@@ -49,6 +49,25 @@ def get_detector_state(run=0):
 
     return detector_state
 
+def get_alarms(run=0):
+    """
+    Returns a list of alarms that were active for a given run.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT timestamp, end_timestamp FROM run_state WHERE run = %s", (run,))
+    timestamp, end_timestamp = result.fetchone()
+
+    result = conn.execute("SELECT * FROM alarms, alarm_descriptions WHERE time < %s AND GREATEST(cleared, acknowledged) > %s AND alarms.alarm_id = alarm_descriptions.id", (end_timestamp, timestamp))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    return [dict(zip(keys,row)) for row in rows]
+
 def get_detector_state_check(run=0):
     detector_state = get_detector_state(run)
     nominal_settings = get_nominal_settings_for_run(run)
@@ -60,6 +79,10 @@ def get_detector_state_check(run=0):
         if detector_state[crate] is None:
             messages.append("Crate %i is off" % crate)
             continue
+
+        hv_on = detector_state[crate]['hv_a_on'] == True
+        if not hv_on:
+            messages.append("crate %i HV is off" % crate)
 
         hv_relay_mask1 = detector_state[crate]['hv_relay_mask1']
         hv_relay_mask2 = detector_state[crate]['hv_relay_mask2']
@@ -75,7 +98,7 @@ def get_detector_state_check(run=0):
                 messages.append("Crate %i, slot %i is offline" % (crate, slot))
                 continue
             for channel in range(32):
-                hv_enabled = hv_relay_mask & (1 << (slot*4 + channel//8))
+                hv_enabled = hv_relay_mask & (1 << (slot*4 + channel//8)) and hv_on
                 if detector_state[crate][slot]['tr100_mask'] is None:
                     messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
                     continue
