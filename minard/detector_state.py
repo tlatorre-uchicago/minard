@@ -55,10 +55,13 @@ def get_alarms(run=0):
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT timestamp, end_timestamp FROM run_state WHERE run = %s", (run,))
-    timestamp, end_timestamp = result.fetchone()
+    if run == 0:
+        result = conn.execute("SELECT * FROM active_alarms, alarm_descriptions WHERE active_alarms.alarm_id = alarm_descriptions.id")
+    else:
+        result = conn.execute("SELECT timestamp, end_timestamp FROM run_state WHERE run = %s", (run,))
+        timestamp, end_timestamp = result.fetchone()
 
-    result = conn.execute("SELECT * FROM alarms, alarm_descriptions WHERE time < %s AND GREATEST(cleared, acknowledged) > %s AND alarms.alarm_id = alarm_descriptions.id", (end_timestamp, timestamp))
+        result = conn.execute("SELECT * FROM alarms, alarm_descriptions WHERE time < %s AND GREATEST(cleared, acknowledged) > %s AND alarms.alarm_id = alarm_descriptions.id", (end_timestamp, timestamp))
 
     if result is None:
         return None
