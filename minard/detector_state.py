@@ -22,8 +22,12 @@ def get_detector_state(run=0):
         return None
 
     keys = result.keys()
+    rows = result.fetchall()
 
-    for row in result:
+    if len(rows) == 0:
+        return None
+
+    for row in rows:
         crate = row[keys.index('crate')]
 
         if detector_state[crate] is None:
@@ -51,17 +55,35 @@ def get_detector_state(run=0):
 
 def get_alarms(run=0):
     """
-    Returns a list of alarms that were active for a given run.
+    Returns a list of alarms that were active for a given run. If run is 0,
+    then return the currently active alarms. If there is no database entry for
+    the run, returns None.
     """
     conn = engine.connect()
 
     if run == 0:
-        result = conn.execute("SELECT * FROM active_alarms, alarm_descriptions WHERE active_alarms.alarm_id = alarm_descriptions.id")
+        result = conn.execute("SELECT * FROM active_alarms, alarm_descriptions "
+            "WHERE active_alarms.alarm_id = alarm_descriptions.id")
     else:
-        result = conn.execute("SELECT timestamp, end_timestamp FROM run_state WHERE run = %s", (run,))
-        timestamp, end_timestamp = result.fetchone()
+        # get the start and stop times of the run
+        result = conn.execute("SELECT timestamp, end_timestamp FROM run_state "
+            "WHERE run = %s", (run,))
 
-        result = conn.execute("SELECT * FROM alarms, alarm_descriptions WHERE time < %s AND GREATEST(cleared, acknowledged) > %s AND alarms.alarm_id = alarm_descriptions.id", (end_timestamp, timestamp))
+        row = result.fetchone()
+
+        if row is None:
+            return None
+
+        timestamp, end_timestamp = row
+
+        # select only alarms which were active sometime during the run
+        # to do this, we find any alarm whose initial time is before the end of
+        # the run and whose end time (cleared or acknowledged, whichever is
+        # greater) is after the start of the run.
+        result = conn.execute("SELECT * FROM alarms, alarm_descriptions "
+            "WHERE time < %s AND GREATEST(cleared, acknowledged) > %s AND "
+            "alarms.alarm_id = alarm_descriptions.id",
+            (end_timestamp, timestamp))
 
     if result is None:
         return None
@@ -73,6 +95,10 @@ def get_alarms(run=0):
 
 def get_detector_state_check(run=0):
     detector_state = get_detector_state(run)
+
+    if detector_state is None:
+        return None, None
+
     nominal_settings = get_nominal_settings_for_run(run)
 
     channels = []
@@ -97,7 +123,6 @@ def get_detector_state_check(run=0):
         hv_relay_mask = hv_relay_mask2 << 32 | hv_relay_mask1
         for slot in range(16):
             if detector_state[crate][slot] is None:
-                # slot is not in
                 messages.append("Crate %i, slot %i is offline" % (crate, slot))
                 continue
             for channel in range(32):
@@ -122,9 +147,15 @@ def get_detector_state_check(run=0):
 
                 if not hv_enabled:
                     if n100:
-                        channels.append((crate,slot,channel,"HV relay is open, but N100 trigger is on"))
+                        if hv_on:
+                            channels.append((crate,slot,channel,"HV relay is open, but N100 trigger is on"))
+                        else:
+                            channels.append((crate,slot,channel,"HV is off, but N100 trigger is on"))
                     if n20:
-                        channels.append((crate,slot,channel,"HV relay is open, but N20 trigger is on"))
+                        if hv_on:
+                            channels.append((crate,slot,channel,"HV relay is open, but N20 trigger is on"))
+                        else:
+                            channels.append((crate,slot,channel,"HV is off, but N20 trigger is on"))
                 else:
                     if n100_nominal != n100:
                         channels.append((crate, slot, channel, "N100 trigger is %s, but nominal settings are %s" % \

@@ -24,7 +24,8 @@
             </div>
             <div class="col-md-4">
                 <a href="{{ url_for('state', run=run) }}"><h2>Detector State</h2></a>
-                {% if messages | length == 0 %}
+                {% if messages is none %}
+                {% elif messages | length == 0 %}
                     <p>No issues!
                 {% else %}
                     <ul>
@@ -36,7 +37,8 @@
             </div>
             <div class="col-md-4">
                 <h2>Channel Settings</h2>
-                {% if channels | length == 0 %}
+                {% if channels is none %}
+                {% elif channels | length == 0 %}
                     <p>No issues!
                 {% else %}
                     <ul>
@@ -48,7 +50,8 @@
             </div>
             <div class="col-md-4">
                 <h2>Active Alarms</h2>
-                {% if alarms | length == 0 %}
+                {% if alarms is none %}
+                {% elif alarms | length == 0 %}
                     <p>No alarms!
                 {% else %}
                 <ul>
@@ -60,16 +63,19 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-4">
-                <h2>DAQ Log Warnings</h2>
-                {% if warnings | length == 0 %}
-                    <p>No warnings!
-                {% else %}
-                    {% for line in warnings %}
-                        <p>{{ line }}
-                    {% endfor %}
-                {% endif %}
-            </div>
+            {% if run != 0 %}
+                <div class="col-md-4">
+                    <h2>DAQ Log Warnings</h2>
+                    {% if warnings is none %}
+                    {% elif warnings | length == 0 %}
+                        <p>No warnings!
+                    {% else %}
+                        {% for line in warnings %}
+                            <p>{{ line }}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %}
