@@ -1,5 +1,5 @@
-from wtforms import Form, BooleanField, StringField, validators, IntegerField
-from .detector_state import engine
+from wtforms import Form, BooleanField, StringField, validators, IntegerField, PasswordField
+from .db import engine
 from .views import app
 import psycopg2
 import psycopg2.extensions
@@ -29,7 +29,7 @@ class ChannelStatusForm(Form):
     name =               StringField('Name', [validators.Length(min=1)])
     reason =             StringField('Reason')
     info =               StringField('Info', [validators.Length(min=1)])
-    password =           StringField('Password', [validators.Length(min=1)])
+    password =           PasswordField('Password')
 
 @app.template_filter('pmt_type_description')
 def pmt_type_description(pmt_type):
@@ -101,7 +101,9 @@ def get_channel_history(crate, slot, channel, limit=None):
     """
     conn = engine.connect()
 
-    query = "SELECT * FROM channel_status WHERE crate = %s AND slot = %s AND channel = %s ORDER BY timestamp DESC"
+    query = "SELECT * FROM channel_status " + \
+        "WHERE crate = %s AND slot = %s AND channel = %s " + \
+        "ORDER BY timestamp DESC"
 
     if limit is not None:
         query += " LIMIT %i" % limit
@@ -122,7 +124,9 @@ def get_pmt_info(crate, slot, channel):
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT * FROM pmt_info WHERE crate = %s AND slot = %s AND channel = %s", (crate, slot, channel))
+    result = conn.execute("SELECT * FROM pmt_info "
+        "WHERE crate = %s AND slot = %s AND channel = %s",
+        (crate, slot, channel))
 
     if result is None:
         return None
@@ -150,12 +154,12 @@ def get_pmt_types():
 
     pmt_info = {}
     for row in rows:
-        crate, slot, channel, type = row
+        crate, slot, channel, pmt_type = row
         if crate not in pmt_info:
             pmt_info[crate] = {}
         if slot not in pmt_info[crate]:
             pmt_info[crate][slot] = {}
-        pmt_info[crate][slot][channel] = type
+        pmt_info[crate][slot][channel] = pmt_type
 
     return pmt_info
 
@@ -168,9 +172,13 @@ def get_nominal_settings_for_run(run=0):
 
     if run == 0:
         # current nominal settings
-        result = conn.execute("SELECT crate, slot, channel, n100, n20, sequencer FROM current_nominal_settings")
+        result = conn.execute("SELECT crate, slot, channel, n100, n20, "
+            "sequencer FROM current_nominal_settings")
     else:
-        result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) crate, slot, channel, n100, n20, sequencer FROM nominal_settings WHERE timestamp < (SELECT timestamp FROM run_state WHERE run = %s) ORDER BY crate, slot, channel, timestamp DESC", (run,))
+        result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) "
+            "crate, slot, channel, n100, n20, sequencer FROM nominal_settings "
+            "WHERE timestamp < (SELECT timestamp FROM run_state WHERE run = %s) "
+            "ORDER BY crate, slot, channel, timestamp DESC", (run,))
 
     if result is None:
         return None
@@ -191,11 +199,14 @@ def get_nominal_settings_for_run(run=0):
 
 def get_nominal_settings(crate, slot, channel):
     """
-    Returns a dictionary of the current nominal settings for a single channel in the detector.
+    Returns a dictionary of the current nominal settings for a single channel
+    in the detector.
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT * FROM current_nominal_settings WHERE crate = %s AND slot = %s AND channel = %s", (crate,slot,channel))
+    result = conn.execute("SELECT * FROM current_nominal_settings "
+        "WHERE crate = %s AND slot = %s AND channel = %s",
+        (crate,slot,channel))
 
     if result is None:
         return None
@@ -207,11 +218,14 @@ def get_nominal_settings(crate, slot, channel):
 
 def get_channel_status(crate, slot, channel):
     """
-    Returns a dictionary of the channel status for a single channel in the detector.
+    Returns a dictionary of the channel status for a single channel in the
+    detector.
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT * FROM current_channel_status WHERE crate = %s AND slot = %s AND channel = %s", (crate,slot,channel))
+    result = conn.execute("SELECT * FROM current_channel_status "
+        "WHERE crate = %s AND slot = %s AND channel = %s",
+        (crate,slot,channel))
 
     if result is None:
         return None
@@ -232,9 +246,21 @@ def upload_channel_status(form):
     """
     Upload a new channel status record in the database.
     """
-    conn = psycopg2.connect("dbname='%s' user='detector_expert' host='%s' password='%s'" % \
-        (app.config['DB_NAME'], app.config['DB_HOST'], form.password.data))
+    conn = psycopg2.connect(dbname=app.config['DB_NAME'],
+                            user=app.config['DB_EXPERT_USER'],
+                            host=app.config['DB_HOST'],
+                            password=form.password.data)
     conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO channel_status (crate, slot, channel, pmt_removed, pmt_reinstalled, low_occupancy, zero_occupancy, screamer, bad_discriminator, no_n100, no_n20, no_esum, cable_pulled, bad_cable, resistor_pulled, disable_n100, disable_n20, bad_base_current, name, reason, info) VALUES (%(crate)s, %(slot)s, %(channel)s, %(pmt_removed)s, %(pmt_reinstalled)s, %(low_occupancy)s, %(zero_occupancy)s, %(screamer)s, %(bad_discriminator)s, %(no_n100)s, %(no_n20)s, %(no_esum)s, %(cable_pulled)s, %(bad_cable)s, %(resistor_pulled)s, %(disable_n100)s, %(disable_n20)s, %(bad_base_current)s, %(name)s, %(reason)s, %(info)s)", form.data)
+    cursor.execute("INSERT INTO channel_status "
+        "(crate, slot, channel, pmt_removed, pmt_reinstalled, low_occupancy, "
+        "zero_occupancy, screamer, bad_discriminator, no_n100, no_n20, "
+        "no_esum, cable_pulled, bad_cable, resistor_pulled, disable_n100, "
+        "disable_n20, bad_base_current, name, reason, info) "
+        "VALUES (%(crate)s, %(slot)s, %(channel)s, %(pmt_removed)s, "
+        "%(pmt_reinstalled)s, %(low_occupancy)s, %(zero_occupancy)s, "
+        "%(screamer)s, %(bad_discriminator)s, %(no_n100)s, %(no_n20)s, "
+        "%(no_esum)s, %(cable_pulled)s, %(bad_cable)s, %(resistor_pulled)s, "
+        "%(disable_n100)s, %(disable_n20)s, %(bad_base_current)s, %(name)s, "
+        "%(reason)s, %(info)s)", form.data)

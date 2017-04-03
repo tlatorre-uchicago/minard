@@ -1,11 +1,5 @@
-import sqlalchemy
 from .views import app
-
-engine = sqlalchemy.create_engine('postgresql://%s:%s@%s:%i/%s' %
-                                 (app.config['DB_USER'], app.config['DB_PASS'],
-                                  app.config['DB_HOST'], app.config['DB_PORT'],
-                                  app.config['DB_NAME']))
-
+from .db import engine
 from .channeldb import get_nominal_settings_for_run, get_pmt_types
 
 def get_detector_state(run=0):
