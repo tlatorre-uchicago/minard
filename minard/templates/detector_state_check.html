@@ -28,6 +28,9 @@
 		    </ul>
 		</center>
 	    </div>
+            <div class="col-md-3 text-right">
+                Go to run: <input type="number" id="run_number" placeholder="{{ run }}"></input>
+            </div>
         </div>
         <div class="row">
             <div class="col-md-4">
@@ -87,3 +90,9 @@
         </div>
     </div>
 {% endblock %}
+{% block script %}
+    <script>
+        $("#run_number").keydown(function (e) {
+            if (e.keyCode == 13) {
+                // Pressed Enter
+                
