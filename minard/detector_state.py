@@ -130,7 +130,7 @@ def get_detector_state_check(run=0):
                 messages.append("crate %i, slot %i is offline" % (crate, slot))
                 continue
             for channel in range(32):
-                hv_enabled = hv_relay_mask & (1 << (slot*4 + channel//8)) and hv_on
+                hv_enabled = hv_relay_mask & (1 << (slot*4 + (3-channel//8))) and hv_on
                 if detector_state[crate][slot]['tr100_mask'] is None:
                     messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
                     continue
