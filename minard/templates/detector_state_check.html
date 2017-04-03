@@ -13,15 +13,17 @@
         </div>
         {% endif %}
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-4 col-md-offset-4">
                 <center>
                     {% if run == 0 %}
-                        <h1>Current State</h1>
+                        <h1>Current State</h1><a href=""> (prev|next)</a>
                     {% else %}
                         <h1>Run {{ run }}</h2>
                     {% endif %}
                 </center>
             </div>
+        </div>
+        <div class="row">
             <div class="col-md-4">
                 <a href="{{ url_for('state', run=run) }}"><h2>Detector State</h2></a>
                 {% if messages is none %}

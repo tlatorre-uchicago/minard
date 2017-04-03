@@ -10,10 +10,9 @@ from .channeldb import get_nominal_settings_for_run, get_pmt_types
 
 def get_detector_state(run=0):
     """
-    Returns a dictionary of the crate settings for a given run.
+    Returns a dictionary of the crate settings for a given run. If there is no
+    row in the database for the run, returns None.
     """
-    detector_state = dict((i, None) for i in range(20))
-
     conn = engine.connect()
 
     result = conn.execute("SELECT * FROM detector_state WHERE run = %s", (run,))
@@ -26,6 +25,8 @@ def get_detector_state(run=0):
 
     if len(rows) == 0:
         return None
+
+    detector_state = dict((i, None) for i in range(20))
 
     for row in rows:
         crate = row[keys.index('crate')]
@@ -56,8 +57,8 @@ def get_detector_state(run=0):
 def get_alarms(run=0):
     """
     Returns a list of alarms that were active for a given run. If run is 0,
-    then return the currently active alarms. If there is no database entry for
-    the run, returns None.
+    then return the currently active alarms. If there is no row in the database
+    for the run, returns None.
     """
     conn = engine.connect()
 
@@ -94,6 +95,15 @@ def get_alarms(run=0):
     return [dict(zip(keys,row)) for row in rows]
 
 def get_detector_state_check(run=0):
+    """
+    Checks the detector state for a given run to see if there are any unknown
+    settings or triggers that should/shouldn't be on. Returns a tuple
+    (messages, channels) where messages is a list of messages of problems at
+    the crate/slot level and channels is a list of tuples of the form (crate,
+    slot, channel, message) for any channels which have triggers on when they
+    shouldn't be. If there is no row in the database for the given run, returns
+    (None, None).
+    """
     detector_state = get_detector_state(run)
 
     if detector_state is None:
@@ -106,7 +116,7 @@ def get_detector_state_check(run=0):
 
     for crate in range(20):
         if detector_state[crate] is None:
-            messages.append("Crate %i is off" % crate)
+            messages.append("crate %i is off" % crate)
             continue
 
         hv_on = detector_state[crate]['hv_a_on'] == True
@@ -117,13 +127,13 @@ def get_detector_state_check(run=0):
         hv_relay_mask2 = detector_state[crate]['hv_relay_mask2']
 
         if hv_relay_mask1 is None or hv_relay_mask2 is None:
-            messages.append("Crate %i relay settings are unknown" % crate)
+            messages.append("crate %i relay settings are unknown" % crate)
             continue
 
         hv_relay_mask = hv_relay_mask2 << 32 | hv_relay_mask1
         for slot in range(16):
             if detector_state[crate][slot] is None:
-                messages.append("Crate %i, slot %i is offline" % (crate, slot))
+                messages.append("crate %i, slot %i is offline" % (crate, slot))
                 continue
             for channel in range(32):
                 hv_enabled = hv_relay_mask & (1 << (slot*4 + channel//8)) and hv_on

@@ -109,9 +109,13 @@ def detector_state_check(run=0):
     messages, channels = detector_state.get_detector_state_check(run)
     alarms = detector_state.get_alarms(run)
 
+    if alarms is None:
+        flash("unable to get alarms for run %i" % run, 'danger')
+
     try:
         warnings = get_daq_log_warnings(run)
     except IOError:
+        flash("unable to get daq log for run %i" % run, 'danger')
         warnings = None
 
     return render_template('detector_state_check.html', run=run, messages=messages, channels=channels, alarms=alarms, warnings=warnings)

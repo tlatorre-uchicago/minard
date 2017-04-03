@@ -3,6 +3,9 @@ from .detector_state import engine
 from .views import app
 
 class ChannelStatusForm(Form):
+    """
+    A class for the form to update the channel status database.
+    """
     crate =              IntegerField('crate', [validators.NumberRange(min=0,max=19)])
     slot =               IntegerField('slot', [validators.NumberRange(min=0,max=15)])
     channel =            IntegerField('channel', [validators.NumberRange(min=0,max=31)])
