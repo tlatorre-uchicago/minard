@@ -29,7 +29,7 @@
 		</center>
 	    </div>
             <div class="col-md-3 text-right">
-                Go to run: <input type="number" id="run_number" placeholder="{{ run }}"></input>
+                Go to run: <input type="number" id="run_number" value="{{ run }}"></input>
             </div>
         </div>
         <div class="row">
@@ -95,4 +95,8 @@
         $("#run_number").keydown(function (e) {
             if (e.keyCode == 13) {
                 // Pressed Enter
-                
+                document.location.href = "{{ url_for("detector_state_check") }}/" + $("#run_number").val();
+            }
+        });
+    </script>
+{% endblock %}
