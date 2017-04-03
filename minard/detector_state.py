@@ -142,7 +142,7 @@ def get_detector_state_check(run=0):
                     continue
                 n100 = bool(detector_state[crate][slot]['tr100_mask'][channel])
                 n20 = bool(detector_state[crate][slot]['tr20_mask'][channel])
-                sequencer = bool(detector_state[crate][slot]['disable_mask'] & (1 << channel))
+                sequencer = bool(~detector_state[crate][slot]['disable_mask'] & (1 << channel))
                 try:
                     n100_nominal, n20_nominal, sequencer_nominal = nominal_settings[crate][slot][channel]
                 except KeyError:
