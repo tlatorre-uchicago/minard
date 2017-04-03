@@ -13,15 +13,21 @@
         </div>
         {% endif %}
         <div class="row">
-            <div class="col-md-4 col-md-offset-4">
-                <center>
-                    {% if run == 0 %}
-                        <h1>Current State</h1><a href=""> (prev|next)</a>
-                    {% else %}
-                        <h1>Run {{ run }}</h2>
-                    {% endif %}
-                </center>
-            </div>
+	    <div class="col-md-6 col-md-offset-3">
+		<center>
+		    <ul class="pager">
+			<li class="previous"><a href="{{ url_for('detector_state_check', run=run-1) }}">Prev</a></li>
+			<li>
+                        {% if run == 0 %}
+                            <h2 style="display:inline">Current State</h2>
+                        {% else %}
+                            <h2 style="display:inline">Run {{ run }}</h2>
+                        {% endif %}
+                        </li>
+			<li class="next"><a href="{{ url_for('detector_state_check', run=run+1) }}">Next</a></li>
+		    </ul>
+		</center>
+	    </div>
         </div>
         <div class="row">
             <div class="col-md-4">

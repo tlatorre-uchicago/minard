@@ -105,7 +105,10 @@ def get_daq_log_warnings(run):
 
 @app.route('/detector-state-check')
 @app.route('/detector-state-check/<int:run>')
-def detector_state_check(run=0):
+def detector_state_check(run=None):
+    if run is None:
+        run = detector_state.get_run_state(None)['run']
+
     messages, channels = detector_state.get_detector_state_check(run)
     alarms = detector_state.get_alarms(run)
 
