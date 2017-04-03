@@ -165,7 +165,8 @@ def update_channel_status():
         try:
             upload_channel_status(form)
         except Exception as e:
-            return render_template('update_channel_status.html', form=form, error=str(e), status=channel_status)
+            flash(str(e), 'danger')
+            return render_template('update_channel_status.html', form=form, status=channel_status)
         flash("Successfully submitted", 'success')
         return redirect(url_for('channel_status', crate=form.crate.data, slot=form.slot.data, channel=form.channel.data))
     return render_template('update_channel_status.html', form=form, status=channel_status)
