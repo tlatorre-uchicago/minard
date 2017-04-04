@@ -162,13 +162,13 @@ def get_detector_state_check(run=0):
                             channels.append((crate,slot,channel,"HV is off, but N20 trigger is on"))
                 else:
                     if n100_nominal != n100:
-                        channels.append((crate, slot, channel, "N100 trigger is %s, but nominal settings are %s" % \
+                        channels.append((crate, slot, channel, "N100 trigger is %s, but nominal setting is %s" % \
                             ("on" if n100 else "off", "on" if n100_nominal else "off")))
                     if n20_nominal != n20:
-                        channels.append((crate, slot, channel, "N20 trigger is %s, but nominal settings are %s" % \
+                        channels.append((crate, slot, channel, "N20 trigger is %s, but nominal setting is %s" % \
                             ("on" if n20 else "off", "on" if n20_nominal else "off")))
                     if sequencer_nominal != sequencer:
-                        channels.append((crate, slot, channel, "sequencer is %s, but nominal settings are %s" % \
+                        channels.append((crate, slot, channel, "sequencer is %s, but nominal setting is %s" % \
                             ("on" if sequencer else "off", "on" if sequencer_nominal else "off")))
 
     return messages, channels
