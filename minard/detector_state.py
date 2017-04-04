@@ -108,7 +108,7 @@ def get_detector_state_check(run=0):
     channels = []
     messages = []
 
-    for crate in range(20):
+    for crate in range(19):
         if detector_state[crate] is None:
             messages.append("crate %i is off" % crate)
             continue
