@@ -1,3 +1,4 @@
+from __future__ import print_function, division
 from .views import app
 from .db import engine
 from .channeldb import get_nominal_settings_for_run, get_pmt_types
@@ -450,12 +451,12 @@ def caen_human_readable_filter(caen):
         # So a number of runs don't have channel_offset info.
         # Therefore it's afforded special treatment
         try:
-            ret['channel_offsets'] = [x/2**16-1.0 for x in caen['channel_dacs']]
+            ret['channel_offsets'] = [x/0xffff-1.0 for x in caen['channel_dacs']]
         except TypeError:
             ret['channel_offsets'] = 0
 
     except Exception as e:
-        print "CAEN translation error: %s" % e
+        print("CAEN translation error: %s" % e)
         return False
     return ret
 
@@ -477,7 +478,7 @@ def tubii_human_readable_filter(tubii):
         ret['dgt_reg'] = 2*tubii['dgt_reg']
         ret['dac_reg'] = (10/4096)*tubii['dac_reg'] -5
     except Exception as e:
-        print "TUBii translation error: %s" % e
+        print("TUBii translation error: %s" % e)
         return False
     return ret
 
@@ -491,7 +492,7 @@ def all_crates_human_readable(detector_state):
         for i in range(20):
             crates.append(crate_human_readable_filter(detector_state[i]))
     except Exception as e:
-        print "Crate translation error: %s" % e
+        print("Crate translation error: %s" % e)
         return False
     ret['crates'] = crates
     available_crates = filter(None,crates)
@@ -510,7 +511,7 @@ def crate_human_readable_filter(crate):
         for i in range(0,16):
             fecs.append(fec_human_readable_filter(crate[i]))
     except Exception as e:
-        print "FEC translation error: %s" % e
+        print("FEC translation error: %s" % e)
         return False
     ret['fecs'] = fecs
     available_fecs = filter(None,fecs)
@@ -540,7 +541,7 @@ def fec_human_readable_filter(fec):
         ret['vbal_0'] = fec['vbal_0']
         ret['vbal_1'] = fec['vbal_1']
     except Exception as e:
-        print "FEC translation error : %s" % e
+        print("FEC translation error : %s" % e)
         return False
     return ret
 
@@ -575,6 +576,6 @@ def trigger_scan_human_readable(trigger_scan):
                 vals = (obj['baseline'], obj['adc_per_nhit'])
             res[name] = vals
     except Exception as e:
-        print "trigger scan translation error: %s" % e
+        print("trigger scan translation error: %s" % e)
         return False
     return res

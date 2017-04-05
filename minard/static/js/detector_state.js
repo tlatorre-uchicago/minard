@@ -359,7 +359,7 @@ function display_caen(node,caen_info) {
             .enter()
             .append('li')
             .text(function(d,i) {
-                return "Channel "+i+" = "+d+"V";}); //what is d(-1V)? what is i (channel)?
+                return "Channel " + i + " = " + d.toFixed(2) + "V";}); //what is d(-1V)? what is i (channel)?
     }
 };
 
