@@ -6,7 +6,7 @@ import json
 #
 def import_HLDQ_runnumbers():
     runNumbers = []
-    DQHL_DIR = app.config["DQHL_DIR"]
+    DQHL_DIR = os.path.join(app.static_folder,"hldq/DQHL")
     for folds in os.listdir(DQHL_DIR):
         runNum = int(folds.split("_")[-1])
         runNumbers.append(runNum)
@@ -14,10 +14,11 @@ def import_HLDQ_runnumbers():
     return runNumbers
 
 def import_HLDQ_ratdb(runNumber):
-    runFolder = os.path.join(app.config["DQHL_DIR"],"DQHL_%s" % runNumber)
+    runFolder = os.path.join(app.static_folder,"hldq/DQHL")
+    runFolder = os.path.join(runFolder,"DQHL_%s" % runNumber)
     ratdbFile = ""
     for fil in os.listdir(runFolder):
-        if fil.endswith(".ratdb"):
+        if fil.endswith(".ratdb") and "DATAQUALITY_RECORDS" in fil:
             ratdbFile = os.path.join(runFolder,fil)
             break
     ratDBDict = json.load(open(ratdbFile,"r"))
