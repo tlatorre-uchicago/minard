@@ -21,6 +21,7 @@ import detector_state
 import pcadb
 import ecadb
 import nlrat
+import noisedb
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
@@ -804,3 +805,12 @@ def calibdq_tellie_subrun_number(run_number,subrun_number):
             subrun_index = i
     #Array to store the titles of the plots
     return render_template('calibdq_tellie_subrun.html',run_number=run_number,subrun_index=subrun_index, runInformation=runInfo)
+
+@app.route('/noise')
+def noise():
+    runs = noisedb.runs_after_run(0)
+    return render_template('noise.html', runs=runs)
+
+@app.route('/noise_run_detail/<run_number>')
+def noise_run_detail(run_number):
+    return render_template('noise_run_detail.html', run_number=run_number)
