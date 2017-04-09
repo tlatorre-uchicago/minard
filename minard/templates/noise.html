@@ -21,7 +21,7 @@
                     <td><a href="{{ url_for('noise_run_detail',run_number = run['run_number']) }}">{{ run["run_number"] }}</a></td>
                     <td>{{ run["run_time"]|timefmt }}</td>
                     <td>{{ run["analyze_time"]|timefmt }}</td>
-                    <td>{{ run["average_noiserate"] }}</td>
+                    <td>{{ "%.0f" % (run["average_noiserate"]|float) }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
