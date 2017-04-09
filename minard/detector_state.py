@@ -226,6 +226,34 @@ def get_latest_trigger_scans():
 
     return [dict(zip(keys,row)) for row in rows]
 
+def get_trigger_scan_for_run(run):
+    """
+    Returns a dictionary with the trigger scan records for a given run. The
+    keys of the dictionary are the trigger type names and the values are a
+    dictionary with keys from the columns of the bable and values from the
+    rows. For example,
+
+        >>> get_trigger_scan_for_run(1000)
+        {'N100MED': {'name':'N100MED', 'crate': 17, 'baseline': 4078, 'adc_per_nhit': -2.33}, ...}
+    """
+    names = ['N100HI','N100LO','N100MED','N20LB','N20']
+
+    conn = engine.connect()
+
+    if run == 0:
+        # get the latest trigger scan
+        result = conn.execute("SELECT DISTINCT ON (name) * FROM trigger_scan "
+            "ORDER BY name, key DESC", (run,))
+    else:
+        result = conn.execute("SELECT DISTINCT ON (name) * FROM trigger_scan "
+            "WHERE timestamp < (SELECT timestamp FROM run_state WHERE run = %s) "
+            "ORDER BY name, key DESC", (run,))
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    return dict((row['name'], dict(zip(keys,row))) for row in rows if row['name'] in names)
+
 def fetch_from_table_with_key(table_name, key, key_name='key'):
     if key is None:
         key = "(SELECT max(%s) FROM %s)" % (key_name, table_name)
@@ -241,24 +269,7 @@ def fetch_from_table_with_key(table_name, key, key_name='key'):
         # Chances are this failed b/c the SELECT command didn't find anything
         raise ValueError("%s %s is not valid...probably" % (key_name, key))
 
-
     return dict(values)
-
-def get_trigger_scan_for_run(run):
-    # These names were taken from the trigger_scan source code in daq/utils/trigger_scan
-    # Should those names ever change, these names will need to be updated as well.
-    names = ['N100HI','N100LO','N100MED','N20LB','N20']
-    results = []
-    for name in names:
-        key = "(SELECT key from trigger_scan where timestamp = "\
-                "(SELECT max(timestamp) FROM trigger_scan WHERE "\
-                "(timestamp < (SELECT timestamp FROM run_state WHERE run = %i)"\
-                " AND name='%s')))" % (run,name)
-        try:
-            results.append(fetch_from_table_with_key("trigger_scan",key))
-        except ValueError:
-            results.append(False)
-    return dict(zip(names,results))
 
 def get_detector_control_state(key):
     return fetch_from_table_with_key('detector_control',key)
