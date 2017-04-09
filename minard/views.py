@@ -23,6 +23,7 @@ import ecadb
 import nlrat
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
 import re
+from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 
 TRIGGER_NAMES = \
 ['100L',
@@ -102,6 +103,38 @@ def get_daq_log_warnings(run):
             if match and match.group(1) == '#':
                 warnings.append(line)
     return warnings
+
+@app.route('/update-pmtic-resistors', methods=["GET", "POST"])
+def update_pmtic_resistors():
+    pc = request.args.get("pc", 0, type=int)
+    if request.form:
+        form = ResistorValuesForm(request.form)
+        crate = form.crate.data
+        slot = form.slot.data
+    else:
+        crate = request.args.get("crate", 0, type=int)
+        slot = request.args.get("slot", 0, type=int)
+        try:
+            form = get_resistor_values_form(crate, slot)
+        except Exception as e:
+            form = ResistorValuesForm(crate=crate, slot=slot)
+
+    if request.method == "POST" and form.validate():
+        try:
+            update_resistor_values(form)
+        except Exception as e:
+            flash(str(e), 'danger')
+            return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form, pc=pc)
+        flash("Successfully submitted", 'success')
+        return redirect(url_for('calculate_resistors', crate=form.crate.data, slot=form.slot.data))
+    return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form, pc=pc)
+
+@app.route('/calculate-resistors')
+def calculate_resistors():
+    crate = request.args.get("crate", 0, type=int)
+    slot = request.args.get("slot", 0, type=int)
+    resistors = get_resistors(crate, slot)
+    return render_template('calculate_resistors.html', crate=crate, slot=slot, resistors=resistors)
 
 @app.route('/detector-state-check')
 @app.route('/detector-state-check/<int:run>')
