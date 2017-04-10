@@ -1,5 +1,6 @@
 import couchdb
 from minard import app
+from .db import engine
 
 def import_HLDQ_runnumbers():
     server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
@@ -13,21 +14,12 @@ def import_HLDQ_runnumbers():
 
 
 #TELLIE Tools
-def import_TELLIE_runnumbers():
-    server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
-    tellieDB = server["telliedb"]
-    runNumbers = []
-    for row in tellieDB.view('_design/ratdb/_view/select_time'):
-        if row.key[0] != "TELLIE_RUN":
-            continue
-        runDocId = row['id']
-        #Skip TELLIE runs where TELLIE hasn't been fired.
-        if len(tellieDB.get(runDocId)["sub_run_info"]) == 0:
-            continue
-        runNum = int(row.key[1])
-        if runNum not in runNumbers:
-            runNumbers.append(runNum)
-    return runNumbers
+def import_TELLIE_runnumbers(limit=10, offset=0):
+    #Returns the latest TELLIE runs.
+    conn = engine.connect()
+    # select all runs which have the external source and tellie bits checked
+    result = conn.execute("SELECT run FROM run_state WHERE (run_type & 2064) = 2064 ORDER BY run DESC LIMIT %s OFFSET %s", (limit,offset))
+    return [row[0] for row in result.fetchall()]
 
 def import_TELLIEDQ_ratdb(runNumber):
     server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
