@@ -56,6 +56,31 @@ function add_horizon(expressions, format, colors, extent) {
         });
 }
 
+function add_baseline_horizon(expressions, format, colors, extent) {
+    /* Just like add_horizon except we subtract off 1.8V from the metric. */
+    var horizon = context.horizon().height(Number(url_params.height));
+
+    if (typeof format != "undefined") horizon = horizon.format(format);
+    if (typeof colors != "undefined" && colors) horizon = horizon.colors(colors);
+    if (typeof extent != "undefined") horizon = horizon.extent(extent);
+
+    d3.select('#main').selectAll('.horizon')
+        .data(expressions.map(function(name) { return metric(name).subtract(1.8) }), String)
+      .enter().insert('div','.bottom')
+        .attr('class', 'horizon')
+        .call(horizon)
+        .on('click', function(d, i) {
+            var domain = context.scale.domain();
+            var params = {
+                name: expressions[i],
+                start: domain[0].toISOString(),
+                stop: domain[domain.length-1].toISOString(),
+                step: Math.floor(context.step()/1000)
+            };
+            window.open($SCRIPT_ROOT + "/graph?" + $.param(params), '_self');
+        });
+}
+
 add_horizon(TRIGGER_NAMES.slice(0,1),format_rate);
 //add_horizon(L2_STREAMS,format_rate);
 add_horizon(TRIGGER_NAMES.slice(1),format_rate);
@@ -65,9 +90,9 @@ add_horizon(["gtid"],format_int,[]);
 add_horizon(["run"],format_int,[]);
 add_horizon(["subrun"],format_int,[],[0,100]);
 add_horizon(["heartbeat"],format_int,null,[0,4]);
-add_horizon(TRIGGER_NAMES.slice(1,11).map(function(s) {
+add_baseline_horizon(TRIGGER_NAMES.slice(1,11).map(function(s) {
     return s+"-Baseline";
-    }),format_rate,null,[-5,5]);
+    }),format_rate,null,[-0.1,0.1]);
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i === null ? null : context.size() - i + "px");
 });
