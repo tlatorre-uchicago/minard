@@ -774,18 +774,17 @@ def calibdq():
 @app.route('/calibdq_tellie')
 def calibdq_tellie():
     run_dict = {}
-    run_numbers = HLDQTools.import_TELLIE_runnumbers()
+    limit = request.args.get("limit", 10, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    run_numbers = HLDQTools.import_TELLIE_runnumbers(limit=limit, offset=offset)
     for num in run_numbers:
             run_num, check_params, runInformation =  HLDQTools.import_TELLIEDQ_ratdb(num)
-            #If we cant find DQ info skip
-            if check_params == -1 or runInformation == -1:
-                continue
             run_dict[num] = check_params
     run_numbers_sorted = sorted(run_dict.keys(),reverse=True)
     run_vals_sorted = []
     for runNum in run_numbers_sorted:
         run_vals_sorted.append(run_dict[runNum])
-    return render_template('calibdq_tellie.html',run_numbers=run_numbers_sorted,run_info=run_vals_sorted)
+    return render_template('calibdq_tellie.html',run_numbers=run_numbers_sorted,run_info=run_vals_sorted,limit=limit,offset=offset)
 
 @app.route('/calibdq_tellie/<run_number>/')
 def calibdq_tellie_run_number(run_number):
