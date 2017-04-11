@@ -103,7 +103,7 @@ add_baseline_horizon(["20-Baseline"],format_rate,null,[-10,10], 1.83, 1.50);
 /* for the esum triggers, we just divide by the baseline correction voltage to
  * CTC voltage conversion so that we display the CTC voltage shift. */
 add_baseline_horizon(["ESUML-Baseline"],format_rate,null,[-100,100], 1.83, 0.4);
-add_baseline_horizon(["ESUMH-Baseline"],format_rate,null,[-100,100], 1.79, 0.4);
+add_baseline_horizon(["ESUMH-Baseline"],format_rate,null,[-100,100], 1.79, 0.04);
 /* OWLN was never measured, so assume it's high gain. */
 add_baseline_horizon(["OWLN-Baseline"],format_rate,null,[-10,10], 1.84, 15.0);
 //add_baseline_horizon(["OWLEL-Baseline"],format_rate,null,[-0.1,0.1], 1.83, 0.4);
