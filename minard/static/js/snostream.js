@@ -56,7 +56,7 @@ function add_horizon(expressions, format, colors, extent) {
         });
 }
 
-function add_baseline_horizon(expressions, format, colors, extent) {
+function add_baseline_horizon(expressions, format, colors, extent, baseline, mv_per_nhit) {
     /* Just like add_horizon except we subtract off 1.8V from the metric. */
     var horizon = context.horizon().height(Number(url_params.height));
 
@@ -65,7 +65,7 @@ function add_baseline_horizon(expressions, format, colors, extent) {
     if (typeof extent != "undefined") horizon = horizon.extent(extent);
 
     d3.select('#main').selectAll('.horizon')
-        .data(expressions.map(function(name) { return metric(name).subtract(1.8) }), String)
+        .data(expressions.map(function(name) { return metric(name).subtract(baseline).divide(mv_per_nhit/1e3) }), String)
       .enter().insert('div','.bottom')
         .attr('class', 'horizon')
         .call(horizon)
@@ -90,9 +90,23 @@ add_horizon(["gtid"],format_int,[]);
 add_horizon(["run"],format_int,[]);
 add_horizon(["subrun"],format_int,[],[0,100]);
 add_horizon(["heartbeat"],format_int,null,[0,4]);
-add_baseline_horizon(TRIGGER_NAMES.slice(1,11).map(function(s) {
-    return s+"-Baseline";
-    }),format_rate,null,[-0.1,0.1]);
+/* mv_per_nhit is calculated very roughly using the fact that at the CTC the
+ * trigger signal is 38 mV/hit, and we measured the conversion between CTC
+ * voltage drop and baseline correction voltage in this shift report:
+ * http://snopl.us/shift/view/daf725f9b1014a17a1d22c14083f747c?index_start=245. */
+add_baseline_horizon(["100L-Baseline"],format_rate,null,[-10,10], 1.6, 15.0);
+add_baseline_horizon(["100M-Baseline"],format_rate,null,[-10,10], 1.82, 4.17);
+add_baseline_horizon(["100H-Baseline"],format_rate,null,[-10,10], 1.84, 1.50);
+add_baseline_horizon(["20LB-Baseline"],format_rate,null,[-10,10], 1.8, 15.0);
+add_baseline_horizon(["20-Baseline"],format_rate,null,[-10,10], 1.83, 1.50);
+/* for the esum triggers, we just divide by the baseline correction voltage to
+ * CTC voltage conversion so that we display the CTC voltage shift. */
+add_baseline_horizon(["ESUML-Baseline"],format_rate,null,[-100,100], 1.83, 0.4);
+add_baseline_horizon(["ESUMH-Baseline"],format_rate,null,[-100,100], 1.79, 0.4);
+/* OWLN was never measured, so assume it's high gain. */
+add_baseline_horizon(["OWLN-Baseline"],format_rate,null,[-10,10], 1.84, 15.0);
+//add_baseline_horizon(["OWLEL-Baseline"],format_rate,null,[-0.1,0.1], 1.83, 0.4);
+add_baseline_horizon(["OWLEH-Baseline"],format_rate,null,[-100,100], 1.85, 0.04);
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i === null ? null : context.size() - i + "px");
 });
