@@ -9,6 +9,15 @@
 
 <div class="container">
 <h2>Run {{ run_number }} details</h2>            
+
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    <center>
+      <button id = "monitorbut" type="submit"> Download monitoring table</button>
+    </center>
+  </div>
+</div>
+
 <div class="row">        
     <div class="panel panel-default">
         <div class="panel-heading">
@@ -17,6 +26,8 @@
         <div class="panel-body">
             <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_hist.png') }}"
 		 alt="Noise rate histogram" class="img-responsive col-md-6">
+	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_hist_zoom.png') }}"
+                 alt="Noise rate histogram (zoom)" class="img-responsive col-md-6">
         </div>
     </div>
 </div>
