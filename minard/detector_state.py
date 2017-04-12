@@ -563,6 +563,8 @@ def trigger_scan_string_translate(name):
         return 'N100 MED'
     elif name == 'N100HI':
         return 'N100 HI'
+    elif name == 'N20LB':
+        return 'N20 LB'
     elif name == 'ESUMHI':
         return 'ESUM HI'
     elif name == 'ESUMLO':
