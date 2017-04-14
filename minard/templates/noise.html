@@ -14,6 +14,7 @@
                     <th>Run Time</th>
                     <th>Analysis Time</th>
                     <th>Average noise (Hz)</th>
+		    <th>Average QHL HHP (cap)</th>
                 </tr>
             </thead>
             <tbody>
@@ -22,6 +23,7 @@
                     <td>{{ run["run_time"]|timefmt }}</td>
                     <td>{{ run["analyze_time"]|timefmt }}</td>
                     <td>{{ "%.0f" % (run["average_noiserate"]|float) }}</td>
+		    <td>{{ "%.1f" % (run["average_qhl_hhp"]|float) }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
