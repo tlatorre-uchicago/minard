@@ -23,7 +23,7 @@ def runs_after_time(time, maxtime = '+inf'):
     Returns Redis entries for all runs between time and maxtime. 
     Requires Redis instance, start-time and maximum time.
     '''
-    keys = reversed(redis.zrangebyscore(TIME_INDEX, time, maxtime))
+    keys = redis.zrangebyscore(TIME_INDEX, time, maxtime)
     p = redis.pipeline()
     for key in keys:
         p.hgetall(key)
