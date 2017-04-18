@@ -35,7 +35,7 @@ def runs_after_run(run, maxrun = '+inf'):
     Requires Redis instance, start-run and maximum run.
     '''
     keys = redis.zrangebyscore(RUN_INDEX, run, maxrun)
-    keys = keys.reverse() # Sort with most recent first
+    keys.reverse() # Sort with most recent first
     p = redis.pipeline()
     for key in keys:
         p.hgetall(key)
