@@ -123,6 +123,7 @@
 			    <th>Resistor pulled</th>
 			    <th>Disable N100</th>
 			    <th>Disable N20</th>
+			    <th>High Dropout</th>
 			    <th>Bad Base Current</th>
 			    <th>Name</th>
 			    <th>Reason</th>
@@ -146,6 +147,7 @@
 			{{ status(row['resistor_pulled']) }}
 			{{ status(row['disable_n100']) }}
 			{{ status(row['disable_n20']) }}
+			{{ status(row['high_dropout']) }}
 			{{ status(row['bad_base_current']) }}
                         <td>{{ row['name'] }}</td>
                         <td>{{ row['reason'] }}</td>
