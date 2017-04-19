@@ -12,18 +12,20 @@
                 <tr>
                     <th>Run Number</th>
                     <th>Run Time</th>
-                    <th>Analysis Time</th>
                     <th>Average noise (Hz)</th>
 		    <th>Average QHL HHP (cap)</th>
                 </tr>
             </thead>
             <tbody>
-                {% for run in runs if run %}
+                    {% for run in runs if run %}
                     <td><a href="{{ url_for('noise_run_detail',run_number = run['run_number']) }}">{{ run["run_number"] }}</a></td>
                     <td>{{ run["run_time"]|timefmt }}</td>
-                    <td>{{ run["analyze_time"]|timefmt }}</td>
                     <td>{{ "%.0f" % (run["average_noiserate"]|float) }}</td>
+		    {% if "average_qhl_hhp" in run %}
 		    <td>{{ "%.1f" % (run["average_qhl_hhp"]|float) }}</td>
+		    {% else %}
+		    <td>{{ "ND" }}</td>
+		    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
