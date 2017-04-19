@@ -112,6 +112,7 @@
                     {{ form_checkbox(form.disable_n20) }}
                     {{ form_checkbox(form.high_dropout) }}
                     {{ form_checkbox(form.bad_base_current) }}
+                    {{ form_checkbox(form.bad_data) }}
                     {% if form.name.errors %}
                     <div class="form-group has-error">
                     {% else %}
@@ -217,8 +218,12 @@
                     <dd>The N100 trigger signal should be disabled for some reason</dd>
                     <dt>Disable N20</dt>
                     <dd>The N20 trigger signal should be disabled for some reason</dd>
+                    <dt>High Dropout</dt>
+                    <dd>The channel has a high drop out rate and so the triggers should be disabled.</dd>
                     <dt>Bad Base Current</dt>
                     <dd>The base current reading is too high or too low.</dd>
+                    <dt>Bad Data</dt>
+                    <dd>The channel is producing bad data or causing the FIFOs to fill up and it's sequencer should be disabled.</dd>
                 </dl>
             </div>
         </div>
