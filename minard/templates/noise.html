@@ -25,12 +25,18 @@
                     <td>{{ "%.0f" % (run["average_noiserate"]|float) }}</td>
 		    {% if "average_qhl_hhp" in run %}
 		    <td>{{ "%.1f" % (run["average_qhl_hhp"]|float) }}</td>
+		    {% else %}
+		    <td>{{ "-" }}</td>
 		    {% endif %}
 		    {% if "n_pgt" in run %}
 		    <td>{{ "%.0f" % (run["n_pgt"]|float) }}</td>
+		    {% else %}
+                    <td>{{ "-" }}</td>
 		    {% endif %}
 		    {% if "online_pmt" in run %}
 		    <td>{{ "%.0f" % (run["online_pmt"]|float) }}</td>
+		    {% else %}
+                    <td>{{ "-" }}</td>
 		    {% endif %}
                 </tr>
                 {% endfor %}
