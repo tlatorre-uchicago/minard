@@ -15,7 +15,7 @@ function display_binary_crate_view(key,crates_data,sizeinfo,node) //has the crat
         var v = data[k];
         if (v === null || typeof v === 'undefined')
             return 'unknown';
-        else if (v===0) {
+        else if (v===0 || !v) {
             return 'off';
         }
         else
@@ -164,6 +164,9 @@ function display_crate_view(key,crates_data,sizeinfo,node,styling,hover_text)
     if(crate) {
             MBs =  crate.fecs.map(function(mb,i) {
                 if(mb) {
+                    if(typeof(key) == 'function') {
+                        return key(mb);
+                    }
                     return mb[key];
                 }
                 else {

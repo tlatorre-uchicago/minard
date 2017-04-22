@@ -510,6 +510,8 @@ def all_crates_human_readable(detector_state):
     ret['num_n100_triggers'] = sum(map(lambda x:x['num_n100_triggers'],available_crates))
     ret['num_n20_triggers'] = sum(map(lambda x:x['num_n20_triggers'],available_crates))
     ret['num_sequencers'] = sum(map(lambda x:x['num_sequencers'],available_crates))
+    ret['num_relays'] = sum(map(lambda x:x['num_relays'],available_crates))
+
     return ret
 
 @app.template_filter('crate_human_readable')
@@ -518,9 +520,15 @@ def crate_human_readable_filter(crate):
         return False
     fecs = []
     ret = {}
+    relay_mask1 = crate["hv_relay_mask1"]
+    relay_mask2 = crate["hv_relay_mask2"]
+    relay_mask = relay_mask1 | relay_mask2 << 32
     try:
-        for i in range(0,16):
-            fecs.append(fec_human_readable_filter(crate[i]))
+        for card in range(0,16):
+            fecs.append(fec_human_readable_filter(crate[card]))
+            fecs[card]["relays"] = [None]*4
+            for PC in range(4):
+                fecs[card]["relays"][PC] = (relay_mask & 1<<(card*4+(3-PC)) ) > 0
     except Exception as e:
         print("FEC translation error: %s" % e)
         return False
@@ -529,6 +537,7 @@ def crate_human_readable_filter(crate):
     ret['num_n100_triggers'] = sum(map(lambda x:x['num_n100_triggers'],available_fecs))
     ret['num_n20_triggers'] = sum(map(lambda x:x['num_n20_triggers'],available_fecs))
     ret['num_sequencers'] = sum(map(lambda x:x['num_sequencers'],available_fecs))
+    ret['num_relays'] = sum([sum(relays) for relays in [fec['relays'] for fec in available_fecs]])
     return ret
 
 def translate_fec_disable_mask(mask):

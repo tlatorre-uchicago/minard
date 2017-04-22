@@ -87,6 +87,13 @@
             </div>
 
         <div class="row">
+            <div id="relays" class="col-md-12">
+                <h4> Relays </h4>
+            </div>
+        </div>
+            </div>
+
+        <div class="row">
             <hr>
         </div>
 
@@ -198,6 +205,7 @@
             var N100 = d3.select("#n100-triggers");
             var N20 = d3.select("#n20-triggers");
             var Seq = d3.select("#sequencers");
+            var Relays = d3.select("#relays");
             var vThr = d3.select("#VThr");
             var sizeinfo = {width: $('#n100-triggers').width(), height: 500};
             add_line = function(node,text)
@@ -210,13 +218,23 @@
             head.append('th').text('# Sequencers')
             head.append('th').text('# N100s')
             head.append('th').text('# N20s')
+            head.append('th').text('# Open Relays')
             row = summ_table.append('tbody') .append('tr')
             row.append('td').append('big').text(crates_data['num_sequencers'])
             row.append('td').append('big').text(crates_data['num_n100_triggers'])
             row.append('td').append('big').text(crates_data['num_n20_triggers'])
+            // 4*16*19 is the number of relays in the detector
+            row.append('td').append('big').text(4*16*19 - crates_data['num_relays'])
             display_binary_crate_view('n100_triggers',crates_data.crates,sizeinfo,N100)
             display_binary_crate_view('n20_triggers',crates_data.crates,sizeinfo,N20)
             display_binary_crate_view('sequencers',crates_data.crates,sizeinfo,Seq)
+            display_binary_crate_view(function(mb) {
+                ret = [];
+                for(var i =0; i <32; i++) {
+                    ret.push(mb.relays[Math.floor(i/8)]);
+                }
+                return ret;
+            },crates_data.crates,sizeinfo,Relays)
 
             bar_node = d3.select("#title-VThr");
             display_colorable_continuous_crate_view('vthrs',crates_data.crates,sizeinfo,vThr,bar_node)
