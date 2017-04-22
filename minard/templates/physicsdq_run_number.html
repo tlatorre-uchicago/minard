@@ -342,6 +342,57 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {% if 'orphans_count' in ratdb_dict["checks"]["dqtriggerproc"]["check_params"] %}
+                            <tr>
+                                <td>
+                                   Orphan Count 
+                                </td>
+                                <td>
+                                {% ratdb_dict["checks"]["dqtriggerproc"]["check_params"]["orphans_count"] %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr class="bg-warning">
+                                <td>
+                                   Orphan Count 
+                                </td>
+                                <td>No Oprhans Count found for this run</td>
+                            </tr>
+                            {% endif %}
+                            {% if 'missing_gtids'  in ratdb_dict["checks"]["dqtriggerproc"]["check_params"] %}
+                            <tr>
+                                <td>
+                                   Number of Missing GTIDs 
+                                </td>
+                                <td>
+                                {% ratdb_dict["checks"]["dqtriggerproc"]["check_params"]["missing_gtids"]|size %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr class="bg-warning">
+                                <td>
+                                   Number of Missing GTIDs 
+                                </td>
+                                <td>No Missing GTIDs found in DB table for this run</td>
+                            </tr>
+                            {% if 'bitflip_gtids'  in ratdb_dict["checks"]["dqtriggerproc"]["check_params"] %}
+                            <tr>
+                                <td>
+                                   Number of Bitflip GTIDs 
+                                </td>
+                                <td>
+                                {% ratdb_dict["checks"]["dqtriggerproc"]["check_params"]["bitflip_gtids"]|size %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr class="bg-warning">
+                                <td>
+                                   Number of Bitflip GTIDs 
+                                </td>
+                                <td>No Bitflip GTIDs found in DB table for this run</td>
+                            </tr>
+                            {% endif %}
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>

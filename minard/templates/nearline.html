@@ -39,6 +39,8 @@
 			<th> Debug </th>
 			{% elif status|int == 4 %}
 			<th> Not run </th>
+                        {% elif status|int == 97 %}
+                        <th class="warning"> Timed out </th>
                         {% elif status|int == 98 %}
                         <th class="warning"> Not executable </th>
                         {% elif status|int == -1 %}

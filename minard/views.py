@@ -21,8 +21,10 @@ import detector_state
 import pcadb
 import ecadb
 import nlrat
+import noisedb
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
 import re
+from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 
 TRIGGER_NAMES = \
 ['100L',
@@ -102,6 +104,38 @@ def get_daq_log_warnings(run):
             if match and match.group(1) == '#':
                 warnings.append(line)
     return warnings
+
+@app.route('/update-pmtic-resistors', methods=["GET", "POST"])
+def update_pmtic_resistors():
+    pc = request.args.get("pc", 0, type=int)
+    if request.form:
+        form = ResistorValuesForm(request.form)
+        crate = form.crate.data
+        slot = form.slot.data
+    else:
+        crate = request.args.get("crate", 0, type=int)
+        slot = request.args.get("slot", 0, type=int)
+        try:
+            form = get_resistor_values_form(crate, slot)
+        except Exception as e:
+            form = ResistorValuesForm(crate=crate, slot=slot)
+
+    if request.method == "POST" and form.validate():
+        try:
+            update_resistor_values(form)
+        except Exception as e:
+            flash(str(e), 'danger')
+            return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form, pc=pc)
+        flash("Successfully submitted", 'success')
+        return redirect(url_for('calculate_resistors', crate=form.crate.data, slot=form.slot.data))
+    return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form, pc=pc)
+
+@app.route('/calculate-resistors')
+def calculate_resistors():
+    crate = request.args.get("crate", 0, type=int)
+    slot = request.args.get("slot", 0, type=int)
+    resistors = get_resistors(crate, slot)
+    return render_template('calculate_resistors.html', crate=crate, slot=slot, resistors=resistors)
 
 @app.route('/detector-state-check')
 @app.route('/detector-state-check/<int:run>')
@@ -740,18 +774,17 @@ def calibdq():
 @app.route('/calibdq_tellie')
 def calibdq_tellie():
     run_dict = {}
-    run_numbers = HLDQTools.import_TELLIE_runnumbers()
+    limit = request.args.get("limit", 10, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    run_numbers = HLDQTools.import_TELLIE_runnumbers(limit=limit, offset=offset)
     for num in run_numbers:
             run_num, check_params, runInformation =  HLDQTools.import_TELLIEDQ_ratdb(num)
-            #If we cant find DQ info skip
-            if check_params == -1 or runInformation == -1:
-                continue
             run_dict[num] = check_params
     run_numbers_sorted = sorted(run_dict.keys(),reverse=True)
     run_vals_sorted = []
     for runNum in run_numbers_sorted:
         run_vals_sorted.append(run_dict[runNum])
-    return render_template('calibdq_tellie.html',run_numbers=run_numbers_sorted,run_info=run_vals_sorted)
+    return render_template('calibdq_tellie.html',run_numbers=run_numbers_sorted,run_info=run_vals_sorted,limit=limit,offset=offset)
 
 @app.route('/calibdq_tellie/<run_number>/')
 def calibdq_tellie_run_number(run_number):
@@ -772,12 +805,33 @@ def calibdq_tellie_subrun_number(run_number,subrun_number):
     #Array to store the titles of the plots
     return render_template('calibdq_tellie_subrun.html',run_number=run_number,subrun_index=subrun_index, runInformation=runInfo)
 
+
+@app.route('/noise')
+def noise():
+    runs = noisedb.runs_after_run(0)
+    return render_template('noise.html', runs=runs)
+
+@app.route('/noise_run_detail/<run_number>')
+def noise_run_detail(run_number):
+    return render_template('noise_run_detail.html', run_number=run_number)
+
 @app.route('/physicsdq')
 def physicsdq():
-    runNumbers = HLDQTools.import_HLDQ_runnumbers()
-    return render_template('physicsdq.html',physics_run_numbers=runNumbers)
+    limit = request.args.get("limit", 10, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    runNumbers = HLDQTools.import_HLDQ_runnumbers(limit=limit,offset=offset)
+    run_info = []
+    proc_results = []
+    for i in range(len(runNumbers)):
+        run_info.append(HLDQTools.import_HLDQ_ratdb(int(runNumbers[i])))
+        if run_info[i] == -1:
+            proc_results.append(-1)
+        else:
+            proc_results.append(HLDQTools.generateHLDQProcStatus(run_info[i]))
+    print(run_info)
+    return render_template('physicsdq.html',physics_run_numbers=runNumbers, proc_results=proc_results, run_info=run_info, limit=limit,offset=offset)
 
 @app.route('/physicsdq/<run_number>')
 def physicsdq_run_number(run_number):
-    ratdbDict = HLDQTools.import_HLDQ_ratdb(run_number)
-    return render_template('physicsdq_run_number.html',run_number=run_number,ratdb_dict = ratdbDict)
+    ratdb_dict = HLDQTools.import_HLDQ_ratdb(int(run_number))
+    return render_template('physicsdq_run_number.html',run_number=run_number,ratdb_dict=ratdb_dict)

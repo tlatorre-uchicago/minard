@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block title %}PMT noise{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+
+    <div class="container">
+    <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Run Number</th>
+                    <th>Run Time</th>
+                    <th>Analysis Time</th>
+                    <th>Average noise (Hz)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for run in runs if run %}
+                    <td><a href="{{ url_for('noise_run_detail',run_number = run['run_number']) }}">{{ run["run_number"] }}</a></td>
+                    <td>{{ run["run_time"]|timefmt }}</td>
+                    <td>{{ run["analyze_time"]|timefmt }}</td>
+                    <td>{{ "%.0f" % (run["average_noiserate"]|float) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+    </table>
+   </div>
+
+{% endblock %}

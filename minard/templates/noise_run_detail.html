@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+{% block title %}Noise Detail{% endblock %}
+{% block head %}
+    {{ super() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/pca.css') }}" media="screen">
+{% endblock %}
+{% block body %}
+    {{ super() }}
+
+<div class="container">
+<h2>Run {{ run_number }} details</h2>            
+<div class="row">        
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Noise rate</h3>
+        </div>
+        <div class="panel-body">
+            <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_hist.png') }}"
+		 alt="Noise rate histogram" class="img-responsive col-md-6">
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">QHL</h3>
+        </div>
+        <div class="panel-body">
+            <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhl_thresh.png') }}"
+                 alt="QHL threshold" class="img-responsive col-md-6">
+	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhl_peak.png') }}"
+                 alt="QHL peak" class="img-responsive col-md-6">
+	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhl_hhp.png') }}"
+                 alt="QHL HHP" class="img-responsive col-md-6">
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">QHS</h3>
+        </div>
+        <div class="panel-body">
+            <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhs_thresh.png') }}"
+                 alt="QHS threshold" class="img-responsive col-md-6">
+            <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhs_peak.png') }}"
+                 alt="QHS peak" class="img-responsive col-md-6">
+            <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhs_hhp.png') }}"
+                 alt="QHS HHP" class="img-responsive col-md-6">
+        </div>
+    </div>
+</div>
+
+{% endblock %}
