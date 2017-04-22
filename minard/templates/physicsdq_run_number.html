@@ -151,7 +151,22 @@
                     <h3>Plots</h3>
                 </div>
                 <div class="panel panel-body">
-                </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">Time Between Events</h4>
+                        </div>
+                        <div class="panel-body">
+                            <img src="{{ url_for('static', filename="hldq/DQHL/DQHL_"+run_number|string+"/positive_delta_ts_"+run_number|string+"_p1.png") }}" class="img-responsive center-block">
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">Time Between Events (Events Close to Trigger Window)</h4>
+                        </div>
+                        <div class="panel-body">
+                            <img src="{{ url_for('static', filename="hldq/DQHL/DQHL_"+run_number|string+"/trigger_window_detail_"+run_number|string+"_p1.png") }}" class="img-responsive center-block">
+                        </div>
+                    </div>
             </div>
         </div>
     </div>
@@ -348,7 +363,7 @@
                                    Orphan Count 
                                 </td>
                                 <td>
-                                {% ratdb_dict["checks"]["dqtriggerproc"]["check_params"]["orphans_count"] %}
+                                {{ ratdb_dict["checks"]["dqtriggerproc"]["check_params"]["orphans_count"] }}
                                 </td>
                             </tr>
                             {% else %}
@@ -365,7 +380,7 @@
                                    Number of Missing GTIDs 
                                 </td>
                                 <td>
-                                {% ratdb_dict["checks"]["dqtriggerproc"]["check_params"]["missing_gtids"]|size %}
+                                {{ ratdb_dict["checks"]["dqtriggerproc"]["check_params"]["missing_gtids"]|length }}
                                 </td>
                             </tr>
                             {% else %}
@@ -381,7 +396,7 @@
                                    Number of Bitflip GTIDs 
                                 </td>
                                 <td>
-                                {% ratdb_dict["checks"]["dqtriggerproc"]["check_params"]["bitflip_gtids"]|size %}
+                                {{ ratdb_dict["checks"]["dqtriggerproc"]["check_params"]["bitflip_gtids"]|length }}
                                 </td>
                             </tr>
                             {% else %}
@@ -403,6 +418,14 @@
                     <h3>Plots</h3>
                 </div>
                 <div class="panel panel-body">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">Trigger Rates</h4>
+                        </div>
+                        <div class="panel-body">
+                            <img src="{{ url_for('static', filename="hldq/DQHL/DQHL_"+run_number|string+"/fTrigTypeRateHist_"+run_number|string+"_p1.png") }}" class="img-responsive center-block">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -487,6 +510,14 @@
                     <h3>Plots</h3>
                 </div>
                 <div class="panel panel-body">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">PMT Coverage Map</h4>
+                        </div>
+                        <div class="panel-body">
+                            <img src="{{ url_for('static', filename="hldq/DQHL/DQHL_"+run_number|string+"/TGraph_GeoCoverageMap_"+run_number|string+"_p1.png") }}" class="img-responsive center-block">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
