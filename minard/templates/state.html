@@ -117,8 +117,6 @@
             {% call collapsible_header('Crates','allCrates') %}
                 {% call collapsible_header('Channel Thresholds','VThr') %}
                 {% endcall %}
-                {% call collapsible_header('VBal','VBal') %}
-                {% endcall %}
                 {% call collapsible_header('Data Dump','DataDump') %}
                     {% for i in range(20) %}
                         {% if crates_state[i] %}
@@ -201,7 +199,6 @@
             var N20 = d3.select("#n20-triggers");
             var Seq = d3.select("#sequencers");
             var vThr = d3.select("#VThr");
-            var VBal = d3.select("#VBal");
             var sizeinfo = {width: $('#n100-triggers').width(), height: 500};
             add_line = function(node,text)
             {
@@ -223,13 +220,6 @@
 
             bar_node = d3.select("#title-VThr");
             display_colorable_continuous_crate_view('vthrs',crates_data.crates,sizeinfo,vThr,bar_node)
-            vbal_table = VBal.append('table');
-            vbal0_bar_node = vbal_table.append('tr').append('th').append('h4').text("VBal 0 ");
-            vbal0 = vbal_table.append('tr').append('th');
-            vbal1_bar_node = vbal_table.append('tr').append('th').append('h4').text("VBal 1 ");
-            vbal1 = vbal_table.append('tr').append('th');
-            display_colorable_continuous_crate_view('vbal_0',crates_data.crates,sizeinfo,vbal0,vbal0_bar_node);
-            display_colorable_continuous_crate_view('vbal_1',crates_data.crates,sizeinfo,vbal1,vbal1_bar_node);
         }
 
         if (tubii_data) {
