@@ -2,6 +2,7 @@ from __future__ import print_function, division
 from .views import app
 from .db import engine
 from .channeldb import get_nominal_settings_for_run, get_pmt_types
+from collections import defaultdict
 
 def get_detector_state(run=0):
     """
@@ -555,7 +556,7 @@ def crate_human_readable_filter(crate):
     ret['num_n100_triggers'] = sum(map(lambda x:x['num_n100_triggers'],available_fecs))
     ret['num_n20_triggers'] = sum(map(lambda x:x['num_n20_triggers'],available_fecs))
     ret['num_sequencers'] = sum(map(lambda x:x['num_sequencers'],available_fecs))
-    ret['num_relays'] = sum([sum(relays) for relays in [fec['relays'] for fec in available_fecs]])
+    ret['num_relays'] = sum( [ sum(fec['relays']) for fec in available_fecs])
     return ret
 
 def translate_fec_disable_mask(mask):
@@ -563,9 +564,7 @@ def translate_fec_disable_mask(mask):
 
 @app.template_filter('fec_human_readable')
 def fec_human_readable_filter(fec):
-    if fec is None:
-        return False
-    ret = {}
+    ret = defaultdict(bool)
     try:
         ret['n20_triggers'] = fec['tr20_mask']
         ret['n100_triggers'] = fec['tr100_mask']
@@ -580,7 +579,6 @@ def fec_human_readable_filter(fec):
         ret['vbal_1'] = fec['vbal_1']
     except Exception as e:
         print("FEC translation error : %s" % e)
-        return False
     return ret
 
 def trigger_scan_string_translate(name):

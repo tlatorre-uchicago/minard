@@ -22,7 +22,6 @@ function display_binary_crate_view(key,crates_data,sizeinfo,node) //has the crat
             return 'on';
     };}
 
-
     hover_text_func = function(data) {
     return function(d,i) {
         v = data[d];
@@ -163,10 +162,12 @@ function display_crate_view(key,crates_data,sizeinfo,node,styling,hover_text)
     var d = crates_data.map(function(crate,i) {
     if(crate) {
             MBs =  crate.fecs.map(function(mb,i) {
-                if(mb) {
+                if(typeof(key) == 'function') {
                     if(typeof(key) == 'function') {
                         return key(mb);
                     }
+                }
+                else if (typeof(mb[key]) != 'undefined'){
                     return mb[key];
                 }
                 else {
@@ -772,6 +773,59 @@ function display_run_type(run_type,time_stamp) {
     str = date.format("ddd, MMM Do YYYY - HH:mm:ss z");
     appendToTitle('p',str);
 };
+function display_hv_status(hv_node, hv_data) {
+        var width = hv_node.node().parentElement.parentElement.clientWidth;
+        var height = 75;
+        var step_size = width/(1+hv_data.length);
+        radius = step_size/3;
+        var svg = hv_node.append("svg")
+            .attr("width",width)
+            .attr("height",height)
+            .attr("viewBox","0 0 "+width.toString()+" "+height.toString());
+            nodes = hv_node.append('g').selectAll('circle')
+            .data(hv_data)
+            .enter();
+        nodes = svg.append('g').selectAll('circle')
+            .data(hv_data)
+            .enter()
+            .append('g')
+            .attr("transform",function(d,i){
+                x = step_size*(i+1);
+                y = height/2;
+                return "translate(" + x+","+y+")";
+            });
+
+    nodes.append('text')
+        .text(function(d, i){ return d.title; })
+        .attr("text-anchor","middle")
+        .attr("font-size","16px")
+        .attr("fill","black")
+        .attr("y",function(d,i) { return radius*2;});
+
+        nodes.append("g")
+            .append('circle')
+            .attr("r",radius)
+            .attr("class",function(d) { return d.on ? 'on' : 'off'; });
+        g = nodes.append("g");
+        g.append('clipPath')
+            .attr("id",function(d,i) {return "g-clip"+i.toString();})
+            .append('rect')
+            .attr("id","g-clip-rect")
+            .attr("y",-radius*2)
+            .attr('height', function(d,i) {
+                if(d.on) { return radius*3 - (d.hv/d.nominal)*radius*2; }
+                return radius*3;
+            })
+            .attr("x",-radius*2)
+            .attr('width', radius*4);
+
+        g.append("circle")
+            .attr("clip-path",function(d,i) { return "url(#g-clip"+i.toString()+")";})
+            .attr('r',radius*0.90)
+            .attr("fill","#fff");
+
+
+}
 function crate() {
     var width = 780;
     var height = 80;
