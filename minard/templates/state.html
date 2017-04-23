@@ -179,6 +179,8 @@
         colors = [url_params.oncolor, url_params.offcolor];
         var summary = d3.select("#summary");
 
+        if(crates_data && hv_params)
+        {
         var hv_data = [];
         // The -1 is so we don't see crate 19
         for(var i=0;i<crates_data.crates.length-1;i++) {
@@ -200,6 +202,7 @@
         }
         hv_div = d3.select("#hv_values");
         display_hv_status(hv_div,hv_data);
+        }
         if (mtc_data) {
             enabled_dacs = get_enabled_dacs(mtc_data.MTCA_DACs,mtc_data.gt_words);
             enabled_triggers_node = d3.select("#summary_enabled_triggers");
