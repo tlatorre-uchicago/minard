@@ -51,6 +51,12 @@
         </div>
     </div>
 
+    <div id="test">
+        <div class="row">
+            <div id="hv_values">
+            </div>
+        </div>
+    </div>
     <div id='summary'>
         <div class="row">
             <div id="summary_triggers_info">
@@ -169,8 +175,84 @@
         {% if detector_control_state %}
             det_cont_info  = {{ detector_control_state | tojson | safe }};
         {% endif %}
+        {% if hv_params %}
+            hv_params  = {{ hv_params | tojson | safe }};
+        {% endif %}
+        console.log(hv_params);
         colors = [url_params.oncolor, url_params.offcolor];
         var summary = d3.select("#summary");
+
+        var hv_data = [];
+        // The -1 is so we don't see crate 19
+        for(var i=0;i<crates_data.crates.length-1;i++) {
+            hv_data.push({
+                'title': i.toString(),
+                    'on' : crates_data.crates[i].hv_a_on,
+                    'hv' : crates_data.crates[i].hv_dac_a*(3000/4096),
+                    'nominal': hv_params[i]
+            });
+            // OWLs
+            if(i==16) {
+                hv_data.push({
+                    'title': 'OWL',
+                    'on' : crates_data.crates[i].hv_b_on,
+                    'hv' : crates_data.crates[i].hv_dac_b*(3000/4096),
+                    'nominal': hv_params['OWL']
+                });
+            }
+        }
+        hv_div = d3.select("#hv_values");
+        var width = hv_div.node().parentElement.parentElement.clientWidth
+        var height = 200
+        var step_size = width/(1+hv_data.length)
+        radius = step_size/3;
+        var svg = hv_div.append("svg")
+            .attr("width",width)
+            .attr("height",height)
+            .attr("viewBox","0 0 "+width.toString()+" "+height.toString());
+            nodes = hv_div.append('g').selectAll('circle')
+            .data(hv_data)
+            .enter();
+        nodes = svg.append('g').selectAll('circle')
+            .data(hv_data)
+            .enter()
+            .append('g')
+            .attr("transform",function(d,i){
+                x = step_size*(i+1);
+                y = height/2;
+                return "translate(" + x+","+y+")";
+            });
+
+    nodes.append('text')
+        .text(function(d, i){ return d.title; })
+        .attr("text-anchor","middle")
+        .attr("font-size","16px")
+        .attr("fill","black")
+        .attr("y",function(d,i) { return radius*2;});
+
+        nodes.append("g")
+            .append('circle')
+            .attr("r",radius)
+            .attr("fill",function(d,i) {
+                if(d.on) { return '#f60'; }
+                else {return "grey";}})
+        g = nodes.append("g");
+        g.append('clipPath')
+            .attr("id",function(d,i) {return "g-clip"+i.toString();})
+            .append('rect')
+            .attr("id","g-clip-rect")
+            .attr("y",-radius*2)
+            .attr('height', function(d,i) {
+                if(d.on) { return radius*3 - (d.hv/d.nominal)*radius*2; }
+                return radius*3;
+            })
+            .attr("x",-radius*2)
+            .attr('width', radius*4);
+        g.append("circle")
+            .attr("clip-path",function(d,i) { return "url(#g-clip"+i.toString()+")";})
+            .attr('r',radius*0.90).
+            attr("fill","#fff");
+
         if (mtc_data) {
             enabled_dacs = get_enabled_dacs(mtc_data.MTCA_DACs,mtc_data.gt_words);
             enabled_triggers_node = d3.select("#summary_enabled_triggers");

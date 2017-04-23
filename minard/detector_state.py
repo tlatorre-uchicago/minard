@@ -297,6 +297,20 @@ def get_fec_state(key):
 def get_run_state(run):
     return fetch_from_table_with_key('run_state',run,key_name='run')
 
+def get_hv_nominals():
+    conn = engine.connect()
+    command = "SELECT crate,supply,nominal FROM hvparams ORDER BY crate ASC"
+    res =  conn.execute(command)
+    if res is None:
+        return None
+    ret = {}
+    for crate, supply, nominal in res.fetchall():
+        if crate == 16 and supply == "B":
+            ret["OWL"] = nominal
+        else:
+            ret[crate] = nominal
+    return ret
+
 def translate_trigger_mask(maskVal):
     trigger_bit_to_string = [
                                 (0 ,"NHIT100LO"),
@@ -533,6 +547,10 @@ def crate_human_readable_filter(crate):
         print("FEC translation error: %s" % e)
         return False
     ret['fecs'] = fecs
+    ret['hv_a_on'] = crate['hv_a_on']
+    ret['hv_b_on'] = crate['hv_b_on']
+    ret['hv_dac_a'] = crate['hv_dac_a']
+    ret['hv_dac_b'] = crate['hv_dac_b']
     available_fecs = filter(None,fecs)
     ret['num_n100_triggers'] = sum(map(lambda x:x['num_n100_triggers'],available_fecs))
     ret['num_n20_triggers'] = sum(map(lambda x:x['num_n20_triggers'],available_fecs))
