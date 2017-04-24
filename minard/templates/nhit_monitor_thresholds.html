@@ -40,35 +40,35 @@
 			{% if row['nhit_100_lo'] is not none %}
 			    {{ '%.2f' % row['nhit_100_lo'] }}
 			{% else %}
-			    > {{ row['num_pulses'] }}
+			    > {{ row['max_nhit'] }}
 			{% endif %}
                         </td>
                         <td>
 			{% if row['nhit_100_med'] is not none %}
 			    {{ '%.2f' % row['nhit_100_med'] }}
 			{% else %}
-			    > {{ row['num_pulses'] }}
+			    > {{ row['max_nhit'] }}
 			{% endif %}
                         </td>
                         <td>
 			{% if row['nhit_100_hi'] is not none %}
 			    {{ '%.2f' % row['nhit_100_hi'] }}
 			{% else %}
-			    > {{ row['num_pulses'] }}
+			    > {{ row['max_nhit'] }}
 			{% endif %}
                         </td>
                         <td>
 			{% if row['nhit_20'] is not none %}
 			    {{ '%.2f' % row['nhit_20'] }}
 			{% else %}
-			    > {{ row['num_pulses'] }}
+			    > {{ row['max_nhit'] }}
 			{% endif %}
                         </td>
                         <td>
 			{% if row['nhit_20_lb'] is not none %}
 			    {{ '%.2f' % row['nhit_20_lb'] }}
 			{% else %}
-			    > {{ row['num_pulses'] }}
+			    > {{ row['max_nhit'] }}
 			{% endif %}
                         </td>
 		    </tr>
