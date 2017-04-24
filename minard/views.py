@@ -805,6 +805,7 @@ def calibdq_tellie_subrun_number(run_number,subrun_number):
     #Array to store the titles of the plots
     return render_template('calibdq_tellie_subrun.html',run_number=run_number,subrun_index=subrun_index, runInformation=runInfo)
 
+
 @app.route('/noise')
 def noise():
     runs = noisedb.runs_after_run(0)
@@ -813,3 +814,23 @@ def noise():
 @app.route('/noise_run_detail/<run_number>')
 def noise_run_detail(run_number):
     return render_template('noise_run_detail.html', run_number=run_number)
+
+@app.route('/physicsdq')
+def physicsdq():
+    limit = request.args.get("limit", 10, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    runNumbers = HLDQTools.import_HLDQ_runnumbers(limit=limit,offset=offset)
+    run_info = []
+    proc_results = []
+    for i in range(len(runNumbers)):
+        run_info.append(HLDQTools.import_HLDQ_ratdb(int(runNumbers[i])))
+        if run_info[i] == -1:
+            proc_results.append(-1)
+        else:
+            proc_results.append(HLDQTools.generateHLDQProcStatus(run_info[i]))
+    return render_template('physicsdq.html',physics_run_numbers=runNumbers, proc_results=proc_results, run_info=run_info, limit=limit,offset=offset)
+
+@app.route('/physicsdq/<run_number>')
+def physicsdq_run_number(run_number):
+    ratdb_dict = HLDQTools.import_HLDQ_ratdb(int(run_number))
+    return render_template('physicsdq_run_number.html',run_number=run_number,ratdb_dict=ratdb_dict)
