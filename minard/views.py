@@ -828,7 +828,6 @@ def physicsdq():
             proc_results.append(-1)
         else:
             proc_results.append(HLDQTools.generateHLDQProcStatus(run_info[i]))
-    print(run_info)
     return render_template('physicsdq.html',physics_run_numbers=runNumbers, proc_results=proc_results, run_info=run_info, limit=limit,offset=offset)
 
 @app.route('/physicsdq/<run_number>')

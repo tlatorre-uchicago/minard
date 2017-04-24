@@ -1,7 +1,5 @@
 import couchdb
 from minard import app
-import os
-import json
 from .db import engine
 
 #
@@ -29,7 +27,7 @@ def import_HLDQ_ratdb(runNumber):
 #Code will return a dict of bools indexed by processor name 
 #Values will be logical & of all checks.
 def generateHLDQProcStatus(ratdbDict):
-    procNames = {"dqrunproc","dqtimeproc","dqtriggerproc","dqpmtproc"}
+    procNames = ["dqrunproc","dqtimeproc","dqtriggerproc","dqpmtproc"]
     outDict = {}
     for proc in procNames:
         checkDict = ratdbDict["checks"][proc]

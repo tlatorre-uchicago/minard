@@ -39,22 +39,22 @@
                 {% else %}
                 <tr>
                     <td><a href="{{ url_for('physicsdq_run_number',run_number=physics_run_numbers[i])}}">{{physics_run_numbers[i]}}</a></td>
-                    {% if proc_results["dqtriggerproc"] == 1 %}
+                    {% if proc_results[i]["dqtriggerproc"] == 1 %}
                     <td>Pass</td>
                     {% else %}
                     <td><font color="red">Fail</font></td>
                     {% endif %}
-                    {% if proc_results["dqtimeproc"] == 1 %}
+                    {% if proc_results[i]["dqtimeproc"] == 1 %}
                     <td>Pass</td>
                     {% else %}
                     <td><font color="red">Fail</font></td>
                     {% endif %}
-                    {% if proc_results["dqrunproc"] == 1 %}
+                    {% if proc_results[i]["dqrunproc"] == 1 %}
                     <td>Pass</td>
                     {% else %}
                     <td><font color="red">Fail</font></td>
                     {% endif %}
-                    {% if proc_results["dqrunproc"] == 1 %}
+                    {% if proc_results[i]["dqpmtproc"] == 1 %}
                     <td>Pass</td>
                     {% else %}
                     <td><font color="red">Fail</font></td>
