@@ -9,11 +9,30 @@
 
 <div class="container">
 <h2>Run {{ run_number }} details</h2>            
+
+<div class="row">
+  <a href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_'+run_number+'.ratdb') }}">
+    Download noise table</a>
+</div>
+<div class="row">
+  <a href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_monitoring_'+run_number+'.ratdb') }}">
+    Download monitoring table</a>
+</div>
+<div class="row">
+  <a href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/rat.noiserate_'+run_number+'.log') }}">
+    Processor log file</a>
+</div>
+<div class="row">
+  <a href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/rat.noiserate_upload_'+run_number+'.log') }}">
+    Ratdb upload log file</a>
+</div>
+
 <div class="row">        
     <div class="panel panel-default">
         <div class="panel-heading">
             <h3 class="panel-title">Noise rate</h3>
         </div>
+
         <div class="panel-body">
             <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_hist.png') }}"
 		 alt="Noise rate histogram" class="img-responsive col-md-6">
