@@ -22,10 +22,10 @@
         <div class="pca-fiber-installed pca-fiber-cell">
     {% endif %}
         <div>
-            {{ fiber["fiber_number"] }} {{ fiber["ab"] }}
+            {{ fiber["fiber_number"] }}{{ fiber["ab"] }} - {{ fiber["node"] }}
         </div>
         <div>
-            {{ fiber["pca_run"] }}
+            <a href="{{ url_for('pca_run_detail',run_number=fiber["pca_run"]) }}">{{ fiber["pca_run"] }}</a>
         </div>
     </div>
     {%- endmacro %}
@@ -134,13 +134,13 @@
                 {% for run in runs %}
                 <tr class="{{ boolclass(run["pca_status"]) }}">
                     <td><a href="{{ url_for('pca_run_detail',run_number=run["run_number"]) }}">{{ run["run_number"] }}</a></td>
-                    <td>{{ timefmt(run["run_time"]) }}</td>
-                    <td>{{ timefmt(run["analyze_time"]) }}</td>
+                    <td>{{ run["run_time"]|timefmt }}</td>
+                    <td>{{ run["analyze_time"]|timefmt }}</td>
                     <td>{{ run["channel"] }}</td>
                     <td>{{ run["fiber_number"] }}</td>
-                    <td>{{ run["number_events"]|int() }}</td>
-                    <td>{{ '%.2f' % run["nhit"]|float() }}</td>
-                    <td>{{ '%.2f' % run["av_hit"]|float() }}</td>
+                    <td>{{ run["number_events"]|int }}</td>
+                    <td>{{ '%.2f' % run["nhit"]|float }}</td>
+                    <td>{{ '%.2f' % run["av_hit"]|float }}</td>
                     <td>{{  boolfmt(run["pca_status"]) }}</td>
                 </tr>
                 {% endfor %}

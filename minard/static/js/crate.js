@@ -121,7 +121,38 @@ function crate_view() {
 
     var caption = true;
 
+    var hover_text = false;
+
     var scale = d3.scale.threshold().domain([100]).range(['#bababa','#ca0020']);
+
+    function MakeStylingFunction(){
+        var attribute = 'style';
+        var coloringFunction = function(data) {
+            return function(k, i) {
+                var v = data[k];
+                if (v === null || typeof v === 'undefined' || v === 0) {
+                    return 'background-color:#e0e0e0';
+                }
+                else {
+                    return 'background-color:' + scale(+v);
+        }};}
+        function stylingFunction(node,data) {
+                node.attr(attribute,coloringFunction(data));
+        }
+
+        stylingFunction.attribute = function(value) {
+            if(!arguments.length) return attribute;
+            attribute = value;
+            return stylingFunction;
+        }
+        stylingFunction.coloringFunction = function(value) {
+            if(!arguments.length) return coloringFunction;
+            coloringFunction = value;
+            return stylingFunction;
+        }
+        return stylingFunction;
+    }
+    var stylingFunction = MakeStylingFunction();
 
     function chart(selection) {
         selection.each(function(data) {
@@ -144,7 +175,6 @@ function crate_view() {
             .attr("id", function(d, i) { return "crate" + i;})
           .append('table')
             .attr('style','padding:2px;border-collapse:separate;border-spacing:1px')
-            .attr('title', function(d, i) { return 'Crate ' + i; });
 
         if (caption) {
             tr1.insert('caption').text(function(d, i) { return i; })
@@ -156,56 +186,72 @@ function crate_view() {
 
         var td = tr2.selectAll('td')
             .data(function(d) { return d; }, function(d) { return d; })
-            .enter().append('td')
-            .attr('style','background-color:#e0e0e0');
+            .enter().append('td');
+        if(hover_text){
+            if(typeof hover_text === "function"){
+                td.attr('title',hover_text(data));
+            }
+            else{
+                td.attr('title',hover_text);
+            }
+        }
+        else{
+            tr1.attr('title', function(d, i) { return 'Crate ' + i; });
+        }
 
         var select = d3.select(this).selectAll('#crate-view div table tr td')
 
-        select.attr('style', function(k, i) {
-            var v = data[k];
-            if (v === null || typeof v === 'undefined' || v === 0)
-                return 'background-color:#e0e0e0';
-            else
-                return 'background-color:' + scale(+v);
-            });
-       });}
+        stylingFunction(select,data);
+    });}
 
-       chart.height = function(value) {
-           if (!arguments.length) return height;
-           height = value;
-           return chart;
-       }
+    chart.height = function(value) {
+        if (!arguments.length) return height;
+        height = value;
+        return chart;
+    }
 
-       chart.scale = function(value) {
-           if (!arguments.length) return scale;
-           scale = value;
-           return chart;
-       }
+    chart.scale = function(value) {
+        if (!arguments.length) return scale;
+        scale = value;
+        return chart;
+    }
 
-       chart.caption = function(value) {
-           if (!arguments.length) return caption;
-           caption = value;
-           return chart;
-       }
+    chart.caption = function(value) {
+        if (!arguments.length) return caption;
+        caption = value;
+        return chart;
+    }
 
-       chart.width = function(value) {
-           if (!arguments.length) return width;
-           width = value;
-           return chart;
-       }
+    chart.width = function(value) {
+        if (!arguments.length) return width;
+        width = value;
+        return chart;
+    }
 
-       chart.click = function(value) {
-           if (!arguments.length) return click;
-           click = value;
-           return chart;
-       }
+    chart.click = function(value) {
+        if (!arguments.length) return click;
+        click = value;
+        return chart;
+    }
 
-       chart.threshold = function(value) {
-           if (!arguments.length) return threshold;
-           threshold = value;
-           scale = d3.scale.threshold().domain([threshold]).range(['#bababa','#ca0020']);
-           return chart;
-       }
+    chart.threshold = function(value) {
+        if (!arguments.length) return threshold;
+        threshold = value;
+        scale = d3.scale.threshold().domain([threshold]).range(['#bababa','#ca0020']);
+        return chart;
+    }
+
+    chart.stylingFunction = function(value) {
+        if(!arguments.length) {return stylingFunction;}
+        stylingFunction = value;
+        return chart;
+    }
+
+    chart.hover_text = function(value) {
+        if(!arguments.length) {return hover_text;}
+        hover_text = value;
+        return chart;
+    }
 
     return chart;
 }

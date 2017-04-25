@@ -1,29 +1,27 @@
 #!/usr/bin/env python
-from distutils.core import setup
+from setuptools import setup
 from glob import glob
 
 setup(name='minard',
-      version='0.3',
+      version='1.0',
       description='Web App Monitoring Tools',
       author='Anthony LaTorre',
       author_email='tlatorre@uchicago.edu',
       url='snopl.us',
       packages=['minard','snoplus_log'],
+      include_package_data=True,
+      zip_safe=False,
       scripts=glob('bin/*'),
-      data_files = [# static files
-                    ('www/static/css',    glob('minard/static/css/*')),
-                    ('www/static/js',     glob('minard/static/js/*')),
-                    ('www/static/fonts',  glob('minard/static/fonts/*')),
-                    ('www/static/images', glob('minard/static/images/*')),
-                    ('www/static/audio',  glob('minard/static/audio/*')),
-                    ('www/templates',     glob('minard/templates/*'))],
-      install_requires=['flask',
+      install_requires=['flask==0.10',
                         'gunicorn',
                         'numpy',
                         'pyzmq',
-                        'redis',
+                        'redis>=2.10',
                         'argparse',
                         'sphinx',
                         'requests',
-                        'alabaster']
+                        'sqlalchemy',
+                        'psycopg2',
+                        'alabaster',
+                        'couchdb']
       )

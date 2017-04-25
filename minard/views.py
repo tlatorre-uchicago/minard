@@ -1,25 +1,28 @@
-from __future__ import division
-from __future__ import print_function
-from minard import app
-from flask import render_template, jsonify, request, redirect, url_for
+from __future__ import division, print_function
+from . import app
+from flask import render_template, jsonify, request, redirect, url_for, flash
 from itertools import product
 import time
 from redis import Redis
 from os.path import join
 import json
-from tools import total_seconds, parseiso
+import tools
+import HLDQTools
 import requests
+from .tools import parseiso
 from collections import deque, namedtuple
-from timeseries import get_timeseries, get_interval, get_hash_timeseries
-from timeseries import get_timeseries_field, get_hash_interval
-import random
-import operator
-from collections import defaultdict
-import numpy as np
+from .timeseries import get_timeseries, get_interval, get_hash_timeseries
+from .timeseries import get_timeseries_field, get_hash_interval
 from math import isnan
-
+import os
+import sys
+import random
+import detector_state
 import pcadb
 import ecadb
+import nlrat
+from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
+import re
 
 TRIGGER_NAMES = \
 ['100L',
@@ -52,45 +55,171 @@ TRIGGER_NAMES = \
 
 
 class Program(object):
-    def __init__(self, name, machine=None, link=None, description=None, expire=10):
+    def __init__(self, name, machine=None, link=None, description=None, expire=10, display_log=True):
         self.name = name
         self.machine = machine
         self.link = link
         self.description = description
         self.expire = expire
+        self.display_log = display_log
 
 redis = Redis()
 
-PROGRAMS = [Program('builder','builder1.sp.snolab.ca',
-                    description="event builder"),
-            Program('dispatch','builder1.sp.snolab.ca',
-                    description="event dispatcher"),
-            Program('L2-server','builder1.sp.snolab.ca',
-                    description="builder -> buffer transfer"),
-            Program('L2-client','buffer1.sp.snolab.ca',
-                    description="L2 processor"),
-            Program('L2-convert','buffer1.sp.snolab.ca',
+PROGRAMS = [#Program('builder','builder1', description="event builder"),
+            Program('L2-client','buffer1', description="L2 processor"),
+            Program('L2-convert','buffer1',
                     description="zdab -> ROOT conversion"),
-            Program('L1-delete','buffer1.sp.snolab.ca',
-                    description="delete L1 files"),
-            Program('dataflow', expire=20*60,
-                    link='http://snoplus.westgrid.ca:5984/buffer/_design/buffer/index.html'),
-            Program('builder_copy', 'buffer1.sp.snolab.ca',
-                    description="builder -> buffer transfer"),
-            Program('buffer_copy', 'buffer1.sp.snolab.ca',
-                    description="buffer -> grid transfer"),
-            Program('builder_delete', 'buffer1.sp.snolab.ca',
-                    description="builder deletion script"),
-            Program('PCA','nino.physics.berkeley.edu',
-                    link='http://snopluspmts.physics.berkeley.edu/pca',
-                    description="monitor PCA data"),
-            Program('ECA','nino.physics.berkeley.edu',
-                    link='http://snopluspmts.physics.berkeley.edu/eca',
-                    description="monitor ECA data")]
+            Program('L1-delete','buffer1', description="delete L1 files"),
+            Program('mtc','sbc', description="mtc server",
+		    display_log=False),
+            Program('data','buffer1', description="data stream server",
+		    display_log=False),
+            Program('xl3','buffer1', description="xl3 server",
+		    display_log=False),
+            Program('log','minard', description="log server",
+		    display_log=False)
+]
+
+@app.template_filter('timefmt')
+def timefmt(timestamp):
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(float(timestamp)))
 
 @app.route('/status')
 def status():
     return render_template('status.html', programs=PROGRAMS)
+
+def get_daq_log_warnings(run):
+    """
+    Returns a list of all the lines in the DAQ log for a given run which were
+    warnings.
+    """
+    warnings = []
+    with open(os.path.join(app.config["DAQ_LOG_DIR"], "daq_%08i.log" % run)) as f:
+        for line in f:
+            # match the log level
+            match = re.match('.+? ([.\-*#])', line)
+
+            if match and match.group(1) == '#':
+                warnings.append(line)
+    return warnings
+
+@app.route('/detector-state-check')
+@app.route('/detector-state-check/<int:run>')
+def detector_state_check(run=None):
+    if run is None:
+        run = detector_state.get_run_state(None)['run']
+
+    messages, channels = detector_state.get_detector_state_check(run)
+    alarms = detector_state.get_alarms(run)
+
+    if alarms is None:
+        flash("unable to get alarms for run %i" % run, 'danger')
+
+    try:
+        warnings = get_daq_log_warnings(run)
+    except IOError:
+        flash("unable to get daq log for run %i" % run, 'danger')
+        warnings = None
+
+    return render_template('detector_state_check.html', run=run, messages=messages, channels=channels, alarms=alarms, warnings=warnings)
+
+@app.route('/channel-database')
+def channel_database():
+    limit = request.args.get("limit", 100, type=int)
+    results = get_channels(request.args, limit)
+    return render_template('channel_database.html', results=results, limit=limit)
+
+@app.route('/channel-status')
+def channel_status():
+    crate = request.args.get("crate", 0, type=int)
+    slot = request.args.get("slot", 0, type=int)
+    channel = request.args.get("channel", 0, type=int)
+    results = get_channel_history(crate, slot, channel)
+    pmt_info = get_pmt_info(crate, slot, channel)
+    nominal_settings = get_nominal_settings(crate, slot, channel)
+    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings)
+
+@app.route('/update-channel-status', methods=["GET", "POST"])
+def update_channel_status():
+    if request.form:
+        form = ChannelStatusForm(request.form)
+        crate = form.crate.data
+        slot = form.slot.data
+        channel = form.channel.data
+    else:
+        crate = request.args.get("crate", 0, type=int)
+        slot = request.args.get("slot", 0, type=int)
+        channel = request.args.get("channel", 0, type=int)
+        try:
+            form = get_channel_status_form(crate, slot, channel)
+            # don't add the name, reason, or info fields if they just go to the page.
+            form.name.data = None
+            form.reason.data = None
+            form.info.data = None
+        except Exception as e:
+            form = ChannelStatusForm(crate=crate, slot=slot, channel=channel)
+
+    channel_status = get_channel_status(crate, slot, channel)
+
+    if request.method == "POST" and form.validate():
+        try:
+            upload_channel_status(form)
+        except Exception as e:
+            flash(str(e), 'danger')
+            return render_template('update_channel_status.html', form=form, status=channel_status)
+        flash("Successfully submitted", 'success')
+        return redirect(url_for('channel_status', crate=form.crate.data, slot=form.slot.data, channel=form.channel.data))
+    return render_template('update_channel_status.html', form=form, status=channel_status)
+
+@app.route('/state')
+@app.route('/state/')
+@app.route('/state/<int:run>')
+def state(run=None):
+    try:
+        run_state = detector_state.get_run_state(run)
+        run = run_state['run']
+        # Have to put these in ISO format so flask doesn't mangle it later
+        run_state['timestamp'] = run_state['timestamp'].isoformat()
+        # end_timestamp isn't that important. If it's not there, it's ignored
+        if(run_state['end_timestamp']):
+            run_state['end_timestamp'] = run_state['end_timestamp'].isoformat()
+    except Exception as e:
+        return render_template('state.html', err=str(e))
+
+    detector_control_state = None
+    if run_state['detector_control'] is not None:
+        detector_control_state = detector_state.get_detector_control_state(run_state['detector_control'])
+
+    mtc_state = None
+    if run_state['mtc'] is not None:
+        mtc_state = detector_state.get_mtc_state(run_state['mtc'])
+
+    caen_state = None
+    if run_state['caen'] is not None:
+        caen_state = detector_state.get_caen_state(run_state['caen'])
+
+    tubii_state = None
+    if run_state['tubii'] is not None:
+        tubii_state = detector_state.get_tubii_state(run_state['tubii'])
+
+    crates_state = detector_state.get_detector_state(run)
+
+    if not any(crates_state.values()):
+        crates_state = None
+
+    trigger_scan = None
+    if run_state['timestamp'] is not None:
+        trigger_scan = detector_state.get_trigger_scan_for_run(run)
+
+    return render_template('state.html', run=run,
+                           run_state=run_state,
+                           detector_control_state=detector_control_state,
+                           mtc_state=mtc_state,
+                           caen_state=caen_state,
+                           tubii_state=tubii_state,
+                           crates_state=crates_state,
+                           trigger_scan=trigger_scan,
+                           err=None)
 
 @app.route('/l2')
 def l2():
@@ -99,6 +228,43 @@ def l2():
     if not request.args.get('step') or not request.args.get('height'):
         return redirect(url_for('l2',step=step,height=height,_external=True))
     return render_template('l2.html',step=step,height=height)
+
+@app.route('/nhit-monitor-thresholds')
+def nhit_monitor_thresholds():
+    results = detector_state.get_nhit_monitor_thresholds()
+
+    if results is None:
+	return render_template('nhit_monitor_thresholds.html', error="No nhit monitor records.")
+
+    return render_template('nhit_monitor_thresholds.html', results=results)
+
+@app.route('/nhit-monitor/<int:key>')
+def nhit_monitor(key):
+    results = detector_state.get_nhit_monitor(key)
+
+    if results is None:
+	return render_template('nhit_monitor.html', error="No nhit monitor record with key %i." % key)
+
+    return render_template('nhit_monitor.html', results=results)
+
+@app.route('/trigger')
+def trigger():
+    results = detector_state.get_latest_trigger_scans()
+
+    if results is None:
+	return render_template('trigger.html', error="No trigger scans.")
+
+    return render_template('trigger.html', results=results)
+
+@app.route('/nearline')
+@app.route('/nearline/<int:run>')
+def nearline(run=None):
+    if run is None:
+	run = int(redis.get('nearline:current_run'))
+
+    programs = redis.hgetall('nearline:%i' % run)
+
+    return render_template('nearline.html', run=run, programs=programs)
 
 @app.route('/get_l2')
 def get_l2():
@@ -145,6 +311,8 @@ def view_log():
 @app.route('/log', methods=['POST'])
 def log():
     """Forward a POST request to the log server at port 8081."""
+    import requests
+
     resp = requests.post('http://127.0.0.1:8081', headers=request.headers, data=request.form)
     return resp.content, resp.status_code, resp.headers.items()
 
@@ -198,21 +366,12 @@ def tail():
 def index():
     return redirect(url_for('snostream'))
 
-@app.route('/supervisor')
-@app.route('/supervisor/<path:path>')
-def supervisor(path=None):
-    if path is None:
-        return redirect(url_for('supervisor', path='index.html'))
-
-    resp = requests.get('http://127.0.0.1:9001' + request.full_path[11:])
-    return resp.content, resp.status_code, resp.headers.items()
-
-@app.route('/doc/')
-@app.route('/doc/<filename>')
-@app.route('/doc/<dir>/<filename>')
-@app.route('/doc/<dir>/<subdir>/<filename>')
-def doc(dir='', subdir='', filename='index.html'):
-    path = join('doc', dir, subdir, filename)
+@app.route('/docs/')
+@app.route('/docs/<filename>')
+@app.route('/docs/<dir>/<filename>')
+@app.route('/docs/<dir>/<subdir>/<filename>')
+def docs(dir='', subdir='', filename='index.html'):
+    path = join('docs', dir, subdir, filename)
     return app.send_static_file(path)
 
 @app.route('/snostream')
@@ -226,6 +385,14 @@ def snostream():
 @app.route('/nhit')
 def nhit():
   return render_template('nhit.html')
+
+@app.route('/rat')
+def rathome():
+    return render_template('rathome.html', runs=nlrat.available_runs())
+    
+@app.route('/rat/<int:run>')
+def ratrun(run = 0):
+    return render_template("ratrun.html", run=nlrat.Run(run), error= not nlrat.hists_available(run))
 
 @app.route('/l2_filter')
 def l2_filter():
@@ -356,17 +523,28 @@ def owl_tubes():
     stop = int(stop)
     step = int(step)
 
-    values = np.zeros((len(OWL_TUBES),len(range(start,stop,step))),float)
+    values = []
     for i, id in enumerate(OWL_TUBES):
         crate, card, channel = id >> 9, (id >> 5) & 0xf, id & 0x1f
-        values[i] = get_hash_timeseries(name,start,stop,step,crate,card,channel,method)
+        values.append(get_hash_timeseries(name,start,stop,step,crate,card,channel,method))
+
+    # transpose time series from (channel, index) -> (index, channel)
+    values = zip(*values)
+
+    # filter None values in sub lists
+    values = map(lambda x: filter(lambda x: x is not None, x), values)
+
+    # convert to floats
+    values = map(lambda x: map(float, x), values)
 
     if method == 'max':
-        values = np.nanmax(values,axis=0)
+	# calculate max value in each time bin.
+        values = map(lambda x: max(x) if len(x) else None, values)
     else:
-        values = np.nanmean(values,axis=0)
+	# calculate mean value in each time bin
+        values = map(lambda x: sum(x)/len(x) if len(x) else None, values)
 
-    return jsonify(values=[None if isnan(x) else x for x in values])
+    return jsonify(values=values)
 
 @app.route('/metric_hash')
 def metric_hash():
@@ -440,16 +618,17 @@ def metric():
         # this is not a rate, so we divide by the # of PULGT triggers for
         # the interval instead of the interval length
         trig, value = expr.split('-')
-
-        if trig in TRIGGER_NAMES:
-            field = TRIGGER_NAMES.index(trig)
-        elif trig == 'TOTAL':
-            field = trig
+        if(trig in TRIGGER_NAMES+['TOTAL']):
+            if value=='Baseline':
+                values = get_timeseries(expr,start,stop,step)
+                counts = get_timeseries('baseline-count',start,stop,step)
+            else:
+                field = trig if trig=='TOTAL' else TRIGGER_NAMES.index(trig)
+                values = get_timeseries_field('trig:%s' % value,field,start,stop,step)
+                counts = get_timeseries_field('trig',field,start,stop,step)
+            values = [float(a)/int(b) if a and b else None for a, b in zip(values,counts)]
         else:
             raise ValueError('unknown trigger type %s' % trig)
-        values = get_timeseries_field('trig:%s' % value,field,start,stop,step)
-        counts = get_timeseries_field('trig',field,start,stop,step)
-        values = [float(a)/int(b) if a and b else None for a, b in zip(values,counts)]
     else:
         if expr in TRIGGER_NAMES:
             field = TRIGGER_NAMES.index(expr)
@@ -470,97 +649,17 @@ def metric():
 
 @app.route('/eca')
 def eca():
-
-    def timefmt(time_string):
-        return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(float(time_string)))
-
-    def testBit(word, offset):
-        int_type = int(word)
-        offset = int(offset)
-        mask = 1 << offset
-        result = int_type & mask
-        if result == 0:
-            return 0
-        if result == pow(2,offset):
-            return 1
-
-    def parse_status(run_status, run_type):
-        #currently set run to fail if there is at least 1 bad bit in the status
-        #this will need to be updated to actually check status flags 
-        #some flags are worse than others
-        #requirements will be different for ped and tslope runs
-        if run_type == 'PDST':
-            allflagsareok=True
-            for bit in range(0,32):
-                thisbit = testBit(run_status,bit)
-                if thisbit == 1:
-                    allflagsareok = False
-                    break
-
-            if allflagsareok:
-                return 1
-            else:
-                return 0  
-
-        if run_type == 'TSLP':
-            allflagsareok=True
-            for bit in range(0,32):
-                thisbit = testBit(run_status,bit)
-                if thisbit == 1:
-                    allflagsareok = False
-                    break
-
-            if allflagsareok:
-                return 1
-            else:
-                return 0  
-
-    def statusfmt(status_int):
-        '''
-        Returns overall run status as either 'Fail', 'Pass', or 'OK'. 
-        Pass: run was good, operator can move to the next run.
-        Fail: data is bad. Run should definitely be retaken.
-        OK: data is useable, some noncritical flags were raised.
-        Operator should repeat the run if time allows.
-        '''
-        if status_int == 0:
-            return 'Fail'
-        if status_int == 1:
-            return 'Pass'
-        if status_int == 2:
-            return 'OK'
-    
-    def statusclass(status_int):
-        if status_int == 0:
-            return "danger"
-        if status_int == 1:
-            return "success"
-        if status_int == 2:
-            return "warning"
-
-    runs = ecadb.runs_after_run(redis, 0)      
+    runs = ecadb.runs_after_run(0)      
+    return render_template('eca.html', runs=runs)
  
-    return render_template('eca.html',
-                            runs=runs,
-                            parse_status=parse_status,
-                            timefmt=timefmt,
-                            statusfmt=statusfmt,
-                            statusclass=statusclass)
+@app.route('/eca_run_detail/<run_number>')
+def eca_run_detail(run_number):
+    run_type = redis.hget('eca-run-%i' % int(run_number),'run_type')
+    return render_template('eca_run_detail_%s.html' % run_type, run_number=run_number)      
 
- 
-@app.route('/eca_run_detail')
-@app.route('/eca_run_detail/<run_type>/<run_number>')
-def eca_run_detail(run_type, run_number):
-    if run_type == 'PDST': 
-        return render_template('eca_run_detail_PDST.html',
-                            run_type=run_type, run_number=run_number)      
-    if run_type == 'TSLP': 
-        return render_template('eca_run_detail_TSLP.html',
-                            run_type=run_type, run_number=run_number)      
-
-@app.route('/eca_status_detail')
-@app.route('/eca_status_detail/<run_type>/<run_number>')
-def eca_status_detail(run_type, run_number):
+@app.route('/eca_status_detail/<run_number>')
+def eca_status_detail(run_number):
+    run_type = redis.hget('eca-run-%i' % int(run_number),'run_type')
 
     def statusfmt(status_int):
         if status_int == 1:
@@ -578,22 +677,13 @@ def eca_status_detail(run_type, run_number):
         if result == pow(2,offset):
             return 1
 
-    run_status = int(ecadb.get_run_status(redis, run_number))
+    run_status = int(ecadb.get_run_status(run_number))
 
-    if run_type == 'PDST': 
-        return render_template('eca_status_detail_PDST.html',
-                            run_type=run_type, run_number=run_number,statusfmt=statusfmt,testBit=testBit,run_status=run_status)      
-    if run_type == 'TSLP': 
-        return render_template('eca_status_detail_TSLP.html',
-                            run_type=run_type, run_number=run_number,statusfmt=statusfmt,testBit=testBit,run_status=run_status)      
-
-
+    return render_template('eca_status_detail_%s.html' % run_type,
+			    run_number=run_number,statusfmt=statusfmt,testBit=testBit,run_status=run_status)      
 
 @app.route('/pcatellie', methods=['GET'])
 def pcatellie():
-    
-    def timefmt(time_string):
-        return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(float(time_string)))
     
     def boolfmt(bool_string):
         bool_value = bool_string == '1'
@@ -605,7 +695,9 @@ def pcatellie():
     
     start_run = request.args.get("start_run", 0)
     installed_only = request.args.get("installed_only", False)    
-    runs = pcadb.runs_after_run(redis, start_run)      
+    runs = pcadb.runs_after_run(start_run)
+    # Deal with expired runs
+    runs = [run for run in runs if (len(run) > 0)]      
     fibers = list()
     for fiber in pcadb.FIBER_POSITION:
         runs_for_fiber = [run for run in runs 
@@ -628,7 +720,6 @@ def pcatellie():
        
     return render_template('pcatellie.html',
                            runs=runs,
-                           timefmt=timefmt,
                            boolfmt=boolfmt,
                            boolclass=boolclass,
                            fibers=fibers,
@@ -641,5 +732,39 @@ def pca_run_detail(run_number):
     
     return render_template('pca_run_detail.html',
                             run_number=run_number)      
-   
 
+@app.route('/calibdq')
+def calibdq():
+        return render_template('calibdq.html')
+   
+@app.route('/calibdq_tellie')
+def calibdq_tellie():
+    run_dict = {}
+    run_numbers = HLDQTools.import_TELLIE_runnumbers()
+    for num in run_numbers:
+            run_num, check_params, runInformation =  HLDQTools.import_TELLIEDQ_ratdb(num)
+            #If we cant find DQ info skip
+            if check_params == -1 or runInformation == -1:
+                continue
+            run_dict[num] = check_params
+
+    return render_template('calibdq_tellie.html',run_numbers=run_dict.keys(),run_info=run_dict.values())
+
+@app.route('/calibdq_tellie/<run_number>/')
+def calibdq_tellie_run_number(run_number):
+    run_num, check_params, runInfo=  HLDQTools.import_TELLIEDQ_ratdb(int(run_number))
+    return render_template('calibdq_tellie_run.html',run_number=run_number, runInformation=runInfo)
+
+
+@app.route('/calibdq_tellie/<run_number>/<subrun_number>')
+def calibdq_tellie_subrun_number(run_number,subrun_number):
+    run_num = 0
+    subrun_index = -999
+    root_dir = os.path.join(app.static_folder,"images/DQ/TELLIE/TELLIE_DQ_IMAGES_"+str(run_number))
+    run_num, check_params, runInfo=  HLDQTools.import_TELLIEDQ_ratdb(int(run_number))
+    #Find the index
+    for i in range(len(runInfo["subrun_numbers"])):
+        if int(runInfo["subrun_numbers"][i]) == int(subrun_number):
+            subrun_index = i
+    #Array to store the titles of the plots
+    return render_template('calibdq_tellie_subrun.html',run_number=run_number,subrun_index=subrun_index, runInformation=runInfo)

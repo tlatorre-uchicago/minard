@@ -1,0 +1,111 @@
+#!/usr/bin/env python
+"""
+The objective here is to retrieve and store baseline values into a redis db.
+"""
+import time, os, sys
+from minard.timeseries import INTERVALS, EXPIRE
+from redis import Redis
+from snotdaq import MTC, Logger
+from functools import wraps
+
+log = Logger()
+
+DBToMTC = {"100H":"N100HI","100M":"N100MED","100L":"N100LO",
+"20":"N20","20LB":"N20LB","ESUMH":"ESUMHI","ESUML":"ESUMLO",
+"OWLEH":"OWLEHI","OWLEL":"OWLELO","OWLN":"OWLN"}
+
+def PutBaselinesInDatabase(mtc):
+    redis = Redis()
+    p = redis.pipeline()
+    now = int(time.time())
+
+    baselines = {}
+    for name, mtc_name in DBToMTC.iteritems():
+	# mtc server returns baselines in mV so we divide by 1000 to convert
+	# to volts.
+	baselines[name] = float(mtc.send('threshmon %s' % mtc_name))/1000
+
+    for interval in INTERVALS:
+        p.incrby('ts:%i:%i:baseline-count' % (interval,now//interval),1)
+        p.expire('ts:%i:%i:baseline-count' % (interval,now//interval),interval*EXPIRE);
+        for name, baseline in baselines.iteritems():
+            key = 'ts:%i:%i:%s' % (interval,now//interval,name+"-Baseline")
+            p.incrbyfloat(key,baseline)
+            p.expire(key,interval*EXPIRE)
+        p.execute()
+
+def daemonize():
+    pid = os.fork()
+    if pid>0:
+	#kill the parent
+	sys.exit(0)
+
+    os.chdir("/")
+    os.setsid()
+    os.umask(0)
+    devNull = open(os.devnull,'w')
+    sys.stdout = devNull
+    sys.stderr = devNull
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("host", nargs='?',
+			help="hostname of the MTC server whence the baselines can be retrieved.",
+			default='sbc.sp.snolab.ca')
+    parser.add_argument("--enable-logging",
+			help="Enables sending errors to log server",
+			action="store_true")
+    parser.add_argument("--logfile", default=None, help="filename for log file")
+    parser.add_argument("--log-server",
+			help="hostname of the log server.",
+			default="minard.sp.snolab.ca")
+    parser.add_argument("--log-port",
+			help="Set the port the log server is at.",
+			type=int, default=4001)
+    parser.add_argument("--loop-forever",
+			help="Loops infinitely with 0.5 second period",
+			action="store_true")
+    parser.add_argument("-d", "--daemonize", help="Runs in background",
+			action="store_true")
+
+    args = parser.parse_args()
+
+    if args.daemonize:
+	try:
+	    daemonize()
+	except OSError,e:
+	    sys.stderr.write("Failed to create fork: %d (%s)\n" % \
+		(e.errno,e.strerror))
+	    sys.exit(1)
+
+    if args.logfile:
+	log.set_logfile(args.logfile)
+
+    if args.enable_logging:
+	try:
+	    log.connect("BaselineMonitor", args.log_server, args.log_port)
+	except Exception as e:
+	    sys.stderr.write("failed to connect to log server at %s: %s\n" % \
+			     (args.log_server, str(e)))
+	    sys.stderr.flush()
+
+    mtc = MTC(args.host)
+
+    if args.loop_forever:
+	while True:
+	    try:
+		PutBaselinesInDatabase(mtc)
+	    except KeyboardInterrupt:
+		break
+	    except Exception as e:
+		log.warn("couldn't update MTCA baselines: %s" % str(e))
+		time.sleep(3600)
+	    else:
+		time.sleep(0.5)
+    else:
+	try:
+	    PutBaselinesInDatabase(mtc)
+	except Exception as e:
+	    log.warn("couldn't update MTCA baselines: %s" % str(e))

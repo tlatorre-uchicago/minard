@@ -29,11 +29,23 @@ function add_graph(name, start, stop, step)
                 var values = data.values;
                 var chart_data = format_data(values,start,stop,step);
                 var dates = chart_data.map(function(d) { return d['date']; });
-                var scale = d3.time.scale().domain(dates);
+                var scale = tzscale().domain(dates).zone('America/Toronto');
 
                 var valid = values.filter(isNumber);
 
-                data_graphic({
+		var time_fmt = 'MMM Do YYYY';
+
+		if (step < 1) {
+		    time_fmt = 'ddd MMM Do YYYY, h:mm:ss.SSS a';
+		} else if (step < 60) {
+		    time_fmt = 'ddd MMM Do YYYY, h:mm:ss a';
+		} else if (step < 3600) {
+		    time_fmt = 'ddd MMM Do YYYY, h:mm a';
+		} else if (step < 24*3600) {
+		    time_fmt = 'ddd MMM Do YYYY, h a';
+		}
+
+                MG.data_graphic({
                     title: name,
                     chart_type: valid.length ? 'line' : 'missing-data',
                     area: false,
@@ -41,18 +53,23 @@ function add_graph(name, start, stop, step)
                     interpolate: 'linear',
                     width: $('#main').width(),
                     height: 250,
-                    show_years: false,
-                    xax_tick: 0,
+                    show_secondary_x_label: false,
+                    //xax_tick: 0,
+		    time_scale: scale,
                     xax_format: scale.tickFormat(data.length),
                     y_extended_ticks: true,
                     target: "#main",
                     x_accessor:'date',
                     y_accessor:'value',
+		    min_y_from_data: true,
+		    x_mouseover: function(d, i) {
+			return moment.tz(d['date'], 'America/Toronto').format(time_fmt) + '  ';
+		    },
                 });
 
                 var width = $('#hist').width();
 
-                data_graphic({
+                MG.data_graphic({
                     data: valid,
                     chart_type: valid.length ? 'histogram' : 'missing-data',
                     width: width,
@@ -63,7 +80,7 @@ function add_graph(name, start, stop, step)
                 });
 
                 // log
-                data_graphic({
+                MG.data_graphic({
                     data: valid,
                     y_scale_type: 'log',
                     chart_type: valid.length ? 'histogram' : 'missing-data',
