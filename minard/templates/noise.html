@@ -14,6 +14,7 @@
                     <th>Run Time</th>
                     <th>Average noise (Hz)</th>
 		    <th>Average QHL HHP (cap)</th>
+		    <th>Average NHit</th>
 		    <th>PGT Count</th>
 		    <th>Online PMTs</th>
                 </tr>
@@ -25,6 +26,11 @@
                     <td>{{ "%.0f" % (run["average_noiserate"]|float) }}</td>
 		    {% if "average_qhl_hhp" in run %}
 		    <td>{{ "%.1f" % (run["average_qhl_hhp"]|float) }}</td>
+		    {% else %}
+		    <td>{{ "-" }}</td>
+		    {% endif %}
+		    {% if "average_nhit" in run %}
+		    <td>{{ "%.1f" % (run["average_nhit"]|float) }}</td>
 		    {% else %}
 		    <td>{{ "-" }}</td>
 		    {% endif %}
