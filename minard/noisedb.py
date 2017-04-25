@@ -36,6 +36,7 @@ def runs_after_run(run, maxrun = '+inf'):
     '''
     keys = redis.zrangebyscore(RUN_INDEX, run, maxrun)
     keys.reverse() # Sort with most recent first
+    keys = keys[0:50]
     p = redis.pipeline()
     for key in keys:
         p.hgetall(key)
