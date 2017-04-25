@@ -8,23 +8,27 @@
     {{ super() }}
 
 <div class="container">
-<h2>Run {{ run_number }} details</h2>            
+<h2>Run {{ run_number }} details</h2>
 
-<div class="row">
-  <a href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_'+run_number+'.ratdb') }}">
-    Download noise table</a>
-</div>
-<div class="row">
-  <a href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_monitoring_'+run_number+'.ratdb') }}">
-    Download monitoring table</a>
-</div>
-<div class="row">
-  <a href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/rat.noiserate_'+run_number+'.log') }}">
-    Processor log file</a>
-</div>
-<div class="row">
-  <a href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/rat.noiserate_upload_'+run_number+'.log') }}">
-    Ratdb upload log file</a>
+<div class="well well-sm">
+  <div class="row">
+    <div class="col-sm-3">
+      <a type="button" class="btn btn-default btn-xs" href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_'+run_number+'.ratdb') }}">
+	Download noise table</a>
+    </div>
+    <div class="col-sm-3">
+      <a type="button" class="btn btn-default btn-xs" href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_monitoring_'+run_number+'.ratdb') }}">
+	Download monitoring table</a>
+    </div>
+    <div class="col-sm-3">
+      <a type="button" class="btn btn-default btn-xs" href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/rat.noiserate_'+run_number+'.log') }}">
+	Processor log file</a>
+    </div>
+    <div class="col-sm-3">
+      <a type="button" class="btn btn-default btn-xs" href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/rat.noiserate_upload_'+run_number+'.log') }}">
+	Ratdb upload log file</a>
+    </div>
+  </div>
 </div>
 
 <div class="row">        
