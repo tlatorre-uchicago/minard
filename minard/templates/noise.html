@@ -7,14 +7,16 @@
 {{ super() }}
 
 <div class="container">
-  <table class="table table-hover">
-    <thead>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
       <tr>
         <th>Run Number</th>
         <th>Run Time</th>
         <th>Average noise (Hz)</th>
 	<th>Average QHL HHP (cap)</th>
-	<th>Average NHit</th>
+	<th>NHit (cut on 50Hz to 100kHz)</th>
+	<th>NHit (normal/HQE N20/N100 enabled)</th>
 	<th>PGT Count</th>
 	<th>Online PMTs</th>
       </tr>
@@ -39,6 +41,11 @@
 	{% else %}
 	<td>{{ "-" }}</td>
 	{% endif %}
+	{% if "average_nhit_inward" in run %}
+        <td>{{ "%.1f" % (run["average_nhit_inward"]|float) }}</td>
+        {% else %}
+        <td>{{ "-" }}</td>
+        {% endif %}
 	{% if "n_pgt" in run %}
 	<td>{{ "%.0f" % (run["n_pgt"]|float) }}</td>
 	{% else %}
@@ -53,6 +60,7 @@
       {% endfor %}
     </tbody>
   </table>
+</div>
 </div>
 
 {% endblock %}
