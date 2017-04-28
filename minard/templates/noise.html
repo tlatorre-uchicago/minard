@@ -15,7 +15,8 @@
         <th>Run Time</th>
         <th>Average noise (Hz)</th>
 	<th>Average QHL HHP (cap)</th>
-	<th>NHit (cut on 50Hz to 100kHz)</th>
+	<th>NHit (raw)</th>
+	<th>NHit (normal/HQE 50Hz-50kHz)</th>
 	<th>NHit (normal/HQE N20/N100 enabled)</th>
 	<th>PGT Count</th>
 	<th>Online PMTs</th>
@@ -36,13 +37,18 @@
 	{% else %}
 	<td>{{ "-" }}</td>
 	{% endif %}
-	{% if "average_nhit" in run %}
-	<td>{{ "%.1f" % (run["average_nhit"]|float) }}</td>
+	{% if "average_nhit_raw" in run %}
+	<td>{{ "%.1f" % (run["average_nhit_raw"]|float) }}</td>
 	{% else %}
 	<td>{{ "-" }}</td>
 	{% endif %}
-	{% if "average_nhit_inward" in run %}
-        <td>{{ "%.1f" % (run["average_nhit_inward"]|float) }}</td>
+	{% if "average_nhit_normal" in run %}
+        <td>{{ "%.1f" % (run["average_nhit_normal"]|float) }}</td>
+        {% else %}
+        <td>{{ "-" }}</td>
+        {% endif %}
+	{% if "average_nhit_trigenabled" in run %}
+        <td>{{ "%.1f" % (run["average_nhit_trigenabled"]|float) }}</td>
         {% else %}
         <td>{{ "-" }}</td>
         {% endif %}
