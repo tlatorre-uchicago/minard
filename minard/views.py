@@ -819,7 +819,11 @@ def noise():
 
 @app.route('/noise_run_detail/<run_number>')
 def noise_run_detail(run_number):
-    return render_template('noise_run_detail.html', run_number=run_number)
+    run = noisedb.get_run_by_number(run_number)
+    if run!=[]:
+        return render_template('noise_run_detail.html', run=run[0], run_number=run_number)
+    else:
+        return render_template('noise_run_detail.html', run=0, run_number=run_number)
 
 @app.route('/physicsdq')
 def physicsdq():
