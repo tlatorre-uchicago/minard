@@ -772,6 +772,7 @@ def pca_run_detail(run_number):
     
     return render_template('pca_run_detail.html',
                             run_number=run_number)      
+  
 
 @app.route('/calibdq')
 def calibdq():
@@ -808,7 +809,6 @@ def calibdq_tellie_subrun_number(run_number,subrun_number):
     for i in range(len(runInfo["subrun_numbers"])):
         if int(runInfo["subrun_numbers"][i]) == int(subrun_number):
             subrun_index = i
-    #Array to store the titles of the plots
     return render_template('calibdq_tellie_subrun.html',run_number=run_number,subrun_index=subrun_index, runInformation=runInfo)
 
 
@@ -840,3 +840,29 @@ def physicsdq():
 def physicsdq_run_number(run_number):
     ratdb_dict = HLDQTools.import_HLDQ_ratdb(int(run_number))
     return render_template('physicsdq_run_number.html',run_number=run_number,ratdb_dict=ratdb_dict)
+
+@app.route('/calibdq_smellie')
+def calibdq_smellie():
+    limit = request.args.get("limit", 10, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    run_numbers = HLDQTools.import_SMELLIE_runnumbers(limit=limit,offset=offset)
+    run_dict = {}
+    for num in run_numbers:
+            run_num, check_params, runInfo = HLDQTools.import_SMELLIEDQ_ratdb(num)
+            #If we cant find DQ info skip
+            if check_params == -1 or runInfo== -1:
+                continue
+            print(check_params)
+            run_dict[num]  = check_params
+    return render_template('calibdq_smellie.html',run_numbers=run_dict.keys(),run_info=run_dict, limit=limit,offset=offset)
+
+@app.route('/calibdq_smellie/<run_number>')
+def calibdq_smellie_run_number(run_number):
+    run_num, check_dict, runInfo=  HLDQTools.import_SMELLIEDQ_ratdb(int(run_number))
+    return render_template('calibdq_smellie_run.html',run_number=run_number,runInfo=runInfo)
+
+
+@app.route('/calibdq_smellie/<run_number>/<subrun_number>')
+def calibdq_smellie_subrun_number(run_number,subrun_number):
+    run_num, check_dict, runInfo=  HLDQTools.import_SMELLIEDQ_ratdb(int(run_number))
+    return render_template('calibdq_smellie_subrun.html',run_number=run_number,subrun_number=subrun_number,runInformation=runInfo)

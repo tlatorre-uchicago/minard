@@ -8,7 +8,7 @@
 <div class="container">
     <h1>TELLIE Data Quality</h1>
     {% if offset == 0 %}
-    <button class="btn btn-outline-primary btn-lg" disabled>Next</button>
+    <button class="btn btn-outline-primary btn-lg" disabled>Back</button>
     <a class="btn btn-outline-primary btn-lg" href="{{ url_for("calibdq_tellie", limit=limit, offset=offset+limit) }}">Next</a>
     {% else %}
     <a class="btn btn-outline-primary btn-lg" href="{{ url_for("calibdq_tellie", limit=limit, offset=offset-limit) }}">Back</a>
