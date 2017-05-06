@@ -106,7 +106,6 @@ def get_detector_state_check(run=0):
 
     nominal_settings = get_nominal_settings_for_run(run)
 
-
     channels = []
     messages = []
 
@@ -119,7 +118,7 @@ def get_detector_state_check(run=0):
 
     gt_crate_mask = gt_crate_mask ^ 0x3ffffff
     if gt_crate_mask is not None and (gt_crate_mask & (1<<23)):
-        messages.append("TUBII is not in GT crate mask")
+        messages.append("TUBII is not in the GT crate mask")
 
     for crate in range(19):
         if detector_state[crate] is None:
@@ -127,7 +126,7 @@ def get_detector_state_check(run=0):
             continue
 
         if gt_crate_mask is not None and (gt_crate_mask & (1<<(crate+1))):
-            messages.append("crate %i is not in GT crate mask" % crate)
+            messages.append("crate %i is not in the GT crate mask" % crate)
 
         xl3_mode = detector_state[crate]['xl3_mode']
         if xl3_mode == 1:
