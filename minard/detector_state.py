@@ -116,7 +116,7 @@ def get_detector_state_check(run=0):
     if gt_crate_mask is None and mtc is not None:
         message.append("GT crate mask unknown")
 
-    gt_crate_mask = gt_crate_mask ^ 0x3ffffff
+    gt_crate_mask = gt_crate_mask ^ 0x1ffffff
     if gt_crate_mask is not None and (gt_crate_mask & (1<<23)):
         messages.append("TUBII is not in the GT crate mask")
 
@@ -125,7 +125,7 @@ def get_detector_state_check(run=0):
             messages.append("crate %i is off" % crate)
             continue
 
-        if gt_crate_mask is not None and (gt_crate_mask & (1<<(crate+1))):
+        if gt_crate_mask is not None and (gt_crate_mask & (1<<(crate))):
             messages.append("crate %i is not in the GT crate mask" % crate)
 
         xl3_mode = detector_state[crate]['xl3_mode']
