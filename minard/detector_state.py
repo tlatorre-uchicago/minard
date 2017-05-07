@@ -114,41 +114,42 @@ def get_detector_state_check(run=0):
 
     if mtc is None:
         messages.append("mtc state unknown")
+    else:
+        gt_crate_mask = mtc['gt_crate_mask']
+        if gt_crate_mask is None:
+            messages.append("GT crate mask unknown")
 
-    if tubii is None: 
+        if gt_crate_mask is not None and not (gt_crate_mask & (1<<23)):
+            messages.append("TUBII is not in the GT crate mask")
+
+        relay_mask = mtc['mtca_relays']
+        if relay_mask is None:
+            messages.append("MTCA/+ relay mask unknown")
+
+        mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLEHI', 'OWLELO', 'OWLN']
+        for i, (relay, mtca) in enumerate(zip(relay_mask,mtca_names)):
+           crates = []
+           potential_crates = range(19) if i<4 else [3,13,18]
+           for crate in potential_crates:
+               if not (relay & (1<<crate)):
+                   crates.append(crate)
+           if len(crates) > 0:
+               messages.append("Crates %s are out of %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
+
+
+    if tubii is None:
         messages.append("tubii state unknown")
-
-    gt_crate_mask = mtc['gt_crate_mask']
-    if gt_crate_mask is None and mtc is not None:
-        messages.append("GT crate mask unknown")
-
-    relay_mask = mtc['mtca_relays']
-    if relay_mask is None and mtc is not None:
-        messages.append("MTCA/+ relay mask unknown")
-
-    mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLEHI', 'OWLELO', 'OWLN']
-    for i, (relay, mtca) in enumerate(zip(relay_mask,mtca_names)):
-       crates = []
-       potential_crates = range(19) if i<4 else [3,13,18]
-       for crate in potential_crates:
-           if not (relay & (1<<crate)):
-               crates.append(crate)
-       if len(crates) > 0:
-           messages.append("Crates %s are out of %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
-
-    if gt_crate_mask is not None and not (gt_crate_mask & (1<<23)):
-        messages.append("TUBII is not in the GT crate mask")
-
-    control_reg = tubii['control_reg']
-    if control_reg is not None and (control_reg & (1<<2)):
-        messages.append("TUBII ECAL bit set")
+    else:
+        control_reg = tubii['control_reg']
+        if control_reg is not None and (control_reg & (1<<2)):
+            messages.append("TUBII ECAL bit set")
 
     for crate in range(19):
         if detector_state[crate] is None:
             messages.append("crate %i is off" % crate)
             continue
 
-        if gt_crate_mask is not None and not (gt_crate_mask & (1<<crate)):
+        if gt_crate_mask is not None and mtc is not None and not (gt_crate_mask & (1<<crate)):
             messages.append("crate %i is not in the GT crate mask" % crate)
 
         xl3_mode = detector_state[crate]['xl3_mode']
