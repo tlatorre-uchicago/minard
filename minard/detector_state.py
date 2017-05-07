@@ -118,23 +118,22 @@ def get_detector_state_check(run=0):
         gt_crate_mask = mtc['gt_crate_mask']
         if gt_crate_mask is None:
             messages.append("GT crate mask unknown")
-
-        if gt_crate_mask is not None and not (gt_crate_mask & (1<<23)):
+        elif not (gt_crate_mask & (1<<23)):
             messages.append("TUBII is not in the GT crate mask")
 
         relay_mask = mtc['mtca_relays']
         if relay_mask is None:
             messages.append("MTCA/+ relay mask unknown")
-
-        mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLEHI', 'OWLELO', 'OWLN']
-        for i, (relay, mtca) in enumerate(zip(relay_mask,mtca_names)):
-           crates = []
-           potential_crates = range(19) if i<4 else [3,13,18]
-           for crate in potential_crates:
-               if not (relay & (1<<crate)):
-                   crates.append(crate)
-           if len(crates) > 0:
-               messages.append("Crates %s are out of %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
+        else:
+            mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLEHI', 'OWLELO', 'OWLN']
+            for i, (relay, mtca) in enumerate(zip(relay_mask,mtca_names)):
+               crates = []
+               potential_crates = range(19) if i<4 else [3,13,18]
+               for crate in potential_crates:
+                   if not (relay & (1<<crate)):
+                       crates.append(crate)
+               if len(crates) > 0:
+                   messages.append("Crates %s are out of %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
 
 
     if tubii is None:
