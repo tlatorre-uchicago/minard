@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# chkconfig: - 58 74
+# chkconfig: - 58 75
 # description: data consumer cmos
 
 . /etc/init.d/functions

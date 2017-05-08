@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# chkconfig: - 58 74
+# chkconfig: - 58 75
 # description: data consumer base
 
 . /etc/init.d/functions
