@@ -2,6 +2,7 @@ from __future__ import print_function, division
 from .views import app
 from .db import engine
 from .channeldb import get_nominal_settings_for_run, get_pmt_types
+from collections import defaultdict
 
 def get_detector_state(run=0):
     """
@@ -345,6 +346,20 @@ def get_fec_state(key):
 def get_run_state(run):
     return fetch_from_table_with_key('run_state',run,key_name='run')
 
+def get_hv_nominals():
+    conn = engine.connect()
+    command = "SELECT crate,supply,nominal FROM hvparams ORDER BY crate ASC"
+    res =  conn.execute(command)
+    if res is None:
+        return None
+    ret = {}
+    for crate, supply, nominal in res.fetchall():
+        if crate == 16 and supply == "B":
+            ret["OWL"] = nominal
+        else:
+            ret[crate] = nominal
+    return ret
+
 def translate_trigger_mask(maskVal):
     trigger_bit_to_string = [
                                 (0 ,"NHIT100LO"),
@@ -558,6 +573,8 @@ def all_crates_human_readable(detector_state):
     ret['num_n100_triggers'] = sum(map(lambda x:x['num_n100_triggers'],available_crates))
     ret['num_n20_triggers'] = sum(map(lambda x:x['num_n20_triggers'],available_crates))
     ret['num_sequencers'] = sum(map(lambda x:x['num_sequencers'],available_crates))
+    ret['num_relays'] = sum(map(lambda x:x['num_relays'],available_crates))
+
     return ret
 
 @app.template_filter('crate_human_readable')
@@ -566,17 +583,33 @@ def crate_human_readable_filter(crate):
         return False
     fecs = []
     ret = {}
+    relay_mask1 = crate["hv_relay_mask1"]
+    relay_mask2 = crate["hv_relay_mask2"]
+
+    if relay_mask2 is None or relay_mask1 is None:
+        relay_mask = None
+    else:
+        relay_mask = relay_mask1 | relay_mask2 << 32
     try:
-        for i in range(0,16):
-            fecs.append(fec_human_readable_filter(crate[i]))
+        for card in range(0,16):
+            fecs.append(fec_human_readable_filter(crate[card]))
+            fecs[card]["relays"] = [None]*4
+            if relay_mask is not None:
+                for PC in range(4):
+                    fecs[card]["relays"][PC] = (relay_mask & 1<<(card*4+(3-PC)) ) > 0
     except Exception as e:
         print("FEC translation error: %s" % e)
         return False
     ret['fecs'] = fecs
+    ret['hv_a_on'] = crate['hv_a_on']
+    ret['hv_b_on'] = crate['hv_b_on']
+    ret['hv_dac_a'] = crate['hv_dac_a']
+    ret['hv_dac_b'] = crate['hv_dac_b']
     available_fecs = filter(None,fecs)
     ret['num_n100_triggers'] = sum(map(lambda x:x['num_n100_triggers'],available_fecs))
     ret['num_n20_triggers'] = sum(map(lambda x:x['num_n20_triggers'],available_fecs))
     ret['num_sequencers'] = sum(map(lambda x:x['num_sequencers'],available_fecs))
+    ret['num_relays'] = sum( [ sum(fec['relays']) if any(fec['relays']) else 0 for fec in available_fecs])
     return ret
 
 def translate_fec_disable_mask(mask):
@@ -584,9 +617,7 @@ def translate_fec_disable_mask(mask):
 
 @app.template_filter('fec_human_readable')
 def fec_human_readable_filter(fec):
-    if fec is None:
-        return False
-    ret = {}
+    ret = defaultdict(bool)
     try:
         ret['n20_triggers'] = fec['tr20_mask']
         ret['n100_triggers'] = fec['tr100_mask']
@@ -600,8 +631,7 @@ def fec_human_readable_filter(fec):
         ret['vbal_0'] = fec['vbal_0']
         ret['vbal_1'] = fec['vbal_1']
     except Exception as e:
-        print("FEC translation error : %s" % e)
-        return False
+        pass
     return ret
 
 def trigger_scan_string_translate(name):

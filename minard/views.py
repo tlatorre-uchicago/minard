@@ -251,6 +251,8 @@ def state(run=None):
     if run_state['timestamp'] is not None:
         trigger_scan = detector_state.get_trigger_scan_for_run(run)
 
+    hv_params = detector_state.get_hv_nominals()
+
     return render_template('state.html', run=run,
                            run_state=run_state,
                            detector_control_state=detector_control_state,
@@ -259,6 +261,7 @@ def state(run=None):
                            tubii_state=tubii_state,
                            crates_state=crates_state,
                            trigger_scan=trigger_scan,
+                           hv_params=hv_params,
                            err=None)
 
 @app.route('/l2')
