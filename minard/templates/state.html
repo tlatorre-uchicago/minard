@@ -211,7 +211,7 @@
             if (Object.keys(enabled_dacs).length){
                 enabled_triggers_node.attr('class','col-md-3');
                 thresholds_node = d3.select("#summary_thresholds").attr('class','col-md-9');
-                display_mtca_thresholds(thresholds_node,enabled_dacs,trigger_scan);
+                display_mtca_thresholds(thresholds_node,enabled_dacs,trigger_scan, enabled_dacs, false);
             }
             display_triggers(enabled_triggers_node,mtc_data.gt_words);
             var mtc = d3.select('#mtc');

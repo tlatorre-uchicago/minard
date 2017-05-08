@@ -576,7 +576,7 @@ function display_mtc(node,mtc_data){
     display_triggers(node,mtc_data.gt_words);
 
     enabled_dacs = get_enabled_dacs(mtc_data.MTCA_DACs,mtc_data.gt_words);
-    display_mtca_thresholds(node,mtc_data.MTCA_DACs,trigger_scan,enabled_dacs);
+    display_mtca_thresholds(node,mtc_data.MTCA_DACs,trigger_scan,enabled_dacs, true);
 
     display_lockout_width(node,mtc_data.lockout_width);
     display_control_reg(node,mtc_data.control_reg);
@@ -615,7 +615,7 @@ function display_mtc(node,mtc_data){
     display_bit_mask(mtc_data.OWLN_crates,node,"OWLN",size_info,mtca_relay_text_factory("OWLN"));
 }
 
-function display_mtca_thresholds(node,dacs,trigger_scan,enabled_dacs){
+function display_mtca_thresholds(node, dacs, trigger_scan, enabled_dacs, add_colors){
     function dac_to_volts(value) { return (10.0/4096)*value - 5.0; }
     volt_dict = {}
 
@@ -633,7 +633,7 @@ function display_mtca_thresholds(node,dacs,trigger_scan,enabled_dacs){
         .enter()
         .append('tr')
         .attr('class',function(key) {
-            if(enabled_dacs && enabled_dacs[key])
+            if(enabled_dacs && enabled_dacs[key] && add_colors)
             { return 'success'; }
             return '';
         })
