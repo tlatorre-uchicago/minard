@@ -128,25 +128,6 @@
             {% call collapsible_header('Crates','allCrates') %}
                 {% call collapsible_header('Channel Thresholds','VThr') %}
                 {% endcall %}
-                {% call collapsible_header('Data Dump','DataDump') %}
-                    {% for i in range(20) %}
-                        {% if crates_state[i] %}
-                            {% call collapsible_header('Crate %i' % i,'crate%i' % i) %}
-                                {% for j in range(0,16) %}
-                                    {% if crates_state[i][j] is not none %}
-                                        {% call collapsible_header('Crate %i MB %i' % (i,j), 'Crate%iMB%i' % (i,j)) %}
-                                        <ul>
-                                        {% for key in crates_state[i][j] %}
-                                            <li>{{key}} = {{crates_state[i][j][key]}}</li>
-                                        {% endfor %}
-                                        </ul>
-                                        {% endcall %}
-                                    {% endif %}
-                                {% endfor %}
-                            {% endcall %}
-                        {% endif %}
-                    {% endfor %}
-                {% endcall %}
             {% endcall %}
         {% endif %}
         {% endif %}
