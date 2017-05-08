@@ -109,10 +109,51 @@ def get_detector_state_check(run=0):
     channels = []
     messages = []
 
+    mtc = get_mtc_state(0)
+    tubii = get_tubii_state(0)
+
+    if mtc is None:
+        messages.append("mtc state unknown")
+    else:
+        gt_crate_mask = mtc['gt_crate_mask']
+        if gt_crate_mask is None:
+            messages.append("GT crate mask unknown")
+        elif not (gt_crate_mask & (1<<23)):
+            messages.append("TUBII is not in the GT crate mask")
+
+        relay_mask = mtc['mtca_relays']
+        if relay_mask is None:
+            messages.append("MTCA/+ relay mask unknown")
+        else:
+            mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLEHI', 'OWLELO', 'OWLN']
+            for i, (relay, mtca) in enumerate(zip(relay_mask,mtca_names)):
+               crates = []
+               potential_crates = range(19) if i<4 else [3,13,18]
+               for crate in potential_crates:
+                   if not (relay & (1<<crate)):
+                       crates.append(crate)
+               if len(crates) > 0:
+                   messages.append("Crates %s are out of %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
+
+
+    if tubii is None:
+        messages.append("tubii state unknown")
+    else:
+        control_reg = tubii['control_reg']
+        if control_reg is not None and (control_reg & (1<<2)):
+            messages.append("TUBII ECAL bit set")
+
     for crate in range(19):
         if detector_state[crate] is None:
             messages.append("crate %i is off" % crate)
             continue
+
+        if gt_crate_mask is not None and mtc is not None and not (gt_crate_mask & (1<<crate)):
+            messages.append("crate %i is not in the GT crate mask" % crate)
+
+        xl3_mode = detector_state[crate]['xl3_mode']
+        if xl3_mode == 1:
+            messages.append("crate %i is in init mode" % crate)
 
         hv_on = detector_state[crate]['hv_a_on'] == True
         if not hv_on:
@@ -124,8 +165,6 @@ def get_detector_state_check(run=0):
         readout_mask = detector_state[crate]['xl3_readout_mask']
         if readout_mask is None:
             messages.append("crate %i readout mask is unknown" % crate)
-        else:
-            readout_mask = readout_mask ^ 0xffff
 
         if hv_relay_mask1 is None or hv_relay_mask2 is None:
             messages.append("crate %i relay settings are unknown" % crate)
@@ -136,8 +175,8 @@ def get_detector_state_check(run=0):
             if detector_state[crate][slot] is None:
                 messages.append("crate %i, slot %i is offline" % (crate, slot))
                 continue
-            if (readout_mask & (1<<slot)) and readout_mask is not None:
-                messages.append("crate %i, slot %i is out of readout mask" % (crate, slot))
+            if readout_mask is not None and not (readout_mask & (1<<slot)):
+                messages.append("crate %i, slot %i is out of the xl3 readout mask" % (crate, slot))
                 continue
             for channel in range(32):
                 hv_enabled = hv_relay_mask & (1 << (slot*4 + (3-channel//8))) and hv_on
