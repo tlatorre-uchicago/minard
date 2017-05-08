@@ -163,9 +163,7 @@ function display_crate_view(key,crates_data,sizeinfo,node,styling,hover_text)
     if(crate) {
             MBs =  crate.fecs.map(function(mb,i) {
                 if(typeof(key) == 'function') {
-                    if(typeof(key) == 'function') {
                         return key(mb);
-                    }
                 }
                 else if (typeof(mb[key]) != 'undefined'){
                     return mb[key];
