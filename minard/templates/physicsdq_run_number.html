@@ -339,6 +339,38 @@
                                 <td><font color="red">Fail</font></td>
                                 {% endif %}
                             </tr>
+                            <tr>
+                                {% if "triggerProcMissingGTID" in ratdb_dict["checks"]["dqtriggerproc"] %}
+                                <td>
+                                    Missing GTID count Check 
+                                </td>
+                                {% if ratdb_dict["checks"]["dqtriggerproc"]["triggerProcMissingGTID"] == 1 %}
+                                <td>Pass</td>
+                                {% else %}
+                                <td><font color="red">Fail</font></td>
+                                {% endif %}
+                            </tr>
+                            {% else %}
+                            <tr class="bg-warning">
+                                <td colspan="2" style="text-align:center;">No Missing GTID count Check Found</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                {% if "triggerProcBitFlipGTID" in ratdb_dict["checks"]["dqtriggerproc"] %}
+                                <td>
+                                    Bit flip GTID count Check 
+                                </td>
+                                {% if ratdb_dict["checks"]["dqtriggerproc"]["triggerProcBitFlipGTID"] == 1 %}
+                                <td>Pass</td>
+                                {% else %}
+                                <td><font color="red">Fail</font></td>
+                                {% endif %}
+                                {% else %}
+                                <tr class="bg-warning">
+                                    <td colspan="2" style="text-align:center;">No bit flip GTID count Check Found</td>
+                                </tr>
+                                {% endif %}
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -368,10 +400,8 @@
                             </tr>
                             {% else %}
                             <tr class="bg-warning">
-                                <td>
-                                   Orphan Count 
-                                </td>
-                                <td>No Oprhans Count found for this run</td>
+                                <td colspan="2" style="text-align:center;">
+                                No Oprhans Count found for this run</td>
                             </tr>
                             {% endif %}
                             {% if 'missing_gtids'  in ratdb_dict["checks"]["dqtriggerproc"]["check_params"] %}
@@ -385,11 +415,10 @@
                             </tr>
                             {% else %}
                             <tr class="bg-warning">
-                                <td>
-                                   Number of Missing GTIDs 
-                                </td>
-                                <td>No Missing GTIDs found in DB table for this run</td>
+                                <td colspan="2" style="text-align:center;">
+                                No Missing GTIDs found in DB table for this run</td>
                             </tr>
+                            {% endif %}
                             {% if 'bitflip_gtids'  in ratdb_dict["checks"]["dqtriggerproc"]["check_params"] %}
                             <tr>
                                 <td>
@@ -401,12 +430,9 @@
                             </tr>
                             {% else %}
                             <tr class="bg-warning">
-                                <td>
-                                   Number of Bitflip GTIDs 
-                                </td>
-                                <td>No Bitflip GTIDs found in DB table for this run</td>
+                                <td colspan="2" style="text-align:center;">
+                                No Bitflip GTIDs found in DB table for this run</td>
                             </tr>
-                            {% endif %}
                             {% endif %}
                         </tbody>
                     </table>
