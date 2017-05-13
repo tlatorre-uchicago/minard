@@ -176,7 +176,7 @@ def get_detector_state_check(run=0):
             if detector_state[crate][slot] is None:
                 messages.append("crate %i, slot %i is offline" % (crate, slot))
                 continue
-            if readout_mask is not None and not (readout_mask & (1<<slot)):
+            if readout_mask is not None and not (readout_mask & (1<<slot)) and xl3_mode == 2:
                 messages.append("crate %i, slot %i is out of the xl3 readout mask" % (crate, slot))
                 continue
             slot_sequencers = detector_state[crate][slot]['disable_mask']
