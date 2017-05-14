@@ -178,9 +178,8 @@ def get_detector_state_check(run=0):
                 continue
             if readout_mask is not None and not (readout_mask & (1<<slot)) and xl3_mode == 2:
                 messages.append("crate %i, slot %i is out of the xl3 readout mask" % (crate, slot))
-                continue
             slot_sequencers = detector_state[crate][slot]['disable_mask']
-            if slot_sequencers is not None and slot_sequencers == 0xffffffff:
+            if slot_sequencers is not None and slot_sequencers == 0xffffffff and (readout_mask & (1<<slot)):
                messages.append("Sequencers disabled for crate %i, slot %i" % (crate, slot))
             for channel in range(32):
                 hv_enabled = hv_relay_mask & (1 << (slot*4 + (3-channel//8))) and hv_on
