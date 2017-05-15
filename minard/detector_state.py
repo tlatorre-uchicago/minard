@@ -101,18 +101,17 @@ def get_detector_state_check(run=0):
     (None, None).
     """
     detector_state = get_detector_state(run)
+    run_state = get_run_state(run)
 
-    if detector_state is None:
+    if detector_state is None or run_state is None:
         return None, None
 
     nominal_settings = get_nominal_settings_for_run(run)
+    mtc_key = run_state['mtc']
+    tubii_key = run_state['tubii']
 
     channels = []
     messages = []
-
-    run_state = get_run_state(run)
-    mtc_key = run_state['mtc']
-    tubii_key = run_state['tubii']
 
     mtc = get_mtc_state(mtc_key)
     tubii = get_tubii_state(tubii_key)
