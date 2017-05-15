@@ -110,8 +110,12 @@ def get_detector_state_check(run=0):
     channels = []
     messages = []
 
-    mtc = get_mtc_state(0)
-    tubii = get_tubii_state(0)
+    run_state = get_run_state(run)
+    mtc_key = run_state['mtc']
+    tubii_key = run_state['tubii']
+
+    mtc = get_mtc_state(mtc_key)
+    tubii = get_tubii_state(tubii_key)
 
     if mtc is None:
         messages.append("mtc state unknown")
@@ -143,6 +147,10 @@ def get_detector_state_check(run=0):
         control_reg = tubii['control_reg']
         if control_reg is not None and (control_reg & (1<<2)):
             messages.append("TUBII ECAL bit set")
+        gain_reg = tubii['caen_gain_reg']
+        # Hard-coded for current TUBII cabling
+        if gain_reg is not None and gain_reg != 31:
+            messages.append("TUBII is in attenuating mode")
 
     for crate in range(19):
         if detector_state[crate] is None:
