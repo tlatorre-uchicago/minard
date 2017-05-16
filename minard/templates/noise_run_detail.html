@@ -71,19 +71,23 @@
 
 <div class="well well-sm">
   <div class="row">
-    <div class="col-sm-3">
+    <div class="col-sm-2">
       <a type="button" class="btn btn-default btn-xs" href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_'+run_number+'.ratdb') }}">
 	Download noise table</a>
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-2">
       <a type="button" class="btn btn-default btn-xs" href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_monitoring_'+run_number+'.ratdb') }}">
 	Download monitoring table</a>
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-2">
+      <a type="button" class="btn btn-default btn-xs" href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_integrated_'+run_number+'.ratdb') }}">
+        Download integrated table</a>
+    </div>
+    <div class="col-sm-2">
       <a type="button" class="btn btn-default btn-xs" href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/rat.noiserate_'+run_number+'.log') }}">
 	Processor log file</a>
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-2">
       <a type="button" class="btn btn-default btn-xs" href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/rat.noiserate_upload_'+run_number+'.log') }}">
 	Ratdb upload log file</a>
     </div>
@@ -102,10 +106,16 @@
 	  <div class="panel-body">
 	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_hist_zoom.png') }}"
                  alt="Noise rate histogram (zoom)" class="img-responsive col-md-6">
-	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_hist_crate.png') }}"
+	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_hist_crate_zoom.png') }}"
 		 alt="Noise rate crate view" class="img-responsive col-md-6">
             <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_hist.png') }}"
 		 alt="Noise rate histogram" class="img-responsive col-md-6">
+	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_hist_crate.png') }}"
+		 alt="Noise rate crate view" class="img-responsive col-md-6">
+	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/integrated_noise_rate.png') }}"
+                 alt="Integrated noise rate crate view" class="img-responsive col-md-6">
+	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/integrated_noise_rate_crate.png') }}"
+                 alt="Integrated noise rate crate view" class="img-responsive col-md-6">
           </div>
 	</div>
     </div>
