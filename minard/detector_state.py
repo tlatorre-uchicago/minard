@@ -134,7 +134,7 @@ def get_detector_state_check(run=0):
                crates = []
                potential_crates = range(19) if i<4 else [3,13,18]
                for crate in potential_crates:
-                   if not (relay & (1<<crate)):
+                   if relay is not None and not (relay & (1<<crate)):
                        crates.append(crate)
                if len(crates) > 0:
                    messages.append("Crates %s are out of %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
