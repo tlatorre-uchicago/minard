@@ -6,8 +6,8 @@ from .db import engine
 def import_HLDQ_runnumbers(limit=10, offset=0):
     #Returns the latest TELLIE runs.
     conn = engine.connect()
-    # select all runs which are physics or supernovae runs
-    result = conn.execute("SELECT run FROM run_state WHERE (run_type & 4) = 4 OR (run_type & 256) = 256 ORDER BY run DESC LIMIT %s OFFSET %s", (limit,offset))
+    # select all runs which are physics runs
+    result = conn.execute("SELECT run FROM run_state WHERE (run_type & 4) = 4 ORDER BY run DESC LIMIT %s OFFSET %s", (limit,offset))
     return [row[0] for row in result.fetchall()]
 
 def import_HLDQ_ratdb(runNumber):
@@ -33,6 +33,9 @@ def generateHLDQProcStatus(ratdbDict):
         checkDict = ratdbDict["checks"][proc]
         outDict[proc] = 1
         for entry in checkDict.keys():
+#Skip over processors we no longer check
+            if entry == "run_length" or entry == "delta_t_comparison":
+                continue
             if type(checkDict[entry]) is not dict:
 #If a run fails set flag to 0 and break
                 if checkDict[entry] == 0:

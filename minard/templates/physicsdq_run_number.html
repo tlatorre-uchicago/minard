@@ -89,16 +89,6 @@
                                 <td><font color="red">Fail</font></td>
                                 {% endif %}
                             </tr>
-                            <tr>
-                                <td>
-                                    Event Separation Clock UT comparison check
-                                </td>
-                                {% if ratdb_dict["checks"]["dqtimeproc"]["delta_t_comparison"] == 1 %}
-                                <td>Pass</td>
-                                {% else %}
-                                <td><font color="red">Fail</font></td>
-                                {% endif %}
-                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -208,16 +198,6 @@
                                     Monte Carlo check 
                                 </td>
                                 {% if ratdb_dict["checks"]["dqrunproc"]["mc_flag"] == 1 %}
-                                <td>Pass</td>
-                                {% else %}
-                                <td><font color="red">Fail</font></td>
-                                {% endif %}
-                            </tr>
-                            <tr>
-                                <td>
-                                    Run length check 
-                                </td>
-                                {% if ratdb_dict["checks"]["dqrunproc"]["run_length"] == 1 %}
                                 <td>Pass</td>
                                 {% else %}
                                 <td><font color="red">Fail</font></td>
