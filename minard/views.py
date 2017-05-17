@@ -772,10 +772,8 @@ def pcatellie():
     
 @app.route('/pca_run_detail/<run_number>')
 def pca_run_detail(run_number):
-    
     return render_template('pca_run_detail.html',
                             run_number=run_number)      
-  
 
 @app.route('/calibdq')
 def calibdq():
@@ -801,7 +799,6 @@ def calibdq_tellie_run_number(run_number):
     run_num, check_params, runInfo=  HLDQTools.import_TELLIEDQ_ratdb(int(run_number))
     return render_template('calibdq_tellie_run.html',run_number=run_number, runInformation=runInfo)
 
-
 @app.route('/calibdq_tellie/<run_number>/<subrun_number>')
 def calibdq_tellie_subrun_number(run_number,subrun_number):
     run_num = 0
@@ -813,7 +810,6 @@ def calibdq_tellie_subrun_number(run_number,subrun_number):
         if int(runInfo["subrun_numbers"][i]) == int(subrun_number):
             subrun_index = i
     return render_template('calibdq_tellie_subrun.html',run_number=run_number,subrun_index=subrun_index, runInformation=runInfo)
-
 
 @app.route('/noise')
 def noise():
