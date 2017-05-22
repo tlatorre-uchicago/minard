@@ -168,7 +168,7 @@ def get_detector_state_check(run=0):
             messages.append("crate %i HV is off" % crate)
 
         if crate == 16 and not detector_state[crate]['hv_b_on']:
-            messages.append("OWL HV is off" % crate)
+            messages.append("OWL HV is off")
 
         hv_relay_mask1 = detector_state[crate]['hv_relay_mask1']
         hv_relay_mask2 = detector_state[crate]['hv_relay_mask2']
