@@ -103,6 +103,7 @@
                     <option value="bad_cable">Bad Cable</option>
                     <option value="resistor_pulled">Resistor pulled</option>
                     <option value="bad_base_current">Bad Base Current</option>
+                    <option value="high_dropout">High Dropout</option>
                 </select>
                 is
                 <select id="bool1">
@@ -125,6 +126,7 @@
                     <option value="bad_cable">Bad Cable</option>
                     <option value="resistor_pulled">Resistor pulled</option>
                     <option value="bad_base_current">Bad Base Current</option>
+                    <option value="high_dropout">High Dropout</option>
                 </select>
                 is
                 <select id="bool2">
@@ -170,6 +172,7 @@
 			    <th>Bad Cable</th>
 			    <th>Resistor pulled</th>
 			    <th>Bad Base Current</th>
+			    <th>High Dropout</th>
 			</tr>
 		    </thead>
 		    {% for row in results %}
@@ -190,6 +193,7 @@
 			{{ status(row['bad_cable']) }}
 			{{ status(row['resistor_pulled']) }}
 			{{ status(row['bad_base_current']) }}
+			{{ status(row['high_dropout']) }}
 		    </tr>
 		    {% endfor %}
 		</table>
