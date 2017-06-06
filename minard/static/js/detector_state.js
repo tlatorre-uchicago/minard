@@ -390,7 +390,7 @@ function display_tubii(tubii_info) {
     arr.push(["B",(tubii_data["trigger_mask"]&(1<<18))/(1<<18), "Burst Trigger"]);
     arr.push(["C",(tubii_data["trigger_mask"]&(1<<19))/(1<<19), "Combo Trigger"]);
     arr.push(["P",(tubii_data["trigger_mask"]&(1<<20))/(1<<20), "Prescale Trigger"]);
-    arr.push(["U",(tubii_data["trigger_mask"]&(1<<21))/(1<<21), "Unused Trigger"]);
+    arr.push(["U",(tubii_data["trigger_mask"]&(1<<21))/(1<<21), "TUBii PGT"]);
     arr.push(["T",(tubii_data["trigger_mask"]&(1<<22))/(1<<22), "TELLIE"]);
     arr.push(["S",(tubii_data["trigger_mask"]&(1<<23))/(1<<23), "SMELLIE"]);
     svg.selectAll('rect')
@@ -405,6 +405,47 @@ function display_tubii(tubii_info) {
         .attr("class",function(d) { return d[1]==1 ? 'on' : 'off'; })
     .append("svg:title")
     .text(function(d){return d[2];});
+    svg.selectAll('text')
+        .data(arr)
+        .enter()
+        .append('text')
+        .text(function(d){return d[0];})
+        .attr("text-anchor","middle")
+        .attr("font-size","16px")
+        .attr("fill","white")
+        .attr("x",function(d,i) { return xpos_func(d,i)+0.5*radius;})
+        .attr("y",function(d,i) { return ypos_func(d,i)+0.5*radius+5;});
+
+    tubii.append('h4').text("Async Trigger Mask");
+    var svg = tubii.append("svg")
+        .attr("width",width)
+        .attr("height",height)
+        .attr("viewBox","0 0 "+width.toString()+" "+height.toString())
+        .attr("class","rack_mask");
+    var arr = [];
+    for(var i=0;i<16;i++) {
+        arr.push([i.toString(),(tubii_data["async_trigger_mask"]&(1<<i))/(1<<i),"External Trigger " + i.toString()]);
+    }
+    arr.push(["M1",(tubii_data["async_trigger_mask"]&(1<<16))/(1<<16),"MTCA Mimic 1"]);
+    arr.push(["M2",(tubii_data["async_trigger_mask"]&(1<<17))/(1<<17),"MTCA Mimic 2"]);
+    arr.push(["B",(tubii_data["async_trigger_mask"]&(1<<18))/(1<<18), "Burst Trigger"]);
+    arr.push(["C",(tubii_data["async_trigger_mask"]&(1<<19))/(1<<19), "Combo Trigger"]);
+    arr.push(["P",(tubii_data["async_trigger_mask"]&(1<<20))/(1<<20), "Prescale Trigger"]);
+    arr.push(["U",(tubii_data["async_trigger_mask"]&(1<<21))/(1<<21), "TUBii PGT"]);
+    arr.push(["T",(tubii_data["async_trigger_mask"]&(1<<22))/(1<<22), "TELLIE"]);
+    arr.push(["S",(tubii_data["async_trigger_mask"]&(1<<23))/(1<<23), "SMELLIE"]);
+    svg.selectAll('rect')
+        .data(arr)
+        .enter()
+        .append('rect')
+        .attr("x",xpos_func)
+        .attr("y",ypos_func)
+        .attr("width",radius)
+	.attr("height",radius)
+        .attr("fill",function(d) { return d[1]==1 ? 'green' : 'red'; })
+        .attr("class",function(d) { return d[1]==1 ? 'on' : 'off'; })
+	.append("svg:title")
+	.text(function(d){return d[2];});
     svg.selectAll('text')
         .data(arr)
         .enter()
@@ -431,7 +472,7 @@ function display_tubii(tubii_info) {
     arr.push(["B",(tubii_data["speaker_mask"]&(1<<18))/(1<<18),"Burst Trigger"]);
     arr.push(["C",(tubii_data["speaker_mask"]&(1<<19))/(1<<19),"Combo Trigger"]);
     arr.push(["P",(tubii_data["speaker_mask"]&(1<<20))/(1<<20),"Prescale Trigger"]);
-    arr.push(["U",(tubii_data["speaker_mask"]&(1<<21))/(1<<21),"Unused Trigger"]);
+    arr.push(["U",(tubii_data["speaker_mask"]&(1<<21))/(1<<21),"TUBii PGT"]);
     arr.push(["T",(tubii_data["speaker_mask"]&(1<<22))/(1<<22),"TELLIE"]);
     arr.push(["S",(tubii_data["speaker_mask"]&(1<<23))/(1<<23),"SMELLIE"]);
     arr.push(["GT",(tubii_data["speaker_mask"]&(1<<24))/(1<<24),"Global Trigger"]);
@@ -473,7 +514,7 @@ function display_tubii(tubii_info) {
     arr.push(["B",(tubii_data["counter_mask"]&(1<<18))/(1<<18),"Burst Trigger"]);
     arr.push(["C",(tubii_data["counter_mask"]&(1<<19))/(1<<19),"Combo Trigger"]);
     arr.push(["P",(tubii_data["counter_mask"]&(1<<20))/(1<<20),"Prescale Trigger"]);
-    arr.push(["U",(tubii_data["counter_mask"]&(1<<21))/(1<<21),"Unused Trigger"]);
+    arr.push(["U",(tubii_data["counter_mask"]&(1<<21))/(1<<21),"TUBii PGT"]);
     arr.push(["T",(tubii_data["counter_mask"]&(1<<22))/(1<<22),"TELLIE"]);
     arr.push(["S",(tubii_data["counter_mask"]&(1<<23))/(1<<23),"SMELLIE"]);
     arr.push(["GT",(tubii_data["counter_mask"]&(1<<24))/(1<<24),"Global Trigger"]);
@@ -503,8 +544,14 @@ function display_tubii(tubii_info) {
     if(tubii_data["counter_mode"]==1) cmode="Rate";
     else cmode="Totaliser";
     tubii.append('h5').text("Counter mode: " + cmode);
-    tubii.append('h5').text("Meta-Trigger settings go here...");
 
+    tubii.append('h4').text("Trigger Settings")
+    //tubii.append('h5').text("Burst Trigger Settings: Not implemented yet");
+    tubii.append('h5').text("Combo Trigger Settings: " + tubii_data["combo_mask"] + "/" + tubii_data["combo_enable_mask"]);
+    tubii.append('h5').text("Prescale Trigger Settings: x" + tubii_data["prescale_value"] + " on channel " + tubii_data["prescale_channel"]);
+    tubii.append('h5').text("TUBii PGT Rate: " + tubii_data["pgt_rate"] + " Hz");
+
+    tubii.append('h4').text("TUBii Settings")
     var csource, losource, cbackup, ecal;
     if(tubii_data["clock_source"]==1) csource="TUBii";
     else csource="TUB";
@@ -518,17 +565,24 @@ function display_tubii(tubii_info) {
     if(tubii_data["ecal"]==1) ecal="ON";
     else ecal="OFF";
     tubii.append('h5').text("ECAL Mode: " + ecal);
-
     tubii.append('h5').text("CAEN Gain Path: " + tubii_data["caen_gain_path"]); // 1-8, high is attenuating
     tubii.append('h5').text("CAEN Channel Selected: " + tubii_data["caen_channel_select"]);
     // 1 means A9 goes to Scope/Caen Ch 1 instead of A1
     // 2 means A10 goes to Scope/Caen Ch2 instead of A2
     // 4 means A11 goes to Scope/Caen Ch3 instead of A3
     // 8 means A8 to Scope/Caen Ch 0 instead of A0
-
     tubii.append('h5').text("DGT: " + tubii_data["dgt_reg"] + " ns");
     tubii.append('h5').text("LO: " + tubii_data["lockout_reg"] + " ns");
     tubii.append('h5').text("DAC Thresh: " + tubii_data["dac_reg"] + " V");
+
+    tubii.append('h4').text("Pulsers & Delays")
+    tubii.append('h5').text("SMELLIE Pulser: " + tubii_data["smellie_pulse_rate"] + " Hz, width " + tubii_data["smellie_pulse_width"] + " ns");
+    tubii.append('h5').text("SMELLIE Delay: " + tubii_data["smellie_delay_length"] + " ns");
+    tubii.append('h5').text("TELLIE Pulser: " +tubii_data["tellie_pulse_rate"] + " Hz, width " + tubii_data["tellie_pulse_width"] + " ns");
+    tubii.append('h5').text("TELLIE Delay: " + tubii_data["tellie_delay_length"] + " ns");
+    tubii.append('h5').text("TUBii Pulser: " +tubii_data["pulse_rate"] + " Hz, width " + tubii_data["pulse_width"] + " ns");
+    tubii.append('h5').text("TUBii Delay: " + tubii_data["delay_length"] + " ns");
+
 };
 function display_array_as_list(node,arr,title) {
     node.append('h3').text(title);
