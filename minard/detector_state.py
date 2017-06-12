@@ -179,9 +179,11 @@ def get_detector_state_check(run=0):
 
         if hv_relay_mask1 is None or hv_relay_mask2 is None:
             messages.append("crate %i relay settings are unknown" % crate)
-            continue
 
-        hv_relay_mask = hv_relay_mask2 << 32 | hv_relay_mask1
+        hv_relay_mask = 0
+        if hv_relay_mask1 is not None and hv_relay_mask2 is not None:
+            hv_relay_mask = hv_relay_mask2 << 32 | hv_relay_mask1
+
         for slot in range(16):
             if detector_state[crate][slot] is None:
                 messages.append("crate %i, slot %i is offline" % (crate, slot))
