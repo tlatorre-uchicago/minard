@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block title %} Ping Crates Run {% endblock %}
+{% block head %}
+{{ super() }}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/pca.css') }}" media="screen">
+
+{% endblock %}
+
+{% block body %}
+{{ super() }}
+
+<div class="container">
+    <div class="page-header">
+     <h1 align="center">Ping Crates Plots</h1>
+    </div>
+</div>
+
+<div class="panel-group">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+              <a data-toggle="collapse" href="#pingcrates">Ping</a>
+            </h3>
+        </div>
+
+        <div id="pingcrates" class="panel-collapse collapse in">
+          <div class="panel-body">
+            <img src="{{ url_for('static', filename='pingcrates/run'+run+'/') }}"
+                 alt="N100 Baselines" class="img-responsive col-md-6">
+            <img src="{{ url_for('static', filename='pingcrates/run'+run+'/') }}"
+                 alt="N20 Baselines" class="img-responsive col-md-6">
+            <img src="{{ url_for('static', filename='pingcrates/run'+run+'/') }}"
+                 alt="N100 Peak By Crate" class="img-responsive col-md-6">
+            <img src="{{ url_for('static', filename='pingcrates/run'+run+'/') }}"
+                 alt="N20 Peak By Crate" class="img-responsive col-md-6">
+            <img src="{{ url_for('static', filename='pingcrates/run'+run+'/') }}"
+                 alt="N100 # Samples Above Thresold By Crate" class="img-responsive col-md-6">
+            <img src="{{ url_for('static', filename='pingcrates/run'+run+'/') }}"
+                 alt="N20 # of Samples Above Threshold By Crate" class="img-responsive col-md-6">
+          </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

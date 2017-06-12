@@ -842,6 +842,16 @@ def physicsdq():
             proc_results.append(HLDQTools.generateHLDQProcStatus(run_info[i]))
     return render_template('physicsdq.html',physics_run_numbers=runNumbers, proc_results=proc_results, run_info=run_info, limit=limit,offset=offset)
 
+@app.route('/pingcrates')
+def pingcrates():
+    # Grab the available runs from the nlrat redis tables 
+    return render_template('pingcrates.html', runs=nlrat.available_runs())
+
+@app.route('/pingcrates_run/<int:run>')
+def pingcrates_run(run = 0):
+    # Grab the run info from the nlrat redis tables
+    return render_template('pingcrates_run.html', run=nlrat.Run(run))
+
 @app.route('/physicsdq/<run_number>')
 def physicsdq_run_number(run_number):
     ratdb_dict = HLDQTools.import_HLDQ_ratdb(int(run_number))

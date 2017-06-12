@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block title %}Ping Crates{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+    <div class="page-header">
+    <h1 align="center">Ping Crates</h1>
+    </div>
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th> Run Number </th>
+                    <th> Status </th>
+                    <th> Run Type </th>
+                    <th> Start Time </th>
+                </tr>
+                <tr>
+                    <tr class="success">
+                    <th><a href="{{url_for('pingcrates_run',run=1012) }}">{{1012}}</a></th>
+                    <th> {{"Pass"}} </th> 
+                    <th> {{"Physics"}} </th>
+                    <th> {{"10:20"}} </th>
+                    {% for run in runs %}
+                    {% if run.type == "Physics" %}
+                    </tr>
+                    <tr>
+                        <th><a href="{{url_for('pingcrates_run',run=run.id) }}">{{run.id}}</a></th>
+                        <th> {{"Pass"}} </th> 
+                        <th> {{run.type}} </th>
+                        <th> {{run.time}} </th>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
