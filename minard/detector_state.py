@@ -195,9 +195,9 @@ def get_detector_state_check(run=0):
             slot_sequencers = detector_state[crate][slot]['disable_mask']
             if slot_sequencers is not None and slot_sequencers == 0xffffffff and (readout_mask & (1<<slot)):
                 messages.append("Sequencers disabled for crate %i, slot %i" % (crate, slot))
-            for channel in range(32):
-                if hv_relay_mask1 is not None and hv_relay_mask2 is not None:
-                    hv_relay_mask = hv_relay_mask2 << 32 | hv_relay_mask1
+            if hv_relay_mask1 is not None and hv_relay_mask2 is not None:
+                hv_relay_mask = hv_relay_mask2 << 32 | hv_relay_mask1
+                for channel in range(32):
                     hv_enabled = hv_relay_mask & (1 << (slot*4 + (3-channel//8))) and hv_on
                     if detector_state[crate][slot]['tr100_mask'] is None:
                         messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
