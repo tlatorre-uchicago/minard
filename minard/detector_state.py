@@ -125,11 +125,17 @@ def get_detector_state_check(run=0):
         elif not (gt_crate_mask & (1<<23)):
             messages.append("TUBII is not in the GT crate mask")
 
+        lockout_width = mtc['lockout_width']
+        if lockout_width is None:
+            messages.append("Lockout width unknown")
+        elif lockout_width != 420:
+            messages.append("Lockout width is a bad value: %i" % lockout_width)
+
         relay_mask = mtc['mtca_relays']
         if relay_mask is None:
             messages.append("MTCA/+ relay mask unknown")
         else:
-            mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLEHI', 'OWLELO', 'OWLN']
+            mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLELO', 'OWLEHI', 'OWLN']
             for i, (relay, mtca) in enumerate(zip(relay_mask,mtca_names)):
                crates = []
                potential_crates = range(19) if i<4 else [3,13,18]
@@ -557,6 +563,7 @@ def tubii_human_readable_filter(tubii):
         ret['ecal'] = (tubii['control_reg'] & 4)/4
         ret['clock_status'] = tubii['clock_status']
         ret['trigger_mask'] = tubii['trigger_mask']
+        ret['async_trigger_mask'] = tubii['async_trigger_mask']
         ret['counter_mask'] = tubii['counter_mask']
         ret['counter_mode'] = tubii['counter_mode']
         ret['speaker_mask'] = tubii['speaker_mask']
@@ -565,6 +572,26 @@ def tubii_human_readable_filter(tubii):
         ret['lockout_reg'] = 5*tubii['lockout_reg']
         ret['dgt_reg'] = 2*tubii['dgt_reg']
         ret['dac_reg'] = (10/4096)*tubii['dac_reg'] -5
+        ret['burst_channel'] = tubii['burst_channel']
+        ret['burst_slave'] = tubii['burst_slave']
+        ret['burst_rate'] = tubii['burst_rate']
+        ret['combo_mask'] = tubii['combo_mask']
+        ret['combo_enable_mask'] = tubii['combo_enable_mask']
+        ret['prescale_value'] = tubii['prescale_value']
+        ret['prescale_channel'] = tubii['prescale_channel']
+        ret['pgt_rate'] = tubii['pgt_rate']
+        ret['smellie_delay_length'] = tubii['smellie_delay_length']
+        ret['smellie_pulse_rate'] = tubii['smellie_pulse_rate']
+        ret['smellie_pulse_width'] = tubii['smellie_pulse_width']
+        ret['smellie_npulses'] = tubii['smellie_npulses']
+        ret['tellie_delay_length'] = tubii['tellie_delay_length']
+        ret['tellie_pulse_rate'] = tubii['tellie_pulse_rate']
+        ret['tellie_pulse_width'] = tubii['tellie_pulse_width']
+        ret['tellie_npulses'] = tubii['tellie_npulses']
+        ret['delay_length'] = tubii['delay_length']
+        ret['pulse_rate'] = tubii['pulse_rate']
+        ret['pulse_width'] = tubii['pulse_width']
+        ret['npulses'] = tubii['npulses']
     except Exception as e:
         print("TUBii translation error: %s" % e)
         return False
