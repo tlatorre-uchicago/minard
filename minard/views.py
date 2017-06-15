@@ -751,8 +751,9 @@ def pcatellie():
         sorted_runs = sorted(runs_for_fiber,
                                   key=lambda run: (int(run["run_number"])),
                                   reverse=True)
-        sorted_runs_good = sorted(runs_for_fiber,
-                                  key=lambda run: (run["pca_result"] == "0", int(run["run_number"])),
+        good_runs_for_fiber = [run for run in runs_for_fiber if (run["pca_status"] == "0")]
+        sorted_runs_good = sorted(good_runs_for_fiber,
+                                  key=lambda run: (int(run["run_number"])),
                                   reverse=True)
         pca_run = sorted_runs[0]["run_number"] if sorted_runs else ""
         pca_run_good = sorted_runs_good[0]["run_number"] if sorted_runs_good else ""

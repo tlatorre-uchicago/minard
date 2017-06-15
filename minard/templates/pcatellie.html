@@ -10,26 +10,32 @@
 {% macro fiber_cell(fiber, query_good_runs) -%}
     {% if fiber["is_dead"] %}
         <div class="pca-fiber-dead pca-fiber-cell">
+        <div> {{ fiber["fiber_number"] }} </div>
     {% elif not fiber["is_installed"] %}
         <div class="pca-fiber-vacant pca-fiber-cell">
-    {% elif fiber["pca_run"] %}
-        {% if query_good_runs %}
+        <div> {{ fiber["fiber_number"] }} </div>
+    {% elif query_good_runs %}
+        {% if fiber["pca_run_good"]%}
             <div class="pca-fiber-success pca-fiber-cell">
-        {% elif fiber["pca_result"] == "1" %}
+            <div> {{ fiber["fiber_number"] }} </div>
+            <div><a href="{{ url_for('pca_run_detail',run_number=fiber["pca_run_good"]) }}">{{ fiber["pca_run_good"] }}</a></div>
+        {% else %}
+            <div class="pca-fiber-installed pca-fiber-cell">
+            <div> {{ fiber["fiber_number"] }} </div>
+        {% endif %}
+    {% elif fiber["pca_run"]%}
+        {% if (fiber["pca_result"] == "1") %}
             <div class="pca-fiber-fail pca-fiber-cell">
         {% else %}
             <div class="pca-fiber-success pca-fiber-cell">
         {% endif %}
+        <div> {{ fiber["fiber_number"] }} </div>
+        <div><a href="{{ url_for('pca_run_detail',run_number=fiber["pca_run"]) }}">{{ fiber["pca_run"] }}</a></div>
     {% else %}
         <div class="pca-fiber-installed pca-fiber-cell">
+        <div> {{ fiber["fiber_number"] }} </div>
     {% endif %}
-    <div> {{ fiber["fiber_number"] }} </div>
-        {% if query_good_runs %}
-        <div><a href="{{ url_for('pca_run_detail',run_number=fiber["pca_run_good"]) }}">{{ fiber["pca_run_good"] }}</a></div>
-        {% else %}
-        <div><a href="{{ url_for('pca_run_detail',run_number=fiber["pca_run"]) }}">{{ fiber["pca_run"] }}</a></div>
-        {% endif %}
-    </div>
+        </div>
 {%- endmacro %}
 
     <div class="container">
