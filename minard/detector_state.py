@@ -137,13 +137,16 @@ def get_detector_state_check(run=0):
         else:
             mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLELO', 'OWLEHI', 'OWLN']
             for i, (relay, mtca) in enumerate(zip(relay_mask,mtca_names)):
-               crates = []
-               potential_crates = range(19) if i<4 else [3,13,18]
-               for crate in potential_crates:
-                   if relay is not None and not (relay & (1<<crate)):
-                       crates.append(crate)
-               if len(crates) > 0:
-                   messages.append("Crates %s are out of %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
+                crates = []
+                potential_crates = range(19) if i<4 else [3,13,18]
+                for crate in potential_crates:
+                    if relay is not None and not (relay & (1<<crate)):
+                        crates.append(crate)
+                if len(crates):
+                    if len(crates) == 1:
+                        messages.append("crate %i is out of the %s MTCA+ relay mask" % (crates[0], mtca))
+                    else:
+                        messages.append("crates %s are out of the %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
 
     if tubii is None:
         messages.append("tubii state unknown")
