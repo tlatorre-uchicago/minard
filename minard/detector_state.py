@@ -135,16 +135,18 @@ def get_detector_state_check(run=0):
         if relay_mask is None:
             messages.append("MTCA/+ relay mask unknown")
         else:
-            mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLEHI', 'OWLELO', 'OWLN']
+            mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLELO', 'OWLEHI', 'OWLN']
             for i, (relay, mtca) in enumerate(zip(relay_mask,mtca_names)):
-               crates = []
-               potential_crates = range(19) if i<4 else [3,13,18]
-               for crate in potential_crates:
-                   if relay is not None and not (relay & (1<<crate)):
-                       crates.append(crate)
-               if len(crates) > 0:
-                   messages.append("Crates %s are out of %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
-
+                crates = []
+                potential_crates = range(19) if i<4 else [3,13,18]
+                for crate in potential_crates:
+                    if relay is not None and not (relay & (1<<crate)):
+                        crates.append(crate)
+                if len(crates):
+                    if len(crates) == 1:
+                        messages.append("crate %i is out of the %s MTCA+ relay mask" % (crates[0], mtca))
+                    else:
+                        messages.append("crates %s are out of the %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
 
     if tubii is None:
         messages.append("tubii state unknown")
@@ -185,18 +187,24 @@ def get_detector_state_check(run=0):
 
         if hv_relay_mask1 is None or hv_relay_mask2 is None:
             messages.append("crate %i relay settings are unknown" % crate)
-            continue
 
-        hv_relay_mask = hv_relay_mask2 << 32 | hv_relay_mask1
         for slot in range(16):
             if detector_state[crate][slot] is None:
                 messages.append("crate %i, slot %i is offline" % (crate, slot))
                 continue
+
             if readout_mask is not None and not (readout_mask & (1<<slot)) and xl3_mode == 2:
                 messages.append("crate %i, slot %i is out of the xl3 readout mask" % (crate, slot))
+
             slot_sequencers = detector_state[crate][slot]['disable_mask']
             if slot_sequencers is not None and slot_sequencers == 0xffffffff and (readout_mask & (1<<slot)):
-               messages.append("Sequencers disabled for crate %i, slot %i" % (crate, slot))
+                messages.append("Sequencers disabled for crate %i, slot %i" % (crate, slot))
+
+            if hv_relay_mask1 is None or hv_relay_mask2 is None:
+                continue
+
+            hv_relay_mask = hv_relay_mask2 << 32 | hv_relay_mask1
+
             for channel in range(32):
                 hv_enabled = hv_relay_mask & (1 << (slot*4 + (3-channel//8))) and hv_on
                 if detector_state[crate][slot]['tr100_mask'] is None:
@@ -238,6 +246,8 @@ def get_detector_state_check(run=0):
                     if sequencer_nominal != sequencer:
                         channels.append((crate, slot, channel, "sequencer is %s, but nominal setting is %s" % \
                             ("on" if sequencer else "off", "on" if sequencer_nominal else "off")))
+                    if not sequencer:
+                        channels.append((crate, slot, channel, "sequencer is off, but channel is at HV! Potential blind flasher!"))
 
     return messages, channels
 
@@ -561,6 +571,7 @@ def tubii_human_readable_filter(tubii):
         ret['ecal'] = (tubii['control_reg'] & 4)/4
         ret['clock_status'] = tubii['clock_status']
         ret['trigger_mask'] = tubii['trigger_mask']
+        ret['async_trigger_mask'] = tubii['async_trigger_mask']
         ret['counter_mask'] = tubii['counter_mask']
         ret['counter_mode'] = tubii['counter_mode']
         ret['speaker_mask'] = tubii['speaker_mask']
@@ -569,6 +580,26 @@ def tubii_human_readable_filter(tubii):
         ret['lockout_reg'] = 5*tubii['lockout_reg']
         ret['dgt_reg'] = 2*tubii['dgt_reg']
         ret['dac_reg'] = (10/4096)*tubii['dac_reg'] -5
+        ret['burst_channel'] = tubii['burst_channel']
+        ret['burst_slave'] = tubii['burst_slave']
+        ret['burst_rate'] = tubii['burst_rate']
+        ret['combo_mask'] = tubii['combo_mask']
+        ret['combo_enable_mask'] = tubii['combo_enable_mask']
+        ret['prescale_value'] = tubii['prescale_value']
+        ret['prescale_channel'] = tubii['prescale_channel']
+        ret['pgt_rate'] = tubii['pgt_rate']
+        ret['smellie_delay_length'] = tubii['smellie_delay_length']
+        ret['smellie_pulse_rate'] = tubii['smellie_pulse_rate']
+        ret['smellie_pulse_width'] = tubii['smellie_pulse_width']
+        ret['smellie_npulses'] = tubii['smellie_npulses']
+        ret['tellie_delay_length'] = tubii['tellie_delay_length']
+        ret['tellie_pulse_rate'] = tubii['tellie_pulse_rate']
+        ret['tellie_pulse_width'] = tubii['tellie_pulse_width']
+        ret['tellie_npulses'] = tubii['tellie_npulses']
+        ret['delay_length'] = tubii['delay_length']
+        ret['pulse_rate'] = tubii['pulse_rate']
+        ret['pulse_width'] = tubii['pulse_width']
+        ret['npulses'] = tubii['npulses']
     except Exception as e:
         print("TUBii translation error: %s" % e)
         return False
