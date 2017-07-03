@@ -22,6 +22,7 @@ import pcadb
 import ecadb
 import nlrat
 import noisedb
+import pingcratesdb
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
@@ -844,14 +845,13 @@ def physicsdq():
 
 @app.route('/pingcrates')
 def pingcrates():
-    # Grab the available runs from the nlrat redis tables 
-    return render_template('pingcrates.html', runs=nlrat.available_runs())
+    runs = pingcratesdb.runs_after_run(0)
+    return render_template('pingcrates.html', runs=runs)
 
-@app.route('/pingcrates_run/<int:run>')
-def pingcrates_run(run = 0):
-    # Grab the run info from the nlrat redis tables
-    return render_template('pingcrates_run.html', run=nlrat.Run(run))
-
+@app.route('/pingcrates_run/<run_number>')
+def pingcrates_run(run_number):
+    return render_template('pingcrates_run.html', run_number=run_number)
+ 
 @app.route('/physicsdq/<run_number>')
 def physicsdq_run_number(run_number):
     ratdb_dict = HLDQTools.import_HLDQ_ratdb(int(run_number))
