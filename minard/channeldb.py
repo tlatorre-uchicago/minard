@@ -235,6 +235,8 @@ def get_channel_status(crate, slot, channel):
     keys = result.keys()
     row = result.fetchone()
 
+    print dict(zip(keys,row))
+
     return dict(zip(keys,row))
 
 def get_channel_status_form(crate, slot, channel):
