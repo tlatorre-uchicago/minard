@@ -13,11 +13,10 @@ def polling_info(data_type):
     data = [0]*9728
     conn = engine2.connect()
 
-    result = conn.execute("SELECT run from cmos order by run DESC limit 1")
+    result = conn.execute("SELECT run from %s order by run DESC limit 1" % data_type)
     cmos_run = result.fetchone()
     for run in cmos_run:
         run_ = run
-    print data_type, dtype, run
 
     result = conn.execute('''SELECT distinct on (run,crate,slot,channel) crate, slot, channel, %s from %s where run = %i order by run,crate,slot,channel''' % (dtype, data_type, run_))
 
@@ -25,8 +24,6 @@ def polling_info(data_type):
     for crate,card,channel,cmos_rate in row:
         lcn = crate*512+card*32+channel
         data[lcn] = cmos_rate
-    #row = zip(*row)
-    #print row
 
     return data
 
@@ -40,11 +37,10 @@ def polling_info_card(data_type, crate):
     data = [0]*9728*2
     conn = engine2.connect()
 
-    result = conn.execute("SELECT run from cmos order by run DESC limit 1")
+    result = conn.execute("SELECT run from %s order by run DESC limit 1" % data_type)
     cmos_run = result.fetchone()
     for run in cmos_run:
         run_ = run
-    #print data_type, dtype, run_, crate
 
     result = conn.execute('''SELECT distinct on (run,crate,slot,channel) slot, channel, %s from %s where run = %i and crate = %s order by run,slot,channel''' % (dtype, data_type, run_, crate))
 
