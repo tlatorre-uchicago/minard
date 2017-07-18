@@ -23,7 +23,7 @@ import ecadb
 import nlrat
 import noisedb
 import pingcratesdb
-from .polling import polling_info, threshold
+from .polling import polling_info, polling_info_card
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
@@ -179,9 +179,7 @@ def channel_status():
     results = get_channel_history(crate, slot, channel)
     pmt_info = get_pmt_info(crate, slot, channel)
     nominal_settings = get_nominal_settings(crate, slot, channel)
-    cmos, base = polling_info(crate, slot, channel)
-    detector_state = threshold(crate, slot, channel)
-    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info,cmos=cmos,base=base, nominal_settings=nominal_settings, detector_state=detector_state)
+    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info,nominal_settings=nominal_settings)
 
 @app.route('/update-channel-status', methods=["GET", "POST"])
 def update_channel_status():
@@ -472,10 +470,19 @@ OWL_TUBES = [2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2
 
 @app.route('/query_polling')
 def query_cmos():
-    name = request.args.get('type','',type=str)
+    dtype = request.args.get('type','',type=str)
 
-    values = polling_info(name)
+    values = polling_info(dtype)
     return jsonify(values=values)
+
+@app.route('/query_polling_card')
+def query_cmos_card():
+    dtype = request.args.get('type','',type=str)
+    crate = request.args.get('crate','',type=int)
+
+    values = polling_info_card(dtype, crate)
+    return jsonify(values=values)
+
 
 @app.route('/query')
 def query():

@@ -18,28 +18,21 @@ for (var key in colorbrewer) {
 
 color_scales = d3.entries(color_scales);
 
-var color_scale = d3.scale.linear()
+var color_scale_cmos = d3.scale.linear()
     .domain(linspace(0,20000,10))
     .range(color_scales[12].value);
 
 var color_scale_base = d3.scale.linear()
-    .domain(linspace(0,150,3))
+    .domain(linspace(0,120,3))
     .range(color_scales[12].value);
 
-var chart = histogram()
-    .on_scale_change(redraw)
-    .color_scale(color_scale)
-    .bins(50)
-    .domain([0,0.01]);
-
-var crate_cmos = crate_view().scale(color_scale)
-                             .click(function(d,i) {
-                                 switch_to_crate(i);
-                             });
-
-var card_cmos = card_view().scale(color_scale);
-
+var crate = crate_view();
+var crate_cmos = crate_view().scale(color_scale_cmos);
 var crate_base = crate_view().scale(color_scale_base);
+
+var card_cmos = card_view().scale(color_scale_cmos);
+var card_base = card_view().scale(color_scale_base);
+
 
 var element = $('#hero');
 var width   = element.width();
@@ -50,54 +43,43 @@ var svg = d3.select('#hero').append("svg")
     .attr("height", height);
 
 
-function redraw() {
-    d3.select("#crate").call(crate_cmos);
-    //d3.select("#crate_test").call(crate_base); 
-}
-
 function setup() {
 
     // set up crate view
-    d3.select("#crate").datum([]).call(crate_cmos);
+    d3.select("#crate").datum([]).call(crate);
 
     // line break after crate 9 to get
     // XSNOED style
     $("#crate9").after("<br>"); 
+
+    //d3.select("#card").call(card);
 }
 
-function update_cmos(result) {
-    $.getJSON($SCRIPT_ROOT + '/query_polling', { type: 'cmos' }).done(function(result) {
-        values_cmos = result.values;
+function update(dtype) {
+    $.getJSON($SCRIPT_ROOT + '/query_polling', { type: dtype }).done(function(result) {
+        values = result.values;
 
-        d3.select('#crate').datum(values_cmos).call(crate_cmos);
-        //d3.select('#card').datum(values_cmos).call(card);
+        if(dtype == "cmos"){
+            d3.select('#crate').datum(values).call(crate_cmos);
+        }
+        else if(dtype == "base"){
+            d3.select('#crate').datum(values).call(crate_base);
+        }
 
-        redraw();
     });
 }
 
-function update_base(result) {
-    $.getJSON($SCRIPT_ROOT + '/query_polling', { type: 'base' }).done(function(result) {
-        values_base = result.values;
+function update_card(dtype, c) {
+    $.getJSON($SCRIPT_ROOT + '/query_polling_card', { type: dtype, crate: c }).done(function(result) {
+        values = result.values;
 
-        d3.select('#crate_test').datum(values_base);
+        if(dtype == "cmos"){
+            d3.select('#card').datum(values).call(card_cmos);
+        }
+        if(dtype == "base"){
+            d3.select('#card').datum(values).call(card_base);
+        }
 
-        redraw();
     });
 }
 
-function switch_to_crate(crate) {
-
-    card.crate(crate)
-    d3.select('#card').call(card_cmos);
-    $('#card-7').after('<tr></tr>');
-    $('#card-15').after('<tr></tr>');
-    $('#card-23').after('<tr></tr>');
-}
-
-/*
-click: function(d, i) {
-    if ((i > 0) && (i <= 20))
-        switch_to_crate(i-1);
-};
-*/
