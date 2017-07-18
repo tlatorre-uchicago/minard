@@ -23,7 +23,7 @@ import ecadb
 import nlrat
 import noisedb
 import pingcratesdb
-from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
+from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 
@@ -178,7 +178,9 @@ def channel_status():
     results = get_channel_history(crate, slot, channel)
     pmt_info = get_pmt_info(crate, slot, channel)
     nominal_settings = get_nominal_settings(crate, slot, channel)
-    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings)
+    polling_info = get_most_recent_polling_info(crate, slot, channel)
+    discriminator_threshold = get_discriminator_threshold(crate, slot, channel)
+    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings, polling_info=polling_info, discriminator_threshold=discriminator_threshold)
 
 @app.route('/update-channel-status', methods=["GET", "POST"])
 def update_channel_status():

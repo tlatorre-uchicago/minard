@@ -238,6 +238,32 @@
                 </table>
                 {% endif %}
 	    </div>
+	    <div class="col-md-2">
+                <h3>Check Rates</h3>
+                {% if polling_info %}
+                <table class="table table-bordered">
+                    <tr>
+                        <th>CMOS Rate</th>
+                        <td>{{ polling_info['cmos_rate'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>Base Current</th>
+                        <td>{{ polling_info['base_current'] }}</td>
+                    </tr>
+                </table>
+                {% endif %}
+	    </div>
+	    <div class="col-md-2">
+                <h3>Discriminator</h3>
+                {% if discriminator_threshold %}
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Vthr</th>
+                        <td>{{ discriminator_threshold['vthr'][channel] - discriminator_threshold['zero_disc'][channel]}}</td>
+                    </tr>
+                </table>
+                {% endif %}
+	    </div>
 	</div>
     </div>
 {% endblock %}
