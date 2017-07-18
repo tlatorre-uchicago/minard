@@ -54,8 +54,8 @@ function setup() {
 
 }
 
-function update(dtype) {
-    $.getJSON($SCRIPT_ROOT + '/query_polling', { type: dtype }).done(function(result) {
+function update(dtype, run_number) {
+    $.getJSON($SCRIPT_ROOT + '/query_polling', { type: dtype, run: run_number }).done(function(result) {
         values = result.values;
 
         if(dtype == "cmos"){
@@ -68,8 +68,8 @@ function update(dtype) {
     });
 }
 
-function update_card(dtype, c) {
-    $.getJSON($SCRIPT_ROOT + '/query_polling_card', { type: dtype, crate: c }).done(function(result) {
+function update_crate(dtype, run_number, c) {
+    $.getJSON($SCRIPT_ROOT + '/query_polling_crate', { type: dtype, run: run_number, crate: c }).done(function(result) {
         values = result.values;
 
         if(dtype == "cmos"){

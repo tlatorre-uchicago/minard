@@ -6,17 +6,26 @@
 {% block body %}
     {{ super() }}
     <div class="container">
-        Data Type
-        <select id="data" onchange="update(this.value); update_card(this.value, crate_sel.value);">
+        Data
+        <select id="data" onchange="update(this.value, poll_run.value); update_crate(this.value, poll_run.value, crate_sel.value);">
             <option selected value="cmos">CMOS Rates</option>
             <option value="base">Base Currents</option>
+        </select>
+        for run
+        <select id="poll_run" onchange="update(data.value, this.value); update_crate(data.value, this.value, crate_sel.value);">
+                {% for row in cmos_runs %}
+                    <option value={{row['run']}}>{{row['run']}}</option>
+                {% endfor %}
+                {% for row in base_runs %}
+                    <option value={{row['run']}}>{{row['run']}}</option>
+                {% endfor %}
         </select>
         <div class="row">
             <div class="col-md-10 col-md-offset-1" id="crate" style="text-align:center"></div>
     </div>
     <div class="container">
         Crate
-        <select id="crate_sel" onchange="update_card(data.value,this.value);">
+        <select id="crate_sel" onchange="update_crate(data.value,poll_run.value,this.value);">
             <option selected value="0">0</option>
             <option value="1">1</option>
             <option value="2">2</option>
@@ -50,7 +59,7 @@
     <script>
         // Defaults
         setup();
-        update('cmos');
-        update_card('cmos', 0);
+        update('cmos', 0);
+        update_crate('cmos', 0, 0);
     </script>
 {% endblock %}

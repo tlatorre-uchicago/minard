@@ -23,7 +23,7 @@ import ecadb
 import nlrat
 import noisedb
 import pingcratesdb
-from .polling import polling_info, polling_info_card
+from .polling import polling_runs, polling_info, polling_info_card
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
@@ -453,7 +453,9 @@ def detector():
 
 @app.route('/check_rates')
 def check_rates():
-    return render_template('check_rates.html')
+
+    cmos_runs, base_runs = polling_runs()
+    return render_template('check_rates.html', cmos_runs=cmos_runs, base_runs=base_runs)
 
 @app.route('/daq')
 def daq():
@@ -469,20 +471,21 @@ CHANNELS = [crate << 9 | card << 5 | channel \
 OWL_TUBES = [2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 7152, 7153, 7154, 7155, 7156, 7157, 7158, 7159, 7160, 7161, 7162, 7163, 7164, 7165, 7166, 7167, 9712, 9713, 9714, 9715, 9716, 9717, 9718, 9719, 9720, 9721, 9722, 9723, 9724, 9725, 9726, 9727]
 
 @app.route('/query_polling')
-def query_cmos():
-    dtype = request.args.get('type','',type=str)
+def query_polling():
+    dtype = request.args.get('type','cmos',type=str)
+    run = request.args.get('run',0,type=int)
 
-    values = polling_info(dtype)
+    values = polling_info(dtype, run)
     return jsonify(values=values)
 
-@app.route('/query_polling_card')
-def query_cmos_card():
-    dtype = request.args.get('type','',type=str)
-    crate = request.args.get('crate','',type=int)
+@app.route('/query_polling_crate')
+def query_polling_crate():
+    dtype = request.args.get('type','cmos',type=str)
+    run = request.args.get('run',0,type=int)
+    crate = request.args.get('crate',0,type=int)
 
-    values = polling_info_card(dtype, crate)
+    values = polling_info_card(dtype, run, crate)
     return jsonify(values=values)
-
 
 @app.route('/query')
 def query():
@@ -540,7 +543,6 @@ def query():
                 values = [int(n)/count if n is not None else None for n in hits]
             else:
                 values = [None]*len(CHANNELS)
-
 
         return jsonify(values=values)
 
