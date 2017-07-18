@@ -451,9 +451,9 @@ def l2_filter():
 def detector():
     return render_template('detector.html')
 
-@app.route('/cmos')
-def cmos():
-    return render_template('cmos.html')
+@app.route('/check_rates')
+def check_rates():
+    return render_template('check_rates.html')
 
 @app.route('/daq')
 def daq():

@@ -47,9 +47,11 @@
     <script src="{{ url_for('static', filename='js/crate.js') }}"></script>
     <script src="{{ url_for('static', filename='js/histogram.js') }}"></script>
 
-    <script src="{{ url_for('static', filename='js/detector_dev.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/check_rates.js') }}"></script>
 
+    
     <script>
+        // Defaults
         setup();
         update('cmos');
         update_card('cmos', 0);
