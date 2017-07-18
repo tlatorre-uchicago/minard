@@ -238,34 +238,6 @@
                 </table>
                 {% endif %}
 	    </div>
-	    <div class="col-md-2">
-                <h3>Most Recent Check Rate</h3>
-                <table class="table table-bordered">
-                    {% if cmos %}
-                    <tr>
-                        <th>CMOS Rate</th>
-                        <td> {{ cmos['cmos_rate'] }} </td>
-                    </tr>
-                    {% endif %}
-                    {% if base %}
-                    <tr>
-                        <th>Base Current</th>
-                        <td> {{ base['base_current'] }} </td>
-                    </tr>
-                    {% endif %}
-                </table>
-	    </div>
-	    <div class="col-md-2">
-                <h3>Discriminator Settings</h3>
-                {% if detector_state %}
-                <table class="table table-bordered">
-                    <tr>
-                        <th>Threshold</th>
-                        <td> {{ detector_state['vthr'][channel] }} </td>
-                    </tr>
-                </table>
-               {% endif %}
-	    </div>
 	</div>
     </div>
 {% endblock %}
@@ -290,6 +262,7 @@
             }
             if (document.getElementById("channel").value != -1) {
                 params['channel'] = document.getElementById("channel").value;
+            }
             window.location.replace($SCRIPT_ROOT + "/channel-status?" + $.param(params));
         });
     </script>

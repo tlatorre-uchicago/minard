@@ -179,7 +179,7 @@ def channel_status():
     results = get_channel_history(crate, slot, channel)
     pmt_info = get_pmt_info(crate, slot, channel)
     nominal_settings = get_nominal_settings(crate, slot, channel)
-    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info,nominal_settings=nominal_settings)
+    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings)
 
 @app.route('/update-channel-status', methods=["GET", "POST"])
 def update_channel_status():
@@ -539,7 +539,7 @@ def query():
             if count > 0:
                 values = [int(n)/count if n is not None else None for n in hits]
             else:
-                values = [1000]*len(CHANNELS)
+                values = [None]*len(CHANNELS)
 
 
         return jsonify(values=values)
