@@ -6,7 +6,12 @@ function linspace(min, max, N) {
     return a;
 }
 
+var xsnoed1 = ["#4876ff","#32cd32","#ffff00","#ffa500","#ff0000"];
+    xsnoed2 = ["#3a5fcd","#2e8b57","#cd9b1d","#ffa500","#ff0000"];
+
 var color_scales = {};
+color_scales.xsnoed1 = xsnoed1;
+color_scales.xsnoed2 = xsnoed2;
 for (var key in colorbrewer) {
     color_scales[key] = colorbrewer[key][5];
 }
@@ -14,7 +19,7 @@ for (var key in colorbrewer) {
 color_scales = d3.entries(color_scales);
 
 var color_scale_cmos = d3.scale.linear()
-    .domain(linspace(0,20000,10))
+    .domain(linspace(0,20000,20))
     .range(color_scales[12].value);
 
 var color_scale_base = d3.scale.linear()
