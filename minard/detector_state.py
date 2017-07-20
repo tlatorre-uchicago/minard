@@ -154,10 +154,32 @@ def get_detector_state_check(run=0):
         control_reg = tubii['control_reg']
         if control_reg is not None and (control_reg & (1<<2)):
             messages.append("TUBII ECAL bit set")
+        # TUBII CAEN mapping
+        tubii_gain = [1<<0, 1<<2, 1<<7, 1<<5, 1<<1, 1<<3, 1<<6, 1<<4]
         gain_reg = tubii['caen_gain_reg']
+        attenuated_channels = []
+        non_attenuated_channels = []
         # Hard-coded for current TUBII cabling
-        if gain_reg is not None and gain_reg != 31:
-            messages.append("TUBII is in attenuating mode")
+        if gain_reg is not None:
+            for i in range(8):
+                if i in (2,3,6) and (tubii_gain[i] & gain_reg):
+                    attenuated_channels.append(i)
+                elif i in (0,1,4,5,7) and not (tubii_gain[i] & gain_reg):
+                    non_attenuated_channels.append(i)
+            if len(attenuated_channels):
+                if len(attenuated_channels) == 1:
+                    messages.append("Warning: TUBII channel %s is in attenuating mode"\
+                        % attenuated_channels[0])
+                else:
+                    messages.append("Warning: TUBII channels %s are in attentuating mode"\
+                        % str(attenuated_channels)[1:-1])
+            if len(non_attenuated_channels):
+                if len(non_attenuated_channels) == 1:
+                    messages.append("Warning: TUBII channel %s is in non-attenuating mode"\
+                        % non_attenuated_channels[0])
+                else:
+                    messages.append("Warning: TUBII channels %s are in non-attentuating mode"\
+                        % str(non_attenuated_channels)[1:-1])
 
     for crate in range(19):
         if detector_state[crate] is None:
