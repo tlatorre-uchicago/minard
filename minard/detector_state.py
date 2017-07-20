@@ -394,7 +394,31 @@ def get_fec_state(key):
     return fetch_from_table_with_key('fec',key)
 
 def get_run_state(run):
-    return fetch_from_table_with_key('run_state',run,key_name='run')
+    """
+    Returns a dictionary of the columns from the run_state table for a given
+    run in the database. If run is None, return the columns from the run_state
+    table for the latest run.
+
+    Returns None if there is no data for that particular run.
+    """
+    conn = engine.connect()
+
+    if run is None:
+        # Return the latest run
+        result = conn.execute("SELECT * FROM run_state ORDER BY timestamp DESC LIMIT 1")
+    else:
+        result = conn.execute("SELECT * FROM run_state WHERE run = %s", (run,))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    row = result.fetchone()
+
+    if row is None:
+        return None
+
+    return dict(zip(keys,row))
 
 def get_hv_nominals():
     conn = engine.connect()
