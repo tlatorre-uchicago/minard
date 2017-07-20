@@ -1,6 +1,5 @@
 from wtforms import Form, BooleanField, StringField, validators, IntegerField, PasswordField
-#FIXME
-from .db import engine, engine2
+from .db import engine
 from .views import app
 import psycopg2
 import psycopg2.extensions
@@ -224,8 +223,7 @@ def get_most_recent_polling_info(crate, slot, channel):
     Returns a dictionary of the cmos and base currents check rates polling 
     info for a single channel in the detector, for the most recent check rates.
     """
-    # FIXME engine2
-    conn = engine2.connect()
+    conn = engine.connect()
 
     # Get the run during which cmos check rates was run most recently
     result = conn.execute("SELECT run FROM cmos ORDER by run DESC limit 1")
@@ -266,10 +264,10 @@ def get_most_recent_polling_info(crate, slot, channel):
 
 def get_discriminator_threshold(crate, slot, channel):
 
-    # FIXME conn2
-    conn2 = engine2.connect()
+    conn = engine.connect()
+
     # Select most recent zdisc with ecalid field
-    result = conn2.execute("select zero_disc from zdisc where "
+    result = conn.execute("select zero_disc from zdisc where "
                            "(ecalid <> '') is True and crate = %s and slot = %s "
                            "order by timestamp DESC limit 1" % \
                            (crate, slot))
