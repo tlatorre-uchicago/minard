@@ -474,19 +474,19 @@ OWL_TUBES = [2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2
 
 @app.route('/query_polling')
 def query_polling():
-    dtype = request.args.get('type','cmos',type=str)
+    polling_type = request.args.get('type','cmos',type=str)
     run = request.args.get('run',0,type=int)
 
-    values = polling_info(dtype, run)
+    values = polling_info(polling_type, run)
     return jsonify(values=values)
 
 @app.route('/query_polling_crate')
 def query_polling_crate():
-    dtype = request.args.get('type','cmos',type=str)
+    polling_type = request.args.get('type','cmos',type=str)
     run = request.args.get('run',0,type=int)
     crate = request.args.get('crate',0,type=int)
 
-    values = polling_info_card(dtype, run, crate)
+    values = polling_info_card(polling_type, run, crate)
     return jsonify(values=values)
 
 @app.route('/query')

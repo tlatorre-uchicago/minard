@@ -22,7 +22,7 @@ for (var i=0; i < 20; i++) {
 
 function card_view() {
     var svg;
-    var crate = 12;
+    var crate = 0;
     var threshold = null;
 
     var scale = d3.scale.threshold().domain([100]).range(['#bababa','#ca0020']);
