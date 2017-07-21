@@ -284,7 +284,6 @@ def get_discriminator_threshold(crate, slot, channel):
     zthr = dict(zip(keys,row))
 
     # Get the current discriminator threshold
-    conn = engine.connect()
     result = conn.execute("select vthr from current_detector_state where "
                          "crate = %s and slot = %s" % \
                          (crate, slot))
