@@ -23,7 +23,8 @@ import ecadb
 import nlrat
 import noisedb
 import pingcratesdb
-from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
+from .polling import polling_runs, polling_info, polling_info_card
+from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 
@@ -178,7 +179,9 @@ def channel_status():
     results = get_channel_history(crate, slot, channel)
     pmt_info = get_pmt_info(crate, slot, channel)
     nominal_settings = get_nominal_settings(crate, slot, channel)
-    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings)
+    polling_info = get_most_recent_polling_info(crate, slot, channel)
+    discriminator_threshold = get_discriminator_threshold(crate, slot, channel)
+    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings, polling_info=polling_info, discriminator_threshold=discriminator_threshold)
 
 @app.route('/update-channel-status', methods=["GET", "POST"])
 def update_channel_status():
@@ -450,6 +453,12 @@ def l2_filter():
 def detector():
     return render_template('detector.html')
 
+@app.route('/check_rates')
+def check_rates():
+
+    cmos_runs, base_runs = polling_runs()
+    return render_template('check_rates.html', cmos_runs=cmos_runs, base_runs=base_runs)
+
 @app.route('/daq')
 def daq():
     return render_template('daq.html')
@@ -462,6 +471,23 @@ CHANNELS = [crate << 9 | card << 5 | channel \
             for crate, card, channel in product(range(20),range(16),range(32))]
 
 OWL_TUBES = [2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 7152, 7153, 7154, 7155, 7156, 7157, 7158, 7159, 7160, 7161, 7162, 7163, 7164, 7165, 7166, 7167, 9712, 9713, 9714, 9715, 9716, 9717, 9718, 9719, 9720, 9721, 9722, 9723, 9724, 9725, 9726, 9727]
+
+@app.route('/query_polling')
+def query_polling():
+    polling_type = request.args.get('type','cmos',type=str)
+    run = request.args.get('run',0,type=int)
+
+    values = polling_info(polling_type, run)
+    return jsonify(values=values)
+
+@app.route('/query_polling_crate')
+def query_polling_crate():
+    polling_type = request.args.get('type','cmos',type=str)
+    run = request.args.get('run',0,type=int)
+    crate = request.args.get('crate',0,type=int)
+
+    values = polling_info_card(polling_type, run, crate)
+    return jsonify(values=values)
 
 @app.route('/query')
 def query():

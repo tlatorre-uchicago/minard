@@ -218,6 +218,90 @@ def get_nominal_settings(crate, slot, channel):
 
     return dict(zip(keys,row))
 
+def get_most_recent_polling_info(crate, slot, channel):
+    """
+    Returns a dictionary of the cmos and base currents check rates polling 
+    info for a single channel in the detector, for the most recent check rates.
+    """
+    conn = engine.connect()
+
+    # Get the run during which cmos check rates was run most recently
+    result = conn.execute("SELECT run FROM cmos ORDER by run DESC limit 1")
+    cmos_run = result.fetchone()
+    for run in cmos_run:
+        run_ = run
+
+    result = conn.execute("SELECT * FROM cmos WHERE run = %s and crate = %s "
+        "AND slot = %s AND channel = %s" % (run_, crate, slot, channel))
+
+    if result is None:
+        return None, None
+
+    keys = result.keys()
+    row = result.fetchone()
+    cmos = dict(zip(keys,row))
+
+    # Get the run during which base check rates was run most recently
+    result = conn.execute("SELECT run FROM base ORDER by run DESC limit 1")
+    base_run = result.fetchone()
+    for run in base_run:
+        run_ = run
+
+    result = conn.execute("SELECT * FROM base WHERE run = %s and crate = %s "
+        "AND slot = %s AND channel = %s" % (run_, crate, slot, channel))
+
+    if result is None:
+        return None, None
+
+    keys = result.keys()
+    row = result.fetchone()
+    base = dict(zip(keys,row))
+
+    polls = cmos.copy()
+    polls.update(base)
+
+    return polls
+
+def get_discriminator_threshold(crate, slot, channel):
+
+    conn = engine.connect()
+
+    # Select most recent zdisc with ecalid field
+    result = conn.execute("select zero_disc from zdisc where "
+                           "(ecalid <> '') is True and crate = %s and slot = %s "
+                           "order by timestamp DESC limit 1" % \
+                           (crate, slot))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    row = result.fetchone()
+
+    if row is None:
+        return None
+
+    zthr = dict(zip(keys,row))
+
+    # Get the current discriminator threshold
+    result = conn.execute("select vthr from current_detector_state where "
+                         "crate = %s and slot = %s" % \
+                         (crate, slot))
+    if result is None:
+        return None
+
+    keys = result.keys()
+    row = result.fetchone()
+    vthr = dict(zip(keys,row))
+ 
+    if row is None:
+        return None
+
+    threshold = zthr.copy()
+    threshold.update(vthr)
+
+    return threshold
+
 def get_channel_status(crate, slot, channel):
     """
     Returns a dictionary of the channel status for a single channel in the

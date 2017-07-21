@@ -65,6 +65,59 @@
     text-align:center !important;
 }
 
+/* check_rates.html */
+#crateY table tr td {
+    padding:2.25px;
+}
+
+#crateX table tr td {
+    padding:2.25px;
+}
+
+#card1 table tr td {
+    font-size: 10px;
+    text-align: right;
+    width: 25px;
+    height: 18px;
+}
+
+#card1 table {
+    border-spacing: 2px;
+    border-collapse: separate;
+    padding-bottom: 20px;
+    padding-top: 10px;
+}
+
+.card1-label-row {
+    padding-right: 5px;
+}
+
+.card1-label-col {
+    text-align:center !important;
+}
+
+#card2 table tr td {
+    font-size: 10px;
+    text-align: right;
+    width: 25px;
+    height: 18px;
+}
+
+#card2 table {
+    border-spacing: 2px;
+    border-collapse: separate;
+    padding-bottom: 20px;
+    padding-top: 10px;
+}
+
+.card2-label-row {
+    padding-right: 5px;
+}
+
+.card2-label-col {
+    text-align:center !important;
+}
+
 /* detector.html */
 #projection-menu {
     position: absolute;
