@@ -277,6 +277,10 @@ def get_discriminator_threshold(crate, slot, channel):
 
     keys = result.keys()
     row = result.fetchone()
+
+    if row is None:
+        return None
+
     zthr = dict(zip(keys,row))
 
     # Get the current discriminator threshold
@@ -290,6 +294,9 @@ def get_discriminator_threshold(crate, slot, channel):
     keys = result.keys()
     row = result.fetchone()
     vthr = dict(zip(keys,row))
+ 
+    if row is None:
+        return None
 
     threshold = zthr.copy()
     threshold.update(vthr)
