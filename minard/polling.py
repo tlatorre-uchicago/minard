@@ -1,6 +1,5 @@
 import couchdb
 from .db import engine 
-from .db import engine2
 
 def polling_runs():
     ''' 
@@ -9,7 +8,7 @@ def polling_runs():
     where base currents were polled using check rates.
     '''
 
-    conn = engine2.connect()
+    conn = engine.connect()
 
     result = conn.execute("SELECT distinct on (run) run from cmos order by run DESC limit 20")
 
@@ -51,7 +50,7 @@ def polling_info(data_type, run_number):
     Returns the polling data for the detector
     '''
  
-    conn = engine2.connect()
+    conn = engine.connect()
 
     poll_type = polling_type(data_type)
 
@@ -90,7 +89,7 @@ def polling_info_card(data_type, run_number, crate):
     Returns the polling data for a crate
     '''
 
-    conn = engine2.connect()
+    conn = engine.connect()
 
     poll_type = polling_type(data_type)
 
