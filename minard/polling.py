@@ -28,6 +28,24 @@ def polling_runs():
     return cmos_runs, base_runs
 
 
+def polling_history(crate, slot, channel):
+
+    conn = engine2.connect()
+
+    result = conn.execute("SELECT run, cmos_rate from cmos where crate = %i \
+                           AND slot = %i AND channel = %i order by run DESC limit 20" \
+                           % (crate, slot, channel))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    print [dict(zip(keys,row)) for row in rows]
+    return [dict(zip(keys,row)) for row in rows]
+
+
 def polling_info(data_type, run_number):
     '''
     Returns the polling data for the detector

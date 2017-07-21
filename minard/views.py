@@ -23,7 +23,7 @@ import ecadb
 import nlrat
 import noisedb
 import pingcratesdb
-from .polling import polling_runs, polling_info, polling_info_card
+from .polling import polling_runs, polling_info, polling_info_card, polling_history
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
@@ -458,6 +458,21 @@ def check_rates():
 
     cmos_runs, base_runs = polling_runs()
     return render_template('check_rates.html', cmos_runs=cmos_runs, base_runs=base_runs)
+
+@app.route('/check_rates_history')
+def check_rates_history():
+    crate = request.args.get('crate',0,type=int)
+    slot = request.args.get('slot',0,type=int)
+    channel = request.args.get('channel',0,type=int)
+
+    history = polling_history(crate, slot, channel)
+    data = []
+    for i in range(len(history)):
+        rate = history[i]['cmos_rate']
+        run = int(history[i]['run'])
+        data.append([run,rate])
+    
+    return render_template('check_rates_history.html', crate=crate, slot=slot, channel=channel, history=history, data=data)
 
 @app.route('/daq')
 def daq():

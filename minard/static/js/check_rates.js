@@ -79,3 +79,12 @@ function update_crate(dtype, run_number, c) {
     });
 }
 
+function history() {
+    var crate = document.getElementById("crate_link").value;
+    var slot = document.getElementById("slot_link").value;
+    var channel = document.getElementById("channel_link").value;
+    //var url = "channel-status?crate="+crate+"&slot="+slot+"&channel="+channel+"";
+    url = "check_rates_history";
+    window.location.assign(url);
+}
+
