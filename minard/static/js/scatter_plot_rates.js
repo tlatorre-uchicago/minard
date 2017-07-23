@@ -12,14 +12,14 @@ if( data != undefined && data != "" ){
     var last_run = data[0][0];
     var first_run = data[data_length-1][0]
     var len = (last_run - first_run)/data.length;
-    var run_offset = 100000;
+    var run_offset = 0;
     var start_offset = 103214;
     var start = start_offset - run_offset;
     var end = d3.max(data, function(d) { return d[0]; }) + 1 - run_offset;
     
     var margin = {top: 20, right: 15, bottom: 60, left: 260}
-        , width = 1800 - margin.left - margin.right
-        , height = 960 - margin.top - margin.bottom;
+        , width = 1600 - margin.left - margin.right
+        , height = 760 - margin.top - margin.bottom;
     
      
     
@@ -44,7 +44,7 @@ if( data != undefined && data != "" ){
         .attr('class', 'chart');
     
     var valueline = d3.svg.line()
-        .x(function(d) { return x(d[0]-100000); })
+        .x(function(d) { return x(d[0]- run_offset); })
         .y(function(d) { return y(d[1]); });
     
     var main = chart.append('g')
@@ -57,7 +57,7 @@ if( data != undefined && data != "" ){
     var xAxis = d3.svg.axis()
         .scale(x)
         .orient('bottom')
-        .ticks(len);
+        .ticks(len, "s");
     
     main.append('g')
         .attr('transform', 'translate(0,' + height + ')')
@@ -87,7 +87,7 @@ if( data != undefined && data != "" ){
     g.selectAll("scatter-dots")
         .data(data)
         .enter().append("svg:circle")
-            .attr("cx", function (d,i) { return x(d[0]-100000); } )
+            .attr("cx", function (d,i) { return x(d[0] - run_offset); } )
             .attr("cy", function (d) { return y(d[1]); } )
             .attr("r", 8);
     
@@ -100,7 +100,7 @@ if( data != undefined && data != "" ){
         .attr("x", width+200 )
         .attr("y", 80)
         .style("text-anchor", "end")
-        .text("Run Number (- 100,000)")
+        .text("Run Number")
         .style("font-size", "22px");
     
     chart.append("g")

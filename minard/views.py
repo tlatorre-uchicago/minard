@@ -465,8 +465,9 @@ def check_rates_history():
     slot = request.args.get('slot',0,type=int)
     channel = request.args.get('channel',0,type=int)
 
-    data = polling_history(crate, slot, channel)
-    return render_template('check_rates_history.html', crate=crate, slot=slot, channel=channel, data=data)
+    data, stats = polling_history(crate, slot, channel)
+    discriminator_threshold = get_discriminator_threshold(crate, slot, channel)
+    return render_template('check_rates_history.html', crate=crate, slot=slot, channel=channel, data=data, stats=stats, discriminator_threshold=discriminator_threshold)
 
 @app.route('/daq')
 def daq():

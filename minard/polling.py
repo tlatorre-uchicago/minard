@@ -48,7 +48,19 @@ def polling_history(crate, slot, channel):
     for run, rate in rows:
         data.append([int(run),rate])
 
-    return data
+    z = zip(*data)
+    data_max = max(z[1])
+    data_min = min(z[1])
+    data_average = sum(z[1])/(len(z[1]))
+
+    data_std = 0
+    for i in range(len(z[1])):
+        data_std += (z[1][i] - data_average)**2
+    data_std = (data_std/len(z[1]))**(0.5)
+
+    data_stats = [int(data_max), int(data_min), int(data_average), int(data_std)]
+
+    return data, data_stats
 
 
 def polling_info(data_type, run_number):
