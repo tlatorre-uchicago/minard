@@ -465,14 +465,8 @@ def check_rates_history():
     slot = request.args.get('slot',0,type=int)
     channel = request.args.get('channel',0,type=int)
 
-    history = polling_history(crate, slot, channel)
-    data = []
-    for i in range(len(history)):
-        rate = history[i]['cmos_rate']
-        run = int(history[i]['run'])
-        data.append([run,rate])
-    
-    return render_template('check_rates_history.html', crate=crate, slot=slot, channel=channel, history=history, data=data)
+    data = polling_history(crate, slot, channel)
+    return render_template('check_rates_history.html', crate=crate, slot=slot, channel=channel, data=data)
 
 @app.route('/daq')
 def daq():

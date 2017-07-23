@@ -1,5 +1,5 @@
-import couchdb
 from .db import engine 
+from channeldb import get_discriminator_threshold, get_channel_status
 
 def polling_runs():
     ''' 
@@ -28,11 +28,15 @@ def polling_runs():
 
 
 def polling_history(crate, slot, channel):
+    '''
+    Return a list of form [[run number, cmos rate]]
+    for all runs with cmos data polling 
+    '''
 
-    conn = engine2.connect()
+    conn = engine.connect()
 
-    result = conn.execute("SELECT run, cmos_rate from cmos where crate = %i \
-                           AND slot = %i AND channel = %i order by run DESC limit 20" \
+    result = conn.execute("SELECT run, cmos_rate from cmos WHERE crate = %i \
+                           AND slot = %i AND channel = %i ORDER by run DESC" \
                            % (crate, slot, channel))
 
     if result is None:
@@ -41,8 +45,11 @@ def polling_history(crate, slot, channel):
     keys = result.keys()
     rows = result.fetchall()
 
-    print [dict(zip(keys,row)) for row in rows]
-    return [dict(zip(keys,row)) for row in rows]
+    data = []
+    for run, rate in rows:
+        data.append([int(run),rate])
+
+    return data
 
 
 def polling_info(data_type, run_number):

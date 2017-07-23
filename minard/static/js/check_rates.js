@@ -42,6 +42,18 @@ function setup() {
     // set up crate view
     d3.select("#crateX").datum([]).call(crate);
 
+    // set up crate view
+    d3.select("#crateX").datum([]).call(crate);
+    // line break after crate 9 to get
+    // XSNOED style
+    $("#crateX9").after("<br>");
+
+    // set up crate view
+    d3.select("#crateY").datum([]).call(crate);
+    // line break after crate 9 to get
+    // XSNOED style
+    $("#crateY9").after("<br>");
+
     // Default values
     update('cmos', 0);
     update('base', 0);
@@ -77,14 +89,5 @@ function update_crate(dtype, run_number, c) {
             d3.select('#card2').datum(values).call(card_base);
         }
     });
-}
-
-function history() {
-    var crate = document.getElementById("crate_link").value;
-    var slot = document.getElementById("slot_link").value;
-    var channel = document.getElementById("channel_link").value;
-    //var url = "channel-status?crate="+crate+"&slot="+slot+"&channel="+channel+"";
-    url = "check_rates_history";
-    window.location.assign(url);
 }
 

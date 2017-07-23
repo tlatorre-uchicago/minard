@@ -2,6 +2,7 @@
 {% block title %}Check Rates{% endblock %}
 {% block head %}
 <style>
+
 .chart {
 
 }
@@ -16,15 +17,19 @@
     fill: none;
 }
 
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 8px;
+}
+
 circle {
     fill: steelblue;
 }
+
 </style>
 <script>
     (function () {
-        window.crate = {{ crate }};
-        window.slot = {{ slot }};
-        window.channel = {{ channel }};
         window.data = {{ data|safe }}; 
     }());
 </script>
@@ -35,31 +40,113 @@ circle {
 <div class="container">
 
     <div class="row">
-        {{ crate }} / {{ slot }} / {{ channel }} </br>
-        {{ data }} </br>
-        {% if history %}
-        <table>
-            {% for row in history %} 
-                <tr> {{ row['run'] }} </tr>
-                <tr> {{ row['cmos_rate'] }} </tr> </br>
-            {% endfor %}
-        </table>
-        {% endif %} 
+        <div class="col-md-12">
+            Crate/Card/Channel
+            <select id="crate-sel">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+                <option value="16">16</option>
+                <option value="17">17</option>
+                <option value="18">18</option>
+            </select>
+            /
+            <select id="slot-sel">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+            </select>
+            /
+            <select id="channel-sel">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+                <option value="16">16</option>
+                <option value="17">17</option>
+                <option value="18">18</option>
+                <option value="19">19</option>
+                <option value="20">20</option>
+                <option value="21">21</option>
+                <option value="22">22</option>
+                <option value="23">23</option>
+                <option value="24">24</option>
+                <option value="25">25</option>
+                <option value="26">26</option>
+                <option value="27">27</option>
+                <option value="28">28</option>
+                <option value="29">29</option>
+                <option value="30">30</option>
+                <option value="31">31</option>
+            </select>
+            <button type=button onclick="history();">Update Plot</button>
+        </div>
     </div>
+ 
+    <h1></h1>
 
     <div class="row">
-        <table>
-            <body>
-               <div class='content'>
-               </div>
-               <script type="text/javascript" src="scatter_plot.js"></script>
-            </body>
-        </table>
+        <div class='content' align='center'>
+            {% if data %}
+                <script type="text/javascript" src="js/scatter_plot_rates.js"></script>
+            {% else %}
+                <h2 align="center"> No data available </h2>
+            {% endif %}
+        </div>
     </div>
 
 </div>
 {% endblock %}
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/scatter_plot.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/scatter_plot_rates.js') }}"></script>
+    <script>
+        if (url_params.crate) {
+            document.getElementById("crate-sel").value = url_params.crate;
+        }
+        if (url_params.slot) {
+            document.getElementById("slot-sel").value = url_params.slot;
+        }
+        if (url_params.channel) {
+            document.getElementById("channel-sel").value = url_params.channel;
+        }
+    </script>
 {% endblock %}
