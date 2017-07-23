@@ -1,5 +1,4 @@
 from .db import engine 
-from channeldb import get_discriminator_threshold, get_channel_status
 
 def polling_runs():
     ''' 
