@@ -32,7 +32,6 @@ h4 {
 {% block body %}
     {{ super() }}
 <div class="container">
-
     <div class="row">
         <div class="col-md-12">
             <h4> Crate/Card/Channel </h4>
@@ -114,19 +113,8 @@ h4 {
             <button type=button onclick="history();">Update Plot</button>
         </div>
     </div>
-
     <h1> </h1>
-
     <div class="row">
-        <div class="col-md-12" id="main">
-            <div class='content' align='center'>
-                {% if data %}
-                    <script type="text/javascript" src="js/scatter_plot_rates.js"></script>
-                {% else %}
-                    <h2 align="center"> No data available </h2>
-                {% endif %}
-            </div>
-        </div>
         <div class="col-md-4">
             {% if stats and discriminator_threshold %}
             <table class="table table-bordered">
@@ -144,6 +132,17 @@ h4 {
                 </tr>
             </table>
             {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12" id="main">
+            <div class='content' align='center'>
+                {% if data %}
+                    <script type="text/javascript" src="js/scatter_plot_rates.js"></script>
+                {% else %}
+                    <h2 align="left"> No data available </h2>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>

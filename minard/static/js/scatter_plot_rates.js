@@ -11,18 +11,16 @@ if( data != undefined && data != "" ){
     var data_length = data.length;
     var last_run = data[0][0];
     var first_run = data[data_length-1][0]
-    var len = (last_run - first_run)/data.length;
+    var len = Math.floor((last_run - first_run)/data.length);
     var run_offset = 0;
     var start_offset = 103214;
     var start = start_offset - run_offset;
-    var end = d3.max(data, function(d) { return d[0]; }) + 1 - run_offset;
-    
-    var margin = {top: 20, right: 15, bottom: 60, left: 260}
+    var end = d3.max(data, function(d) { return d[0]; }) + 1 - run_offset; 
+
+    var margin = {top: 10, right: 80, bottom: 80, left: 120}
         ,width = $("#main").width()
         ,height = 600;
-    
-     
-    
+ 
     // Xrange starts when the we started storing cmos data    
     var x = d3.scale.linear()
         .domain([start, end])
@@ -37,7 +35,7 @@ if( data != undefined && data != "" ){
     	.domain([ymin-ypad, ymax+ypad])
     	.range([ height, 0 ]);
     
-    var chart = d3.select('body')
+    var chart = d3.select('#main')
         .append('svg:svg')
         .attr('width', width + margin.right + margin.left)
         .attr('height', height + margin.top + margin.bottom)
@@ -52,7 +50,7 @@ if( data != undefined && data != "" ){
         .attr('width', width)
         .attr('height', height)
         .attr('class', 'main');
-    
+ 
     // draw the x axis
     var xAxis = d3.svg.axis()
         .scale(x)
@@ -62,16 +60,20 @@ if( data != undefined && data != "" ){
     main.append('g')
         .attr('transform', 'translate(0,' + height + ')')
         .attr('class', 'main axis date')
-        .call(xAxis);
+        .call(xAxis)
+        .selectAll("text")
+          .attr("x", len)
+          .attr("dy", "1.2em")
     
     // draw the y axis
     var yAxis = d3.svg.axis()
         .scale(y)
-        .orient('left');
+        .orient('left')
+        .ticks(10, "s");
     
     main.append('g')
         .attr('transform', 'translate(0,0)')
-        .attr('class', 'main axis date')
+        .attr('class', 'main axis')
         .call(yAxis);
     
     d3.selectAll(".tick > text")
@@ -97,7 +99,7 @@ if( data != undefined && data != "" ){
         .attr("transform", "translate(0," + height + ")")
     .append("text")
         .attr("class", "label")
-        .attr("x", width+200 )
+        .attr("x", width )
         .attr("y", 80)
         .style("text-anchor", "end")
         .text("Run Number")
@@ -109,8 +111,7 @@ if( data != undefined && data != "" ){
       .append("text")
         .attr("class", "label")
         .attr("transform", "rotate(-90)")
-        .attr("y", 6)
-        .attr("dy", "7.0em")
+        .attr("dy", "2.0em")
         .style("text-anchor", "end")
         .text("CMOS Rate (Hz)")
         .style("font-size", "22px");
