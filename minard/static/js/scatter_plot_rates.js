@@ -20,12 +20,12 @@ function draw_scatter_plot(){
     
         var margin = {top: 10, right: 80, bottom: 80, left: 120}
             ,width = $("#main").width() - margin.left - margin.right
-            ,height = 600;
+            ,height = 400;
      
         // Xrange starts when the we started storing cmos data    
         var x = d3.scale.linear()
             .domain([start, end])
-            .range([ 0, width - 50 ]);
+            .range([ 0, width ]);
         
         var ymin = d3.max([0, d3.min(data, function(d) { return d[1]; })]);
         var ypad = ymin*0.1; 
@@ -33,8 +33,8 @@ function draw_scatter_plot(){
         var yppad = ymax*0.1;
         
         var y = d3.scale.linear()
-        	.domain([ymin-ypad, ymax+ypad])
-        	.range([ height, 0 ]);
+            .domain([ymin-ypad, ymax+ypad])
+            .range([height, 0]);
         
         var chart = d3.select('#main')
             .append('svg:svg')
@@ -56,6 +56,7 @@ function draw_scatter_plot(){
         var xAxis = d3.svg.axis()
             .scale(x)
             .orient('bottom')
+            .tickSize(6)
             .ticks(len, "s");
         
         main.append('g')
@@ -64,13 +65,14 @@ function draw_scatter_plot(){
             .call(xAxis)
             .selectAll("text")
               .attr("x", len)
-              .attr("dy", "1.2em")
+              .attr("dy", "1.2em");
         
         // draw the y axis
         var yAxis = d3.svg.axis()
             .scale(y)
             .orient('left')
-            .ticks(10, "s");
+            .tickSize(6)
+            .ticks(8, "s");
         
         main.append('g')
             .attr('transform', 'translate(0,0)')
@@ -108,7 +110,6 @@ function draw_scatter_plot(){
         
         chart.append("g")
             .attr("class", "y axis")
-            .call(yAxis)
           .append("text")
             .attr("class", "label")
             .attr("transform", "rotate(-90)")
