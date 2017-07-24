@@ -28,18 +28,19 @@ def polling_runs():
 
 def polling_history(crate, slot, channel):
     '''
-    Return a list of form [[run number, cmos rate]]
-    for all runs with cmos data polling 
+    Return a list of form [[run number, cmos rate]].
+    for all runs with cmos data polling. Also returns
+    a list which included statistics on the cmos data.
     '''
 
     conn = engine.connect()
 
-    result = conn.execute("SELECT run, cmos_rate from cmos WHERE crate = %i \
-                           AND slot = %i AND channel = %i ORDER by run DESC" \
+    result = conn.execute("SELECT run, cmos_rate from cmos WHERE crate = %s \
+                           AND slot = %s AND channel = %s ORDER by run DESC" \
                            % (crate, slot, channel))
 
     if result is None:
-        return None
+        return None, None
 
     keys = result.keys()
     rows = result.fetchall()
@@ -48,17 +49,19 @@ def polling_history(crate, slot, channel):
     for run, rate in rows:
         data.append([int(run),rate])
 
-    z = zip(*data)
-    data_max = max(z[1])
-    data_min = min(z[1])
-    data_average = sum(z[1])/(len(z[1]))
+    data_stats = []
+    if data:
+        z = zip(*data)
+        data_max = max(z[1])
+        data_min = min(z[1])
+        data_average = sum(z[1])/(len(z[1]))
 
-    data_std = 0
-    for i in range(len(z[1])):
-        data_std += (z[1][i] - data_average)**2
-    data_std = (data_std/len(z[1]))**(0.5)
+        data_std = 0
+        for i in range(len(z[1])):
+            data_std += (z[1][i] - data_average)**2
+        data_std = (data_std/len(z[1]))**(0.5)
 
-    data_stats = [int(data_max), int(data_min), int(data_average), int(data_std)]
+        data_stats = [int(data_max), int(data_min), int(data_average), int(data_std)]
 
     return data, data_stats
 

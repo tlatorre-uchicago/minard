@@ -292,6 +292,10 @@ def get_discriminator_threshold(crate, slot, channel):
 
     keys = result.keys()
     row = result.fetchone()
+
+    if row is None:
+        return None
+
     vthr = dict(zip(keys,row))
  
     if row is None:

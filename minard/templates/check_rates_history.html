@@ -5,9 +5,6 @@
 .chart {
 
 }
-.main text {
-    font: 10px sans-serif;	
-}
 .axis line, .axis path {
     shape-rendering: crispEdges;
     stroke: black;
@@ -121,7 +118,7 @@ h4 {
     <h1> </h1>
 
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-12" id="main">
             <div class='content' align='center'>
                 {% if data %}
                     <script type="text/javascript" src="js/scatter_plot_rates.js"></script>
@@ -143,10 +140,10 @@ h4 {
                     <td> {{ stats[2] }} &plusmn; {{ stats[3] }} </td>
                     <td> {{ stats[1] }} </td>
                     <td> {{ stats[0] }} </td>
-                    <td> {{ discriminator_threshold['vthr'][channel] -                                                      discriminator_threshold['zero_disc'][channel] }} </td>
+                    <td> {{ discriminator_threshold['vthr'][channel] - discriminator_threshold['zero_disc'][channel] }} </td>
                 </tr>
             </table>
-            {% endif %}        
+            {% endif %}
         </div>
     </div>
 </div>

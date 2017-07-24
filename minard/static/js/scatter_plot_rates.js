@@ -18,8 +18,8 @@ if( data != undefined && data != "" ){
     var end = d3.max(data, function(d) { return d[0]; }) + 1 - run_offset;
     
     var margin = {top: 20, right: 15, bottom: 60, left: 260}
-        , width = 1600 - margin.left - margin.right
-        , height = 760 - margin.top - margin.bottom;
+        ,width = $("#main").width()
+        ,height = 600;
     
      
     
