@@ -136,9 +136,7 @@ h4 {
     </div>
     <div class="row">
         <div class="col-md-12" id="main">
-            {% if data %}
-                <script type="text/javascript" src="js/scatter_plot_rates.js"></script>
-            {% else %}
+            {% if not data %}
                 <h2 align="left"> No data available </h2>
             {% endif %}
         </div>
@@ -147,7 +145,7 @@ h4 {
 {% endblock %}
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/scatter_plot_rates.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/scatter_plot_rates.js') }}"></script>    
     <script>
         if (url_params.crate) {
             document.getElementById("crate-sel").value = url_params.crate;
@@ -157,6 +155,9 @@ h4 {
         }
         if (url_params.channel) {
             document.getElementById("channel-sel").value = url_params.channel;
+        }
+        if (data) {
+            draw_scatter_plot();
         }
     </script>
 {% endblock %}
