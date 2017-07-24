@@ -136,13 +136,11 @@ h4 {
     </div>
     <div class="row">
         <div class="col-md-12" id="main">
-            <div class='content' align='center'>
-                {% if data %}
-                    <script type="text/javascript" src="js/scatter_plot_rates.js"></script>
-                {% else %}
-                    <h2 align="left"> No data available </h2>
-                {% endif %}
-            </div>
+            {% if data %}
+                <script type="text/javascript" src="js/scatter_plot_rates.js"></script>
+            {% else %}
+                <h2 align="left"> No data available </h2>
+            {% endif %}
         </div>
     </div>
 </div>
