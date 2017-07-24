@@ -297,9 +297,6 @@ def get_discriminator_threshold(crate, slot, channel):
         return None
 
     vthr = dict(zip(keys,row))
- 
-    if row is None:
-        return None
 
     threshold = zthr.copy()
     threshold.update(vthr)

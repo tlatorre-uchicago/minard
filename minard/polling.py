@@ -36,8 +36,8 @@ def polling_history(crate, slot, channel):
     conn = engine.connect()
 
     result = conn.execute("SELECT run, cmos_rate from cmos WHERE crate = %s \
-                           AND slot = %s AND channel = %s ORDER by run DESC" \
-                           % (crate, slot, channel))
+                           AND slot = %s AND channel = %s ORDER by run DESC", \
+                           (crate, slot, channel))
 
     if result is None:
         return None, None
