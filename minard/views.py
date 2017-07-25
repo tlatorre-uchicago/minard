@@ -23,7 +23,7 @@ import ecadb
 import nlrat
 import noisedb
 import pingcratesdb
-from .polling import polling_runs, polling_info, polling_info_card, polling_check
+from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
@@ -466,6 +466,16 @@ def cmos_rates_check():
 
     cmos_changes, cmos_high_rates, cmos_low_rates, run_number = polling_check(high_rate, low_rate)
     return render_template('cmos_rates_check.html', cmos_changes=cmos_changes, cmos_high_rates=cmos_high_rates, cmos_low_rates=cmos_low_rates, high_rate=high_rate, low_rate=low_rate, run_number=run_number)
+
+@app.route('/check_rates_history')
+def check_rates_history():
+    crate = request.args.get('crate',0,type=int)
+    slot = request.args.get('slot',0,type=int)
+    channel = request.args.get('channel',0,type=int)
+
+    data, stats = polling_history(crate, slot, channel)
+    discriminator_threshold = get_discriminator_threshold(crate, slot, channel)
+    return render_template('check_rates_history.html', crate=crate, slot=slot, channel=channel, data=data, stats=stats, discriminator_threshold=discriminator_threshold)
 
 @app.route('/daq')
 def daq():

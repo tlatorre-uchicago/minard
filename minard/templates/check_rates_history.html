@@ -1,103 +1,40 @@
 {% extends "layout.html" %}
 {% block title %}Check Rates{% endblock %}
 {% block head %}
+<style>
+.chart {
+
+}
+.axis line, .axis path {
+    shape-rendering: crispEdges;
+    stroke: black;
+    fill: none;
+}
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 8px;
+}
+circle {
+    fill: steelblue;
+}
+h4 {
+    display: inline;
+}
+</style>
+<script>
+    (function () {
+        window.data = {{ data|safe }}; 
+    }());
+</script>
     {{ super() }}
 {% endblock %}
 {% block body %}
     {{ super() }}
 <div class="container">
-
-    <span style="display:inline-block; width: 110px;"></span>
-
-    Detector CMOS rates for run
-    <select id="poll_run_cmos" onchange="update('cmos',this.value);
-                update_crate('cmos',this.value,crate_sel.value);">
-        {% for row in cmos_runs %}
-            <option value={{row['run']}}>{{row['run']}}</option>
-        {% endfor %}
-    </select>
-
     <div class="row">
-        <div class="col-md-10 col-md-offset-1" id="crateY" style="text-align:center"></div>
-    </div>
-
-    <span style="display:inline-block; width: 110px;"></span>
- 
-    Detector base currents for run
-    <select id="poll_run_base" onchange="update('base',this.value);
-                update_crate('base', this.value, crate_sel.value);">
-        {% for row in base_runs %}
-            <option value={{row['run']}}>{{row['run']}}</option>
-        {% endfor %}
-    </select>
-
-    <div class="row">
-        <div class="col-md-10 col-md-offset-1" id="crateX" style="text-align:center"></div>
-    </div>
-
-</div>
-
-
-<div class="container">
-
-    CMOS rates for crate
-    <select id="crate_sel" onchange="update_crate('cmos',poll_run_cmos.value,this.value);">
-        <option selected value="0">0</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
-        <option value="11">11</option>
-        <option value="12">12</option>
-        <option value="13">13</option>
-        <option value="14">14</option>
-        <option value="15">15</option>
-        <option value="16">16</option>
-        <option value="17">17</option>
-        <option value="18">18</option>
-    </select>
-
-    <span style="display:inline-block; width: 385px;"></span>
-
-    Base currents for crate
-    <select id="crate_sel2" onchange="update_crate('base',poll_run_base.value,this.value);">
-        <option selected value="0">0</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
-        <option value="11">11</option>
-        <option value="12">12</option>
-        <option value="13">13</option>
-        <option value="14">14</option>
-        <option value="15">15</option>
-        <option value="16">16</option>
-        <option value="17">17</option>
-        <option value="18">18</option>
-    </select>
-
-    <div class="row">
-        <div class="col-md-6" id="card1"></div>
-        <div class="col-md-6" id="card2"></div>
-    </div>
-</div>
-
-<div class="container">
-    <div class="row">
-        <div class="col-md-6">
-            Crate/Card/Channel
+        <div class="col-md-12">
+            <h4> Crate/Card/Channel </h4>
             <select id="crate-sel">
                 <option value="0">0</option>
                 <option value="1">1</option>
@@ -173,17 +110,52 @@
                 <option value="30">30</option>
                 <option value="31">31</option>
             </select>
-            <button type=button onclick="history();">Plot History</button>
+            <button type=button onclick="history();">Update Plot</button>
         </div>
-    </div> 
+    </div>
+    <h1> </h1>
+    <div class="row">
+        <div class="col-md-6">
+            {% if stats and discriminator_threshold %}
+            <table class="table table-bordered">
+                <tr>
+                    <th>Mean</th> 
+                    <th>Minimum</th> 
+                    <th>Maximum</th>
+                    <th>VThr</th> 
+                </tr>
+                <tr>
+                    <td> {{ stats[2] }} &plusmn; {{ stats[3] }} </td>
+                    <td> {{ stats[1] }} </td>
+                    <td> {{ stats[0] }} </td>
+                    <td> {{ discriminator_threshold['vthr'][channel] - discriminator_threshold['zero_disc'][channel] }} </td>
+                </tr>
+            </table>
+            {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12" id="main">
+            {% if not data %}
+                <h2 align="left"> No data available </h2>
+            {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock %}
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/colorbrewer.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/crate.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/check_rates.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/scatter_plot_rates.js') }}"></script>
-    <script> setup(); </script>
+    <script src="{{ url_for('static', filename='js/scatter_plot_rates.js') }}"></script>    
+    <script>
+        if (url_params.crate) {
+            document.getElementById("crate-sel").value = url_params.crate;
+        }
+        if (url_params.slot) {
+            document.getElementById("slot-sel").value = url_params.slot;
+        }
+        if (url_params.channel) {
+            document.getElementById("channel-sel").value = url_params.channel;
+        }
+        draw_scatter_plot();
+    </script>
 {% endblock %}
