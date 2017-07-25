@@ -23,7 +23,7 @@ import ecadb
 import nlrat
 import noisedb
 import pingcratesdb
-from .polling import polling_runs, polling_info, polling_info_card
+from .polling import polling_runs, polling_info, polling_info_card, polling_check
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
@@ -458,6 +458,14 @@ def check_rates():
 
     cmos_runs, base_runs = polling_runs()
     return render_template('check_rates.html', cmos_runs=cmos_runs, base_runs=base_runs)
+
+@app.route('/cmos_rates_check')
+def cmos_rates_check():
+    high_rate = request.args.get('high_rate',20000,type=int)
+    low_rate = request.args.get('low_rate',50,type=int)
+
+    cmos_changes, cmos_high_rates, cmos_low_rates, run_number = polling_check(high_rate, low_rate)
+    return render_template('cmos_rates_check.html', cmos_changes=cmos_changes, cmos_high_rates=cmos_high_rates, cmos_low_rates=cmos_low_rates, high_rate=high_rate, low_rate=low_rate, run_number=run_number)
 
 @app.route('/daq')
 def daq():

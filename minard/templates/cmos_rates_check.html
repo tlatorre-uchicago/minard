@@ -1,0 +1,83 @@
+{% extends "layout.html" %}
+{% block title %}CMOS Rate Check{% endblock %}
+{% block head %}
+<style>
+h4 {
+    display:inline
+}
+</style>
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+        <h1> CMOS Rates Check for Runs: {{ run_number[0] }}, {{ run_number[1] }} </h1>
+        <h3> Display channel with rate issues not marked in channel database </h3>
+        <div class="row">
+            <div class="col-md-4">
+                <h4> CMOS Rate Changes </h4>
+                {% if cmos_changes is none %}
+                    No issues.
+                {% else %}
+                    <ul>
+                    {% for message in cmos_changes %}
+                        <li> {{ message }}
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                <h4> CMOS Rates &#62; </h4>
+                <input type="text" id="high_rate" value={{ high_rate }} style="width: 80px;"> <br/>
+                {% if cmos_high_rates is none %}
+                    No issues.
+                {% else %}
+                    <ul>
+                    {% for message in cmos_high_rates %}
+                        <li> {{ message }}
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                <h4> CMOS Rates &#60; </h4>
+                <input type="text" id="low_rate" value={{ low_rate }} style="width: 80px;"> <br/>
+                {% if cmos_low_rates is none %}
+                    No issues.
+                {% else %}
+                    <ul>
+                    {% for message in cmos_low_rates %}
+                        <li> {{ message }}
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        if (url_params.high_rate) {
+            document.getElementById("high_rate").value = url_params.high_rate;
+        }
+        if (url_params.low_rate) {
+            document.getElementById("low_rate").value = url_params.low_rate;
+        }
+        document.getElementById("high_rate")
+            .addEventListener("keyup", function(event) {
+             if(event.keyCode == 13){
+                var params = {};
+                params['high_rate'] = document.getElementById("high_rate");
+                params['low_rate'] = document.getElementById("low_rate");
+                window.location.replace($SCRIPT_ROOT + "/cmos_rates_check?" + $.param(params));
+            }
+        });
+        document.getElementById("low_rate")
+            .addEventListener("keyup", function(event) {
+             event.preventDefault();
+             if(event.keyCode == 13){
+                alert("testing");
+            }
+        });
+    </script>
+{% endblock %}
