@@ -1,3 +1,13 @@
+si_format = d3.format('.3s');
+
+function my_si_format(d) {
+    if (!$.isNumeric(d))
+        return '-';
+    else
+        return si_format(d);
+}
+
+
 function history() {
     var params = {}
     params['crate'] = document.getElementById("crate-sel").value;

@@ -162,7 +162,6 @@ div.tooltip {
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
     <script src="{{ url_for('static', filename='js/scatter_plot_rates.js') }}"></script>    
-    <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>    
     <script>
         if (url_params.crate) {
             document.getElementById("crate-sel").value = url_params.crate;
