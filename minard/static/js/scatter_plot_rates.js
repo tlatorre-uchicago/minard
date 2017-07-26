@@ -3,7 +3,12 @@ function history() {
     params['crate'] = document.getElementById("crate-sel").value;
     params['slot'] = document.getElementById("slot-sel").value;
     params['channel'] = document.getElementById("channel-sel").value;
-    params['yscale'] = document.getElementById("yscale").value;
+    try{
+        params['yscale'] = document.getElementById("yscale").value;
+    }
+    catch (e) {
+        params['yscale'] = 'Linear';
+    }
     window.location.replace($SCRIPT_ROOT + "/check_rates_history?" + $.param(params));
 }
 

@@ -244,8 +244,8 @@ def channel_information(conn):
 
     channel_info = [0]*9728
     sql_result = conn.execute("SELECT crate,slot,channel,resistor_pulled,zero_occupancy, \
-                               low_occupancy, bad_discriminator FROM channel_status ORDER \
-                               by crate,slot,channel,timestamp ASC")
+                               low_occupancy, bad_discriminator FROM current_channel_status ORDER \
+                               by crate,slot,channel")
 
     sql_result = sql_result.fetchall()
     for crate,slot,channel,rpulled,low_occ,zero_occ,bad_disc in sql_result:
