@@ -50,14 +50,17 @@ function draw_scatter_plot(){
         var yppad = ymax*0.1;
 
         var y;
+        var tolerance;
         if(yscale == "Linear") {
+             tolerance = 0.0;
              y = d3.scale.linear()
                  .domain([ymin-ypad, ymax+ypad])
                  .range([height, 0]);
         }
         if(yscale == "Log") {
+             tolerance = 0.001; /* protect against log(0) */
              y = d3.scale.log()
-                 .domain([ymin/2, ymax*1.25])
+                 .domain([ymin/2+tolerance, ymax*1.25])
                  .range([height, 0]);
         }
 
@@ -69,7 +72,7 @@ function draw_scatter_plot(){
 
         var valueline = d3.svg.line()
             .x(function(d) { return x(d[0]- run_offset); })
-            .y(function(d) { return y(d[1]); });
+            .y(function(d) { return y(d[1]+tolerance); });
 
         var main = chart.append('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
@@ -122,7 +125,7 @@ function draw_scatter_plot(){
             .data(data)
             .enter().append("svg:circle")
                 .attr("cx", function (d,i) { return x(d[0] - run_offset); } )
-                .attr("cy", function (d) { return y(d[1]); } )
+                .attr("cy", function (d) { return y(d[1]+tolerance); } )
                 .attr("r", 8)
                 .on("mouseover", function(d) {      
                     div.transition()        
