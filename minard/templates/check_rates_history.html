@@ -21,6 +21,18 @@ circle {
 h4 {
     display: inline;
 }
+div.tooltip {   
+  position: absolute;           
+  text-align: center;           
+  width: 100px;                  
+  height: 24px;                 
+  padding: 2px;             
+  font: 12px sans-serif;        
+  background: lightsteelblue;   
+  border: 0px;      
+  border-radius: 8px;           
+  pointer-events: none;         
+}
 </style>
 <script>
     (function () {
@@ -111,6 +123,10 @@ h4 {
                 <option value="31">31</option>
             </select>
             <button type=button onclick="history();">Update Plot</button>
+            <select id="yscale">
+                <option value="Linear">Linear</option>
+                <option value="Log">Log</option>
+            </select>
         </div>
     </div>
     <h1> </h1>
@@ -146,6 +162,7 @@ h4 {
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
     <script src="{{ url_for('static', filename='js/scatter_plot_rates.js') }}"></script>    
+    <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>    
     <script>
         if (url_params.crate) {
             document.getElementById("crate-sel").value = url_params.crate;
@@ -155,6 +172,9 @@ h4 {
         }
         if (url_params.channel) {
             document.getElementById("channel-sel").value = url_params.channel;
+        }
+        if (url_params.yscale) {
+            document.getElementById("yscale").value = url_params.yscale;
         }
         draw_scatter_plot();
     </script>

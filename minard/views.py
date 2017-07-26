@@ -461,11 +461,14 @@ def check_rates():
 
 @app.route('/cmos_rates_check')
 def cmos_rates_check():
-    high_rate = request.args.get('high_rate',20000,type=int)
-    low_rate = request.args.get('low_rate',50,type=int)
+    high_rate = request.args.get('high_rate',20000.0,type=float)
+    low_rate = request.args.get('low_rate',50.0,type=float)
+    pct_change = request.args.get('pct_change',200.0,type=float)
 
-    cmos_changes, cmos_high_rates, cmos_low_rates, run_number = polling_check(high_rate, low_rate)
-    return render_template('cmos_rates_check.html', cmos_changes=cmos_changes, cmos_high_rates=cmos_high_rates, cmos_low_rates=cmos_low_rates, high_rate=high_rate, low_rate=low_rate, run_number=run_number)
+    cmos_changes, cmos_high_rates, cmos_low_rates, run_number = \
+        polling_check(high_rate, low_rate, pct_change)
+
+    return render_template('cmos_rates_check.html', cmos_changes=cmos_changes, cmos_high_rates=cmos_high_rates, cmos_low_rates=cmos_low_rates, high_rate=high_rate, low_rate=low_rate, run_number=run_number, pct_change=pct_change)
 
 @app.route('/check_rates_history')
 def check_rates_history():

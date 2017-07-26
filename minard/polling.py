@@ -105,7 +105,7 @@ def polling_info(data_type, run_number):
     return data
 
 
-def polling_check(high_rate, low_rate):
+def polling_check(high_rate, low_rate, pct_change):
 
     #PMT Type defines
     LOWG     = 0x21
@@ -116,23 +116,20 @@ def polling_check(high_rate, low_rate):
 
     conn = engine.connect()
 
-    result = conn.execute("SELECT run from cmos ORDER by timestamp DESC limit 1")
+    run_number = []
 
-    run_number = [0]*2
-    row = result.fetchone()
-    for run in row:
-        run_number[0] = run 
+    # Get the two most recent runs with valid cmos data
+    result = conn.execute("SELECT distinct on (run) run from cmos ORDER by \
+                           run DESC limit 2")
 
-    result = conn.execute("SELECT run from cmos WHERE run != %s ORDER by\
-                           timestamp DESC limit 1", run_number[0])
-
-    row = result.fetchone()
-    for run in row:
-        run_number[1] = run
+    rows = result.fetchall()
+    for run in rows:
+        run_number.append(run[0])
 
     data_run1 = [0]*9728
     data_run2 = [0]*9728
 
+    # Get the cmos data from the two most recent runs with valid data
     result = conn.execute("SELECT crate, slot, channel, cmos_rate, run from cmos WHERE \
                            run = %s or run = %s", (run_number[0], run_number[1]))
 
@@ -144,51 +141,85 @@ def polling_check(high_rate, low_rate):
         elif run == run_number[1]:
             data_run2[lcn] = cmos_rate
 
+    zero_threshold = [0]*9728
+    threshold = [0]*9728
+
+    # Get the discriminator thresholds
+    result = conn.execute("select distinct on (crate,slot) crate,slot,zero_disc\
+                           from zdisc order by crate, slot, timestamp DESC")
+
+    rows = result.fetchall()
+
+    for crate, slot, zero in rows:
+        for i in range(len(zero)):
+            lcn = crate*512+slot*32+i
+            zero_threshold[lcn] = zero[i]
+
+    # Get the discriminator zeros
+    result = conn.execute("select crate,slot,vthr from current_detector_state\
+                           order by crate, slot")
+
+    rows = result.fetchall()
+
+    for crate, slot, thresh in rows:
+        for i in range(len(thresh)):
+            lcn = crate*512+slot*32+i
+            threshold[lcn] = thresh[i]
+
+    # Get the information needed to determine whether a channel is online
     relays = relay_status(conn)
     types = pmt_type(conn)
-    pulled_resistor = channel_information(conn, "resistor_pulled")
-    low_occ = channel_information(conn, "low_occupancy")
-    zero_occ = channel_information(conn, "zero_occupancy")
-    bad_disc = channel_information(conn, "bad_discriminator")
+    channel_info = channel_information(conn)
 
     cmos_changes = []
     cmos_high_rates = []
     cmos_low_rates = []
 
+    # Loop through the channels and warn about misbehaving channels
     for crate in range(19):
         for slot in range(16):
             for channel in range(32):
                 lcn = crate*512+slot*32+channel
+                # Warn about any high rate channel
+                if(data_run1[lcn] > high_rate):
+                    vthr = threshold[lcn] - zero_threshold[lcn]
+                    cmos_high_rates.append("%i/%i/%i: %i Hz, Vthr: %i" %\
+                            (crate, slot, channel, data_run1[lcn], vthr))
+                elif(data_run2[lcn] > high_rate):
+                    vthr = threshold[lcn] - zero_threshold[lcn]
+                    cmos_high_rates.append("%i/%i/%i: %i Hz, Vthr: %i" %\
+                            (crate, slot, channel, data_run2[lcn], vthr))
+                # Check if the channel is at high voltage
                 hv_relay_mask = relays[crate][1] << 32 | relays[crate][0]
                 if not(hv_relay_mask & (1 << (slot*4 + (3-channel//8)))):
                     continue
+                # Check the PMT is normal or HQE
                 if types[lcn] == LOWG or \
                    types[lcn] == NECK or \
                    types[lcn] == FECD or \
                    types[lcn] == BUTT or \
                    types[lcn] == NONE:
                     continue
-                if pulled_resistor[lcn] == 1:
+                # Check the resistor is not pulled
+                if channel_info[lcn][0]:
                     continue
+                # For normal/HQE online PMTs, warn about channels
+                # that are fluctuating a lot. Put a low rate cut
+                # so that we don't warn about channels we don't care about 
                 if(data_run1[lcn] > 50 and data_run2[lcn] > 50):
                     change1 = 100*((data_run2[lcn] - data_run1[lcn])/data_run1[lcn])
                     change2 = 100*((data_run1[lcn] - data_run2[lcn])/data_run2[lcn])
-                    if change1 > 100 or change2 > 100:
+                    if change1 > pct_change or change2 > pct_change:
                         cmos_changes.append("%i/%i/%i: %i Hz to %i Hz" %\
                             (crate, slot, channel, data_run1[lcn], data_run2[lcn]))
-                if(data_run1[lcn] > high_rate):
-                    cmos_high_rates.append("%i/%i/%i: %i Hz" %\
-                            (crate, slot, channel, data_run1[lcn]))
-                elif(data_run2[lcn] > high_rate):
-                    cmos_high_rates.append("%i/%i/%i: %i Hz" %\
-                            (crate, slot, channel, data_run2[lcn]))
-                if not (low_occ[lcn] or zero_occ[lcn] or bad_disc[lcn]):
+                # If the channel is not marked as low/zero/disc warn about low rates
+                if not channel_info[lcn][1]:
                     if(data_run1[lcn] < low_rate):
                         cmos_low_rates.append("%i/%i/%i: %i Hz" %\
-                                (crate, slot, channel, data_run1[lcn]))
+                            (crate, slot, channel, data_run1[lcn]))
                     elif(data_run2[lcn] < low_rate):
                         cmos_low_rates.append("%i/%i/%i: %i Hz" %\
-                                (crate, slot, channel, data_run2[lcn]))
+                            (crate, slot, channel, data_run2[lcn]))
 
     return cmos_changes, cmos_high_rates, cmos_low_rates, run_number
 
@@ -197,8 +228,8 @@ def pmt_type(conn):
     """ Get the PMT types """
 
     types = [0]*9728
-    sql_result = conn.execute('''SELECT crate, slot, channel, type from pmt_info \
-                                 order by crate, slot, channel''')
+    sql_result = conn.execute("SELECT crate, slot, channel, type FROM pmt_info \
+                               ORDER by crate, slot, channel")
 
     sql_result = sql_result.fetchall()
     for crate, slot, channel, pmttype in sql_result:
@@ -208,18 +239,18 @@ def pmt_type(conn):
     return types
 
 
-def channel_information(conn, status):
-    """ Get the channel status for a status string (ie, "pulled resistor") """
+def channel_information(conn):
+    """ Get the channel status (whether its rpulled or occupancy issues) """
 
     channel_info = [0]*9728
-    sql_result = conn.execute('''select crate,slot,channel,%s from channel_status group by \
-                                 (crate,slot,channel,%s) order by crate,slot,channel,MAX(timestamp)''' \
-                                 % (status,status))
+    sql_result = conn.execute("SELECT crate,slot,channel,resistor_pulled,zero_occupancy, \
+                               low_occupancy, bad_discriminator FROM channel_status ORDER \
+                               by crate,slot,channel,timestamp ASC")
 
     sql_result = sql_result.fetchall()
-    for crate,slot,channel,info in sql_result:
+    for crate,slot,channel,rpulled,low_occ,zero_occ,bad_disc in sql_result:
         lcn = crate*512+slot*32+channel
-        channel_info[lcn] = int(info)
+        channel_info[lcn] = [rpulled, (low_occ | zero_occ | bad_disc)]
 
     return channel_info
 
@@ -227,8 +258,8 @@ def channel_information(conn, status):
 def relay_status(conn):
 
     relays = []
-    result = conn.execute("select hv_relay_mask1, hv_relay_mask2 from\
-                               current_crate_state order by crate")
+    result = conn.execute("SELECT hv_relay_mask1, hv_relay_mask2 FROM \
+                           current_crate_state ORDER by crate")
 
     rows = result.fetchall()
 
