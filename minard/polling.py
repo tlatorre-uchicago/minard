@@ -72,11 +72,20 @@ def polling_info(data_type, run_number):
 
     # Default load the most recent run
     if run_number == 0:
-        result = conn.execute("SELECT run FROM %s ORDER BY "
-                              "run DESC LIMIT 1", (data_type,))
+        if data_type == "cmos":
+            result = conn.execute("SELECT run FROM cmos ORDER by "
+                                  "run DESC limit 1")
+        elif data_type == "base":
+            result = conn.execute("SELECT run FROM base ORDER by "
+                                  "run DESC limit 1")
+        else:
+            return None
+
         if result is None:
             return None
+
         cmos_run = result.fetchone()
+
         for run in cmos_run:
             run_number = run
 
@@ -271,11 +280,20 @@ def polling_info_card(data_type, run_number, crate):
 
     # Default load the most recent run
     if run_number == 0:
-        result = conn.execute("SELECT run FROM %s ORDER by "
-                              "run DESC limit 1", (data_type,))
+        if data_type == "cmos":
+            result = conn.execute("SELECT run FROM cmos ORDER by "
+                                  "run DESC limit 1")
+        elif data_type == "base":
+            result = conn.execute("SELECT run FROM base ORDER by "
+                                  "run DESC limit 1")
+        else:
+            return None
+
         if result is None:
             return None
+
         cmos_run = result.fetchone()
+
         for run in cmos_run:
             run_number = run
 
