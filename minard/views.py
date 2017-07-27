@@ -447,7 +447,7 @@ def l2_filter():
         return redirect(url_for('l2_filter',step=1,height=20,_external=True))
     step = request.args.get('step',1,type=int)
     height = request.args.get('height',40,type=int)
-    return render_template('l2_filter.html',step=step,height=height)
+    return render_template('l2_filter.html', step=step, height=height)
 
 @app.route('/detector')
 def detector():
@@ -455,7 +455,6 @@ def detector():
 
 @app.route('/check_rates')
 def check_rates():
-
     cmos_runs, base_runs = polling_runs()
     return render_template('check_rates.html', cmos_runs=cmos_runs, base_runs=base_runs)
 
@@ -709,8 +708,8 @@ def metric():
         # this is not a rate, so we divide by the # of PULGT triggers for
         # the interval instead of the interval length
         trig, value = expr.split('-')
-        if(trig in TRIGGER_NAMES+['TOTAL']):
-            if value=='Baseline':
+        if trig in TRIGGER_NAMES + ['TOTAL']:
+            if value == 'Baseline':
                 values = get_timeseries(expr,start,stop,step)
                 counts = get_timeseries('baseline-count',start,stop,step)
             else:
@@ -771,7 +770,7 @@ def eca_status_detail(run_number):
     run_status = int(ecadb.get_run_status(run_number))
 
     return render_template('eca_status_detail_%s.html' % run_type,
-			    run_number=run_number,statusfmt=statusfmt,testBit=testBit,run_status=run_status)
+			    run_number=run_number, statusfmt=statusfmt, testBit=testBit, run_status=run_status)
 
 @app.route('/pcatellie', methods=['GET'])
 def pcatellie():
@@ -843,30 +842,28 @@ def calibdq_tellie():
     offset = request.args.get("offset", 0, type=int)
     run_numbers = HLDQTools.import_TELLIE_runnumbers(limit=limit, offset=offset)
     for num in run_numbers:
-            run_num, check_params, runInformation =  HLDQTools.import_TELLIEDQ_ratdb(num)
-            run_dict[num] = check_params
+        run_num, check_params, runInformation = HLDQTools.import_TELLIEDQ_ratdb(num)
+        run_dict[num] = check_params
     run_numbers_sorted = sorted(run_dict.keys(),reverse=True)
     run_vals_sorted = []
     for runNum in run_numbers_sorted:
         run_vals_sorted.append(run_dict[runNum])
-    return render_template('calibdq_tellie.html',run_numbers=run_numbers_sorted,run_info=run_vals_sorted,limit=limit,offset=offset)
+    return render_template('calibdq_tellie.html', run_numbers=run_numbers_sorted, run_info=run_vals_sorted, limit=limit, offset=offset)
 
 @app.route('/calibdq_tellie/<run_number>/')
 def calibdq_tellie_run_number(run_number):
-    run_num, check_params, runInfo=  HLDQTools.import_TELLIEDQ_ratdb(int(run_number))
-    return render_template('calibdq_tellie_run.html',run_number=run_number, runInformation=runInfo)
+    run_num, check_params, runInfo = HLDQTools.import_TELLIEDQ_ratdb(int(run_number))
+    return render_template('calibdq_tellie_run.html', run_number=run_number, runInformation=runInfo)
 
 @app.route('/calibdq_tellie/<run_number>/<subrun_number>')
 def calibdq_tellie_subrun_number(run_number,subrun_number):
-    run_num = 0
-    subrun_index = -999
-    root_dir = os.path.join(app.static_folder,"images/DQ/TELLIE/TELLIE_DQ_IMAGES_"+str(run_number))
-    run_num, check_params, runInfo=  HLDQTools.import_TELLIEDQ_ratdb(int(run_number))
-    #Find the index
-    for i in range(len(runInfo["subrun_numbers"])):
-        if int(runInfo["subrun_numbers"][i]) == int(subrun_number):
-            subrun_index = i
-    return render_template('calibdq_tellie_subrun.html',run_number=run_number,subrun_index=subrun_index, runInformation=runInfo)
+    run_num, check_params, runInfo = HLDQTools.import_TELLIEDQ_ratdb(int(run_number))
+    # Find the index
+    try:
+        subrun_index = runInfo["subrun_numbers"].index(int(subrun_number))
+    except ValueError:
+        subrun_index = -999
+    return render_template('calibdq_tellie_subrun.html', run_number=run_number, subrun_index=subrun_index, runInformation=runInfo)
 
 @app.route('/noise')
 def noise():
@@ -876,7 +873,7 @@ def noise():
 @app.route('/noise_run_detail/<run_number>')
 def noise_run_detail(run_number):
     run = noisedb.get_run_by_number(run_number)
-    if run!=[]:
+    if len(run):
         return render_template('noise_run_detail.html', run=run[0], run_number=run_number)
     else:
         return render_template('noise_run_detail.html', run=0, run_number=run_number)
@@ -894,7 +891,7 @@ def physicsdq():
             proc_results.append(-1)
         else:
             proc_results.append(HLDQTools.generateHLDQProcStatus(run_info[i]))
-    return render_template('physicsdq.html',physics_run_numbers=runNumbers, proc_results=proc_results, run_info=run_info, limit=limit,offset=offset)
+    return render_template('physicsdq.html', physics_run_numbers=runNumbers, proc_results=proc_results, run_info=run_info, limit=limit, offset=offset)
 
 @app.route('/pingcrates')
 def pingcrates():
@@ -908,7 +905,7 @@ def pingcrates_run(run_number):
 @app.route('/physicsdq/<run_number>')
 def physicsdq_run_number(run_number):
     ratdb_dict = HLDQTools.import_HLDQ_ratdb(int(run_number))
-    return render_template('physicsdq_run_number.html',run_number=run_number,ratdb_dict=ratdb_dict)
+    return render_template('physicsdq_run_number.html', run_number=run_number, ratdb_dict=ratdb_dict)
 
 @app.route('/calibdq_smellie')
 def calibdq_smellie():
@@ -917,21 +914,19 @@ def calibdq_smellie():
     run_numbers = HLDQTools.import_SMELLIE_runnumbers(limit=limit,offset=offset)
     run_dict = {}
     for num in run_numbers:
-            run_num, check_params, runInfo = HLDQTools.import_SMELLIEDQ_ratdb(num)
-            #If we cant find DQ info skip
-            if check_params == -1 or runInfo== -1:
-                continue
-            print(check_params)
-            run_dict[num]  = check_params
-    return render_template('calibdq_smellie.html',run_numbers=run_dict.keys(),run_info=run_dict, limit=limit,offset=offset)
+        run_num, check_params, runInfo = HLDQTools.import_SMELLIEDQ_ratdb(num)
+        # If we cant find DQ info skip
+        if check_params == -1 or runInfo == -1:
+            continue
+        run_dict[num] = check_params
+    return render_template('calibdq_smellie.html', run_numbers=run_dict.keys(), run_info=run_dict, limit=limit, offset=offset)
 
 @app.route('/calibdq_smellie/<run_number>')
 def calibdq_smellie_run_number(run_number):
-    run_num, check_dict, runInfo=  HLDQTools.import_SMELLIEDQ_ratdb(int(run_number))
-    return render_template('calibdq_smellie_run.html',run_number=run_number,runInfo=runInfo)
-
+    run_num, check_dict, runInfo = HLDQTools.import_SMELLIEDQ_ratdb(int(run_number))
+    return render_template('calibdq_smellie_run.html', run_number=run_number, runInfo=runInfo)
 
 @app.route('/calibdq_smellie/<run_number>/<subrun_number>')
 def calibdq_smellie_subrun_number(run_number,subrun_number):
-    run_num, check_dict, runInfo=  HLDQTools.import_SMELLIEDQ_ratdb(int(run_number))
-    return render_template('calibdq_smellie_subrun.html',run_number=run_number,subrun_number=subrun_number,runInformation=runInfo)
+    run_num, check_dict, runInfo = HLDQTools.import_SMELLIEDQ_ratdb(int(run_number))
+    return render_template('calibdq_smellie_subrun.html', run_number=run_number, subrun_number=subrun_number, runInformation=runInfo)
