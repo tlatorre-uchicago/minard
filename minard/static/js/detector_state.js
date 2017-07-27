@@ -666,9 +666,10 @@ function display_run_type(run_type,time_stamp) {
     22:"Compensation Coils Off",
     23:"PMTS Off",
     24:"Bubblers On",
-    25:"Recirculation",
+    25:"Cavity Recirculation ON",
     26:"SL Assay",
-    27:"Unusual Activity"
+    27:"Unusual Activity",
+    28:"AV Recirculation ON"
     };
     var flag = false;
     var translator = function(low_bit,high_bit,trans_map){
