@@ -93,6 +93,9 @@ if __name__ == '__main__':
 
     mtc = MTC(args.host)
 
+    # Flag to help reduce warning spam
+    did_warn = False
+
     if args.loop_forever:
 	while True:
 	    try:
@@ -100,9 +103,12 @@ if __name__ == '__main__':
 	    except KeyboardInterrupt:
 		break
 	    except Exception as e:
-		log.warn("couldn't update MTCA baselines: %s" % str(e))
-		time.sleep(3600)
+                if not did_warn:
+		    log.warn("couldn't update MTCA baselines: %s" % str(e))
+                    did_warn = True
+		time.sleep(60)
 	    else:
+                did_warn = False
 		time.sleep(0.5)
     else:
 	try:
