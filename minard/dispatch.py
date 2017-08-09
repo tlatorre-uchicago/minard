@@ -190,14 +190,22 @@ def pull():
         subrun = pev.DaqStatus # seriously :)
         trig = unpack_trigger_type(pev)
 
-        cache_nhit += [nhit]
+        nhit = 0
 
         qhs_sum = 0
         for pmt in pmt_gen:
             id = 16*32*pmt.CrateID + 32*pmt.BoardID + pmt.ChannelID
             cache_pmt[id] += 1
 
+            if pmt.CrateID == 17 and pmt.BoardID == 15:
+                # don't include FEC/D in qhs sum and nhit
+                continue
+
+            nhit += 1
+
             qhs_sum += pmt.Qhs
+
+        cache_nhit += [nhit]
 
         cache['trig']['TOTAL'] += 1
         cache['trig:nhit']['TOTAL'] += nhit
