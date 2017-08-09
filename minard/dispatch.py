@@ -73,13 +73,19 @@ def flush_cache(cache, cache_set, cache_nhit, cache_pmt, time):
     p = redis.pipeline()
 
     for name, hash in cache.items():
-        keys = ['ts:%i:%i:%s' % (interval, time//interval, name)
-                for interval in INTERVALS]
+        if isinstance(hash, dict):
+            keys = ['ts:%i:%i:%s' % (interval, time//interval, name)
+                    for interval in INTERVALS]
 
-        if len(hash) > 0:
-            hmincrby(keys, hash, client=p)
-            
-            for key, interval in zip(keys,INTERVALS):
+            if len(hash) > 0:
+                hmincrby(keys, hash, client=p)
+
+                for key, interval in zip(keys,INTERVALS):
+                    p.expire(key,interval*EXPIRE)
+        else:
+            for interval in INTERVALS:
+                key = 'ts:%i:%i:%s' % (interval, time//interval, name)
+                p.incrby(key, hash)
                 p.expire(key,interval*EXPIRE)
 
     for interval in INTERVALS:
@@ -135,6 +141,7 @@ def pull():
     cache['trig'] = defaultdict(int)
     cache['trig:nhit'] = defaultdict(int)
     cache['trig:charge'] = defaultdict(int)
+    cache['ORPHANS'] = 0
     cache_set = {}
     cache_set['trig'] = {}
     cache_nhit = []
@@ -204,6 +211,11 @@ def pull():
             nhit += 1
 
             qhs_sum += pmt.Qhs
+
+        if trig == 0:
+            # orphan
+            cache['ORPHANS'] += nhit
+            continue
 
         cache_nhit += [nhit]
 

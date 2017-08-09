@@ -713,7 +713,7 @@ def metric():
                 values = get_timeseries(expr,start,stop,step)
                 counts = get_timeseries('baseline-count',start,stop,step)
             else:
-                field = trig if trig=='TOTAL' else TRIGGER_NAMES.index(trig)
+                field = trig if trig == 'TOTAL' else TRIGGER_NAMES.index(trig)
                 values = get_timeseries_field('trig:%s' % value,field,start,stop,step)
                 counts = get_timeseries_field('trig',field,start,stop,step)
             values = [float(a)/int(b) if a and b else None for a, b in zip(values,counts)]
