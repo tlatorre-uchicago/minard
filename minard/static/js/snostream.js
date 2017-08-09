@@ -19,8 +19,6 @@ var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB',//'ESUML',
   'SOFGT','MISS'
   ];
 
-var L2_STREAMS = ['L1','L2','ORPHANS','BURSTS'];
-
 function metric(name) {
     return context.metric(function(start, stop, step, callback) {
         d3.json($SCRIPT_ROOT + '/metric' + 
@@ -87,7 +85,7 @@ function add_baseline_horizon(expressions, format, colors, extent, baseline, mv_
 add_horizon(TRIGGER_NAMES,format_rate);
 add_horizon(["0\u03bd\u03b2\u03b2"],format_rate);
 add_horizon(["TOTAL-nhit","TOTAL-charge","PULGT-nhit","PULGT-charge","EXTA-nhit"], format('.2s'));
-add_horizon(["ORPHANS"],format_rate);
+add_horizon(["DISPATCH_ORPHANS"],format_rate);
 add_horizon(["gtid"],format_int,[]);
 add_horizon(["run"],format_int,[]);
 add_horizon(["subrun"],format_int,[],[0,100]);

@@ -141,7 +141,7 @@ def pull():
     cache['trig'] = defaultdict(int)
     cache['trig:nhit'] = defaultdict(int)
     cache['trig:charge'] = defaultdict(int)
-    cache['ORPHANS'] = 0
+    cache['DISPATCH_ORPHANS'] = 0
     cache_set = {}
     cache_set['trig'] = {}
     cache_nhit = []
@@ -214,7 +214,7 @@ def pull():
 
         if trig == 0:
             # orphan
-            cache['ORPHANS'] += nhit
+            cache['DISPATCH_ORPHANS'] += nhit
             continue
 
         cache_nhit += [nhit]
