@@ -25,7 +25,7 @@ var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB','ESUML','ESUMH',
   //'EXT2','EXT3','EXT4','EXT5','EXT6','EXT7', 'EXT8','SRAW','NCD', 'SOFGT','MISS'
   ];
 
-var L2_STREAMS = ['L1','L2','ORPHANS','BURSTS'];
+var L2_STREAMS = ['L1','L2','BURSTS'];
 
 function metric(name) {
     return context.metric(function(start, stop, step, callback) {
