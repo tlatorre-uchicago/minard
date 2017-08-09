@@ -172,7 +172,7 @@ def pull():
             cache['trig'].clear()
             cache['trig:nhit'].clear()
             cache['trig:charge'].clear()
-            cache['DISPATCH_ORPHANS'].clear()
+            cache['DISPATCH_ORPHANS'] = 0
             cache_set['trig'].clear()
             cache_nhit = []
             cache_pmt.clear()
