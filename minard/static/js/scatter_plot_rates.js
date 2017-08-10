@@ -89,7 +89,7 @@ function draw_scatter_plot(){
             .scale(x)
             .orient('bottom')
             .tickSize(6)
-            .ticks(len);
+            .ticks(6);
 
         main.append('g')
             .attr('transform', 'translate(0,' + height + ')')
