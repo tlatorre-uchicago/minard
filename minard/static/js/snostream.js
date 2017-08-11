@@ -20,6 +20,15 @@ var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB',//'ESUML',
   ];
 
 function metric(name) {
+    var display = name;
+
+    // display 20LB trigger as 20L
+    if (name == "20LB") {
+        display = "20L";
+    } else if (name == "20LB-Baseline") {
+        display = "20L-Baseline";
+    }
+
     return context.metric(function(start, stop, step, callback) {
         d3.json($SCRIPT_ROOT + '/metric' + 
                 '?expr=' + name +
@@ -30,7 +39,7 @@ function metric(name) {
                 if (!data) return callback(new Error('unable to load data'));
                 return callback(null,data.values);
         });
-    }, name);
+    }, display);
 }
 
 function add_horizon(expressions, format, colors, extent) {
