@@ -21,9 +21,9 @@ def PutBaselinesInDatabase(mtc):
 
     baselines = {}
     for name, mtc_name in DBToMTC.iteritems():
-	# mtc server returns baselines in mV so we divide by 1000 to convert
-	# to volts.
-	baselines[name] = float(mtc.send('threshmon %s' % mtc_name))/1000
+        # mtc server returns baselines in mV so we divide by 1000 to convert
+        # to volts.
+        baselines[name] = float(mtc.send('threshmon %s' % mtc_name))/1000
 
     for interval in INTERVALS:
         p.incrby('ts:%i:%i:baseline-count' % (interval,now//interval),1)
@@ -37,8 +37,8 @@ def PutBaselinesInDatabase(mtc):
 def daemonize():
     pid = os.fork()
     if pid>0:
-	#kill the parent
-	sys.exit(0)
+        #kill the parent
+        sys.exit(0)
 
     os.chdir("/")
     os.setsid()
@@ -52,60 +52,66 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("host", nargs='?',
-			help="hostname of the MTC server whence the baselines can be retrieved.",
-			default='sbc.sp.snolab.ca')
+                        help="hostname of the MTC server whence the baselines can be retrieved.",
+                        default='sbc.sp.snolab.ca')
     parser.add_argument("--enable-logging",
-			help="Enables sending errors to log server",
-			action="store_true")
+                        help="Enables sending errors to log server",
+                        action="store_true")
     parser.add_argument("--logfile", default=None, help="filename for log file")
     parser.add_argument("--log-server",
-			help="hostname of the log server.",
-			default="minard.sp.snolab.ca")
+                        help="hostname of the log server.",
+                        default="minard.sp.snolab.ca")
     parser.add_argument("--log-port",
-			help="Set the port the log server is at.",
-			type=int, default=4001)
+                        help="Set the port the log server is at.",
+                        type=int, default=4001)
     parser.add_argument("--loop-forever",
-			help="Loops infinitely with 0.5 second period",
-			action="store_true")
+                        help="Loops infinitely with 0.5 second period",
+                        action="store_true")
     parser.add_argument("-d", "--daemonize", help="Runs in background",
-			action="store_true")
+                        action="store_true")
 
     args = parser.parse_args()
 
     if args.daemonize:
-	try:
-	    daemonize()
-	except OSError,e:
-	    sys.stderr.write("Failed to create fork: %d (%s)\n" % \
-		(e.errno,e.strerror))
-	    sys.exit(1)
+        try:
+            daemonize()
+        except OSError,e:
+            sys.stderr.write("Failed to create fork: %d (%s)\n" % \
+                (e.errno,e.strerror))
+            sys.exit(1)
 
     if args.logfile:
-	log.set_logfile(args.logfile)
+        log.set_logfile(args.logfile)
 
     if args.enable_logging:
-	try:
-	    log.connect("BaselineMonitor", args.log_server, args.log_port)
-	except Exception as e:
-	    sys.stderr.write("failed to connect to log server at %s: %s\n" % \
-			     (args.log_server, str(e)))
-	    sys.stderr.flush()
+        try:
+            log.connect("BaselineMonitor", args.log_server, args.log_port)
+        except Exception as e:
+            sys.stderr.write("failed to connect to log server at %s: %s\n" % \
+                             (args.log_server, str(e)))
+            sys.stderr.flush()
 
     mtc = MTC(args.host)
 
+    # Flag to help reduce warning spam
+    did_warn = False
+
     if args.loop_forever:
-	while True:
-	    try:
-		PutBaselinesInDatabase(mtc)
-	    except KeyboardInterrupt:
-		break
-	    except Exception as e:
-		log.warn("couldn't update MTCA baselines: %s" % str(e))
-		time.sleep(3600)
-	    else:
-		time.sleep(0.5)
+        while True:
+            try:
+                PutBaselinesInDatabase(mtc)
+            except KeyboardInterrupt:
+                break
+            except Exception as e:
+                if not did_warn:
+                    log.warn("couldn't update MTCA baselines: %s" % str(e))
+                    did_warn = True
+                time.sleep(60)
+            else:
+                did_warn = False
+                time.sleep(0.5)
     else:
-	try:
-	    PutBaselinesInDatabase(mtc)
-	except Exception as e:
-	    log.warn("couldn't update MTCA baselines: %s" % str(e))
+        try:
+            PutBaselinesInDatabase(mtc)
+        except Exception as e:
+            log.warn("couldn't update MTCA baselines: %s" % str(e))
