@@ -19,13 +19,19 @@ function history() {
     catch (e) {
         params['yscale'] = 'Linear';
     }
-    params['starting_run'] = document.getElementById("starting_run").value;
+    try{
+        params['starting_run'] = document.getElementById("starting_run").value;
+    }
+    catch (e) {
+        params['starting_run'] = 103214;
+    }
     window.location.replace($SCRIPT_ROOT + "/check_rates_history?" + $.param(params));
 }
 
 function draw_scatter_plot(){
     var data = window.data;
     var yscale = document.getElementById("yscale").value;
+    var start = document.getElementById("starting_run").value;
     if( data != undefined && data != "" ){
         var end = d3.max(data, function(d) { return d[0]; }) + 1;
 

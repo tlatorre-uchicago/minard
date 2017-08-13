@@ -462,12 +462,13 @@ def check_rates():
 def check_rates_histogram():
     run = request.args.get('run', 0, type=int)
     crate = request.args.get('crate', 0)
+    cmos_runs, base_runs = polling_runs()
 
     if crate != "All":
         values = polling_info_card('cmos', run, crate)
     else:
         values = polling_info('cmos', run)
-    return render_template('check_rates_histogram.html', values=values)
+    return render_template('check_rates_histogram.html', values=values, cmos_runs=cmos_runs)
 
 @app.route('/discriminator_info')
 def discriminator_info():
@@ -500,7 +501,7 @@ def check_rates_history():
     slot = request.args.get('slot',0,type=int)
     channel = request.args.get('channel',0,type=int)
     # Run when we started keeping polling data
-    starting_run = request.args.get('starting_run',100314,type=int)
+    starting_run = request.args.get('starting_run',103214,type=int)
 
     data, stats = polling_history(crate, slot, channel, starting_run)
     discriminator_threshold = get_discriminator_threshold(crate, slot, channel)
