@@ -216,7 +216,6 @@ def update_channel_status():
     return render_template('update_channel_status.html', form=form, status=channel_status)
 
 @app.route('/state')
-@app.route('/state/')
 @app.route('/state/<int:run>')
 def state(run=None):
     try:
