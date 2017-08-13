@@ -232,7 +232,7 @@ def get_most_recent_polling_info(crate, slot, channel):
         run_ = run
 
     result = conn.execute("SELECT * FROM cmos WHERE run = %s and crate = %s "
-        "AND slot = %s AND channel = %s" % (run_, crate, slot, channel))
+        "AND slot = %s AND channel = %s", (run_, crate, slot, channel))
 
     if result is None:
         return None, None
@@ -248,7 +248,7 @@ def get_most_recent_polling_info(crate, slot, channel):
         run_ = run
 
     result = conn.execute("SELECT * FROM base WHERE run = %s and crate = %s "
-        "AND slot = %s AND channel = %s" % (run_, crate, slot, channel))
+        "AND slot = %s AND channel = %s", (run_, crate, slot, channel))
 
     if result is None:
         return None, None
@@ -263,14 +263,18 @@ def get_most_recent_polling_info(crate, slot, channel):
     return polls
 
 def get_discriminator_threshold(crate, slot, channel):
+    """
+    Get the current discriminator threshold for a specified 
+    crate, card, and channel. Returns a disctionary of the 
+    discriminator threshold and zero threshold.
+    """
 
     conn = engine.connect()
 
     # Select most recent zdisc with ecalid field
-    result = conn.execute("select zero_disc from zdisc where "
-                           "(ecalid <> '') is True and crate = %s and slot = %s "
-                           "order by timestamp DESC limit 1" % \
-                           (crate, slot))
+    result = conn.execute("SELECT zero_disc FROM zdisc WHERE "
+        "(ecalid <> '') and crate = %s and slot = %s "
+        "ORDER BY timestamp DESC limit 1", (crate, slot))
 
     if result is None:
         return None
@@ -284,9 +288,8 @@ def get_discriminator_threshold(crate, slot, channel):
     zthr = dict(zip(keys,row))
 
     # Get the current discriminator threshold
-    result = conn.execute("select vthr from current_detector_state where "
-                         "crate = %s and slot = %s" % \
-                         (crate, slot))
+    result = conn.execute("SELECT vthr FROM current_detector_state WHERE "
+        "crate = %s and slot = %s", (crate, slot))
     if result is None:
         return None
 
@@ -304,6 +307,12 @@ def get_discriminator_threshold(crate, slot, channel):
     return threshold
 
 def get_all_thresholds(run):
+    """
+    Get the discriminator threshold and zero threshold
+    for the entire detector. Return a list of thresholds
+    above zero and some information about channels with
+    maxed thresholds.
+    """
 
     conn = engine.connect()
 
@@ -311,10 +320,9 @@ def get_all_thresholds(run):
     thr = [[0 for i in range(16)] for j in range(19)]
     disc = [9999]*9728
 
-    # Select most recent zdisc with ecalid field
-    result = conn.execute("select crate, slot, zero_disc from zdisc where "
-                           "(ecalid <> '') is True "
-                           "order by timestamp DESC limit 304")
+    # Select most recent zdisc with ecalid field.
+    result = conn.execute("SELECT crate, slot, zero_disc FROM zdisc WHERE "
+        "(ecalid <> '') ORDER BY timestamp DESC limit 304")
    
     if result is None:
         return None
@@ -323,8 +331,8 @@ def get_all_thresholds(run):
     for crate, slot, zero_disc in rows:
         zero[crate][slot] = zero_disc
 
-    result = conn.execute("select crate, slot, vthr from detector_state where "
-                          "run = %s order by crate, slot" % run)
+    result = conn.execute("SELECT crate, slot, vthr FROM detector_state WHERE "
+        "run = %s ORDER BY crate, slot", run)
 
     if result is None:
         return None
@@ -341,21 +349,20 @@ def get_all_thresholds(run):
 
     for crate in range(19):
         for slot in range(16):
+            # No Vthr information, slot is missing
             if thr[crate][slot] != 0:
                 for channel in range(len(thr[crate][slot])):
                     threshold = thr[crate][slot][channel] - zero[crate][slot][channel]
                     lcn = crate*512+slot*32+channel
-                    if zero[crate][slot][channel] != 255:
+                    if thr[crate][slot][channel] != 255:
                         disc[lcn] = int(threshold)
-                        disc_average += int(threshold)
-                        
-                    if thr[crate][slot][channel] == 255: 
+                        disc_average += int(threshold) 
+                    else: 
                         count_max_thresholds += 1
                         maxed_thresholds.append((crate,slot,channel))
                     online_channels += 1
 
-    disc_average = float(disc_average) / online_channels
-    disc_average = round(disc_average, 3)
+    disc_average = round(float(disc_average) / online_channels, 3)
 
     return disc, disc_average, count_max_thresholds, maxed_thresholds
 
