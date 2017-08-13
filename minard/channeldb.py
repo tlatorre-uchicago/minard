@@ -303,6 +303,62 @@ def get_discriminator_threshold(crate, slot, channel):
 
     return threshold
 
+def get_all_thresholds(run):
+
+    conn = engine.connect()
+
+    zero = [[0 for i in range(16)] for j in range(19)]
+    thr = [[0 for i in range(16)] for j in range(19)]
+    disc = [9999]*9728
+
+    # Select most recent zdisc with ecalid field
+    result = conn.execute("select crate, slot, zero_disc from zdisc where "
+                           "(ecalid <> '') is True "
+                           "order by timestamp DESC limit 304")
+   
+    if result is None:
+        return None
+
+    rows = result.fetchall()
+    for crate, slot, zero_disc in rows:
+        zero[crate][slot] = zero_disc
+
+    result = conn.execute("select crate, slot, vthr from detector_state where "
+                          "run = %s order by crate, slot" % run)
+
+    if result is None:
+        return None
+
+    rows = result.fetchall()
+    for crate, slot, vthr in rows:
+        thr[crate][slot] = vthr
+
+    disc_average = 0
+    lower_disc_average = 0
+    online_channels = 0
+    count_max_thresholds = 0
+    maxed_thresholds = []
+
+    for crate in range(19):
+        for slot in range(16):
+            if thr[crate][slot] != 0:
+                for channel in range(len(thr[crate][slot])):
+                    threshold = thr[crate][slot][channel] - zero[crate][slot][channel]
+                    lcn = crate*512+slot*32+channel
+                    if zero[crate][slot][channel] != 255:
+                        disc[lcn] = int(threshold)
+                        disc_average += int(threshold)
+                        
+                    if thr[crate][slot][channel] == 255: 
+                        count_max_thresholds += 1
+                        maxed_thresholds.append((crate,slot,channel))
+                    online_channels += 1
+
+    disc_average = float(disc_average) / online_channels
+    disc_average = round(disc_average, 3)
+
+    return disc, disc_average, count_max_thresholds, maxed_thresholds
+
 def get_channel_status(crate, slot, channel):
     """
     Returns a dictionary of the channel status for a single channel in the

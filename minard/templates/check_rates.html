@@ -16,6 +16,7 @@
             <option value={{row['run']}}>{{row['run']}}</option>
         {% endfor %}
     </select>
+    <input type="button" onclick="window.location.replace($SCRIPT_ROOT + '/check_rates_histogram?'+$.param({'crate': 'All', 'run': $('#poll_run_cmos').val()}));" value="Histogram" />
 
     <div class="row">
         <div class="col-md-10 col-md-offset-1" id="crateY" style="text-align:center"></div>
@@ -62,6 +63,7 @@
         <option value="17">17</option>
         <option value="18">18</option>
     </select>
+    <input type="button" onclick="window.location.replace($SCRIPT_ROOT + '/check_rates_histogram?'+$.param({'crate': $('#crate_sel').val(), 'run': $('#poll_run_cmos').val()}));" value="Histogram" />
 
     <span style="display:inline-block; width: 385px;"></span>
 
