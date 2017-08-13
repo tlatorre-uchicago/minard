@@ -1,6 +1,11 @@
 {% extends "layout.html" %}
 {% block title %}Check Rates{% endblock %}
 {% block head %}
+<style>
+#bottom {
+    margin-bottom: 1.5cm;
+}
+</style>
     {{ super() }}
 {% endblock %}
 {% block body %}
@@ -16,7 +21,10 @@
             <option value={{row['run']}}>{{row['run']}}</option>
         {% endfor %}
     </select>
-    <input type="button" onclick="window.location.replace($SCRIPT_ROOT + '/check_rates_histogram?'+$.param({'crate': 'All', 'run': $('#poll_run_cmos').val()}));" value="Histogram" />
+
+    <input type="button" onclick="window.location.replace($SCRIPT_ROOT + '/check_rates_histogram?'+$.param({'crate': 'All', 'run': $('#poll_run_cmos').val()}));" value="Histogram"<span title="Histogram the detector CMOS rates.">  </input>
+
+    <input type="button" onclick="window.location.replace($SCRIPT_ROOT + '/cmos_rates_check');" value = "Check CMOS Rates" <span title="Check most recent CMOS polling against nominal rates."> </input>
 
     <div class="row">
         <div class="col-md-10 col-md-offset-1" id="crateY" style="text-align:center"></div>
@@ -63,9 +71,9 @@
         <option value="17">17</option>
         <option value="18">18</option>
     </select>
-    <input type="button" onclick="window.location.replace($SCRIPT_ROOT + '/check_rates_histogram?'+$.param({'crate': $('#crate_sel').val(), 'run': $('#poll_run_cmos').val()}));" value="Histogram" />
+    <input type="button" onclick="window.location.replace($SCRIPT_ROOT + '/check_rates_histogram?'+$.param({'crate': $('#crate_sel').val(), 'run': $('#poll_run_cmos').val()}));" value="Histogram" <span title="Histogram the selected crate's CMOS rates."> </input>
 
-    <span style="display:inline-block; width: 385px;"></span>
+    <span style="display:inline-block; width: 300px;"></span>
 
     Base currents for crate
     <select id="crate_sel2" onchange="update_crate('base',poll_run_base.value,this.value);">
@@ -96,7 +104,7 @@
     </div>
 </div>
 
-<div class="container">
+<div class="container" id="bottom">
     <div class="row">
         <div class="col-md-6">
             Crate/Card/Channel
@@ -175,7 +183,7 @@
                 <option value="30">30</option>
                 <option value="31">31</option>
             </select>
-            <button type=button onclick="history();">Plot CMOS Rates</button>
+            <input type=button onclick="history();" value="Plot CMOS Rates" <span title="Graph the CMOS rates for a specified Crate/Card/Channel over many runs."</span> </input>
         </div>
     </div> 
 </div>
