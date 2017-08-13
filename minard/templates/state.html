@@ -49,6 +49,9 @@
                 {% endif %}
             </center>
         </div>
+        <div class="col-md-3 text-right">
+            Go to <a href="{{ url_for("state") }}">latest run</a>, <a href="{{ url_for("state",run=0) }}">current state</a> or run: <input type="number" id="run_number" value="{{ run }}"></input>
+        </div>
     </div>
 
     <div id='summary'>
@@ -140,6 +143,14 @@
     <script src="{{ url_for('static', filename='js/colorbrewer.js') }}"></script>
     <script src="{{ url_for('static', filename='js/crate.js') }}"></script>
     <script src="{{ url_for('static', filename='js/detector_state.js') }}"></script>
+    <script>
+        $("#run_number").keydown(function (e) {
+            if (e.keyCode == 13) {
+                // Pressed Enter
+                document.location.href = "{{ url_for("state") }}/" + $("#run_number").val();
+            }
+        });
+    </script>
     <script type="text/javascript">
         var mtc_data = {{ mtc_state | mtc_human_readable | tojson |safe }};
         var caen_data = {{ caen_state | caen_human_readable | tojson |safe }};
