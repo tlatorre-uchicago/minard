@@ -30,7 +30,17 @@ var crate = crate_view();
 var crate_cmos = crate_view().scale(color_scale_cmos);
 var crate_base = crate_view().scale(color_scale_base);
 
-var card_cmos = card_view().scale(color_scale_cmos).format(my_si_format);
+function click(d, i) {
+    /* Function to open the check rates history page when someone clicks on the
+     * CMOS card view. */
+    var params = {}
+    params['crate'] = document.getElementById("crate_sel").value;
+    params['slot'] = Math.floor(d/32);
+    params['channel'] = d % 32;
+    window.location.href = $SCRIPT_ROOT + "/check_rates_history?" + $.param(params);
+}
+
+var card_cmos = card_view().scale(color_scale_cmos).format(my_si_format).click(click);
 var card_base = card_view().scale(color_scale_base).format(base_format);
 
 function setup() {
