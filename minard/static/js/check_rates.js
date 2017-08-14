@@ -42,6 +42,10 @@ function setup() {
     // set up crate view
     d3.select("#crateX").datum([]).call(crate);
 
+    // line break after crate 9 to get
+    // XSNOED style
+    $(".crate9").after("<br>");
+
     // Default values
     update('cmos', 0);
     update('base', 0);

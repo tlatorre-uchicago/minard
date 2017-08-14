@@ -173,6 +173,7 @@ function crate_view() {
             .on('click', click)
             .attr('style','display:inline-block')
             .attr("id", function(d, i) { return "crate" + i;})
+            .attr("class", function(d, i) { return "crate" + i;})
           .append('table')
             .attr('style','padding:2px;border-collapse:separate;border-spacing:1px')
 
