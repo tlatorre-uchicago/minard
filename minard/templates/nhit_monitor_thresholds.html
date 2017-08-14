@@ -17,6 +17,9 @@
 	</div>
 	{% else %}
 	<div class="row">
+	    <div class="col-md-12" id='trigger-threshold'></div>
+        </div>
+	<div class="row">
 	    <div class="col-md-12" id='trigger-efficiency-width'></div>
         </div>
 	<div class="row">
@@ -95,6 +98,12 @@
     <script>
         var results = {{ results | tojson }};
 
+        var nhit_100_lo_threshold = new Array();
+        var nhit_100_med_threshold = new Array();
+        var nhit_100_hi_threshold = new Array();
+        var nhit_20_threshold = new Array();
+        var nhit_20_lb_threshold = new Array();
+
         var nhit_100_lo_width = new Array();
         var nhit_100_med_width = new Array();
         var nhit_100_hi_width = new Array();
@@ -103,6 +112,12 @@
         for (var i=0; i < results.length; i++) {
             //var date = moment(results[i]['timestamp']);
             var date = new Date(results[i]['timestamp']);
+            nhit_100_lo_threshold.push({'date': date, 'value': results[i]['nhit_100_lo']});
+            nhit_100_med_threshold.push({'date': date, 'value': results[i]['nhit_100_med']});
+            nhit_100_hi_threshold.push({'date': date, 'value': results[i]['nhit_100_hi']});
+            nhit_20_lb_threshold.push({'date': date, 'value': results[i]['nhit_20_lb']});
+            nhit_20_threshold.push({'date': date, 'value': results[i]['nhit_20']});
+
             nhit_100_lo_width.push({'date': date, 'value': results[i]['nhit_100_lo_width']});
             nhit_100_med_width.push({'date': date, 'value': results[i]['nhit_100_med_width']});
             nhit_100_hi_width.push({'date': date, 'value': results[i]['nhit_100_hi_width']});
@@ -110,14 +125,28 @@
             nhit_20_width.push({'date': date, 'value': results[i]['nhit_20_width']});
         }
 
-        var data = [nhit_100_med_width, nhit_100_hi_width, nhit_20_lb_width, nhit_20_width];
-
-        console.log(data);
+        MG.data_graphic({
+            title: "Trigger Thresholds",
+            description: "Trigger thresholds as a function of time",
+            data: [nhit_100_med_threshold, nhit_100_hi_threshold, nhit_20_lb_threshold, nhit_20_threshold],
+            //chart_type: 'point',
+            width: $('#trigger-threshold').width(),
+            height: 250,
+            left: 100,
+            right: 100,
+            target: '#trigger-threshold',
+            x_accessor: 'date',
+            y_accessor: 'value',
+            x_label: 'Date',
+            y_label: 'Trigger threshold (nhit)',
+            legend: ['N100M', 'N100H', 'N20L', 'N20'],
+            interpolate: 'linear'
+        });
 
         MG.data_graphic({
             title: "Trigger Efficiency Width",
             description: "Trigger efficiency width as a function of time",
-            data: data,
+            data: [nhit_100_med_width, nhit_100_hi_width, nhit_20_lb_width, nhit_20_width],
             //chart_type: 'point',
             width: $('#trigger-efficiency-width').width(),
             height: 250,
