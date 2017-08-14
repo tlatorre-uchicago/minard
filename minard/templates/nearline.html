@@ -27,7 +27,9 @@
 			    <th>Log File</th>
 			</tr>
 		    </thead>
+                    <script> console.log({{programs}}); </script>
 		    {% for program, status in programs.iteritems() %}
+                    <script> console.log(program); console.log(status); </script>
 		    <tr>
 			{% if status|int == 1 %}
 			<th class="danger"> Failed </th>
@@ -61,18 +63,20 @@
 	</div>
 	<div class="row">
 	    <div class="col-md-6 col-md-offset-3">
-                <h4> Recent Failures </h4>
+                <h4> Nearline job failures in last 100 runs </h4>
 		<table class="table">
 		    <thead>
 			<tr>
 			    <th>Status</th>
 			    <th>Name</th>
+                            <th>Run</th>
 			</tr>
 		    </thead>
-		    {% for program, status in failures %}
-		    <tr>
-			<th class="danger"> Failed </th>
+		    {% for program, status, run in failures %}
+		    <tr class="danger">
+			<th> Failed </th>
 			<th> {{ program }} </th>
+                        <th> {{ run }} </th>
 		    </tr>
 		    {% endfor %}
 		</table>

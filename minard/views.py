@@ -306,21 +306,20 @@ def trigger():
 @app.route('/nearline')
 @app.route('/nearline/<int:run>')
 def nearline(run=None):
-    if run is None:
-        try:
-	    run = int(redis.get('nearline:current_run'))
-        except Exception as e:
-            run = 104000
+    try:
+        run = int(redis.get('nearline:current_run'))
+    except Exception as e:
+        run = 102491
 
-    programs = redis.hgetall('nearline:%i' % run)
+    programs = redis.hgetall('nearline')
 
     # Get failures over last 100 runs
     failures = []
     for previous_run in range(100):
-        programs = redis.hgetall('nearline:%i' % (run - previous_run))
+        programs = redis.hgetall('nearline' % (run - previous_run))
         for program, status in programs.iteritems():
             if status == 1:
-                failures.append((program, status))
+                failures.append((program, status, run-previous_run))
 
     return render_template('nearline.html', run=run, programs=programs, failures=failures)
 
