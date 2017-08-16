@@ -4,6 +4,67 @@ from .db import engine
 from .channeldb import get_nominal_settings_for_run, get_pmt_types
 from collections import defaultdict
 
+def get_latest_run():
+    """
+    Returns the latest run number.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT last_value FROM run_number")
+
+    return result.fetchone()[0]
+
+def get_mtc_state_for_run(run=0):
+    """
+    Returns a dictionary of the mtc settings for a given run. If there is no
+    row in the database for the run, returns None.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM mtc WHERE key = (SELECT mtc FROM run_state WHERE run = %s)", (run,))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    row = result.fetchone()
+
+    return dict(zip(keys,row))
+
+def get_tubii_state_for_run(run=0):
+    """
+    Returns a dictionary of the tubii settings for a given run. If there is no
+    row in the database for the run, returns None.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM tubii WHERE key = (SELECT tubii FROM run_state WHERE run = %s)", (run,))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    row = result.fetchone()
+
+    return dict(zip(keys,row))
+
+def get_caen_state_for_run(run=0):
+    """
+    Returns a dictionary of the caen settings for a given run. If there is no
+    row in the database for the run, returns None.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM caen WHERE key = (SELECT caen FROM run_state WHERE run = %s)", (run,))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    row = result.fetchone()
+
+    return dict(zip(keys,row))
+
 def get_detector_state(run=0):
     """
     Returns a dictionary of the crate settings for a given run. If there is no
