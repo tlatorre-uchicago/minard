@@ -24,7 +24,11 @@
       </tr>
     </thead>
     {% for run in runs if run %}
-      <tr class="info">
+      {% if run.run_type == "Physics" %}
+        <tr class="info">
+      {% else %}
+        <tr class="active">
+      {% endif %}
         <th> {{run.run_number}} </th> 
         <th> {{run.run_type}} </th>
         <th> {{run.number_cmos_sync16}}</th>

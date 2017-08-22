@@ -937,9 +937,16 @@ def channelflags():
 def channelflagsbychannel(run_number):
     run = redisdb.get_run_by_number('channelflags_runs_by_number', run_number)
     cmos_sync16 = literal_eval(run[0]['cmos_sync16'])
-    cgt_sync24 = literal_eval(run[0]['cgt_sync16'])
+    cgt_sync24 = literal_eval(run[0]['cgt_sync24'])
     missed_count = literal_eval(run[0]['missed_count'])
-    return render_template('channelflagsbychannel.html', cmos_sync16=cmos_sync16, cgt_sync24=cgt_sync24, missed_count=missed_count, run_number=run_number)
+    run_type = run[0]['run_type']
+    if cgt_sync24 == 0:
+       cgt_sync24 = None
+    if cmos_sync16 == 0:
+       cmos_sync16 = None
+    if missed_count == 0:
+       missed_count = None
+    return render_template('channelflagsbychannel.html', cmos_sync16=cmos_sync16, cgt_sync24=cgt_sync24, missed_count=missed_count, run_number=run_number, run_type=run_type)
  
 @app.route('/physicsdq/<run_number>')
 def physicsdq_run_number(run_number):
