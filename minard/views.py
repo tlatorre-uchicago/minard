@@ -306,7 +306,8 @@ def trigger():
 @app.route('/nearline')
 @app.route('/nearline/<int:run>')
 def nearline(run=None):
-    run = int(redis.get('nearline:current_run'))
+    if run is None:
+        run = int(redis.get('nearline:current_run'))
 
     programs = redis.hgetall('nearline:%i' % run)
 
