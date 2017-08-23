@@ -27,9 +27,7 @@
 			    <th>Log File</th>
 			</tr>
 		    </thead>
-                    <script> console.log({{programs}}); </script>
 		    {% for program, status in programs.iteritems() %}
-                    <script> console.log(program); console.log(status); </script>
 		    <tr>
 			{% if status|int == 1 %}
 			<th class="danger"> Failed </th>
@@ -72,13 +70,15 @@
                             <th>Run</th>
 			</tr>
 		    </thead>
-		    {% for program, status, run in failures %}
-		    <tr class="danger">
-			<th> Failed </th>
-			<th> {{ program }} </th>
-                        <th> {{ run }} </th>
-		    </tr>
-		    {% endfor %}
+                    {% if failures %}
+		        {% for program, run in failures %}
+		        <tr class="danger">
+		            <th> Failed </th>
+		            <th> {{ program }} </th>
+                            <th> {{ run }} </th>
+		        </tr>
+		        {% endfor %}
+                    {% endif %}
 		</table>
 	    </div>
 	</div>
