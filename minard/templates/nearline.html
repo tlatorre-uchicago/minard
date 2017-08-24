@@ -8,6 +8,13 @@
     <div class="container">
 	<div class="row">
 	    <div class="col-md-6 col-md-offset-3">
+                {% if warning %}
+                   <h4> Warning: Nearline is on run {{warning[0]}}, but current run is {{warning[1]}}. This could mean the nearline has fallen behind or gotten stuck. <h4>
+                {% endif %}
+	    </div>
+	</div>
+	<div class="row">
+	    <div class="col-md-6 col-md-offset-3">
 		<center>
 		    <ul class="pager">
 			<li class="previous"><a href="{{ url_for('nearline', run=run-1) }}">Prev</a></li>
@@ -15,7 +22,7 @@
 			<li class="next"><a href="{{ url_for('nearline', run=run+1) }}">Next</a></li>
 		    </ul>
 		</center>
-	    </div>
+            </div>
 	</div>
 	<div class="row">
 	    <div class="col-md-6 col-md-offset-3">
@@ -71,9 +78,18 @@
 			</tr>
 		    </thead>
                     {% if failures %}
-		        {% for program, run in failures %}
-		        <tr class="danger">
-		            <th> Failed </th>
+		        {% for program, status, run in failures %}
+			    {% if status|int == 1 %}
+			    <th class="danger"> Failed </th>
+                            {% elif status|int == 97 %}
+                            <th class="warning"> Timed out </th>
+                            {% elif status|int == 98 %}
+                            <th class="warning"> Not executable </th>
+                            {% elif status|int == -1 %}
+                            <th class="warning"> Killed by signal </th>
+			    {% else %}
+			    <th class="warning"> Unknown </th>
+			    {% endif %}
 		            <th> {{ program }} </th>
                             <th> {{ run }} </th>
 		        </tr>

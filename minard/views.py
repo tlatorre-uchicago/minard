@@ -24,7 +24,7 @@ import nlrat
 import noisedb
 import pingcratesdb
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history
-from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold
+from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_current_run
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 
@@ -306,8 +306,13 @@ def trigger():
 @app.route('/nearline')
 @app.route('/nearline/<int:run>')
 def nearline(run=None):
+    warning = []
     if run is None:
         run = int(redis.get('nearline:current_run'))
+        detector_run = get_current_run()
+        if run != detector_run - 1:
+            warning.append(run)
+            warning.append(detector_run)
 
     programs = redis.hgetall('nearline:%i' % run)
 
@@ -316,10 +321,11 @@ def nearline(run=None):
     for previous_run in range(100):
         old_programs = redis.hgetall('nearline:%i' % (run - previous_run))
         for program, status in old_programs.iteritems():
-            if status == "1":
-                failures.append((program, run-previous_run))
+            # Job failed, was killed, is not executable, or timed out, 
+            if status == "1" or status == "-1" or status == "98" or status == "97":
+                failures.append((program, status, run-previous_run))
 
-    return render_template('nearline.html', run=run, programs=programs, failures=failures)
+    return render_template('nearline.html', run=run, programs=programs, failures=failures, warning=warning)
 
 @app.route('/get_l2')
 def get_l2():
