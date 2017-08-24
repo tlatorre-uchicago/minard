@@ -24,7 +24,7 @@ import nlrat
 import noisedb
 import pingcratesdb
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history
-from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_current_run
+from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds, get_current_run
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 
@@ -215,8 +215,50 @@ def update_channel_status():
         return redirect(url_for('channel_status', crate=form.crate.data, slot=form.slot.data, channel=form.channel.data))
     return render_template('update_channel_status.html', form=form, status=channel_status)
 
+@app.route('/detector-state-diff')
+def detector_state_diff():
+    run1 = request.args.get("run1", 100000, type=int)
+    run2 = request.args.get("run2", 0, type=int)
+
+    if run1 == -1:
+        run1 = detector_state.get_latest_run()
+
+    if run2 == -1:
+        run2 = detector_state.get_latest_run()
+
+    try:
+        run_state1 = detector_state.get_run_state(run1)
+        run_state2 = detector_state.get_run_state(run1)
+
+        mtc_state1 = detector_state.get_mtc_state_for_run(run1)
+        mtc_state2 = detector_state.get_mtc_state_for_run(run2)
+
+        tubii_state1 = detector_state.get_tubii_state_for_run(run1)
+        tubii_state2 = detector_state.get_tubii_state_for_run(run2)
+
+        caen_state1 = detector_state.get_caen_state_for_run(run1)
+        caen_state2 = detector_state.get_caen_state_for_run(run2)
+
+        detector_state1 = detector_state.get_detector_state(run1)
+        detector_state2 = detector_state.get_detector_state(run2)
+    except Exception as e:
+        flash(str(e), 'danger')
+
+    return render_template('detector_state_diff.html',
+                           run1=run1,
+                           run2=run2,
+                           run_state1=run_state1,
+                           run_state2=run_state2,
+                           mtc_state1=mtc_state1,
+                           mtc_state2=mtc_state2,
+                           tubii_state1=tubii_state1,
+                           tubii_state2=tubii_state2,
+                           caen_state1=caen_state1,
+                           caen_state2=caen_state2,
+                           detector_state1=detector_state1,
+                           detector_state2=detector_state2)
+
 @app.route('/state')
-@app.route('/state/')
 @app.route('/state/<int:run>')
 def state(run=None):
     try:
@@ -472,6 +514,32 @@ def check_rates():
     cmos_runs, base_runs = polling_runs()
     return render_template('check_rates.html', cmos_runs=cmos_runs, base_runs=base_runs)
 
+@app.route('/check_rates_histogram')
+def check_rates_histogram():
+    run = request.args.get('run', 0, type=int)
+    crate = request.args.get('crate', 0)
+    cmos_runs, base_runs = polling_runs()
+
+    if crate != "All":
+        values = polling_info_card('cmos', run, crate)
+    else:
+        values = polling_info('cmos', run)
+    return render_template('check_rates_histogram.html', values=values, cmos_runs=cmos_runs)
+
+@app.route('/discriminator_info')
+def discriminator_info():
+    run = request.args.get('run', 0, type=int)
+
+    values, average, nmax, maxed = get_all_thresholds(run)
+    return render_template('discriminator_info.html', values=values, average=average, nmax=nmax, maxed=maxed)
+
+@app.route('/max_thresholds')
+def max_thresholds():
+    run = request.args.get('run', 0, type=int)
+
+    values, average, nmax, maxed = get_all_thresholds(run)
+    return render_template('max_thresholds.html', maxed=maxed)
+
 @app.route('/cmos_rates_check')
 def cmos_rates_check():
     high_rate = request.args.get('high_rate',20000.0,type=float)
@@ -488,8 +556,10 @@ def check_rates_history():
     crate = request.args.get('crate',0,type=int)
     slot = request.args.get('slot',0,type=int)
     channel = request.args.get('channel',0,type=int)
+    # Run when we started keeping polling data
+    starting_run = request.args.get('starting_run',103214,type=int)
 
-    data, stats = polling_history(crate, slot, channel)
+    data, stats = polling_history(crate, slot, channel, starting_run)
     discriminator_threshold = get_discriminator_threshold(crate, slot, channel)
     return render_template('check_rates_history.html', crate=crate, slot=slot, channel=channel, data=data, stats=stats, discriminator_threshold=discriminator_threshold)
 

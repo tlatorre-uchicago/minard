@@ -15,21 +15,19 @@
         <div class="row">
 	    <div class="col-md-6 col-md-offset-3">
 		<center>
-		    <ul class="pager">
-			<li class="previous"><a href="{{ url_for('detector_state_check', run=run-1) }}">Prev</a></li>
-			<li>
-                        {% if run == 0 %}
-                            <h2 style="display:inline">Current State</h2>
-                        {% else %}
-                            <h2 style="display:inline">Run {{ run }}</h2>
-                        {% endif %}
-                        </li>
-			<li class="next"><a href="{{ url_for('detector_state_check', run=run+1) }}">Next</a></li>
-		    </ul>
+                    {% if run == 0 %}
+                        <h2 style="display:inline">Current State</h2>
+                    {% else %}
+                        <ul class="pager">
+                            <li class="previous"><a href="{{ url_for('detector_state_check', run=run-1) }}">Prev</a></li>
+                            <li><h2 style="display:inline">Run {{ run }}</h2></li>
+                            <li class="next"><a href="{{ url_for('detector_state_check', run=run+1) }}">Next</a></li>
+                        </ul>
+                    {% endif %}
 		</center>
 	    </div>
             <div class="col-md-3 text-right">
-                Go to run: <input type="number" id="run_number" value="{{ run }}"></input>
+                Go to <a href="{{ url_for("detector_state_check") }}">latest run</a>, <a href="{{ url_for("detector_state_check",run=0) }}">current state</a> or run: <input type="number" id="run_number" value="{{ run }}"></input>
             </div>
         </div>
         <div class="row">

@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block title %}Max Discriminator Thresholds{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+<div class="container">
+    <div class="row">
+        <h2> Channels with Maxed Thresholds </h2>
+        <div class="col-md-6">
+         <table class="table table-hover">
+             <thead>
+                 <tr> 
+                     <th> Crate </th>
+                     <th> Card </th>
+                     <th> Channel </th>
+                 </tr>
+             </thead>
+             {% for threshold in maxed %}
+                 <tr>
+                     <th> {{ threshold[0] }} </th>
+                     <th> {{ threshold[1] }} </th>
+                     <th> {{ threshold[2] }} </th>
+                 </tr>
+             {% endfor %}
+         </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -25,6 +25,8 @@ function card_view() {
     var crate = 0;
     var threshold = null;
 
+    var click = function(d, i) { return; };
+
     var scale = d3.scale.threshold().domain([100]).range(['#bababa','#ca0020']);
 
     var format = d3.format('.0f');
@@ -55,6 +57,7 @@ function card_view() {
             var td = tr2.selectAll('td')
                 .data(function(d) { return d; }, function(d) { return d; })
                 .enter().append('td')
+                .on('click', click)
                 .attr('id','channel')
                 .attr('style','background-color:#e0e0e0')
                 .attr('title', function(d) {
@@ -92,7 +95,13 @@ function card_view() {
        scale = value;
        return chart;
    }
-   
+
+    chart.click = function(value) {
+        if (!arguments.length) return click;
+        click = value;
+        return chart;
+    }
+
    chart.threshold = function(value) {
        if (!arguments.length) return threshold;
        threshold = value;
@@ -173,6 +182,7 @@ function crate_view() {
             .on('click', click)
             .attr('style','display:inline-block')
             .attr("id", function(d, i) { return "crate" + i;})
+            .attr("class", function(d, i) { return "crate" + i;})
           .append('table')
             .attr('style','padding:2px;border-collapse:separate;border-spacing:1px')
 

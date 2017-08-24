@@ -14,7 +14,9 @@ var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB',//'ESUML',
   'ESUMH',
   'OWLN', //'OWLEL',
   'OWLEH','PULGT','PRESCL', 'PED','PONG','SYNC','EXTA', 'EXT2',
-  //'EXT3','EXT4','EXT5','EXT6','EXT7', 'EXT8',
+  //'EXT3','EXT4','EXT5',
+  'EXT6',
+  //'EXT7', 'EXT8',
   //'SRAW','NCD',
   'SOFGT','MISS'
   ];
@@ -27,6 +29,8 @@ function metric(name) {
         display = "20L";
     } else if (name == "20LB-Baseline") {
         display = "20L-Baseline";
+    } else if (name == "EXT6") {
+        display = "NO CLOCK";
     }
 
     return context.metric(function(start, stop, step, callback) {

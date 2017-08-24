@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block title %}Channel Discriminator Thresholds{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+<div class="container">
+    <h4> Discriminator Thresholds </h4>
+    <div class="row">
+        <div class="col-md-6">
+            {% if average %}
+            <table class="table table-hover">
+                <tr>
+                    <th>Mean (DAC Counts)</th>
+                    <th> <a href="{{ url_for('max_thresholds') }}"> # Maxed Thresholds </a> </th>
+                </tr>
+                <tr>
+                    <td> {{ average }} </td>
+                    <td> {{ nmax }} </td>
+                </tr>
+            </table>
+            {% endif %}
+        </div>
+        <div class="col-md-10 col-md-offset-1" id="main"> </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/histogram.js') }}"></script>    
+    <script src="{{ url_for('static', filename='js/discriminator.js') }}"></script>    
+    <script>
+        d3.select("#main")
+            .datum({{ values }})
+          .call(discriminator_chart);
+    </script>
+{% endblock %}
