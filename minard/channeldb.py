@@ -423,7 +423,4 @@ def get_current_run():
 
     result = conn.execute("SELECT last_value FROM run_number")
 
-    row = result.fetchone()[0]
-
-    print row
-    return row
+    return result.fetchone()[0]
