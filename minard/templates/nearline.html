@@ -68,9 +68,18 @@
 	</div>
 	<div class="row">
 	    <div class="col-md-6 col-md-offset-3">
-                <h4> Nearline job failures in last 100 runs </h4>
+                Nearline job failures in last
+                <select id="limit" onchange="get_limit(this.value, {{ run }});">
+                    <option value="{{limit}}">{{limit}}</option>
+                    {% for n in [10, 25, 50, 100, 500] %}
+                        {% if n != limit %}
+                            <option value="{{n}}">{{n}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                runs
 		<table class="table">
-		    <thead>
+		   <thead>
 			<tr>
 			    <th>Status</th>
 			    <th>Name</th>
@@ -99,4 +108,13 @@
 	    </div>
 	</div>
     </div>
+{% endblock %}
+{% block script %}
+    <script>
+        function get_limit(limit, run) {
+            params = {};
+            params["limit"] = limit;
+            window.location.replace($SCRIPT_ROOT + "/nearline/" + run + "?" + $.param(params));
+        }
+    </script>
 {% endblock %}

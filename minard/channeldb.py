@@ -416,11 +416,3 @@ def upload_channel_status(form):
         "%(disable_n100)s, %(disable_n20)s, %(high_dropout)s, "
         "%(bad_base_current)s, %(bad_data)s, %(name)s, %(reason)s, %(info)s)",
          form.data)
-
-def get_current_run():
-
-    conn = engine.connect()
-
-    result = conn.execute("SELECT last_value FROM run_number")
-
-    return result.fetchone()[0]
