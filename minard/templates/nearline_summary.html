@@ -9,7 +9,7 @@
 	<div class="row">
 	    <div class="col-md-6 col-md-offset-3">
                 {% if warning %}
-                   <h4> Warning: Nearline is on run {{warning[0]}}, but the current run is {{warning[1]}}. This could mean the nearline has fallen behind or gotten stuck. <h4>
+                   <h3> Warning: Nearline is on run {{warning[0]}}, but the current run is {{warning[1]}}. This could mean the nearline has fallen behind or gotten stuck. <h3>
                 {% endif %}
 	    </div>
 	</div>
@@ -24,9 +24,18 @@
 	</div>
 	<div class="row">
 	    <div class="col-md-6 col-md-offset-3">
-                Nearline job failures in last
-                <select id="limit" onchange="get_limit(this.value, {{ run }});">
-                    <option value="{{limit}}">{{limit}}</option>
+                Nearline job 
+                <select id="job" onchange="get_limit(limit.value, this.value);">
+                    <option selected value="{{jobs}}">{{jobs}}</option>
+                    {% for job_type in ["All","DAQ","SMELLIE","BLINDNESS_CHUNKER","PCA_TELLIE","RUN","TELLIE","ECA","PING_CRATES","PMTCalStatus","ANALYSIS","DQHL","CHS","DQLL","PMTNOISE"] %}
+                        {% if job_type != jobs %}
+                            <option value="{{job_type}}">{{job_type}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                failures in last
+                <select id="limit" onchange="get_limit(this.value, job.value);">
+                    <option selected value="{{limit}}">{{limit}}</option>
                     {% for n in [10, 25, 50, 100, 500] %}
                         {% if n != limit %}
                             <option value="{{n}}">{{n}}</option>
@@ -44,19 +53,22 @@
 		    </thead>
                     {% if failures %}
 		        {% for program, status, run in failures %}
-			    {% if status|int == 1 %}
-			    <th class="danger"> Failed </th>
-                            {% elif status|int == 97 %}
-                            <th class="warning"> Timed out </th>
-                            {% elif status|int == 98 %}
-                            <th class="warning"> Not executable </th>
-                            {% elif status|int == -1 %}
-                            <th class="warning"> Killed by signal </th>
-			    {% else %}
-			    <th class="warning"> Unknown </th>
-			    {% endif %}
-		            <th> {{ program }} </th>
-                            <th> {{ run }} </th>
+                        <tr>
+                            {% if jobs == "All" or jobs == program %}
+			        {% if status|int == 1 %}
+			        <th class="danger"> Failed </th>
+                                {% elif status|int == 97 %}
+                                <th class="warning"> Timed out </th>
+                                {% elif status|int == 98 %}
+                                <th class="warning"> Not executable </th>
+                                {% elif status|int == -1 %}
+                                <th class="warning"> Killed by signal </th>
+			        {% else %}
+			        <th class="warning"> Unknown </th>
+			        {% endif %}
+		                <th> {{ program }} </th>
+                                <th> {{ run }} </th>
+                            {% endif %}
 		        </tr>
 		        {% endfor %}
                     {% endif %}
@@ -67,8 +79,9 @@
 {% endblock %}
 {% block script %}
     <script>
-        function get_limit(limit) {
+        function get_limit(limit, jobs) {
             params = {};
+            params["jobs"] = jobs;
             params["limit"] = limit;
             window.location.replace($SCRIPT_ROOT + "/nearline_summary?" + $.param(params));
         }

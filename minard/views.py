@@ -349,8 +349,7 @@ def trigger():
 @app.route('/nearline/<int:run>')
 def nearline(run=None):
     if run is None:
-        run = 104287
-        #run = int(redis.get('nearline:current_run'))
+        run = int(redis.get('nearline:current_run'))
 
     programs = redis.hgetall('nearline:%i' % run)
 
@@ -359,9 +358,9 @@ def nearline(run=None):
 @app.route('/nearline_summary')
 def nearline_summary():
     warning = []
+    jobs = request.args.get("jobs", "All", type=str)
     limit = request.args.get("limit", 100, type=int)
-    run = 104287
-    #run = int(redis.get('nearline:current_run'))
+    run = int(redis.get('nearline:current_run'))
     detector_run = detector_state.get_latest_run()
     if run != detector_run - 1:
         warning.append(run)
@@ -376,7 +375,7 @@ def nearline_summary():
             if status == "1" or status == "-1" or status == "98" or status == "97":
                 failures.append((program, status, run-previous_run))
 
-    return render_template('nearline_summary.html', run=run, failures=failures, warning=warning, limit=limit)
+    return render_template('nearline_summary.html', run=run, failures=failures, warning=warning, jobs=jobs, limit=limit)
 
 @app.route('/get_l2')
 def get_l2():
