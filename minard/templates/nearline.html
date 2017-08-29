@@ -8,13 +8,6 @@
     <div class="container">
 	<div class="row">
 	    <div class="col-md-6 col-md-offset-3">
-                {% if warning %}
-                   <h4> Warning: Nearline is on run {{warning[0]}}, but current run is {{warning[1]}}. This could mean the nearline has fallen behind or gotten stuck. <h4>
-                {% endif %}
-	    </div>
-	</div>
-	<div class="row">
-	    <div class="col-md-6 col-md-offset-3">
 		<center>
 		    <ul class="pager">
 			<li class="previous"><a href="{{ url_for('nearline', run=run-1) }}">Prev</a></li>
@@ -22,10 +15,11 @@
 			<li class="next"><a href="{{ url_for('nearline', run=run+1) }}">Next</a></li>
 		    </ul>
 		</center>
-            </div>
+	    </div>
 	</div>
 	<div class="row">
 	    <div class="col-md-6 col-md-offset-3">
+                <button type="button" onclick="document.location.replace($SCRIPT_ROOT + '/nearline_summary');">Recent Failures</button>
 		<table class="table">
 		    <thead>
 			<tr>
@@ -66,55 +60,5 @@
 		</table>
 	    </div>
 	</div>
-	<div class="row">
-	    <div class="col-md-6 col-md-offset-3">
-                Nearline job failures in last
-                <select id="limit" onchange="get_limit(this.value, {{ run }});">
-                    <option value="{{limit}}">{{limit}}</option>
-                    {% for n in [10, 25, 50, 100, 500] %}
-                        {% if n != limit %}
-                            <option value="{{n}}">{{n}}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-                runs
-		<table class="table">
-		   <thead>
-			<tr>
-			    <th>Status</th>
-			    <th>Name</th>
-                            <th>Run</th>
-			</tr>
-		    </thead>
-                    {% if failures %}
-		        {% for program, status, run in failures %}
-			    {% if status|int == 1 %}
-			    <th class="danger"> Failed </th>
-                            {% elif status|int == 97 %}
-                            <th class="warning"> Timed out </th>
-                            {% elif status|int == 98 %}
-                            <th class="warning"> Not executable </th>
-                            {% elif status|int == -1 %}
-                            <th class="warning"> Killed by signal </th>
-			    {% else %}
-			    <th class="warning"> Unknown </th>
-			    {% endif %}
-		            <th> {{ program }} </th>
-                            <th> {{ run }} </th>
-		        </tr>
-		        {% endfor %}
-                    {% endif %}
-		</table>
-	    </div>
-	</div>
     </div>
-{% endblock %}
-{% block script %}
-    <script>
-        function get_limit(limit, run) {
-            params = {};
-            params["limit"] = limit;
-            window.location.replace($SCRIPT_ROOT + "/nearline/" + run + "?" + $.param(params));
-        }
-    </script>
 {% endblock %}
