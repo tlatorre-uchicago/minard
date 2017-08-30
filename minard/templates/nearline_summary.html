@@ -49,6 +49,7 @@
 			    <th>Status</th>
 			    <th>Name</th>
                             <th>Run</th>
+			    <th>Log File</th>
 			</tr>
 		    </thead>
                     {% if failures %}
@@ -68,6 +69,9 @@
 			        {% endif %}
 		                <th> {{ program }} </th>
                                 <th><a href="{{ url_for("nearline", run=run) }}">{{ run }}</a></th>
+                                <th>
+                                    <a href="{{ "/monitoring/nearline/logs/%i/%s.log" % (run,program) }}">{{ program }}.log</a>
+                                </th>
                             {% endif %}
 		        </tr>
 		        {% endfor %}
