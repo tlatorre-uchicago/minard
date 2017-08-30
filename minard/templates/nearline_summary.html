@@ -43,7 +43,7 @@
                     {% endfor %}
                 </select>
                 runs
-		<table class="table">
+		<table class="table table-condensed">
 		   <thead>
 			<tr>
 			    <th>Status</th>
@@ -67,7 +67,7 @@
 			        <th class="warning"> Unknown </th>
 			        {% endif %}
 		                <th> {{ program }} </th>
-                                <th> {{ run }} </th>
+                                <th><a href="{{ url_for("nearline", run=run) }}">{{ run }}</a></th>
                             {% endif %}
 		        </tr>
 		        {% endfor %}
