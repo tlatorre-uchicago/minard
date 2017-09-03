@@ -212,7 +212,7 @@ def pull():
                     cache['trig:fecd']['20LB'] += 1
                 elif pmt.ChannelID == 19:
                     cache['trig:fecd']['20'] += 1
-                elif pmt.ChannelID == 29:
+                elif pmt.ChannelID == 28:
                     cache['trig:fecd']['100L'] += 1
                 elif pmt.ChannelID == 29:
                     cache['trig:fecd']['100M'] += 1
