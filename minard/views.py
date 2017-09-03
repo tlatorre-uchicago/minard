@@ -487,7 +487,7 @@ def docs(dir='', subdir='', filename='index.html'):
 
 @app.route('/snostream')
 def snostream():
-    if not request.args.get('step'):
+    if len(request.args) == 0:
         return redirect(url_for('snostream',step=1,height=20,_external=True))
     step = request.args.get('step',1,type=int)
     height = request.args.get('height',40,type=int)
@@ -811,6 +811,13 @@ def metric():
             values = [float(a)/int(b) if a and b else None for a, b in zip(values,counts)]
         else:
             raise ValueError('unknown trigger type %s' % trig)
+    elif 'FECD' in expr:
+        field = expr.split('/')[1]
+        values = get_timeseries_field('trig:fecd',field,start,stop,step)
+
+        interval = get_interval(step)
+
+        values = map(lambda x: int(x)/interval if x else 0, values)
     else:
         if expr in TRIGGER_NAMES:
             field = TRIGGER_NAMES.index(expr)

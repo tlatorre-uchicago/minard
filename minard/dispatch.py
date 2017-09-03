@@ -141,6 +141,7 @@ def pull():
     cache['trig'] = defaultdict(int)
     cache['trig:nhit'] = defaultdict(int)
     cache['trig:charge'] = defaultdict(int)
+    cache['trig:fecd'] = defaultdict(int)
     cache['DISPATCH_ORPHANS'] = 0
     cache_set = {}
     cache_set['trig'] = {}
@@ -172,6 +173,7 @@ def pull():
             cache['trig'].clear()
             cache['trig:nhit'].clear()
             cache['trig:charge'].clear()
+            cache['trig:fecd'].clear()
             cache['DISPATCH_ORPHANS'] = 0
             cache_set['trig'].clear()
             cache_nhit = []
@@ -206,6 +208,17 @@ def pull():
             cache_pmt[id] += 1
 
             if pmt.CrateID == 17 and pmt.BoardID == 15:
+                if pmt.ChannelID == 17:
+                    cache['trig:fecd']['20LB'] += 1
+                elif pmt.ChannelID == 19:
+                    cache['trig:fecd']['20'] += 1
+                elif pmt.ChannelID == 29:
+                    cache['trig:fecd']['100L'] += 1
+                elif pmt.ChannelID == 29:
+                    cache['trig:fecd']['100M'] += 1
+                elif pmt.ChannelID == 31:
+                    cache['trig:fecd']['100H'] += 1
+
                 # don't include FEC/D in qhs sum and nhit
                 continue
 
