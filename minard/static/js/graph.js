@@ -27,11 +27,19 @@ function add_graph(name, start, stop, step)
                 if (!data) console.log('unable to load data');
 
                 var values = data.values;
-                var chart_data = format_data(values,start,stop,step);
-                var dates = chart_data.map(function(d) { return d['date']; });
-                var scale = tzscale().domain(dates).zone('America/Toronto');
+                if (Array.isArray(values[0])) {
+                    var chart_data = values.map(function(x) { return format_data(x,start,stop,step)});
+                    var dates = chart_data[0].map(function(d) { return d['date']; });
+                    var scale = tzscale().domain(dates).zone('America/Toronto');
 
-                var valid = values.filter(isNumber);
+                    var valid = values[0].filter(isNumber);
+                } else {
+                    var chart_data = format_data(values,start,stop,step);
+                    var dates = chart_data.map(function(d) { return d['date']; });
+                    var scale = tzscale().domain(dates).zone('America/Toronto');
+
+                    var valid = values.filter(isNumber);
+                }
 
 		var time_fmt = 'MMM Do YYYY';
 
@@ -45,14 +53,14 @@ function add_graph(name, start, stop, step)
 		    time_fmt = 'ddd MMM Do YYYY, h a';
 		}
 
-                MG.data_graphic({
+                var params = {
                     title: name,
                     chart_type: valid.length ? 'line' : 'missing-data',
                     area: false,
                     data: chart_data,
                     interpolate: 'linear',
                     width: $('#main').width(),
-                    height: 250,
+                    height: url_params['height'] || 250,
                     show_secondary_x_label: false,
                     //xax_tick: 0,
 		    time_scale: scale,
@@ -63,32 +71,41 @@ function add_graph(name, start, stop, step)
                     y_accessor:'value',
 		    min_y_from_data: true,
 		    x_mouseover: function(d, i) {
-			return moment.tz(d['date'], 'America/Toronto').format(time_fmt) + '  ';
+			return moment.tz(d['date'] || d['key'], 'America/Toronto').format(time_fmt) + '  ';
 		    },
-                });
+                };
 
-                var width = $('#hist').width();
+                if (Array.isArray(values[0])) {
+                    params.legend = name.split(",");
+                    params.right = 100;
+                }
 
-                MG.data_graphic({
-                    data: valid,
-                    chart_type: valid.length ? 'histogram' : 'missing-data',
-                    width: width,
-                    height: width/1.6,
-                    bins: 50,
-                    bar_margin: 1,
-                    target: '#hist',
-                });
+                MG.data_graphic(params);
 
-                // log
-                MG.data_graphic({
-                    data: valid,
-                    y_scale_type: 'log',
-                    chart_type: valid.length ? 'histogram' : 'missing-data',
-                    width: width,
-                    height: width/1.6,
-                    bins: 50,
-                    bar_margin: 1,
-                    target: '#hist-log',
-                });
+                if (!Array.isArray(values[0])) {
+                    var width = $('#hist').width();
+
+                    MG.data_graphic({
+                        data: valid,
+                        chart_type: valid.length ? 'histogram' : 'missing-data',
+                        width: width,
+                        height: width/1.6,
+                        bins: 50,
+                        bar_margin: 1,
+                        target: '#hist',
+                    });
+
+                    // log
+                    MG.data_graphic({
+                        data: valid,
+                        y_scale_type: 'log',
+                        chart_type: valid.length ? 'histogram' : 'missing-data',
+                        width: width,
+                        height: width/1.6,
+                        bins: 50,
+                        bar_margin: 1,
+                        target: '#hist-log',
+                    });
+                }
             });
 }

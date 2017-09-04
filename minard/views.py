@@ -755,47 +755,18 @@ def metric_hash():
     values = get_hash_timeseries(name,start,stop,step,crate,card,channel,method)
     return jsonify(values=values)
 
-@app.route('/metric')
-def metric():
-    """Returns the time series for argument `expr` as a JSON list."""
-    args = request.args
-
-    expr = args['expr']
-    start = args.get('start',type=parseiso)
-    stop = args.get('stop',type=parseiso)
-    now_client = args.get('now',type=parseiso)
-    step = args.get('step',type=int)
-
-    now = int(time.time())
-
-    # adjust for clock skew
-    dt = now_client - now
-    start -= dt
-    stop -= dt
-
-    start = int(start)
-    stop = int(stop)
-    step = int(step)
-
+def get_metric(expr, start, stop, step):
     if expr in ('L2:gtid', 'L2:run'):
         values = get_timeseries(expr, start, stop, step)
-        return jsonify(values=values)
-
-    if expr in ('gtid', 'run', 'subrun'):
+    elif expr in ('gtid', 'run', 'subrun'):
         values = get_timeseries_field('trig', expr, start, stop, step)
-        return jsonify(values=values)
-
-    if expr in ('heartbeat','l2-heartbeat'):
+    elif expr in ('heartbeat','l2-heartbeat'):
         values = get_timeseries(expr,start,stop,step)
-        return jsonify(values=values)
-
-    if expr == u"0\u03bd\u03b2\u03b2":
+    elif expr == u"0\u03bd\u03b2\u03b2":
         import random
         total = get_timeseries('TOTAL',start,stop,step)
         values = [int(random.random() < step/315360) if i else 0 for i in total]
-        return jsonify(values=values)
-
-    if '-' in expr:
+    elif '-' in expr:
         # e.g. PULGT-nhit, which means the average nhit for PULGT triggers
         # this is not a rate, so we divide by the # of PULGT triggers for
         # the interval instead of the interval length
@@ -834,7 +805,34 @@ def metric():
         else:
             values = map(lambda x: int(x)/interval if x else None, values)
 
-    return jsonify(values=values)
+    return values
+
+@app.route('/metric')
+def metric():
+    """Returns the time series for argument `expr` as a JSON list."""
+    args = request.args
+
+    expr = args['expr']
+    start = args.get('start',type=parseiso)
+    stop = args.get('stop',type=parseiso)
+    now_client = args.get('now',type=parseiso)
+    step = args.get('step',type=int)
+
+    now = int(time.time())
+
+    # adjust for clock skew
+    dt = now_client - now
+    start -= dt
+    stop -= dt
+
+    start = int(start)
+    stop = int(stop)
+    step = int(step)
+
+    if ',' in expr:
+        return jsonify(values=[get_metric(name, start, stop, step) for name in expr.split(',')])
+    else:
+        return jsonify(values=get_metric(expr, start, stop, step))
 
 @app.route('/eca')
 def eca():
