@@ -49,6 +49,7 @@ def daemonize():
 
 if __name__ == '__main__':
     import argparse
+    import socket
 
     parser = argparse.ArgumentParser()
     parser.add_argument("host", nargs='?',
@@ -91,7 +92,16 @@ if __name__ == '__main__':
                              (args.log_server, str(e)))
             sys.stderr.flush()
 
-    mtc = MTC(args.host)
+    log.notice("connecting to mtc server at %s..." % args.host)
+
+    while True:
+        try:
+            mtc = MTC(args.host)
+        except socket.timeout as e:
+            time.sleep(10)
+            continue
+        log.notice("connected")
+        break
 
     # Flag to help reduce warning spam
     did_warn = False
