@@ -495,7 +495,9 @@ def snostream():
 
 @app.route('/nhit')
 def nhit():
-  return render_template('nhit.html')
+    if not request.args.get("name"):
+        return redirect(url_for('nhit', name='all'))
+    return render_template('nhit.html',name=request.args.get("name","all"))
 
 @app.route('/rat')
 def rathome():
@@ -608,14 +610,14 @@ def query():
     if name == 'dispatcher':
         return jsonify(name=redis.get('dispatcher'))
 
-    if name == 'nhit':
+    if 'nhit' in name:
         seconds = request.args.get('seconds',type=int)
 
         now = int(time.time())
 
         p = redis.pipeline()
         for i in range(seconds):
-            p.lrange('ts:1:{ts}:nhit'.format(ts=now-i),0,-1)
+            p.lrange('ts:1:{ts}:{name}'.format(ts=now-i,name=name),0,-1)
         nhit = map(int,sum(p.execute(),[]))
         return jsonify(value=nhit)
 
