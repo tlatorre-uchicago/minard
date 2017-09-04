@@ -290,7 +290,7 @@ def state(run=None):
 
     crates_state = detector_state.get_detector_state(run)
 
-    if not any(crates_state.values()):
+    if not crates_state:
         crates_state = None
 
     trigger_scan = None
