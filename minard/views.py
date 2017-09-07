@@ -1000,6 +1000,10 @@ def pingcrates():
 @app.route('/pingcrates_run/<run_number>')
 def pingcrates_run(run_number):
     return render_template('pingcrates_run.html', run_number=run_number)
+
+@app.route('/trigger_clock_jump')
+def trigger_clock_jump():
+    return render_template('trigger_clock_jump.html')
  
 @app.route('/physicsdq/<run_number>')
 def physicsdq_run_number(run_number):
