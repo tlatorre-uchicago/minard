@@ -119,15 +119,16 @@ def flush_cache(cache, cache_set, cache_nhit, cache_pmt, time):
             p.expire(prev_key, HASH_EXPIRE*interval)
             p.expire(prev_key + ':lock', interval)
 
-    if len(cache_nhit) > 0:
-        # nhit distribution
-        if len(cache_nhit) > 100:
-            # if there are more than 100 events this second
-            # randomly sample the nhit from 100 events
-            cache_nhit = random.sample(cache_nhit,100)
-        # see http://flask.pocoo.org/snippets/71/ for this design pattern
-        p.lpush('ts:1:%i:nhit' % time, *cache_nhit)
-        p.expire('ts:1:%i:nhit' % time, 3600)
+    for trigger, cache in cache_nhit.iteritems():
+        if len(cache) > 0:
+            # nhit distribution
+            if len(cache) > 100:
+                # if there are more than 100 events this second
+                # randomly sample the nhit from 100 events
+                cache = random.sample(cache,100)
+            # see http://flask.pocoo.org/snippets/71/ for this design pattern
+            p.lpush('ts:1:%i:nhit:%s' % (time, trigger), *cache)
+            p.expire('ts:1:%i:nhit:%s' % (time, trigger), 3600)
 
     p.execute()
 
@@ -141,10 +142,11 @@ def pull():
     cache['trig'] = defaultdict(int)
     cache['trig:nhit'] = defaultdict(int)
     cache['trig:charge'] = defaultdict(int)
+    cache['trig:fecd'] = defaultdict(int)
     cache['DISPATCH_ORPHANS'] = 0
     cache_set = {}
     cache_set['trig'] = {}
-    cache_nhit = []
+    cache_nhit = defaultdict(list)
     cache_pmt = defaultdict(int)
 
     then = None
@@ -172,9 +174,10 @@ def pull():
             cache['trig'].clear()
             cache['trig:nhit'].clear()
             cache['trig:charge'].clear()
+            cache['trig:fecd'].clear()
             cache['DISPATCH_ORPHANS'] = 0
             cache_set['trig'].clear()
-            cache_nhit = []
+            cache_nhit.clear()
             cache_pmt.clear()
             then = now
 
@@ -206,6 +209,17 @@ def pull():
             cache_pmt[id] += 1
 
             if pmt.CrateID == 17 and pmt.BoardID == 15:
+                if pmt.ChannelID == 17:
+                    cache['trig:fecd']['20LB'] += 1
+                elif pmt.ChannelID == 19:
+                    cache['trig:fecd']['20'] += 1
+                elif pmt.ChannelID == 28:
+                    cache['trig:fecd']['100L'] += 1
+                elif pmt.ChannelID == 29:
+                    cache['trig:fecd']['100M'] += 1
+                elif pmt.ChannelID == 31:
+                    cache['trig:fecd']['100H'] += 1
+
                 # don't include FEC/D in qhs sum and nhit
                 continue
 
@@ -218,7 +232,7 @@ def pull():
             cache['DISPATCH_ORPHANS'] += nhit
             continue
 
-        cache_nhit += [nhit]
+        cache_nhit['all'].append(nhit)
 
         cache['trig']['TOTAL'] += 1
         cache['trig:nhit']['TOTAL'] += nhit
@@ -232,6 +246,7 @@ def pull():
                 cache['trig'][i] += 1
                 cache['trig:nhit'][i] += nhit
                 cache['trig:charge'][i] += qhs_sum
+                cache_nhit[name].append(nhit)
 
 if __name__ == '__main__':
     import argparse

@@ -7,14 +7,14 @@ def polling_runs():
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT DISTINCT ON (run) run FROM cmos ORDER BY run DESC LIMIT 20")
+    result = conn.execute("SELECT DISTINCT ON (run) run FROM cmos ORDER BY run DESC")
 
     if result is not None:
         keys = result.keys()
         rows = result.fetchall()
         cmos_runs = [dict(zip(keys,row)) for row in rows]
 
-    result = conn.execute("SELECT DISTINCT ON (run) run FROM base ORDER BY run DESC LIMIT 20")
+    result = conn.execute("SELECT DISTINCT ON (run) run FROM base ORDER BY run DESC")
 
     if result is not None:
         keys = result.keys()

@@ -12,7 +12,7 @@ var chart_log = histogram()
     .log(true);
 
 function update_chart(selector, seconds, update) {
-    $.getJSON($SCRIPT_ROOT + '/query', {'name': 'nhit', 'seconds': seconds}, function(reply) {
+    $.getJSON($SCRIPT_ROOT + '/query', {'name': 'nhit:' + url_params.name, 'seconds': seconds}, function(reply) {
         d3.select(selector).datum(reply.value).call(chart);
         d3.select(selector + '-log').datum(reply.value).call(chart_log);
     });

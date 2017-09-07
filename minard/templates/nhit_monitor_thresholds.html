@@ -27,16 +27,30 @@
 		<table class="table">
 		    <thead>
 			<tr>
+			    <th></th>
+			    <th></th>
+			    <th></th>
+			    <th></th>
+			    <th></th>
+			    <th colspan="5">Threshold</th>
+			    <th colspan="5">Width</th>
+			</tr>
+			<tr>
 			    <th>Key</th>
 			    <th>Timestamp</th>
 			    <th>Crate</th>
 			    <th>Number of Pulses</th>
 			    <th>Pulser Rate (Hz)</th>
-			    <th>NHit 100 Lo</th>
-			    <th>NHit 100 Med</th>
-			    <th>NHit 100 Hi</th>
-			    <th>NHit 20</th>
-			    <th>NHit 20 LB</th>
+			    <th>100L</th>
+			    <th>100M</th>
+			    <th>100H</th>
+			    <th>20</th>
+			    <th>20L</th>
+			    <th>100L</th>
+			    <th>100M</th>
+			    <th>100H</th>
+			    <th>20</th>
+			    <th>20L</th>
 			</tr>
 		    </thead>
 		    {% for row in results %}
@@ -79,6 +93,41 @@
 			    {{ '%.2f' % row['nhit_20_lb'] }}
 			{% else %}
 			    > {{ row['max_nhit'] }}
+			{% endif %}
+                        </td>
+                        <td>
+			{% if row['nhit_100_lo_width'] is not none %}
+			    {{ '%.2f' % row['nhit_100_lo_width'] }}
+			{% else %}
+                            -
+			{% endif %}
+                        </td>
+                        <td>
+			{% if row['nhit_100_med_width'] is not none %}
+			    {{ '%.2f' % row['nhit_100_med_width'] }}
+			{% else %}
+                            -
+			{% endif %}
+                        </td>
+                        <td>
+			{% if row['nhit_100_hi_width'] is not none %}
+			    {{ '%.2f' % row['nhit_100_hi_width'] }}
+			{% else %}
+                            -
+			{% endif %}
+                        </td>
+                        <td>
+			{% if row['nhit_20_width'] is not none %}
+			    {{ '%.2f' % row['nhit_20_width'] }}
+			{% else %}
+                            -
+			{% endif %}
+                        </td>
+                        <td>
+			{% if row['nhit_20_lb_width'] is not none %}
+			    {{ '%.2f' % row['nhit_20_lb_width'] }}
+			{% else %}
+                            -
 			{% endif %}
                         </td>
 		    </tr>

@@ -1,5 +1,5 @@
 $("#step-menu").on("change", function() {
-    window.location.replace($SCRIPT_ROOT + "/snostream?step=" + this.value + "&height=" + url_params.height);
+    window.location.replace($SCRIPT_ROOT + "/snostream?step=" + this.value + "&height=" + height);
 });
 
 setInterval(function() {
@@ -8,13 +8,15 @@ setInterval(function() {
     });
 },1000);
 
-var context = create_context('#main', url_params.step);
+var context = create_context('#main', step);
 
 var TRIGGER_NAMES = ['TOTAL','100L','100M','100H','20','20LB',//'ESUML',
   'ESUMH',
   'OWLN', //'OWLEL',
   'OWLEH','PULGT','PRESCL', 'PED','PONG','SYNC','EXTA', 'EXT2',
-  //'EXT3','EXT4','EXT5','EXT6','EXT7', 'EXT8',
+  //'EXT3','EXT4','EXT5',
+  'EXT6',
+  //'EXT7', 'EXT8',
   //'SRAW','NCD',
   'SOFGT','MISS'
   ];
@@ -27,6 +29,8 @@ function metric(name) {
         display = "20L";
     } else if (name == "20LB-Baseline") {
         display = "20L-Baseline";
+    } else if (name == "EXT6") {
+        display = "NO CLOCK";
     }
 
     return context.metric(function(start, stop, step, callback) {
@@ -43,7 +47,7 @@ function metric(name) {
 }
 
 function add_horizon(expressions, format, colors, extent) {
-    var horizon = context.horizon().height(Number(url_params.height));
+    var horizon = context.horizon().height(Number(height));
 
     if (typeof format != "undefined") horizon = horizon.format(format);
     if (typeof colors != "undefined" && colors) horizon = horizon.colors(colors);
@@ -68,7 +72,7 @@ function add_horizon(expressions, format, colors, extent) {
 
 function add_baseline_horizon(expressions, format, colors, extent, baseline, mv_per_nhit) {
     /* Just like add_horizon except we subtract off 1.8V from the metric. */
-    var horizon = context.horizon().height(Number(url_params.height));
+    var horizon = context.horizon().height(Number(height));
 
     if (typeof format != "undefined") horizon = horizon.format(format);
     if (typeof colors != "undefined" && colors) horizon = horizon.colors(colors);
@@ -92,6 +96,9 @@ function add_baseline_horizon(expressions, format, colors, extent, baseline, mv_
 }
 
 add_horizon(TRIGGER_NAMES,format_rate);
+if (url_params.display == 'fecd') {
+    add_horizon(TRIGGER_NAMES.slice(1,6).map(function(x) { return "FECD/" + x }),format_rate);
+}
 add_horizon(["0\u03bd\u03b2\u03b2"],format_rate);
 add_horizon(["TOTAL-nhit","TOTAL-charge","PULGT-nhit","PULGT-charge","EXTA-nhit"], format('.2s'));
 add_horizon(["DISPATCH_ORPHANS"],format_rate);

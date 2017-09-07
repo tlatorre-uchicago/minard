@@ -214,6 +214,49 @@ def update_channel_status():
         return redirect(url_for('channel_status', crate=form.crate.data, slot=form.slot.data, channel=form.channel.data))
     return render_template('update_channel_status.html', form=form, status=channel_status)
 
+@app.route('/detector-state-diff')
+def detector_state_diff():
+    run1 = request.args.get("run1", 100000, type=int)
+    run2 = request.args.get("run2", 0, type=int)
+
+    if run1 == -1:
+        run1 = detector_state.get_latest_run()
+
+    if run2 == -1:
+        run2 = detector_state.get_latest_run()
+
+    try:
+        run_state1 = detector_state.get_run_state(run1)
+        run_state2 = detector_state.get_run_state(run1)
+
+        mtc_state1 = detector_state.get_mtc_state_for_run(run1)
+        mtc_state2 = detector_state.get_mtc_state_for_run(run2)
+
+        tubii_state1 = detector_state.get_tubii_state_for_run(run1)
+        tubii_state2 = detector_state.get_tubii_state_for_run(run2)
+
+        caen_state1 = detector_state.get_caen_state_for_run(run1)
+        caen_state2 = detector_state.get_caen_state_for_run(run2)
+
+        detector_state1 = detector_state.get_detector_state(run1)
+        detector_state2 = detector_state.get_detector_state(run2)
+    except Exception as e:
+        flash(str(e), 'danger')
+
+    return render_template('detector_state_diff.html',
+                           run1=run1,
+                           run2=run2,
+                           run_state1=run_state1,
+                           run_state2=run_state2,
+                           mtc_state1=mtc_state1,
+                           mtc_state2=mtc_state2,
+                           tubii_state1=tubii_state1,
+                           tubii_state2=tubii_state2,
+                           caen_state1=caen_state1,
+                           caen_state2=caen_state2,
+                           detector_state1=detector_state1,
+                           detector_state2=detector_state2)
+
 @app.route('/state')
 @app.route('/state/<int:run>')
 def state(run=None):
@@ -246,7 +289,7 @@ def state(run=None):
 
     crates_state = detector_state.get_detector_state(run)
 
-    if not any(crates_state.values()):
+    if not crates_state:
         crates_state = None
 
     trigger_scan = None
@@ -305,11 +348,33 @@ def trigger():
 @app.route('/nearline/<int:run>')
 def nearline(run=None):
     if run is None:
-	run = int(redis.get('nearline:current_run'))
+        run = int(redis.get('nearline:current_run'))
 
     programs = redis.hgetall('nearline:%i' % run)
 
     return render_template('nearline.html', run=run, programs=programs)
+
+@app.route('/nearline_summary')
+def nearline_summary():
+    warning = []
+    jobs = request.args.get("jobs", "All", type=str)
+    limit = request.args.get("limit", 100, type=int)
+    run = int(redis.get('nearline:current_run'))
+    detector_run = detector_state.get_latest_run()
+    if run != detector_run - 1:
+        warning.append(run)
+        warning.append(detector_run)
+
+    # Get failures over last (limit) runs
+    failures = []
+    for previous_run in range(limit):
+        old_programs = redis.hgetall('nearline:%i' % (run - previous_run))
+        for program, status in old_programs.iteritems():
+            # Job failed, was killed, is not executable, or timed out, 
+            if status == "1" or status == "-1" or status == "98" or status == "97":
+                failures.append((program, status, run-previous_run))
+
+    return render_template('nearline_summary.html', run=run, failures=failures, warning=warning, jobs=jobs, limit=limit)
 
 @app.route('/get_l2')
 def get_l2():
@@ -421,7 +486,7 @@ def docs(dir='', subdir='', filename='index.html'):
 
 @app.route('/snostream')
 def snostream():
-    if not request.args.get('step'):
+    if len(request.args) == 0:
         return redirect(url_for('snostream',step=1,height=20,_external=True))
     step = request.args.get('step',1,type=int)
     height = request.args.get('height',40,type=int)
@@ -429,7 +494,9 @@ def snostream():
 
 @app.route('/nhit')
 def nhit():
-  return render_template('nhit.html')
+    if not request.args.get("name"):
+        return redirect(url_for('nhit', name='all'))
+    return render_template('nhit.html',name=request.args.get("name","all"))
 
 @app.route('/rat')
 def rathome():
@@ -542,14 +609,14 @@ def query():
     if name == 'dispatcher':
         return jsonify(name=redis.get('dispatcher'))
 
-    if name == 'nhit':
+    if 'nhit' in name:
         seconds = request.args.get('seconds',type=int)
 
         now = int(time.time())
 
         p = redis.pipeline()
         for i in range(seconds):
-            p.lrange('ts:1:{ts}:nhit'.format(ts=now-i),0,-1)
+            p.lrange('ts:1:{ts}:{name}'.format(ts=now-i,name=name),0,-1)
         nhit = map(int,sum(p.execute(),[]))
         return jsonify(value=nhit)
 
@@ -689,6 +756,58 @@ def metric_hash():
     values = get_hash_timeseries(name,start,stop,step,crate,card,channel,method)
     return jsonify(values=values)
 
+def get_metric(expr, start, stop, step):
+    if expr in ('L2:gtid', 'L2:run'):
+        values = get_timeseries(expr, start, stop, step)
+    elif expr in ('gtid', 'run', 'subrun'):
+        values = get_timeseries_field('trig', expr, start, stop, step)
+    elif expr in ('heartbeat','l2-heartbeat'):
+        values = get_timeseries(expr,start,stop,step)
+    elif expr == u"0\u03bd\u03b2\u03b2":
+        import random
+        total = get_timeseries('TOTAL',start,stop,step)
+        values = [int(random.random() < step/315360) if i else 0 for i in total]
+    elif '-' in expr:
+        # e.g. PULGT-nhit, which means the average nhit for PULGT triggers
+        # this is not a rate, so we divide by the # of PULGT triggers for
+        # the interval instead of the interval length
+        trig, value = expr.split('-')
+        if trig in TRIGGER_NAMES + ['TOTAL']:
+            if value == 'Baseline':
+                values = get_timeseries(expr,start,stop,step)
+                counts = get_timeseries('baseline-count',start,stop,step)
+            else:
+                field = trig if trig == 'TOTAL' else TRIGGER_NAMES.index(trig)
+                values = get_timeseries_field('trig:%s' % value,field,start,stop,step)
+                counts = get_timeseries_field('trig',field,start,stop,step)
+            values = [float(a)/int(b) if a and b else None for a, b in zip(values,counts)]
+        else:
+            raise ValueError('unknown trigger type %s' % trig)
+    elif 'FECD' in expr:
+        field = expr.split('/')[1]
+        values = get_timeseries_field('trig:fecd',field,start,stop,step)
+
+        interval = get_interval(step)
+
+        values = map(lambda x: int(x)/interval if x else 0, values)
+    else:
+        if expr in TRIGGER_NAMES:
+            field = TRIGGER_NAMES.index(expr)
+            values = get_timeseries_field('trig',field,start,stop,step)
+        elif expr == 'TOTAL':
+            values = get_timeseries_field('trig','TOTAL',start,stop,step)
+        else:
+            values = get_timeseries(expr,start,stop,step)
+
+        interval = get_interval(step)
+        if expr in TRIGGER_NAMES or expr in ('TOTAL','L1','L2','ORPHANS','BURSTS'):
+            # trigger counts are zero by default
+            values = map(lambda x: int(x)/interval if x else 0, values)
+        else:
+            values = map(lambda x: int(x)/interval if x else None, values)
+
+    return values
+
 @app.route('/metric')
 def metric():
     """Returns the time series for argument `expr` as a JSON list."""
@@ -711,57 +830,10 @@ def metric():
     stop = int(stop)
     step = int(step)
 
-    if expr in ('L2:gtid', 'L2:run'):
-        values = get_timeseries(expr, start, stop, step)
-        return jsonify(values=values)
-
-    if expr in ('gtid', 'run', 'subrun'):
-        values = get_timeseries_field('trig', expr, start, stop, step)
-        return jsonify(values=values)
-
-    if expr in ('heartbeat','l2-heartbeat'):
-        values = get_timeseries(expr,start,stop,step)
-        return jsonify(values=values)
-
-    if expr == u"0\u03bd\u03b2\u03b2":
-        import random
-        total = get_timeseries('TOTAL',start,stop,step)
-        values = [int(random.random() < step/315360) if i else 0 for i in total]
-        return jsonify(values=values)
-
-    if '-' in expr:
-        # e.g. PULGT-nhit, which means the average nhit for PULGT triggers
-        # this is not a rate, so we divide by the # of PULGT triggers for
-        # the interval instead of the interval length
-        trig, value = expr.split('-')
-        if trig in TRIGGER_NAMES + ['TOTAL']:
-            if value == 'Baseline':
-                values = get_timeseries(expr,start,stop,step)
-                counts = get_timeseries('baseline-count',start,stop,step)
-            else:
-                field = trig if trig == 'TOTAL' else TRIGGER_NAMES.index(trig)
-                values = get_timeseries_field('trig:%s' % value,field,start,stop,step)
-                counts = get_timeseries_field('trig',field,start,stop,step)
-            values = [float(a)/int(b) if a and b else None for a, b in zip(values,counts)]
-        else:
-            raise ValueError('unknown trigger type %s' % trig)
+    if ',' in expr:
+        return jsonify(values=[get_metric(name, start, stop, step) for name in expr.split(',')])
     else:
-        if expr in TRIGGER_NAMES:
-            field = TRIGGER_NAMES.index(expr)
-            values = get_timeseries_field('trig',field,start,stop,step)
-        elif expr == 'TOTAL':
-            values = get_timeseries_field('trig','TOTAL',start,stop,step)
-        else:
-            values = get_timeseries(expr,start,stop,step)
-
-        interval = get_interval(step)
-        if expr in TRIGGER_NAMES or expr in ('TOTAL','L1','L2','ORPHANS','BURSTS'):
-            # trigger counts are zero by default
-            values = map(lambda x: int(x)/interval if x else 0, values)
-        else:
-            values = map(lambda x: int(x)/interval if x else None, values)
-
-    return jsonify(values=values)
+        return jsonify(values=get_metric(expr, start, stop, step))
 
 @app.route('/eca')
 def eca():
@@ -947,6 +1019,10 @@ def channelflagsbychannel(run_number):
     if missed_count == 0:
        missed_count = None
     return render_template('channelflagsbychannel.html', cmos_sync16=cmos_sync16, cgt_sync24=cgt_sync24, missed_count=missed_count, run_number=run_number, run_type=run_type)
+
+@app.route('/trigger_clock_jump')
+def trigger_clock_jump():
+    return render_template('trigger_clock_jump.html')
  
 @app.route('/physicsdq/<run_number>')
 def physicsdq_run_number(run_number):
