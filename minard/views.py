@@ -1022,7 +1022,8 @@ def channelflagsbychannel(run_number):
 
 @app.route('/trigger_clock_jump')
 def trigger_clock_jump():
-    return render_template('trigger_clock_jump.html')
+    runs = redisdb.runs_after_run('triggerclockjumps_runs_by_number', 0)
+    return render_template('trigger_clock_jump.html', runs=runs)
  
 @app.route('/physicsdq/<run_number>')
 def physicsdq_run_number(run_number):
