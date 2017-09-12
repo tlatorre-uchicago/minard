@@ -23,6 +23,7 @@ import ecadb
 import nlrat
 import noisedb
 import pingcratesdb
+import nearline_settings
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds
 import re
@@ -360,22 +361,32 @@ def nearline_summary():
     warning = []
     jobs = request.args.get("jobs", "All", type=str)
     limit = request.args.get("limit", 100, type=int)
+    mode = request.args.get("mode", 0, type=int)
     run = int(redis.get('nearline:current_run'))
     detector_run = detector_state.get_latest_run()
     if run != detector_run - 1:
         warning.append(run)
         warning.append(detector_run)
 
+    jobtypes = nearline_settings.jobTypes
+    failmodes = nearline_settings.failModes
+    index = failmodes.keys()
+
     # Get failures over last (limit) runs
     failures = []
+    # Include warnings, not run, and debug
+    all_failures = []
     for previous_run in range(limit):
         old_programs = redis.hgetall('nearline:%i' % (run - previous_run))
         for program, status in old_programs.iteritems():
             # Job failed, was killed, is not executable, or timed out, 
             if status == "1" or status == "-1" or status == "98" or status == "97":
                 failures.append((program, status, run-previous_run))
+                all_failures.append((program, status, run-previous_run))
+            elif status == "2" or status == "3" or status == "4":
+                all_failures.append((program, status, run-previous_run))
 
-    return render_template('nearline_summary.html', run=run, failures=failures, warning=warning, jobs=jobs, limit=limit)
+    return render_template('nearline_summary.html', run=run, failures=failures, all_failures=all_failures, warning=warning, jobs=jobs, jobtypes=jobtypes, mode=mode, failmodes=failmodes, index=index, limit=limit)
 
 @app.route('/get_l2')
 def get_l2():

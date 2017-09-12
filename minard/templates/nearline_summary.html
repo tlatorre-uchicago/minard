@@ -23,18 +23,18 @@
             </div>
 	</div>
 	<div class="row">
-	    <div class="col-md-6 col-md-offset-3">
+	    <div class="col-md-8 col-md-offset-3">
                 Nearline job 
-                <select id="job" onchange="get_limit(limit.value, this.value);">
+                <select id="job" onchange="get_limit(limit.value, this.value, mode.value);">
                     <option selected value="{{jobs}}">{{jobs}}</option>
-                    {% for job_type in ["All","DAQ","SMELLIE","BLINDNESS_CHUNKER","PCA_TELLIE","RUN","TELLIE","ECA","PING_CRATES","PMTCalStatus","ANALYSIS","DQHL","CHS","DQLL","PMTNOISE"] %}
+                    {% for job_type in jobtypes %}
                         {% if job_type != jobs %}
                             <option value="{{job_type}}">{{job_type}}</option>
                         {% endif %}
                     {% endfor %}
                 </select>
                 failures in last
-                <select id="limit" onchange="get_limit(this.value, job.value);">
+                <select id="limit" onchange="get_limit(this.value, job.value, mode.value);">
                     <option selected value="{{limit}}">{{limit}}</option>
                     {% for n in [10, 25, 50, 100, 500] %}
                         {% if n != limit %}
@@ -42,7 +42,15 @@
                         {% endif %}
                     {% endfor %}
                 </select>
-                runs
+                runs, with failure mode:
+                <select id="mode" onchange="get_limit(limit.value, job.value, this.value);">
+                    <option selected value="{{mode}}">{{failmodes[mode]}}</option>
+                    {% for i in index %}
+                        {% if i != mode %}
+                            <option value="{{i}}">{{failmodes[i]}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
             </div>
         </div>
 	<div class="row">
@@ -56,26 +64,63 @@
 			    <th>Log File</th>
 			</tr>
 		    </thead>
-                    {% if failures %}
+                    {% if failures and mode == 0 %}
 		        {% for program, status, run in failures %}
                         <tr>
                             {% if jobs == "All" or jobs == program %}
-			        {% if status|int == 1 %}
-			        <th class="danger"> Failed </th>
-                                {% elif status|int == 97 %}
-                                <th class="warning"> Timed out </th>
-                                {% elif status|int == 98 %}
-                                <th class="warning"> Not executable </th>
-                                {% elif status|int == -1 %}
-                                <th class="warning"> Killed by signal </th>
-			        {% else %}
-			        <th class="warning"> Unknown </th>
-			        {% endif %}
-		                <th> {{ program }} </th>
-                                <th><a href="{{ url_for("nearline", run=run) }}">{{ run }}</a></th>
-                                <th>
-                                    <a href="{{ "/monitoring/nearline/logs/%i/%s.log" % (run,program) }}">{{ program }}.log</a>
-                                </th>
+			            {% if status|int == 1 %}
+			            <th class="danger"> Failed </th>
+                                    {% elif status|int == 97 %}
+                                    <th class="warning"> Timed out </th>
+                                    {% elif status|int == 98 %}
+                                    <th class="warning"> Not executable </th>
+                                    {% elif status|int == -1 %}
+                                    <th class="warning"> Killed by signal </th>
+                                    {% elif status|int == 2 %}
+                                    <th class="warning"> Warning </th>
+                                    {% elif status|int == 3 %}
+                                    <th class="info"> Debug </th>
+                                    {% elif status|int == 4 %}
+                                    <th class="info"> Not Run </th>
+			            {% else %}
+			            <th class="warning"> Unknown </th>
+			            {% endif %}
+		                    <th> {{ program }} </th>
+                                    <th><a href="{{ url_for("nearline", run=run) }}">{{ run }}</a></th>
+                                    <th>
+                                        <a href="{{ "/monitoring/nearline/logs/%i/%s.log" % (run,program) }}">{{ program }}.log</a>
+                                    </th>
+                            {% endif %}
+		        </tr>
+		        {% endfor %}
+                    {% elif all_failures %}
+		        {% for program, status, run in all_failures %}
+                        <tr>
+                            {% if jobs == "All" or jobs == program %}
+                                {% if mode == -99 or mode == status|int %}
+			            {% if status|int == 1 %}
+			            <th class="danger"> Failed </th>
+                                    {% elif status|int == 97 %}
+                                    <th class="warning"> Timed out </th>
+                                    {% elif status|int == 98 %}
+                                    <th class="warning"> Not executable </th>
+                                    {% elif status|int == -1 %}
+                                    <th class="warning"> Killed by signal </th>
+                                    {% elif status|int == 2 %}
+                                    <th class="warning"> Warning </th>
+                                    {% elif status|int == 3 %}
+                                    <th class="info"> Debug </th>
+                                    {% elif status|int == 4 %}
+                                    <th class="info"> Not Run </th>
+			            {% else %}
+			            <th class="warning"> Unknown </th>
+			            {% endif %}
+		                    <th> {{ program }} </th>
+                                    <th><a href="{{ url_for("nearline", run=run) }}">{{ run }}</a></th>
+                                    <th>
+                                        <a href="{{ "/monitoring/nearline/logs/%i/%s.log" % (run,program) }}">{{ program }}.log</a>
+                                    </th>
+                                {% endif %}
                             {% endif %}
 		        </tr>
 		        {% endfor %}
@@ -87,10 +132,11 @@
 {% endblock %}
 {% block script %}
     <script>
-        function get_limit(limit, jobs) {
+        function get_limit(limit, jobs, mode) {
             params = {};
             params["jobs"] = jobs;
             params["limit"] = limit;
+            params["mode"] = mode;
             window.location.replace($SCRIPT_ROOT + "/nearline_summary?" + $.param(params));
         }
     </script>
