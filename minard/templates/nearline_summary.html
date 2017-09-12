@@ -125,6 +125,20 @@
 		        </tr>
 		        {% endfor %}
                     {% endif %}
+                    {% if not_launched and mode == -98 %}
+		        {% for program, run in not_launched %}
+                        <tr>
+                            {% if jobs == "All" or jobs == program %}
+			        <th class="danger"> Not Launched </th>
+		                <th> {{ program }} </th>
+                                <th><a href="{{ url_for("nearline", run=run) }}">{{ run }}</a></th>
+                                <th>
+                                    <a href="{{ "/monitoring/nearline/logs/%i/%s.log" % (run,program) }}">{{ program }}.log</a>
+                                </th>
+                            {% endif %}
+		        </tr>
+		        {% endfor %}
+                    {% endif %}
 		</table>
 	    </div>
 	</div>
