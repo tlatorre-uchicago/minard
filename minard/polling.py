@@ -1,5 +1,14 @@
 from .db import engine 
 
+# PMT Type defines
+LOWG     = 0x21
+NONE     = 0x0
+NECK     = 0x9
+FECD     = 0x10
+BUTT     = 0x81
+
+OWLS = ((18,15),(13,15),(3,15))
+
 def polling_runs():
     """
     Returns two lists of runs, one where CMOS rates were polled using check
@@ -60,6 +69,7 @@ def polling_history(crate, slot, channel, min_run):
 
     return data, data_stats
 
+
 def polling_info(data_type, run_number):
     """
     Returns the polling data for the detector
@@ -112,13 +122,114 @@ def polling_info(data_type, run_number):
 
     return data
 
+
+def most_recent_run(all_runs, requested_run):
+    '''
+    Loops over all CMOS/Base polling runs and
+    returns the run closest (>) to the request run
+    '''
+
+    run = 0
+    for runs in all_runs:
+       # Get most recent run 
+       if requested_run == 0:
+          run = runs['run']
+          break
+       # Get most recent run after requested run
+       if runs['run'] > requested_run:
+          run = runs['run']
+
+    return run
+
+
+def polling_summary(run):
+    ''' 
+    Get the crate average base currents and cmos rates 
+    for the run nearest to the requested run.
+    '''
+
+    # List of polling runs
+    cmos_runs, base_runs = polling_runs()
+
+    # Runs closest to requested run
+    crun = most_recent_run(cmos_runs, run)
+    brun = most_recent_run(base_runs, run)
+
+    conn = engine.connect()
+
+    # Used to discount channels known to be off
+    relays = relay_status(conn)
+    types = pmt_type(conn)
+    channel_info = channel_information(conn)
+
+    crate_average_cmos = [0.0]*20
+    crate_average_base = [0.0]*20
+    crates_cmos = [16*32]*20
+    crates_base = [16*32]*20
+    crates_cmos[19] = 3*32
+    crates_base[19] = 3*32
+
+    result = conn.execute("SELECT cmos_rate, crate, slot, channel FROM cmos "
+                          "WHERE run = %s", (crun,))
+    if result is None:
+        return None
+
+    row = result.fetchall()
+    # Reject hits where the CMOS rates are too high and bias the average
+    for cmos_rate, crate, slot, channel in row:
+        lcn = crate*512 + slot*32 + channel
+        if not check_hv_status(relays, types, channel_info, crate, slot, channel):
+            if (crate, slot) in OWLS:
+                crates_cmos[19]-=1
+            else:
+                crates_cmos[crate]-=1
+            continue
+        if cmos_rate < 1000000:
+            if (crate, slot) in OWLS:
+                crate_average_cmos[19] += float(cmos_rate)
+                crates_cmos[crate]-=1
+            else:
+                crate_average_cmos[crate] += float(cmos_rate)
+        else:
+            crates_cmos[crate]-=1
+
+    result = conn.execute("SELECT base_current, crate, slot, channel FROM base "
+                          "WHERE run = %s", (brun,))
+
+    if result is None:
+        return None
+
+    row = result.fetchall()
+    for base_current, crate, slot, channel in row:
+        lcn = crate*512 + slot*32 + channel
+        if not check_hv_status(relays, types, channel_info, crate, slot, channel):
+            if (crate, slot) in OWLS:
+                crates_base[19]-=1
+            else:
+                if crate == 18:
+                    print crate, slot, channel
+                crates_base[crate]-=1
+            continue
+        # Ignore bad readback
+        if base_current > -10:
+            if (crate, slot) in OWLS:
+                crate_average_base[19] += float(base_current)
+                crates_base[crate]-=1
+            else:
+                crate_average_base[crate] += float(base_current)
+        else:
+            crates_base[crate]-=1
+
+    crate_average = []
+    for crate in range(20):
+        cmos = round(float(crate_average_cmos[crate])/crates_cmos[crate], 2)
+        base = round(float(crate_average_base[crate])/crates_base[crate], 2)
+        crate_average.append((crate, cmos, base))
+
+    return crate_average, crun, brun
+
+
 def polling_check(high_rate, low_rate, pct_change):
-    # PMT Type defines
-    LOWG     = 0x21
-    NONE     = 0x0
-    NECK     = 0x9
-    FECD     = 0x10
-    BUTT     = 0x81
 
     conn = engine.connect()
 
@@ -195,15 +306,7 @@ def polling_check(high_rate, low_rate, pct_change):
                     vthr = threshold[lcn] - zero_threshold[lcn]
                     cmos_high_rates.append("%i/%i/%i: %i Hz, Vthr: %i" %\
                             (crate, slot, channel, data_run2[lcn], vthr))
-                # Check if the channel is at high voltage
-                hv_relay_mask = relays[crate][1] << 32 | relays[crate][0]
-                if not(hv_relay_mask & (1 << (slot*4 + (3-channel//8)))):
-                    continue
-                # Check the PMT is normal or HQE
-                if types[lcn] in (LOWG, NECK, FECD, BUTT, NONE):
-                    continue
-                # Check the resistor is not pulled
-                if channel_info[lcn][0]:
+                if not check_hv_status(relays, types, channel_info, crate, slot, channel):
                     continue
                 # For normal/HQE online PMTs, warn about channels
                 # that are fluctuating a lot. Put a low rate cut
@@ -224,6 +327,25 @@ def polling_check(high_rate, low_rate, pct_change):
                             (crate, slot, channel, data_run2[lcn]))
 
     return cmos_changes, cmos_high_rates, cmos_low_rates, run_number
+
+
+def check_hv_status(relays, types, channel_info, crate, slot, channel):
+
+    lcn = crate*512 + slot*32 + channel
+
+    # Check if the channel is at high voltage
+    hv_relay_mask = relays[crate][1] << 32 | relays[crate][0]
+    if not(hv_relay_mask & (1 << (slot*4 + (3-channel//8)))):
+        return 0
+    # Check the PMT is normal or HQE
+    if types[lcn] in (LOWG, NECK, FECD, BUTT, NONE):
+        return 0
+    # Check the resistor is not pulled
+    if channel_info[lcn][0]:
+        return 0
+
+    return 1
+
 
 def pmt_type(conn):
     """

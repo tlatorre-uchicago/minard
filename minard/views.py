@@ -23,7 +23,7 @@ import ecadb
 import nlrat
 import noisedb
 import pingcratesdb
-from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history
+from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
@@ -522,6 +522,8 @@ def detector():
 @app.route('/check_rates')
 def check_rates():
     cmos_runs, base_runs = polling_runs()
+    cmos_run = request.args.get('cmos_run',104269,type=int)
+    base_run = request.args.get('base_run',104268,type=int)
     return render_template('check_rates.html', cmos_runs=cmos_runs, base_runs=base_runs)
 
 @app.route('/check_rates_histogram')
@@ -535,6 +537,14 @@ def check_rates_histogram():
     else:
         values = polling_info('cmos', run)
     return render_template('check_rates_histogram.html', values=values, cmos_runs=cmos_runs)
+
+@app.route('/check_rates_summary')
+def check_rates_summary():
+    run = request.args.get('run',0,type=int)
+    cmos_runs, base_runs = polling_runs()
+    crate_average, crun, brun = polling_summary(run)
+
+    return render_template('check_rates_summary.html', run=run, crun=crun, brun=brun, cmos_runs=cmos_runs, base_runs=base_runs,crate_average=crate_average)
 
 @app.route('/discriminator_info')
 def discriminator_info():
