@@ -136,9 +136,10 @@ def most_recent_run(all_runs, requested_run):
        if requested_run == 0:
           run = runs['run']
           break
-       # Get most recent run after requested run
-       if runs['run'] > requested_run:
+       # Get most recent polling run before requested run
+       if requested_run >= runs['run']:
           run = runs['run']
+          break
 
     return run
 
