@@ -522,8 +522,6 @@ def detector():
 @app.route('/check_rates')
 def check_rates():
     cmos_runs, base_runs = polling_runs()
-    cmos_run = request.args.get('cmos_run',104269,type=int)
-    base_run = request.args.get('base_run',104268,type=int)
     return render_template('check_rates.html', cmos_runs=cmos_runs, base_runs=base_runs)
 
 @app.route('/check_rates_histogram')

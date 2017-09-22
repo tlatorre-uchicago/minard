@@ -1,13 +1,14 @@
 from .db import engine 
 
 # PMT Type defines
-LOWG     = 0x21
-NONE     = 0x0
-NECK     = 0x9
-FECD     = 0x10
-BUTT     = 0x81
-
-OWLS = ((18,15),(13,15),(3,15))
+LOWG      = 0x21
+NONE      = 0x0
+NECK      = 0x9
+FECD      = 0x10
+BUTT      = 0x81
+OWL       = 0x41
+NECK      = 0x09
+HQE       = 0x101
 
 def polling_runs():
     """
@@ -162,12 +163,14 @@ def polling_summary(run):
     types = pmt_type(conn)
     channel_info = channel_information(conn)
 
-    crate_average_cmos = [0.0]*20
-    crate_average_base = [0.0]*20
-    crates_cmos = [16*32]*20
-    crates_base = [16*32]*20
-    crates_cmos[19] = 3*32
+    crate_average_cmos = [0.0]*21 # 19 crates + OWLS + HQEs
+    crate_average_base = [0.0]*21
+    crates_cmos = [16*32]*21
+    crates_base = [16*32]*21
+    crates_cmos[19] = 3*32 # Default number of OWLS + NECKS
     crates_base[19] = 3*32
+    crates_cmos[20] = 4 # Default number of HQEs
+    crates_base[20] = 4
 
     result = conn.execute("SELECT cmos_rate, crate, slot, channel FROM cmos "
                           "WHERE run = %s", (crun,))
@@ -179,14 +182,21 @@ def polling_summary(run):
     for cmos_rate, crate, slot, channel in row:
         lcn = crate*512 + slot*32 + channel
         if not check_hv_status(relays, types, channel_info, crate, slot, channel):
-            if (crate, slot) in OWLS:
+            if types[lcn] == OWL or types[lcn] == NECK:
                 crates_cmos[19]-=1
+                crates_cmos[crate]-=1
+            elif types[lcn] == HQE:
+                crates_cmos[20]-=1
+                crates_cmos[crate]-=1
             else:
                 crates_cmos[crate]-=1
             continue
         if cmos_rate < 1000000:
-            if (crate, slot) in OWLS:
+            if types[lcn] == OWL or types[lcn] == NECK:
                 crate_average_cmos[19] += float(cmos_rate)
+                crates_cmos[crate]-=1
+            elif types[lcn] == HQE:
+                crate_average_cmos[20] += float(cmos_rate)
                 crates_cmos[crate]-=1
             else:
                 crate_average_cmos[crate] += float(cmos_rate)
@@ -203,17 +213,22 @@ def polling_summary(run):
     for base_current, crate, slot, channel in row:
         lcn = crate*512 + slot*32 + channel
         if not check_hv_status(relays, types, channel_info, crate, slot, channel):
-            if (crate, slot) in OWLS:
+            if types[lcn] == OWL or types[lcn] == NECK:
                 crates_base[19]-=1
+                crates_base[crate]-=1
+            elif types[lcn] == HQE:
+                crates_base[20]-=1
+                crates_base[crate]-=1
             else:
-                if crate == 18:
-                    print crate, slot, channel
                 crates_base[crate]-=1
             continue
         # Ignore bad readback
         if base_current > -10:
-            if (crate, slot) in OWLS:
+            if types[lcn] == OWL or types[lcn] == NECK:
                 crate_average_base[19] += float(base_current)
+                crates_base[crate]-=1
+            elif types[lcn] == HQE:
+                crate_average_base[20] += float(base_current)
                 crates_base[crate]-=1
             else:
                 crate_average_base[crate] += float(base_current)
@@ -221,7 +236,7 @@ def polling_summary(run):
             crates_base[crate]-=1
 
     crate_average = []
-    for crate in range(20):
+    for crate in range(21):
         cmos = round(float(crate_average_cmos[crate])/crates_cmos[crate], 2)
         base = round(float(crate_average_base[crate])/crates_base[crate], 2)
         crate_average.append((crate, cmos, base))
@@ -362,6 +377,7 @@ def pmt_type(conn):
 
     return types
 
+
 def channel_information(conn):
     """
     Get the channel status (whether its rpulled or occupancy issues)
@@ -378,6 +394,7 @@ def channel_information(conn):
 
     return channel_info
 
+
 def relay_status(conn):
     relays = []
     result = conn.execute("SELECT hv_relay_mask1, hv_relay_mask2 FROM "
@@ -389,6 +406,7 @@ def relay_status(conn):
         relays.append([hv_relay_mask1, hv_relay_mask2])
 
     return relays
+
 
 def polling_info_card(data_type, run_number, crate):
     """
