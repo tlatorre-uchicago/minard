@@ -200,7 +200,7 @@ def get_detector_state_check(run=0):
             mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLELO', 'OWLEHI', 'OWLN']
             for i, (relay, mtca) in enumerate(zip(relay_mask,mtca_names)):
                 crates = []
-                potential_crates = range(19) if i<4 else [3,13,18]
+                potential_crates = range(20) if i<4 else [3,13,18]
                 for crate in potential_crates:
                     if relay is not None and not (relay & (1<<crate)):
                         crates.append(crate)
