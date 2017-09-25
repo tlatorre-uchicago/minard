@@ -157,6 +157,8 @@ def polling_summary(run):
     crun = most_recent_run(cmos_runs, run)
     brun = most_recent_run(base_runs, run)
 
+    print crun, brun
+
     conn = engine.connect()
 
     # Used to discount channels known to be off
@@ -173,7 +175,8 @@ def polling_summary(run):
     crates_cmos[20] = 4 # Default number of HQEs
     crates_base[20] = 4
 
-    result = conn.execute("SELECT cmos_rate, crate, slot, channel FROM cmos "
+    result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) "
+                          "cmos_rate, crate, slot, channel FROM cmos "
                           "WHERE run = %s", (crun,))
     if result is None:
         return None
@@ -204,7 +207,8 @@ def polling_summary(run):
         else:
             crates_cmos[crate]-=1
 
-    result = conn.execute("SELECT base_current, crate, slot, channel FROM base "
+    result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) "
+                          "base_current, crate, slot, channel FROM base "
                           "WHERE run = %s", (brun,))
 
     if result is None:
