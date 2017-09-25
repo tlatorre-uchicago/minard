@@ -18,11 +18,10 @@ import os
 import sys
 import random
 import detector_state
-import pcadb
-import ecadb
 import nlrat
-import noisedb
-import pingcratesdb
+import pingcrates
+import redisdb
+import fiber_position
 import nearline_settings
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds
@@ -154,6 +153,17 @@ def detector_state_check(run=None):
 
     messages, channels = detector_state.get_detector_state_check(run)
     alarms = detector_state.get_alarms(run)
+
+    # Warn about ping crates failures
+    try:
+        n100, n20 = pingcrates.pingcrates(run)
+        for crate in n100:
+            messages.append("crate: %i failed N100 checks in ping crates" % crate)
+        for crate in n20:
+            messages.append("crate: %i failed N20 checks in ping crates" % crate)
+    except Exception as e:
+        # No avaiable ping crates data, no need to warn
+        pass 
 
     if alarms is None:
         flash("unable to get alarms for run %i" % run, 'danger')
@@ -869,7 +879,7 @@ def metric():
 
 @app.route('/eca')
 def eca():
-    runs = ecadb.runs_after_run(0)
+    runs = redisdb.runs_after_run('eca_runs_by_number', 0)
     return render_template('eca.html', runs=runs)
 
 @app.route('/eca_run_detail/<run_number>')
@@ -897,7 +907,7 @@ def eca_status_detail(run_number):
         if result == pow(2,offset):
             return 1
 
-    run_status = int(ecadb.get_run_status(run_number))
+    run_status = int(redisdb.get_run_status(run_number))
 
     return render_template('eca_status_detail_%s.html' % run_type,
 			    run_number=run_number, statusfmt=statusfmt, testBit=testBit, run_status=run_status)
@@ -915,14 +925,14 @@ def pcatellie():
 
     start_run = request.args.get("start_run", 0)
     installed_only = request.args.get("installed_only", False)
-    runs = pcadb.runs_after_run(start_run)
+    runs = redisdb.runs_after_run('pca_tellie_runs_by_number', start_run)
     # Deal with expired runs
     runs = [run for run in runs if (len(run) > 0)]
     # Revert the order so the last run is at top of list
     runs = runs[::-1]
     # We need to bunch runs by fiber
     fibers = list()
-    for fiber in pcadb.FIBER_POSITION:
+    for fiber in fiber_position.FIBER_POSITION:
         runs_for_fiber = [run for run in runs
                           if int(run["fiber_number"]) == fiber[0]]
         sorted_runs = sorted(runs_for_fiber,
@@ -956,7 +966,7 @@ def pcatellie():
 
 @app.route('/pca_run_detail/<run_number>')
 def pca_run_detail(run_number):
-    run = pcadb.runs_after_run(int(run_number), int(run_number)+1)
+    run = redisdb.runs_after_run('pca_tellie_run_by_number', int(run_number), int(run_number)+1)
     return render_template('pca_run_detail.html',
                            run_number=run_number,
                            run=run)
@@ -997,12 +1007,12 @@ def calibdq_tellie_subrun_number(run_number,subrun_number):
 
 @app.route('/noise')
 def noise():
-    runs = noisedb.runs_after_run(0)
+    runs = redisdb.runs_after_run('noise_runs_by_number', 0)
     return render_template('noise.html', runs=runs)
 
 @app.route('/noise_run_detail/<run_number>')
 def noise_run_detail(run_number):
-    run = noisedb.get_run_by_number(run_number)
+    run = redisdb.get_run_by_number('noise_runs_by_number', run_number)
     if len(run):
         return render_template('noise_run_detail.html', run=run[0], run_number=run_number)
     else:
@@ -1025,7 +1035,7 @@ def physicsdq():
 
 @app.route('/pingcrates')
 def pingcrates():
-    runs = pingcratesdb.runs_after_run(0)
+    runs = redisdb.runs_after_run('pingcrates_runs_by_number', 0)
     return render_template('pingcrates.html', runs=runs)
 
 @app.route('/pingcrates_run/<run_number>')
