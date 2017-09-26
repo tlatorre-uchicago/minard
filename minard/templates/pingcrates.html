@@ -32,13 +32,12 @@
   <table class="table table-hover">
     <thead>
       <tr> 
-        <th> Run Number </th>
-        <th> Crates Failed N100 </th>
-        <th> Crates Failed N20 </th>
-        <th> Crates Warn N100 </th>
-        <th> Crates Warn N20 </th>
-        <th> Run Type </th>
-        <th> Time Run Was Processed </th>
+        <th> Run </th>
+        <th> Failed N100 </th>
+        <th> Failed N20 </th>
+        <th> Warn N100 </th>
+        <th> Warn N20 </th>
+        <th> Processed Time </th>
       </tr>
     </thead>
     {% for i in data %}
@@ -54,7 +53,6 @@
         <th> {{i[3]}} </th>
         <th> {{i[4]}} </th>
         <th> {{i[5]}} </th>
-        <th> Physics </th>
         <th> {{i[0]}} </th>
       </tr>
     {% endfor %}

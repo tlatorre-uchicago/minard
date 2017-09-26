@@ -27,7 +27,8 @@ def ping_crates_list(limit):
 
     conn = engine.connect()
 
-    result = conn.execute("SELECT timestamp, run, n100_crates_failed, n20_crates_failed FROM ping_crates "
+    result = conn.execute("SELECT DISTINCT ON (run) timestamp, "
+                          "run, n100_crates_failed, n20_crates_failed FROM ping_crates "
                           "WHERE run > %i" % int(run - limit))
 
     ping_info = []
@@ -76,6 +77,10 @@ def ping_crates_list(limit):
             n20_warn_str = "None"
         else:
             n20_warn_str = n20_warn_str[0:-2]
+
+        # parse timestamp format a little
+        timestamp = str(timestamp)
+        timestamp = timestamp[0:19]
 
         ping_info.append((timestamp,int(run),n100_fail_str,n20_fail_str,n100_warn_str,n20_warn_str,status))
 
