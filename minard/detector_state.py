@@ -200,7 +200,7 @@ def get_detector_state_check(run=0):
             mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLELO', 'OWLEHI', 'OWLN']
             for i, (relay, mtca) in enumerate(zip(relay_mask,mtca_names)):
                 crates = []
-                potential_crates = range(19) if i<4 else [3,13,18]
+                potential_crates = range(20) if i<4 else [3,13,18]
                 for crate in potential_crates:
                     if relay is not None and not (relay & (1<<crate)):
                         crates.append(crate)
@@ -601,6 +601,7 @@ def mtc_human_readable_filter(mtc):
         ret['gt_words'] = translate_trigger_mask(mtc['gt_mask'])
         ret['ped_delay'] = translate_ped_delay(mtc['coarse_delay'],mtc['fine_delay'])
         ret['lockout_width'] = mtc['lockout_width']
+        ret['pulser_rate'] = mtc['pulser_rate']
         ret['control_reg'] = translate_control_reg(mtc['control_register'])
         ret['prescale'] = mtc['prescale']
         ret['gt_crates'] = translate_crate_mask(mtc['gt_crate_mask'])

@@ -317,6 +317,10 @@ function display_ped_delay(node,delay) {
     node.append("h3").text("Pedestal Delay = "+ delay.toString() +"ns");
 };
 
+function display_pulser_rate(node,pulser_rate) {
+    node.append("h3").text("Pulser Rate = "+ pulser_rate.toString() + "Hz");
+};
+
 function display_lockout_width(node,lockout) {
     node.append("h3").text("Lockout Width = "+ lockout.toString()+"ns");
 };
@@ -521,6 +525,7 @@ function display_mtc(node,mtc_data){
     display_control_reg(node,mtc_data.control_reg);
     if(mtc_data.control_reg.filter(function(x) { x.indexOf("PED") > -1;}))
     {display_ped_delay(node,mtc_data.ped_delay);}
+    display_pulser_rate(node,mtc_data.pulser_rate);
     display_prescale(node,mtc_data.prescale);
     var size_info ={};
     size_info['width']= node.node().parentElement.parentElement.clientWidth
