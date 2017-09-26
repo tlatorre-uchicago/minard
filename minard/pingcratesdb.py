@@ -1,9 +1,9 @@
-from .db import nearline_engine
+from .db import engine
 from .detector_state import get_latest_run
 
 def crates_failed(run): 
 
-    conn = nearline_engine.connect()
+    conn = engine.connect()
 
     result = conn.execute("SELECT n100_crates_failed, n20_crates_failed FROM ping_crates "
                           "WHERE run = %i" % run)
@@ -25,7 +25,7 @@ def ping_crates_list(limit):
 
     run = get_latest_run()
 
-    conn = nearline_engine.connect()
+    conn = engine.connect()
 
     result = conn.execute("SELECT timestamp, run, n100_crates_failed, n20_crates_failed FROM ping_crates "
                           "WHERE run > %i" % int(run - limit))

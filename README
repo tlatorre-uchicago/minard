@@ -23,8 +23,6 @@ Create a configuration file called settings.conf with the following values:
     DB_USER='snoplus'
     DB_NAME='detector'
     DB_PORT=5432
-    NEARLINE_USER='nearline'
-    NEARLINE_PASS=[password]
 
 If you are testing the detector state check page you will also need to add:
 
