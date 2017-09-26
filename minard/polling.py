@@ -157,8 +157,6 @@ def polling_summary(run):
     crun = most_recent_run(cmos_runs, run)
     brun = most_recent_run(base_runs, run)
 
-    print crun, brun
-
     conn = engine.connect()
 
     # Used to discount channels known to be off
