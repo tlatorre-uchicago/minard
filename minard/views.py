@@ -19,7 +19,7 @@ import sys
 import random
 import detector_state
 import nlrat
-import pingcrates
+import pingcratesdb
 import redisdb
 import fiber_position
 import nearline_settings
@@ -156,7 +156,7 @@ def detector_state_check(run=None):
 
     # Warn about ping crates failures
     try:
-        n100, n20 = pingcrates.pingcrates(run)
+        n100, n20 = pingcratesdb.crates_failed(run)
         for crate in n100:
             messages.append("crate: %i failed N100 checks in ping crates" % crate)
         for crate in n20:
@@ -1035,8 +1035,9 @@ def physicsdq():
 
 @app.route('/pingcrates')
 def pingcrates():
-    runs = redisdb.runs_after_run('pingcrates_runs_by_number', 0)
-    return render_template('pingcrates.html', runs=runs)
+    limit = request.args.get("limit", 100, type=int)
+    data = pingcratesdb.ping_crates_list(limit)
+    return render_template('pingcrates.html', data=data, limit=limit)
 
 @app.route('/pingcrates_run/<run_number>')
 def pingcrates_run(run_number):

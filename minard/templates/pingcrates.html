@@ -19,36 +19,55 @@
   <h1 align="center">Ping Crates</h1>
 </div>
 
-
 <div class="container">
+  Show:
+  <select id="limit" onchange="get_limit(this.value);">
+    <option selected value="{{limit}}">{{limit}}</option>
+    {% for n in [10, 25, 50, 100, 500] %}
+      {% if n != limit %}
+        <option value="{{n}}">{{n}}</option>
+      {% endif %}
+    {% endfor %}
+  </select> previous runs
   <table class="table table-hover">
     <thead>
       <tr> 
         <th> Run Number </th>
-        <th> Status </th>
         <th> Crates Failed N100 </th>
         <th> Crates Failed N20 </th>
+        <th> Crates Warn N100 </th>
+        <th> Crates Warn N20 </th>
         <th> Run Type </th>
         <th> Time Run Was Processed </th>
       </tr>
     </thead>
-    {% for run in runs if run %}
-      {% if run.status == "Fail" %}
-        <tr class="danger">
-      {% elif run.status == "Pass" %}
-        <tr class="success">
-      {% elif run.status == "Warn" %}
-        <tr class="warning">
-      {% endif %}
-        <th><a href="{{url_for('pingcrates_run',run_number=run.run_number) }}">{{run.run_number}}</a></th>
-        <th> {{run.status}} </th> 
-        <th> {{run.n100_crates_failed}} </th>
-        <th> {{run.n20_crates_failed}} </th>
-        <th> {{run.run_type}} </th>
-        <th> {{run.time|timefmt}} </th>
+    {% for i in data %}
+        {% if i[6] == "Pass" %}
+          <tr class="success">
+        {% elif i[6] == "Fail" %}
+          <tr class="danger">
+        {% elif i[6] == "Warn" %}
+          <tr class="warning">
+        {% endif %} 
+        <th><a href="{{url_for('pingcrates_run',run_number=i[1]) }}">{{i[1]}}</a></th>
+        <th> {{i[2]}} </th>
+        <th> {{i[3]}} </th>
+        <th> {{i[4]}} </th>
+        <th> {{i[5]}} </th>
+        <th> Physics </th>
+        <th> {{i[0]}} </th>
       </tr>
     {% endfor %}
   </table>
 </div>
-
 {% endblock %}
+{% block script %}
+  <script>
+    function get_limit(limit){
+      params = {};
+      params["limit"] = limit;
+      window.location.replace($SCRIPT_ROOT + "/pingcrates?" + $.param(params));
+    }
+  </script>
+{% endblock %}
+
