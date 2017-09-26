@@ -8,13 +8,6 @@
     <div class="container">
 	<div class="row">
 	    <div class="col-md-6 col-md-offset-3">
-                {% if warning %}
-                   <h3> Warning: Nearline is on run {{warning[0]}}, but the current run is {{warning[1]}}. This could mean the nearline has fallen behind or gotten stuck. <h3>
-                {% endif %}
-	    </div>
-	</div>
-	<div class="row">
-	    <div class="col-md-6 col-md-offset-3">
 		<center>
 		    <ul class="pager">
 			<li><h2 style="display:inline"> Current Nearline Run: {{ run }} </h2></li>
@@ -22,10 +15,23 @@
 		</center>
             </div>
 	</div>
+        <hr> </hr>
 	<div class="row">
 	    <div class="col-md-8 col-md-offset-3">
-                Nearline job 
-                <select id="job" onchange="get_limit(limit.value, this.value, mode.value);">
+                {% if warning %}
+                    {% if warning[0] == warning[1] %}
+                        <h3> Warning: Nearline data jobs not running, probably L2 is stuck <h3>
+                    {% elif warning[0] < warning[1] %}
+                        <h3> Warning: Nearline has fallen behind <h3>
+                    {% endif %} 
+                {% endif %}
+	    </div>
+	    <div class="col-md-8 col-md-offset-3">
+                <h3> Select nearline jobs with the following conditions: </h3>
+            </div> 
+	    <div class="col-md-8 col-md-offset-3">
+                Nearline job: 
+                <select id="job" onchange="get_limit(limit.value, this.value, mode.value, run.value);">
                     <option selected value="{{jobs}}">{{jobs}}</option>
                     {% for job_type in jobtypes %}
                         {% if job_type != jobs %}
@@ -33,17 +39,10 @@
                         {% endif %}
                     {% endfor %}
                 </select>
-                failures in last
-                <select id="limit" onchange="get_limit(this.value, job.value, mode.value);">
-                    <option selected value="{{limit}}">{{limit}}</option>
-                    {% for n in [10, 25, 50, 100, 500] %}
-                        {% if n != limit %}
-                            <option value="{{n}}">{{n}}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-                runs, with failure mode:
-                <select id="mode" onchange="get_limit(limit.value, job.value, this.value);">
+            </div>
+	    <div class="col-md-8 col-md-offset-3">
+                with failure mode:
+                <select id="mode" onchange="get_limit(limit.value, job.value, this.value, run. value);">
                     <option selected value="{{mode}}">{{failmodes[mode]}}</option>
                     {% for i in index %}
                         {% if i != mode %}
@@ -52,7 +51,20 @@
                     {% endfor %}
                 </select>
             </div>
+	    <div class="col-md-8 col-md-offset-3">
+                failures in last
+                <select id="limit" onchange="get_limit(this.value, job.value, mode.value, 0);">
+                    <option selected value="{{limit}}">{{limit}}</option>
+                    {% for n in [10, 25, 50, 100, 500] %}
+                        {% if n != limit %}
+                            <option value="{{n}}">{{n}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select> runs, or since run:
+                <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{nearline_run}} onKeyDown="if(event.keyCode==13) get_limit(limit.value, job.value, mode.value, this.value);"></input> 
+            </div> 
         </div>
+        <hr> </hr>
 	<div class="row">
 	    <div class="col-md-6 col-md-offset-3">
 		<table class="table table-condensed">
@@ -146,11 +158,15 @@
 {% endblock %}
 {% block script %}
     <script>
-        function get_limit(limit, jobs, mode) {
+        if (url_params.limit) {
+            url_params.limit = document.getElementById("limit").value;
+        }
+        function get_limit(limit, jobs, mode, run) {
             params = {};
             params["jobs"] = jobs;
             params["limit"] = limit;
             params["mode"] = mode;
+            params["run"] = run;
             window.location.replace($SCRIPT_ROOT + "/nearline_summary?" + $.param(params));
         }
     </script>

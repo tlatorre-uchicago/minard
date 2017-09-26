@@ -372,6 +372,7 @@ def nearline_summary():
     jobs = request.args.get("jobs", "All", type=str)
     limit = request.args.get("limit", 100, type=int)
     mode = request.args.get("mode", 0, type=int)
+    nearline_run = request.args.get("run", 0, type=int)
     run = int(redis.get('nearline:current_run'))
     detector_run = detector_state.get_latest_run()
     if run != detector_run - 1:
@@ -392,6 +393,9 @@ def nearline_summary():
     # Include warnings, not run, and debug
     all_failures = []
 
+    if nearline_run != 0:
+        limit = run - nearline_run
+
     for previous_run in range(limit):
         old_programs = redis.hgetall('nearline:%i' % (run - previous_run))
         for program, status in old_programs.iteritems():
@@ -408,7 +412,7 @@ def nearline_summary():
             if jobtypes[i] not in program_check and jobtypes[i] != "All":
                 not_launched.append((jobtypes[i], run-previous_run)) 
 
-    return render_template('nearline_summary.html', run=run, failures=failures, all_failures=all_failures, warning=warning, jobs=jobs, jobtypes=jobtypes, mode=mode, failmodes=failmodes, index=index, not_launched=not_launched, limit=limit)
+    return render_template('nearline_summary.html', run=run, failures=failures, all_failures=all_failures, warning=warning, jobs=jobs, jobtypes=jobtypes, mode=mode, failmodes=failmodes, index=index, not_launched=not_launched, limit=limit, nearline_run=nearline_run)
 
 @app.route('/get_l2')
 def get_l2():
