@@ -156,9 +156,9 @@ def polling_summary(run):
         messages.append("No polling data available for run %i" % run)
         return 0, 0, 0, messages
 
-    # Channels with open relays during recent cmos polling
+    # Channels with open relays during cmos polling run
     relays_cmos = relay_status(conn, crun)
-    # Channels with open relays during recent cmos polling
+    # Channels with open relays during base polling run
     relays_base = relay_status(conn, brun)
     # Gets each PMT type
     types = pmt_type(conn)
