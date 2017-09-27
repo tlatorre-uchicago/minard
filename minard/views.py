@@ -571,9 +571,9 @@ def check_rates_histogram():
 def check_rates_summary():
     run = request.args.get('run',0,type=int)
     cmos_runs, base_runs = polling_runs()
-    crate_average, crun, brun = polling_summary(run)
+    crate_average, crun, brun, messages = polling_summary(run)
 
-    return render_template('check_rates_summary.html', run=run, crun=crun, brun=brun, cmos_runs=cmos_runs, base_runs=base_runs,crate_average=crate_average)
+    return render_template('check_rates_summary.html', run=run, crun=crun, brun=brun, cmos_runs=cmos_runs, base_runs=base_runs,crate_average=crate_average, messages=messages)
 
 @app.route('/discriminator_info')
 def discriminator_info():

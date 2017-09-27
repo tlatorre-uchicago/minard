@@ -20,7 +20,7 @@ def crates_failed(run):
     # Get ping crates information from detector state
     result = conn.execute("SELECT DISTINCT ON (run) n100_crates_failed, n20_crates_failed " 
                           "FROM ping_crates "
-                          "WHERE run = %i" % run)
+                          "WHERE run = %s", run)
 
     n100_failed = []
     n20_failed = []
@@ -121,7 +121,7 @@ def ping_crates_list(limit):
 
     result = conn.execute("SELECT DISTINCT ON (run) timestamp, "
                           "run, n100_crates_failed, n20_crates_failed FROM ping_crates "
-                          "WHERE run > %i" % int(run - limit))
+                          "WHERE run > %s", (run - limit))
 
     ping_info = []
 
