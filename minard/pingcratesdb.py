@@ -1,6 +1,9 @@
 from .db import engine
 from .detector_state import get_latest_run, get_mtc_state_for_run
 
+# When we started keeping ping crates data in psql database
+PING_CRATES_START_RUN = 104878
+
 def crates_failed(run): 
     '''
     Check the ping crates information for failures and potential
@@ -78,6 +81,8 @@ def crates_failed_messages(run):
     '''
 
     messages = []
+    if run < PING_CRATES_START_RUN:
+        return messages
 
     # Warn about ping crates failures, messages print to detector state check
     try:

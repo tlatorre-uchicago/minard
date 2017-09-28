@@ -11,6 +11,9 @@ OWL       = 0x41
 NECK      = 0x09
 HQE       = 0x101
 
+# First run we started saving polling data
+CHECK_RATES_START_RUN = 103215
+
 
 def polling_runs():
     """
@@ -438,7 +441,6 @@ def relay_status(conn, run):
     result = conn.execute("SELECT hv_relay_mask1, hv_relay_mask2 FROM "
                           "crate_state where run = %s ORDER BY crate", run)
 
-    print run
     rows = result.fetchall()
 
     for hv_relay_mask1, hv_relay_mask2 in rows:
