@@ -123,10 +123,10 @@ def ping_crates_list(limit):
 
     conn = engine.connect()
 
-    result = conn.execute("SELECT timestamp, run, n100_crates_failed, n20_crates_failed FROM "
-                          "(SELECT *, ROW_NUMBER() OVER (PARTITION BY run ORDER BY timestamp DESC) "
-                          "AS ROWNUM FROM ping_crates) x WHERE ROWNUM = 1 AND run > %s", \
-                          (run-limit))
+    # Get all ping crates information from detector state since (run - limit)
+    result = conn.execute("SELECT DISTINCT ON (run) timestamp, run,  n100_crates_failed, "
+                          "n20_crates_failed FROM ping_crates WHERE run > %s "
+                          "ORDER BY run, timestamp DESC", (run-limit))
 
     ping_info = []
 
