@@ -438,15 +438,16 @@ def relay_status(conn, run):
     """
 
     relays = []
-    result = conn.execute("SELECT hv_relay_mask1, hv_relay_mask2 FROM "
+    result = conn.execute("SELECT crate, hv_relay_mask1, hv_relay_mask2 FROM "
                           "crate_state where run = %s ORDER BY crate", run)
 
     rows = result.fetchall()
 
-    for hv_relay_mask1, hv_relay_mask2 in rows:
-        relays.append([hv_relay_mask1, hv_relay_mask2])
+    hv_relays = {}
+    for crate, hv_relay_mask1, hv_relay_mask2 in rows:
+        hv_relays[crate] = hv_relay_mask1, hv_relay_mask2
 
-    return relays
+    return hv_relays
 
 
 def polling_info_card(data_type, run_number, crate):
