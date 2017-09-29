@@ -21,9 +21,8 @@ def crates_failed(run):
     conn = engine.connect()
 
     # Get ping crates information from detector state
-    result = conn.execute("SELECT DISTINCT ON (run) n100_crates_failed, n20_crates_failed " 
-                          "FROM ping_crates "
-                          "WHERE run = %s", run)
+    result = conn.execute("SELECT n100_crates_failed, n20_crates_failed FROM ping_crates "
+                          "WHERE run = %s ORDER BY timestamp DESC LIMIT 1", run)
 
     n100_failed = []
     n20_failed = []
@@ -124,9 +123,10 @@ def ping_crates_list(limit):
 
     conn = engine.connect()
 
-    result = conn.execute("SELECT DISTINCT ON (run) timestamp, "
-                          "run, n100_crates_failed, n20_crates_failed FROM ping_crates "
-                          "WHERE run > %s", (run - limit))
+    result = conn.execute("SELECT timestamp, run, n100_crates_failed, n20_crates_failed FROM "
+                          "(SELECT *, ROW_NUMBER() OVER (PARTITION BY run ORDER BY timestamp DESC) "
+                          "AS ROWNUM FROM ping_crates) x WHERE ROWNUM = 1 AND run > %s", \
+                          (run-limit))
 
     ping_info = []
 
@@ -143,6 +143,9 @@ def ping_crates_list(limit):
             if n100[i] < 20:
                 n100_fail_str+=str(n100[i]) + ", "
                 status = "Fail"
+            elif(n100[i] >= 40):
+                n100_fail_str+=str(n100[i]%40) + ", "
+                status = "Override"
             else:
                 n100_warn_str+=str(n100[i]%20) + ", "
                 if status != "Fail":
@@ -153,6 +156,9 @@ def ping_crates_list(limit):
             if n20[i] < 20:
                 n20_fail_str+=str(n20[i]) + ", " 
                 status = "Fail"
+            elif(n20[i] >= 40):
+                n20_fail_str+=str(n20[i]%40) + ", " 
+                status = "Override"
             else:
                 n20_warn_str+=str(n20[i]%20) + ", "
                 if status != "Fail":
