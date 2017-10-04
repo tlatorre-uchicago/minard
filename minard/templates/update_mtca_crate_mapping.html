@@ -20,9 +20,6 @@
                         <option value="5">OWLEH</option>
                         <option value="6">OWLN</option>
                     </select>
-                    <div class="alert alert-info">
-                        <p>Note: When you press Submit, this will become the new current state, so don't update any check boxes unless the status has changed.
-                    </div>
                     <table>
                         <tr>
                             <td> {{ render_field(form.channel1) }} </td>
@@ -65,14 +62,50 @@
                             <td> {{ render_field(form.channel18) }} </td>
                         </tr>
                     </table>
-                    {{ render_field(form.reg0) }}
-                    {{ render_field(form.reg1) }}
-                    {{ render_field(form.reg2) }}
-                    {{ render_field(form.reg3) }}
-                    {{ render_field(form.dev) }}
-                    {{ render_field(form.password) }}
+                    <dl>
+                        {{ render_field(form.reg0) }}
+                        {{ render_field(form.reg1) }}
+                        {{ render_field(form.reg2) }}
+                        {{ render_field(form.reg3) }}
+                        {{ render_field(form.dev) }}
+                        {{ render_field(form.password) }}
+                    </dl>
                     <button type="submit" class="btn btn-success">Submit</button>
                 </form>
+            </div>
+            <div class="col-md-6">
+                <p>The MTCA+ channels are ordered from right to left! So, channel 0 is on the top right of the MTCA+.
+
+                <p>Select the <b>label</b> of the cable connected to each channel. For the normal MTCA+s the label number is the crate number + 1 and for the OWL MTCA+s the mapping is:
+
+                <table class="table">
+                    <tr>
+                        <th> Crate </th>
+                        <th> Label </th>
+                    </tr>
+                    <tr>
+                        <td> 3 </td>
+                        <td> 4 </td>
+                    </tr>
+                    <tr>
+                        <td> 13 </td>
+                        <td> 2 </td>
+                    </tr>
+                    <tr>
+                        <td> 17 </td>
+                        <td> 1 </td>
+                    </tr>
+                    <tr>
+                        <td> 18 </td>
+                        <td> 3 </td>
+                    </tr>
+                </table>
+
+                <p> Select None if there is no cable connected to a given channel. For the normal MTCA+s, there should only be <b>one</b> unused channel and that will be mapped to crate 19.
+
+                <p> The ordering of the MTCA+s in the timing rack is shown below.
+
+                <img src="{{ url_for("static", filename="images/mtca-back.png") }}" class="img-responsive">
             </div>
         </div>
     </div>
