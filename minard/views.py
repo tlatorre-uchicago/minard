@@ -208,7 +208,7 @@ def update_mtca_crate_mapping():
             flash(str(e), 'danger')
             return render_template('update_mtca_crate_mapping.html', form=form)
         flash("Successfully submitted", 'success')
-        return redirect(url_for('update-mtca-crate-mapping', mtca=form.mtca.data))
+        return redirect(url_for('update_mtca_crate_mapping', mtca=form.mtca.data))
     return render_template('update_mtca_crate_mapping.html', form=form)
 
 @app.route('/update-channel-status', methods=["GET", "POST"])

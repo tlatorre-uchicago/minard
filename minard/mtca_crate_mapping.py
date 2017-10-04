@@ -172,7 +172,7 @@ def upload_mtca_crate_mapping(form):
     crate_to_cable = [-1]*20
 
     for i in range(20):
-        crate = form['channel%i' % i]
+        crate = form.data['channel%i' % i]
         if crate is not None:
             crate_to_cable[crate] = i
 
@@ -181,7 +181,7 @@ def upload_mtca_crate_mapping(form):
     cursor = conn.cursor()
     cursor.execute("INSERT INTO mtca_crate_mapping (mtca, crate_to_cable, reg, dev) "
         "VALUES (%s, %s, %s, %s)",
-        form.data['mtca'],
+        (form.data['mtca'],
         crate_to_cable,
         reg,
-        form.data['dev'])
+        form.data['dev']))
