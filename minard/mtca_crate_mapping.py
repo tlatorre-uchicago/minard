@@ -8,7 +8,7 @@ import psycopg2.extensions
 # crate that they came from
 OWL_LABELS = {1: 17, 2: 13, 3: 18, 4: 3}
 
-choices = [(19, "None")] + [(i, str(i)) for i in range(1,20)]
+choices = [(19, "None")] + [(i, str(i+1)) for i in range(19)]
 
 owl_choices = [(-1, "None")]
 for label, crate in OWL_LABELS.iteritems():

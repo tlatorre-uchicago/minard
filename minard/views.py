@@ -192,7 +192,7 @@ def channel_status():
 @app.route('/update-mtca-crate-mapping', methods=["GET", "POST"])
 def update_mtca_crate_mapping():
     if request.form:
-        if request.form['mtca'] < 4:
+        if int(request.form['mtca']) < 4:
             form = MTCACrateMappingForm(request.form)
         else:
             form = OWLCrateMappingForm(request.form)
