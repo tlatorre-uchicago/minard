@@ -98,14 +98,14 @@ def crates_failed_messages(run):
                 messages.append("crate %s failed N20 checks in ping crates" % n20)
         if mn100:
             if len(mn100) > 2:
-                messages.append("Warning: crates %s N100 is mismapped !" % mn100)
+                messages.append("Warning: crates %s N100 is mismapped!" % mn100)
             else:
-                messages.append("Warning: crate %s N100 is mismapped !" % mn100)
+                messages.append("Warning: crate %s N100 is mismapped!" % mn100)
         if mn20:
             if len(mn20) > 2:
-                messages.append("Warning: crates %s N20 is mismapped !" % mn20)
+                messages.append("Warning: crates %s N20 is mismapped!" % mn20)
             else:
-                messages.append("Warning: crate %s N20 is mismapped !" % mn20)
+                messages.append("Warning: crate %s N20 is mismapped!" % mn20)
     except Exception as e:
         # No avaiable ping crates data, no need to warn
         pass
