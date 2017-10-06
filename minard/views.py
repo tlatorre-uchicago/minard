@@ -19,10 +19,12 @@ import sys
 import random
 import detector_state
 import nlrat
+import physics_dq
 import pingcratesdb
 import redisdb
 import fiber_position
 import nearline_settings
+import occupancy
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds
 import re
@@ -625,6 +627,15 @@ CHANNELS = [crate << 9 | card << 5 | channel \
 
 OWL_TUBES = [2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 7152, 7153, 7154, 7155, 7156, 7157, 7158, 7159, 7160, 7161, 7162, 7163, 7164, 7165, 7166, 7167, 9712, 9713, 9714, 9715, 9716, 9717, 9718, 9719, 9720, 9721, 9722, 9723, 9724, 9725, 9726, 9727]
 
+@app.route('/query_occupancy')
+def query_occupancy():
+    trigger_type = request.args.get('type',0,type=int)
+    run = request.args.get('run',0,type=int)
+
+    values = occupancy.occupancy_by_trigger(trigger_type, run)
+
+    return jsonify(values=values)
+
 @app.route('/query_polling')
 def query_polling():
     polling_type = request.args.get('type','cmos',type=str)
@@ -1015,6 +1026,34 @@ def noise_run_detail(run_number):
         return render_template('noise_run_detail.html', run=run[0], run_number=run_number)
     else:
         return render_template('noise_run_detail.html', run=0, run_number=run_number)
+
+@app.route('/occupancy_by_trigger')
+def occupancy_by_trigger():
+    limit = request.args.get("limit", 25, type=int)
+
+    run = detector_state.get_latest_run()
+    run_list = []
+    for run in range(run-limit, run+1):
+        run_list.append(run)
+
+    return render_template('occupancy_by_trigger.html', run_list=run_list, limit=limit)
+
+@app.route('/occupancy_by_trigger_run/<run_number>')
+def occupancy_by_trigger_run(run_number):
+
+    # Fixme testing
+    occupancy.check_occupancy(6, 0)
+
+    return render_template('occupancy_by_trigger_run.html', run_number=run_number)
+
+@app.route('/all_physics_dq')
+def all_physics_dq():
+    limit = request.args.get("limit", 5, type=int)
+    run = request.args.get("run", 0, type=int)
+
+    physics_runs, check_rates_fail, ping_crates_fail = physics_dq.get_run_list(limit, run)
+
+    return render_template('all_physics_dq.html', physics_runs=physics_runs, limit=limit, check_rates_fail=check_rates_fail, ping_crates_fail=ping_crates_fail)
 
 @app.route('/physicsdq')
 def physicsdq():

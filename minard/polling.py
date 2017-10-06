@@ -179,7 +179,8 @@ def polling_summary(run):
 
     result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) "
                           "cmos_rate, crate, slot, channel FROM cmos "
-                          "WHERE run = %s", (crun,))
+                          "WHERE run = %s ORDER BY crate, slot, channel, "
+                          "timestamp DESC", (crun,))
     if result is None:
         messages.append("Polling query failed for cmos rates, run %i" % crun)
         return 0, 0, 0, messages
@@ -217,7 +218,8 @@ def polling_summary(run):
 
     result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) "
                           "base_current, crate, slot, channel FROM base "
-                          "WHERE run = %s", (brun,))
+                          "WHERE run = %s ORDER BY crate, slot, channel, "
+                          "timestamp DESC", (brun,))
 
     if result is None:
         messages.append("Polling query failed for base currents, run %i" % brun)
@@ -268,6 +270,21 @@ def polling_summary(run):
         crate_average.append((crate, cmos, base))
 
     return crate_average, crun, brun, messages
+
+
+def overall_status(run_list):
+
+    # FIXME, this is soooo slow
+    # Probably don't even need this once occupancy check is in
+    check_rates_fail = {}
+    for run in run_list:
+        average, crun, brun, messages = polling_summary(run)
+        for i, j, k in average:
+            if(((j > 5000 or j < 400) and j > -1) and i != 19) or \
+              (i == 19 and (j > 15000 or j < 400)):
+               check_rates_fail[run] = 1
+
+    return check_rates_fail  
 
 
 def polling_check(high_rate, low_rate, pct_change):
@@ -391,7 +408,7 @@ def check_hv_status(relays, types, channel_info, crate, slot, channel):
     if types[lcn] in (LOWG, NECK, FECD, BUTT, NONE):
         return 0
     # Check the resistor is not pulled
-    if channel_info[lcn][0]:
+    if channel_info[lcn][0] or channel_info[lcn][1]:
         return 0
 
     return 1
