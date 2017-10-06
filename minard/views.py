@@ -19,11 +19,14 @@ import os
 import sys
 import random
 import detector_state
-import fiber_position
-import redisdb
 import nlrat
-from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history
+import pingcratesdb
+import redisdb
+import fiber_position
+import nearline_settings
+from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds
+from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 
@@ -153,6 +156,11 @@ def detector_state_check(run=None):
     messages, channels = detector_state.get_detector_state_check(run)
     alarms = detector_state.get_alarms(run)
 
+    # Warn about ping crates failures
+    pingcrates_messages = pingcratesdb.crates_failed_messages(run)
+    for message in pingcrates_messages:
+        messages.append(message)
+
     if alarms is None:
         flash("unable to get alarms for run %i" % run, 'danger')
 
@@ -181,6 +189,28 @@ def channel_status():
     polling_info = get_most_recent_polling_info(crate, slot, channel)
     discriminator_threshold = get_discriminator_threshold(crate, slot, channel)
     return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings, polling_info=polling_info, discriminator_threshold=discriminator_threshold)
+
+@app.route('/update-mtca-crate-mapping', methods=["GET", "POST"])
+def update_mtca_crate_mapping():
+    if request.form:
+        if int(request.form['mtca']) < 4:
+            form = MTCACrateMappingForm(request.form)
+        else:
+            form = OWLCrateMappingForm(request.form)
+        mtca = form.mtca.data
+    else:
+        mtca = request.args.get("mtca", 0, type=int)
+        form = get_mtca_crate_mapping_form(mtca)
+
+    if request.method == "POST" and form.validate():
+        try:
+            upload_mtca_crate_mapping(form)
+        except Exception as e:
+            flash(str(e), 'danger')
+            return render_template('update_mtca_crate_mapping.html', form=form)
+        flash("Successfully submitted", 'success')
+        return redirect(url_for('update_mtca_crate_mapping', mtca=form.mtca.data))
+    return render_template('update_mtca_crate_mapping.html', form=form)
 
 @app.route('/update-channel-status', methods=["GET", "POST"])
 def update_channel_status():
@@ -359,22 +389,48 @@ def nearline_summary():
     warning = []
     jobs = request.args.get("jobs", "All", type=str)
     limit = request.args.get("limit", 100, type=int)
+    mode = request.args.get("mode", 0, type=int)
+    nearline_run = request.args.get("run", 0, type=int)
     run = int(redis.get('nearline:current_run'))
     detector_run = detector_state.get_latest_run()
     if run != detector_run - 1:
         warning.append(run)
         warning.append(detector_run)
 
+    # Nearline job types and ways in which the jobs fail
+    jobtypes = nearline_settings.jobTypes
+    failmodes = nearline_settings.failModes
+    index = failmodes.keys()
+    
+    # Check if any jobs were not launched
+    program_check = []
+    not_launched = []
+
     # Get failures over last (limit) runs
     failures = []
+    # Include warnings, not run, and debug
+    all_failures = []
+
+    if nearline_run != 0:
+        limit = run - nearline_run
+
     for previous_run in range(limit):
         old_programs = redis.hgetall('nearline:%i' % (run - previous_run))
         for program, status in old_programs.iteritems():
+            program_check.append(program)
             # Job failed, was killed, is not executable, or timed out, 
             if status == "1" or status == "-1" or status == "98" or status == "97":
                 failures.append((program, status, run-previous_run))
+                all_failures.append((program, status, run-previous_run))
+            # Job status is warning, debug, or not run
+            elif status == "2" or status == "3" or status == "4":
+                all_failures.append((program, status, run-previous_run))
+        # Check if all the jobs were run
+        for i in range(len(jobtypes)):
+            if jobtypes[i] not in program_check and jobtypes[i] != "All":
+                not_launched.append((jobtypes[i], run-previous_run)) 
 
-    return render_template('nearline_summary.html', run=run, failures=failures, warning=warning, jobs=jobs, limit=limit)
+    return render_template('nearline_summary.html', run=run, failures=failures, all_failures=all_failures, warning=warning, jobs=jobs, jobtypes=jobtypes, mode=mode, failmodes=failmodes, index=index, not_launched=not_launched, limit=limit, nearline_run=nearline_run)
 
 @app.route('/get_l2')
 def get_l2():
@@ -534,6 +590,14 @@ def check_rates_histogram():
     else:
         values = polling_info('cmos', run)
     return render_template('check_rates_histogram.html', values=values, cmos_runs=cmos_runs)
+
+@app.route('/check_rates_summary')
+def check_rates_summary():
+    run = request.args.get('run',0,type=int)
+    cmos_runs, base_runs = polling_runs()
+    crate_average, crun, brun, messages = polling_summary(run)
+
+    return render_template('check_rates_summary.html', run=run, crun=crun, brun=brun, cmos_runs=cmos_runs, base_runs=base_runs,crate_average=crate_average, messages=messages)
 
 @app.route('/discriminator_info')
 def discriminator_info():
@@ -865,7 +929,7 @@ def eca_status_detail(run_number):
         if result == pow(2,offset):
             return 1
 
-    run_status = int(ecadb.get_run_status(run_number))
+    run_status = int(redisdb.get_run_status(run_number))
 
     return render_template('eca_status_detail_%s.html' % run_type,
 			    run_number=run_number, statusfmt=statusfmt, testBit=testBit, run_status=run_status)
@@ -924,7 +988,11 @@ def pcatellie():
 
 @app.route('/pca_run_detail/<run_number>')
 def pca_run_detail(run_number):
+<<<<<<< HEAD
     run = redisdb.runs_after_run('pca_tellie_runs_by_number', int(run_number), int(run_number)+1)
+=======
+    run = redisdb.runs_after_run('pca_tellie_run_by_number', int(run_number), int(run_number)+1)
+>>>>>>> 55f1cafc846d7677a526df37bc5379eda93bda22
     return render_template('pca_run_detail.html',
                            run_number=run_number,
                            run=run)
@@ -993,8 +1061,14 @@ def physicsdq():
 
 @app.route('/pingcrates')
 def pingcrates():
+<<<<<<< HEAD
     runs = redisdb.runs_after_run('pingcrates_runs_by_number', 0)
     return render_template('pingcrates.html', runs=runs)
+=======
+    limit = request.args.get("limit", 100, type=int)
+    data = pingcratesdb.ping_crates_list(limit)
+    return render_template('pingcrates.html', data=data, limit=limit)
+>>>>>>> 55f1cafc846d7677a526df37bc5379eda93bda22
 
 @app.route('/pingcrates_run/<run_number>')
 def pingcrates_run(run_number):

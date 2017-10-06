@@ -3,6 +3,7 @@ from .views import app
 from .db import engine
 from .channeldb import get_nominal_settings_for_run, get_pmt_types
 from collections import defaultdict
+from .polling import polling_summary, CHECK_RATES_START_RUN
 
 def get_latest_run():
     """
@@ -199,7 +200,7 @@ def get_detector_state_check(run=0):
             mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLELO', 'OWLEHI', 'OWLN']
             for i, (relay, mtca) in enumerate(zip(relay_mask,mtca_names)):
                 crates = []
-                potential_crates = range(19) if i<4 else [3,13,18]
+                potential_crates = range(20) if i<4 else [3,13,18]
                 for crate in potential_crates:
                     if relay is not None and not (relay & (1<<crate)):
                         crates.append(crate)
@@ -331,6 +332,31 @@ def get_detector_state_check(run=0):
                             ("on" if sequencer else "off", "on" if sequencer_nominal else "off")))
                     if not sequencer:
                         channels.append((crate, slot, channel, "sequencer is off, but channel is at HV! Potential blind flasher!"))
+
+    try:
+        if run <= CHECK_RATES_START_RUN:
+            return messages, channels
+        crate_average, crun, brun, polling_messages = polling_summary(run)
+        for i in range(len(crate_average)):
+            if i < 19:
+                if ((crate_average[i][1] < 400 and crate_average[i][1] != -1) \
+                   or crate_average[i][1] > 5000):
+                    messages.append("Warning: Average CMOS rate is %.1f Hz for crate %i. Most recent cmos polling is run %i" % (crate_average[i][1], i, crun))
+                if crate_average[i][2] < 50 and crate_average[i][2] != -1:
+                    messages.append("Warning: Average base current is %i for crate %i. Most recent base polling is run %i" % (crate_average[i][2], i, brun))
+            # Different thresholds for the OWLs
+            elif i == 19:
+                if ((crate_average[i][1] < 400 and crate_average[i][1] != -1) \
+                   or crate_average[i][1] > 15000):
+                    messages.append("Warning: Average CMOS rate is %.1f Hz for the OWLs. Most recent cmos polling is run %i" % (crate_average[i][1], crun))
+                if crate_average[i][2] < 50 and crate_average[i][2] != -1:
+                    messages.append("Warning: Average base current is %i for the OWLs. Most recent base polling is run %i" % (crate_average[i][2], brun))
+            # Skip the HQEs
+            else:
+                continue
+    except Exception as e:
+        messages.append("Could not get crate averages from check rates.")
+        pass
 
     return messages, channels
 
@@ -579,6 +605,7 @@ def mtc_human_readable_filter(mtc):
         ret['gt_words'] = translate_trigger_mask(mtc['gt_mask'])
         ret['ped_delay'] = translate_ped_delay(mtc['coarse_delay'],mtc['fine_delay'])
         ret['lockout_width'] = mtc['lockout_width']
+        ret['pulser_rate'] = mtc['pulser_rate']
         ret['control_reg'] = translate_control_reg(mtc['control_register'])
         ret['prescale'] = mtc['prescale']
         ret['gt_crates'] = translate_crate_mask(mtc['gt_crate_mask'])
@@ -596,7 +623,7 @@ def mtc_human_readable_filter(mtc):
     return ret
 
 def translate_caen_front_panel_io_control(mask):
-    ret = {} 
+    ret = {}
     ret["trigger_voltage_level"] = "TTL" if (mask & 1) >0 else "NIM"
     ret["high_impedance_output"] = (mask & 1<<1) > 0
     ret["lvds_input"] = [(mask & 1<<i) > 0 for i in range(2,6)]

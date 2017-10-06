@@ -1,4 +1,19 @@
 from .db import engine 
+import detector_state
+
+# PMT Type defines
+LOWG      = 0x21
+NONE      = 0x0
+NECK      = 0x9
+FECD      = 0x10
+BUTT      = 0x81
+OWL       = 0x41
+NECK      = 0x09
+HQE       = 0x101
+
+# First run we started saving polling data
+CHECK_RATES_START_RUN = 103215
+
 
 def polling_runs():
     """
@@ -22,6 +37,7 @@ def polling_runs():
         base_runs = [dict(zip(keys,row)) for row in rows]
 
     return cmos_runs, base_runs
+
 
 def polling_history(crate, slot, channel, min_run):
     """
@@ -59,6 +75,7 @@ def polling_history(crate, slot, channel, min_run):
         data_stats = [int(data_max), int(data_min), int(data_average), int(data_std)]
 
     return data, data_stats
+
 
 def polling_info(data_type, run_number):
     """
@@ -112,13 +129,148 @@ def polling_info(data_type, run_number):
 
     return data
 
+
+def polling_summary(run):
+    ''' 
+    Get the crate average base currents and cmos rates 
+    for the run nearest to the requested run.
+    '''
+
+    conn = engine.connect()
+
+    messages = []
+
+    current_run = detector_state.get_latest_run()
+
+    if run == 0 or run > current_run:
+       run = current_run
+
+    result = conn.execute("SELECT run FROM cmos WHERE run <= %s ORDER BY run DESC LIMIT 1", run)
+    try:
+        crun = result.fetchone()[0]
+    except TypeError:
+        messages.append("No polling data available for run %i" % run)
+        return 0, 0, 0, messages
+
+    result = conn.execute("SELECT run FROM base where run <= %s ORDER BY run DESC LIMIT 1", run)
+    try:
+        brun = result.fetchone()[0]
+    except TypeError:
+        messages.append("No polling data available for run %i" % run)
+        return 0, 0, 0, messages
+
+    # Channels with open relays during cmos polling run
+    relays_cmos = relay_status(conn, crun)
+    # Channels with open relays during base polling run
+    relays_base = relay_status(conn, brun)
+    # Gets each PMT type
+    types = pmt_type(conn)
+    # Pulled resistors
+    channel_info = channel_information(conn)
+
+    crate_average_cmos = [0.0]*21 # 19 crates + OWLS + HQEs
+    crate_average_base = [0.0]*21
+    crates_cmos = [16*32]*21
+    crates_base = [16*32]*21
+    crates_cmos[19] = 3*32 # Default number of OWLS + NECKS
+    crates_base[19] = 3*32
+    crates_cmos[20] = 4 # Default number of HQEs
+    crates_base[20] = 4
+
+    result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) "
+                          "cmos_rate, crate, slot, channel FROM cmos "
+                          "WHERE run = %s", (crun,))
+    if result is None:
+        messages.append("Polling query failed for cmos rates, run %i" % crun)
+        return 0, 0, 0, messages
+
+    row = result.fetchall()
+
+    # Loop over cmos rates and find average for each crates
+    # Keep track of channels not at high voltage
+    for cmos_rate, crate, slot, channel in row:
+        lcn = crate*512 + slot*32 + channel
+        if not check_hv_status(relays_cmos, types, channel_info, crate, slot, channel):
+            if types[lcn] == OWL or types[lcn] == NECK:
+                crates_cmos[19]-=1
+                crates_cmos[crate]-=1
+            elif types[lcn] == HQE:
+                crates_cmos[20]-=1
+                crates_cmos[crate]-=1
+            else:
+                crates_cmos[crate]-=1
+            continue
+        # Reject hits where the CMOS rates are very high and bias the average
+        # Need to be a little careful with this since it potentially masks issues
+        # For now I've chosen 200kHz, but might need to be tuned
+        if cmos_rate < 200000:
+            if types[lcn] == OWL or types[lcn] == NECK:
+                crate_average_cmos[19] += float(cmos_rate)
+                crates_cmos[crate]-=1
+            elif types[lcn] == HQE:
+                crate_average_cmos[20] += float(cmos_rate)
+                crates_cmos[crate]-=1
+            else:
+                crate_average_cmos[crate] += float(cmos_rate)
+        else:
+            crates_cmos[crate]-=1
+
+    result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) "
+                          "base_current, crate, slot, channel FROM base "
+                          "WHERE run = %s", (brun,))
+
+    if result is None:
+        messages.append("Polling query failed for base currents, run %i" % brun)
+        return 0, 0, 0, messages
+
+    row = result.fetchall()
+
+    # Loop over base currents and find average for each crates
+    # Keep track of channels not at high voltage
+    for base_current, crate, slot, channel in row:
+        lcn = crate*512 + slot*32 + channel
+        if not check_hv_status(relays_base, types, channel_info, crate, slot, channel):
+            if types[lcn] == OWL or types[lcn] == NECK:
+                crates_base[19]-=1
+                crates_base[crate]-=1
+            elif types[lcn] == HQE:
+                crates_base[20]-=1
+                crates_base[crate]-=1
+            else:
+                crates_base[crate]-=1
+            continue
+        # Ignore bad readback, this should handle FECs at -127 without
+        # needing to check the channeldb. This should not mask any issues
+        # since we're mostly looking for many channels at 0.
+        if base_current > -10:
+            if types[lcn] == OWL or types[lcn] == NECK:
+                crate_average_base[19] += float(base_current)
+                crates_base[crate]-=1
+            elif types[lcn] == HQE:
+                crate_average_base[20] += float(base_current)
+                crates_base[crate]-=1
+            else:
+                crate_average_base[crate] += float(base_current)
+        else:
+            crates_base[crate]-=1
+
+    crate_average = []
+    for crate in range(21):
+        # If the crate was off during the polling
+        if crates_cmos[crate] == 0:
+           crate_average.append((crate, -1.0, -1.0))
+           continue
+        if crates_base[crate] == 0:
+           crate_average.append((crate, -1.0, -1.0))
+           continue
+        cmos = round(float(crate_average_cmos[crate])/crates_cmos[crate], 2)
+        base = round(float(crate_average_base[crate])/crates_base[crate], 2)
+        crate_average.append((crate, cmos, base))
+
+    return crate_average, crun, brun, messages
+
+
 def polling_check(high_rate, low_rate, pct_change):
-    # PMT Type defines
-    LOWG     = 0x21
-    NONE     = 0x0
-    NECK     = 0x9
-    FECD     = 0x10
-    BUTT     = 0x81
 
     conn = engine.connect()
 
@@ -173,7 +325,7 @@ def polling_check(high_rate, low_rate, pct_change):
             threshold[lcn] = thresh[i]
 
     # Get the information needed to determine whether a channel is online
-    relays = relay_status(conn)
+    relays = relay_status(conn, run_number[0])
     types = pmt_type(conn)
     channel_info = channel_information(conn)
 
@@ -195,15 +347,7 @@ def polling_check(high_rate, low_rate, pct_change):
                     vthr = threshold[lcn] - zero_threshold[lcn]
                     cmos_high_rates.append("%i/%i/%i: %i Hz, Vthr: %i" %\
                             (crate, slot, channel, data_run2[lcn], vthr))
-                # Check if the channel is at high voltage
-                hv_relay_mask = relays[crate][1] << 32 | relays[crate][0]
-                if not(hv_relay_mask & (1 << (slot*4 + (3-channel//8)))):
-                    continue
-                # Check the PMT is normal or HQE
-                if types[lcn] in (LOWG, NECK, FECD, BUTT, NONE):
-                    continue
-                # Check the resistor is not pulled
-                if channel_info[lcn][0]:
+                if not check_hv_status(relays, types, channel_info, crate, slot, channel):
                     continue
                 # For normal/HQE online PMTs, warn about channels
                 # that are fluctuating a lot. Put a low rate cut
@@ -225,10 +369,39 @@ def polling_check(high_rate, low_rate, pct_change):
 
     return cmos_changes, cmos_high_rates, cmos_low_rates, run_number
 
+
+def check_hv_status(relays, types, channel_info, crate, slot, channel):
+    """
+    Check where the PMT has HV on it based on the HV relays during the run,
+    the PMT type, and the channel information. This uses the current channel
+    database, so has potentially incorrect information aboout rpulled for
+    old runs.
+    """
+
+    lcn = crate*512 + slot*32 + channel
+
+    if relays[crate][1] is None or relays[crate][0] is None:
+        return 0
+
+    # Check if the channel is at high voltage
+    hv_relay_mask = relays[crate][1] << 32 | relays[crate][0]
+    if not(hv_relay_mask & (1 << (slot*4 + (3-channel//8)))):
+        return 0
+    # Check the PMT is normal or HQE
+    if types[lcn] in (LOWG, NECK, FECD, BUTT, NONE):
+        return 0
+    # Check the resistor is not pulled
+    if channel_info[lcn][0]:
+        return 0
+
+    return 1
+
+
 def pmt_type(conn):
     """
     Get the PMT types
     """
+
     types = [0]*9728
     sql_result = conn.execute("SELECT crate, slot, channel, type FROM pmt_info "
                               "ORDER BY crate, slot, channel")
@@ -240,10 +413,12 @@ def pmt_type(conn):
 
     return types
 
+
 def channel_information(conn):
     """
     Get the channel status (whether its rpulled or occupancy issues)
     """
+
     channel_info = [0]*9728
     sql_result = conn.execute("SELECT crate, slot, channel, resistor_pulled, zero_occupancy, "
                               "low_occupancy, bad_discriminator FROM current_channel_status ORDER "
@@ -256,17 +431,24 @@ def channel_information(conn):
 
     return channel_info
 
-def relay_status(conn):
+
+def relay_status(conn, run):
+    """
+    Returns the hv relay masks
+    """
+
     relays = []
-    result = conn.execute("SELECT hv_relay_mask1, hv_relay_mask2 FROM "
-                          "current_crate_state ORDER BY crate")
+    result = conn.execute("SELECT crate, hv_relay_mask1, hv_relay_mask2 FROM "
+                          "crate_state where run = %s ORDER BY crate", run)
 
     rows = result.fetchall()
 
-    for hv_relay_mask1, hv_relay_mask2 in rows:
-        relays.append([hv_relay_mask1, hv_relay_mask2])
+    hv_relays = {}
+    for crate, hv_relay_mask1, hv_relay_mask2 in rows:
+        hv_relays[crate] = hv_relay_mask1, hv_relay_mask2
 
-    return relays
+    return hv_relays
+
 
 def polling_info_card(data_type, run_number, crate):
     """
