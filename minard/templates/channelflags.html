@@ -6,38 +6,70 @@
 {% block body %}
   {{ super() }}
 
-<div class="page-header">
-  <h1 align="center">Channel Flags</h1>
+<div class="container">
+
+  <h2 align="left">Information For the User</h2>
+    <table class="table table-hover">
+      <tr class="success"> <th> There aren't too many channels out-of-sync or dropping data, the run status is "Pass". Click the run number to see the list of channels. </th> </tr>
+      <tr class="danger"> <th>  If over 100 channels are out of sync the run status is "Fail"  </th> </tr>
+      <tr class="warning"> <th> If more than 25 channels are out-of-sync or there are more than 500 channels with missed counts, the run status is "Warn" </th> </tr>
+  </table>
+
 </div>
 
+<div class="page-header">
+
+  <h1 align="center">Channel Flags</h1>
+
+</div>
 
 <div class="container">
+
+  <select id="limit" onchange="get_limit(this.value);">
+    <option selected value="{{limit}}">{{limit}}</option>
+    {% for n in [10, 25, 50, 100, 500] %}
+      {% if n != limit %}
+        <option value="{{n}}">{{n}}</option>
+      {% endif %}
+    {% endfor %}
+  </select>
   <table class="table table-hover">
     <thead>
       <tr> 
         <th> Run Number </th>
-        <th> Run Type </th>
-        <th> # CMOS Sync 16 Errors </th>
-        <th> # CGT Sync 24 Errors </th>
-        <th> # Missed Count Errors </th>
-        <th> List By Channel </th>
+        <th> # Sync 16s </th>
+        <th> # Sync 24s </th>
+        <th> # Channels w/ Sync 24 Flags </th>
+        <th> # Channels w/ Sync 16 Flags </th>
+        <th> # Channels w/ Missed Counts </th>
       </tr>
     </thead>
-    {% for run in runs if run %}
-      {% if run.run_type == "Physics" %}
-        <tr class="info">
-      {% else %}
-        <tr class="active">
-      {% endif %}
-        <th> {{run.run_number}} </th> 
-        <th> {{run.run_type}} </th>
-        <th> {{run.number_cmos_sync16}}</th>
-        <th> {{run.number_cgt_sync24}}</th>
-        <th> {{run.number_missed_count}}</th>
-        <th> <a href="{{ url_for("channelflagsbychannel",run_number=run.run_number)}}">Channel List</a> </th>
+    {% for run in runs %}
+        {% if missed[run] > 100 or (sync16s[run] > 25 and sync16s[run] <= 100) %}
+            <tr class="warning">
+        {% elif sync16s[run] > 100 %}
+            <tr class="danger">
+        {% else %}
+            <tr class="success">
+        {% endif %}
+        <th> <a href="{{ url_for("channelflagsbychannel",run_number=run)}}">{{run}}</a> </th>
+        <th> {{nsync16[run]}}</th>
+        <th> {{nsync24[run]}}</th>
+        <th> {{sync16s[run]}}</th>
+        <th> {{sync24s[run]}}</th>
+        <th> {{missed[run]}}</th>
       </tr>
     {% endfor %}
   </table>
 </div>
-
 {% endblock %}
+{% block script %}
+  <script>
+    function get_limit(limit){
+      params = {};
+      params["limit"] = limit;
+      window.location.replace($SCRIPT_ROOT + "/channelflags?" + $.param(params));
+    }
+  </script>
+{% endblock %}
+

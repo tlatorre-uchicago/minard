@@ -24,6 +24,7 @@ import pingcratesdb
 import redisdb
 import fiber_position
 import nearline_settings
+import channelflagsdb
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds
 from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form
@@ -988,11 +989,7 @@ def pcatellie():
 
 @app.route('/pca_run_detail/<run_number>')
 def pca_run_detail(run_number):
-<<<<<<< HEAD
-    run = redisdb.runs_after_run('pca_tellie_runs_by_number', int(run_number), int(run_number)+1)
-=======
     run = redisdb.runs_after_run('pca_tellie_run_by_number', int(run_number), int(run_number)+1)
->>>>>>> 55f1cafc846d7677a526df37bc5379eda93bda22
     return render_template('pca_run_detail.html',
                            run_number=run_number,
                            run=run)
@@ -1061,14 +1058,9 @@ def physicsdq():
 
 @app.route('/pingcrates')
 def pingcrates():
-<<<<<<< HEAD
-    runs = redisdb.runs_after_run('pingcrates_runs_by_number', 0)
-    return render_template('pingcrates.html', runs=runs)
-=======
     limit = request.args.get("limit", 100, type=int)
     data = pingcratesdb.ping_crates_list(limit)
     return render_template('pingcrates.html', data=data, limit=limit)
->>>>>>> 55f1cafc846d7677a526df37bc5379eda93bda22
 
 @app.route('/pingcrates_run/<run_number>')
 def pingcrates_run(run_number):
@@ -1076,23 +1068,14 @@ def pingcrates_run(run_number):
 
 @app.route('/channelflags')
 def channelflags():
-    runs = redisdb.runs_after_run('channelflags_runs_by_number', 0)
-    return render_template('channelflags.html', runs=runs)
+    limit = request.args.get("limit", 100, type=int)
+    runs, nsync16, nsync24, sync16s, sync24s, missed = channelflagsdb.get_channel_flags(limit)
+    return render_template('channelflags.html', runs=runs, nsync16=nsync16, nsync24=nsync24, sync16s=sync16s, sync24s=sync24s, missed=missed, limit=limit)
 
 @app.route('/channelflagsbychannel/<run_number>')
 def channelflagsbychannel(run_number):
-    run = redisdb.get_run_by_number('channelflags_runs_by_number', run_number)
-    cmos_sync16 = literal_eval(run[0]['cmos_sync16'])
-    cgt_sync24 = literal_eval(run[0]['cgt_sync24'])
-    missed_count = literal_eval(run[0]['missed_count'])
-    run_type = run[0]['run_type']
-    if cgt_sync24 == 0:
-       cgt_sync24 = None
-    if cmos_sync16 == 0:
-       cmos_sync16 = None
-    if missed_count == 0:
-       missed_count = None
-    return render_template('channelflagsbychannel.html', cmos_sync16=cmos_sync16, cgt_sync24=cgt_sync24, missed_count=missed_count, run_number=run_number, run_type=run_type)
+    missed_count, cmos_sync16, cgt_sync24, cmos_sync16_pr, cgt_sync24_pr = channelflagsdb.get_channel_flags_by_run(run_number)
+    return render_template('channelflagsbychannel.html', missed_count=missed_count, cmos_sync16=cmos_sync16, cgt_sync24=cgt_sync24, cmos_sync16_pr=cmos_sync16_pr, cgt_sync24_pr=cgt_sync24_pr, run_number=run_number)
 
 @app.route('/trigger_clock_jump')
 def trigger_clock_jump():
