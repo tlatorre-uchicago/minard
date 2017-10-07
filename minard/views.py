@@ -27,6 +27,7 @@ import nearline_settings
 import occupancy
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds
+from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 
@@ -189,6 +190,28 @@ def channel_status():
     polling_info = get_most_recent_polling_info(crate, slot, channel)
     discriminator_threshold = get_discriminator_threshold(crate, slot, channel)
     return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings, polling_info=polling_info, discriminator_threshold=discriminator_threshold)
+
+@app.route('/update-mtca-crate-mapping', methods=["GET", "POST"])
+def update_mtca_crate_mapping():
+    if request.form:
+        if int(request.form['mtca']) < 4:
+            form = MTCACrateMappingForm(request.form)
+        else:
+            form = OWLCrateMappingForm(request.form)
+        mtca = form.mtca.data
+    else:
+        mtca = request.args.get("mtca", 0, type=int)
+        form = get_mtca_crate_mapping_form(mtca)
+
+    if request.method == "POST" and form.validate():
+        try:
+            upload_mtca_crate_mapping(form)
+        except Exception as e:
+            flash(str(e), 'danger')
+            return render_template('update_mtca_crate_mapping.html', form=form)
+        flash("Successfully submitted", 'success')
+        return redirect(url_for('update_mtca_crate_mapping', mtca=form.mtca.data))
+    return render_template('update_mtca_crate_mapping.html', form=form)
 
 @app.route('/update-channel-status', methods=["GET", "POST"])
 def update_channel_status():
