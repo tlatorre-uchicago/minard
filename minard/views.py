@@ -5,6 +5,7 @@ from itertools import product
 import time
 from redis import Redis
 from os.path import join
+from ast import literal_eval
 import json
 import tools
 import HLDQTools
@@ -25,6 +26,7 @@ import redisdb
 import fiber_position
 import nearline_settings
 import occupancy
+import channelflagsdb
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds
 from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form
@@ -605,7 +607,7 @@ def discriminator_info():
     run = request.args.get('run', 0, type=int)
 
     values, average, nmax, maxed = get_all_thresholds(run)
-    return render_template('discriminator_info.html', values=values, average=average, nmax=nmax, maxed=maxed)
+    return render_template('discriminator_info.html', values=values, average=average, nmax=nmax)
 
 @app.route('/max_thresholds')
 def max_thresholds():
@@ -1102,6 +1104,22 @@ def pingcrates():
 @app.route('/pingcrates_run/<run_number>')
 def pingcrates_run(run_number):
     return render_template('pingcrates_run.html', run_number=run_number)
+
+@app.route('/channelflags')
+def channelflags():
+    limit = request.args.get("limit", 100, type=int)
+    runs, nsync16, nsync24, sync16s, sync24s, missed = channelflagsdb.get_channel_flags(limit)
+    return render_template('channelflags.html', runs=runs, nsync16=nsync16, nsync24=nsync24, sync16s=sync16s, sync24s=sync24s, missed=missed, limit=limit)
+
+@app.route('/channelflagsbychannel/<run_number>')
+def channelflagsbychannel(run_number):
+    missed_count, cmos_sync16, cgt_sync24, cmos_sync16_pr, cgt_sync24_pr = channelflagsdb.get_channel_flags_by_run(run_number)
+    return render_template('channelflagsbychannel.html', missed_count=missed_count, cmos_sync16=cmos_sync16, cgt_sync24=cgt_sync24, cmos_sync16_pr=cmos_sync16_pr, cgt_sync24_pr=cgt_sync24_pr, run_number=run_number)
+
+@app.route('/trigger_clock_jump')
+def trigger_clock_jump():
+    runs = redisdb.runs_after_run('triggerclockjumps_runs_by_number', 0)
+    return render_template('trigger_clock_jump.html', runs=runs)
  
 @app.route('/physicsdq/<run_number>')
 def physicsdq_run_number(run_number):
