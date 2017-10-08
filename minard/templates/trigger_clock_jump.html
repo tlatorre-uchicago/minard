@@ -11,30 +11,38 @@
 </div>
 
 <div class="container">
+  <select id="limit" onchange="get_limit(this.value);">
+    <option selected value="{{limit}}">{{limit}}</option>
+    {% for n in [10, 25, 50, 100, 500] %}
+      {% if n != limit %}
+        <option value="{{n}}">{{n}}</option>
+      {% endif %}
+    {% endfor %}
+  </select>
   <table class="table table-hover">
     <thead>
       <tr> 
         <th> Run Number </th>
-        <th> 10MHz Clock Online </th>
         <th> # of 10MHz Clock Jumps </th>
         <th> # of 50MHz Clock Jumps </th>
-        <th> Time Processed </th>
       </tr>
-    {% for run in runs if run %}
-        {% if run.clockOK %}
-        <tr class="success">
-        {% else %}
-        <tr class="danger">  
-        {% endif %}
-        <th> {{run.run_number}} </th>
-        <th> {{run.clockOK}} </th>
-        <th> {{run.clock10jumps}} </th>
-        <th> {{run.clock50jumps}} </th>
-        <th> {{run.time|timefmt}} </th>
+    {% for run in runs %}
+        <th> <a href="{{ url_for("trigger_clock_jump_run",run_number=run)}}">{{run}}</a></th>
+        <th> {{njump10[run]}} </th>
+        <th> {{njump50[run]}} </th>
       </tr>
     {% endfor %}
     </thead>
   </table>
 </div>
 
+{% endblock %}
+{% block script %}
+  <script>
+    function get_limit(limit){
+      params = {};
+      params["limit"] = limit;
+      window.location.replace($SCRIPT_ROOT + "/trigger_clock_jump?" + $.param(params));
+    }
+  </script>
 {% endblock %}
