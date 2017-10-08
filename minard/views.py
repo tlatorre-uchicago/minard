@@ -22,13 +22,14 @@ import detector_state
 import nlrat
 import physics_dq
 import pingcratesdb
+import triggerclockjumpsdb
 import redisdb
 import fiber_position
 import nearline_settings
 import occupancy
 import channelflagsdb
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
-from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds
+from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds
 from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
@@ -604,17 +605,19 @@ def check_rates_summary():
 
 @app.route('/discriminator_info')
 def discriminator_info():
-    run = request.args.get('run', 0, type=int)
+    run_default = detector_state.get_latest_run()
+    run1 = request.args.get('run1', run_default, type=int)
+    run2 = request.args.get('run2', 0, type=int)
 
-    values, average, nmax, maxed = get_all_thresholds(run)
-    return render_template('discriminator_info.html', values=values, average=average, nmax=nmax)
+    values1, average1, nmax1, message1 = get_all_thresholds(run1)
+    values2, average2, nmax2, message2 = get_all_thresholds(run2)
+    return render_template('discriminator_info.html', run1=run1, run2=run2, values1=values1, average1=average1, nmax1=nmax1, values2=values2, average2=average2, nmax2=nmax2, message1=message1, message2=message2)
 
-@app.route('/max_thresholds')
-def max_thresholds():
-    run = request.args.get('run', 0, type=int)
+@app.route('/max_thresholds/<run_number>')
+def max_thresholds(run_number):
 
-    values, average, nmax, maxed = get_all_thresholds(run)
-    return render_template('max_thresholds.html', maxed=maxed)
+    maxed = get_maxed_thresholds(run_number)
+    return render_template('max_thresholds.html', run_number=run_number, maxed=maxed)
 
 @app.route('/cmos_rates_check')
 def cmos_rates_check():
@@ -1073,12 +1076,12 @@ def occupancy_by_trigger_run(run_number):
 
 @app.route('/all_physics_dq')
 def all_physics_dq():
-    limit = request.args.get("limit", 5, type=int)
+    limit = request.args.get("limit", 2, type=int)
     run = request.args.get("run", 0, type=int)
 
-    physics_runs, check_rates_fail, ping_crates_fail = physics_dq.get_run_list(limit, run)
+    physics_runs, check_rates_fail, ping_crates_fail, channel_flags_fail, dqhl_fail = physics_dq.get_run_list(limit, run)
 
-    return render_template('all_physics_dq.html', physics_runs=physics_runs, limit=limit, check_rates_fail=check_rates_fail, ping_crates_fail=ping_crates_fail)
+    return render_template('all_physics_dq.html', physics_runs=physics_runs, limit=limit, check_rates_fail=check_rates_fail, ping_crates_fail=ping_crates_fail, channel_flags_fail=channel_flags_fail, dqhl_fail=dqhl_fail)
 
 @app.route('/physicsdq')
 def physicsdq():
@@ -1118,8 +1121,14 @@ def channelflagsbychannel(run_number):
 
 @app.route('/trigger_clock_jump')
 def trigger_clock_jump():
-    runs = redisdb.runs_after_run('triggerclockjumps_runs_by_number', 0)
-    return render_template('trigger_clock_jump.html', runs=runs)
+    limit = request.args.get("limit", 25, type=int)
+    runs, njump10, njump50 = triggerclockjumpsdb.get_clock_jumps(limit)
+    return render_template('trigger_clock_jump.html', runs=runs, limit=limit, njump10=njump10, njump50=njump50)
+
+@app.route('/trigger_clock_jump_run/<run_number>')
+def trigger_clock_jump_run(run_number):
+    data10, data50 = triggerclockjumpsdb.get_clock_jumps_by_run(run_number)
+    return render_template('trigger_clock_jump_run.html', run_number=run_number, data10=data10, data50=data50)
  
 @app.route('/physicsdq/<run_number>')
 def physicsdq_run_number(run_number):
