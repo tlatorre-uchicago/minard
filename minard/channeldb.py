@@ -3,7 +3,6 @@ from .db import engine
 from .views import app
 import psycopg2
 import psycopg2.extensions
-import detector_state
 
 class ChannelStatusForm(Form):
     """
@@ -314,6 +313,7 @@ def get_all_thresholds(run):
     above zero and some information about channels with
     maxed thresholds.
     """
+    from .detector_state import get_latest_run
 
     message = ""
 
@@ -325,16 +325,16 @@ def get_all_thresholds(run):
 
     if run == 0:
         result = conn.execute("SELECT crate, slot, vthr FROM current_detector_state "
-            "ORDER BY crate, slot")
+                              "ORDER BY crate, slot")
     else:
         result = conn.execute("SELECT crate, slot, vthr FROM detector_state WHERE "
-            "run = %s ORDER BY crate, slot", run)
+                              "run = %s ORDER BY crate, slot", run)
 
     rows = result.fetchall()
 
     if not rows:
         message = "Failure getting vthr information."
-        return 0, 0, 0, message
+        return None, None, None, message
 
     for crate, slot, vthr in rows:
         thr[crate][slot] = vthr
@@ -342,20 +342,19 @@ def get_all_thresholds(run):
     if run == 0:
         run = detector_state.get_latest_run()
 
-    result = conn.execute("SELECT timestamp from run_state where run = %s", run)
-    time = result.fetchone()
-
     # Select the ZDISC information with the timestamp before the requested
     # VTHR information.
     result = conn.execute("SELECT crate, slot, zero_disc FROM zdisc WHERE "
-        "(ecalid <> '')  and timestamp < %s ORDER BY timestamp DESC limit 304", time)
+                          "(ecalid <> '')  and timestamp < (SELECT timestamp FROM "
+                          "run_state WHERE run = %s) ORDER BY timestamp "
+                          "DESC limit 304", (run,))
 
     rows = result.fetchall()
 
     # Result is empty, probably zdisc info didn't exist
     if not rows:
         message = "Failure getting zdisc info, only goes back to run 103216." 
-        return 0, 0, 0, message
+        return None, None, None, message
 
     for crate, slot, zero_disc in rows:
         zero[crate][slot] = zero_disc
@@ -372,7 +371,7 @@ def get_all_thresholds(run):
                 for channel in range(len(thr[crate][slot])):
                     threshold = thr[crate][slot][channel] - zero[crate][slot][channel]
                     lcn = crate*512+slot*32+channel
-                    if thr[crate][slot][channel] != 255:
+                    if thr[crate][slot][channel] <= 254:
                         disc[lcn] = int(threshold)
                         disc_average += int(threshold) 
                     else: 
