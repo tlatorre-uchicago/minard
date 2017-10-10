@@ -248,10 +248,13 @@ def update_channel_status():
         return redirect(url_for('channel_status', crate=form.crate.data, slot=form.slot.data, channel=form.channel.data))
     return render_template('update_channel_status.html', form=form, status=channel_status)
 
-@app.route('/ecal-state-diff')
+@app.route('/ecal_state_diff')
 def ecal_state_diff():
 
     run = request.args.get("run", 0, type=int)
+
+    ecal, detector = detector_state.compare_ecal_to_detector_state(run)
+    import pdb; pdb.set_trace()
 
     return render_template('ecal_state_diff.html', run=run)
 

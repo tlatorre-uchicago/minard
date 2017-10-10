@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 from .views import app
-from .db import engine
+from .db import engine, engine_test
 from .channeldb import get_nominal_settings_for_run, get_pmt_types
 from collections import defaultdict
 from .polling import polling_summary, CHECK_RATES_START_RUN
@@ -151,6 +151,37 @@ def get_alarms(run=0):
     rows = result.fetchall()
 
     return [dict(zip(keys,row)) for row in rows]
+
+def compare_ecal_to_detector_state(run=0):
+
+    conn = engine.connect()
+
+    if(run == 0):
+        run = get_latest_run()
+
+    result = conn.execute("SELECT timestamp FROM run_state WHERE run = %s", run)
+    time = result.fetchone()
+
+    conn_test = engine_test.connect()
+
+    result = conn_test.execute("SELECT DISTINCT ON (crate, slot) * FROM fecdoc WHERE "
+                               "timestamp < %s ORDER BY crate, slot, "
+                               "timestamp DESC ", time)
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    ecal = dict(zip(keys,rows))
+
+    result = conn.execute("SELECT DISTINCT ON (crate, slot) * FROM detector_state WHERE " 
+                          "run = %s ORDER BY crate, slot, timestamp DESC ", run)
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    detector = dict(zip(keys,rows))
+
+    return ecal, detector
 
 def get_detector_state_check(run=0):
     """
