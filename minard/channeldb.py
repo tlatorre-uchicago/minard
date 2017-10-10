@@ -340,7 +340,7 @@ def get_all_thresholds(run):
         thr[crate][slot] = vthr
 
     if run == 0:
-        run = detector_state.get_latest_run()
+        run = get_latest_run()
 
     # Select the ZDISC information with the timestamp before the requested
     # VTHR information.
