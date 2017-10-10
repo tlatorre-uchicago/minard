@@ -400,7 +400,7 @@ def get_maxed_thresholds(run):
     maxed = []
     for crate, slot, vthr in rows:
         for j in range(len(vthr)):
-            if vthr[j] == 255:
+            if vthr[j] >= 254:
                 maxed.append((crate,slot,j))
 
     return maxed
