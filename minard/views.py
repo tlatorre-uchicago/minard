@@ -253,10 +253,9 @@ def ecal_state_diff():
 
     run = request.args.get("run", 0, type=int)
 
-    ecal, detector = detector_state.compare_ecal_to_detector_state(run)
-    import pdb; pdb.set_trace()
+    vthr, mbid, dbid, vbal0, vbal1, isetm, rmp = detector_state.compare_ecal_to_detector_state(run)
 
-    return render_template('ecal_state_diff.html', run=run)
+    return render_template('ecal_state_diff.html', run=run, vthr=vthr, mbid=mbid, dbid=dbid, vbal0=vbal0, vbal1=vbal1, isetm=isetm, rmp=rmp)
 
 @app.route('/detector-state-diff')
 def detector_state_diff():
