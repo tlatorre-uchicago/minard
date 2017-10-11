@@ -18,11 +18,13 @@
                  </tr>
              </thead>
              {% for threshold in maxed %}
-                 <tr>
-                     <th> {{ threshold[0] }} </th>
-                     <th> {{ threshold[1] }} </th>
-                     <th> {{ threshold[2] }} </th>
-                 </tr>
+                 {% if threshold[2] %}
+                     <tr>
+                         <th> {{ threshold[0] }} </th>
+                         <th> {{ threshold[1] }} </th>
+                         <th> {{ threshold[2] }} </th>
+                     </tr>
+                 {% endif %}
              {% endfor %}
          </table>
         </div>

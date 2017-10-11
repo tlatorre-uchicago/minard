@@ -243,6 +243,15 @@ def update_channel_status():
         return redirect(url_for('channel_status', crate=form.crate.data, slot=form.slot.data, channel=form.channel.data))
     return render_template('update_channel_status.html', form=form, status=channel_status)
 
+@app.route('/ecal_state_diff')
+def ecal_state_diff():
+
+    run = request.args.get("run", 0, type=int)
+
+    vthr, mbid, dbid, vbal0, vbal1, isetm, rmp = detector_state.compare_ecal_to_detector_state(run)
+
+    return render_template('ecal_state_diff.html', run=run, vthr=vthr, mbid=mbid, dbid=dbid, vbal0=vbal0, vbal1=vbal1, isetm=isetm, rmp=rmp)
+
 @app.route('/detector-state-diff')
 def detector_state_diff():
     run1 = request.args.get("run1", 100000, type=int)
@@ -1065,7 +1074,7 @@ def pingcrates():
 @app.route('/pingcrates_run/<run_number>')
 def pingcrates_run(run_number):
     return render_template('pingcrates_run.html', run_number=run_number)
- 
+
 @app.route('/physicsdq/<run_number>')
 def physicsdq_run_number(run_number):
     ratdb_dict = HLDQTools.import_HLDQ_ratdb(int(run_number))
