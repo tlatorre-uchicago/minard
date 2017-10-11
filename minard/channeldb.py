@@ -223,6 +223,8 @@ def get_most_recent_polling_info(crate, slot, channel):
     Returns a dictionary of the cmos and base currents check rates polling 
     info for a single channel in the detector, for the most recent check rates.
     """
+    polls = {}
+
     conn = engine.connect()
 
     # Get the run during which cmos check rates was run most recently
@@ -239,7 +241,12 @@ def get_most_recent_polling_info(crate, slot, channel):
 
     keys = result.keys()
     row = result.fetchone()
-    cmos = dict(zip(keys,row))
+
+    if not row:
+        cmos = None
+    else:
+        cmos = dict(zip(keys,row))
+        polls = cmos.copy()
 
     # Get the run during which base check rates was run most recently
     result = conn.execute("SELECT run FROM base ORDER by run DESC limit 1")
@@ -255,12 +262,15 @@ def get_most_recent_polling_info(crate, slot, channel):
 
     keys = result.keys()
     row = result.fetchone()
-    base = dict(zip(keys,row))
 
-    polls = cmos.copy()
-    polls.update(base)
+    if not row:
+        base = None
+    else:
+        base = dict(zip(keys,row))
+        polls.update(base)
 
     return polls
+
 
 def get_discriminator_threshold(crate, slot, channel):
     """
