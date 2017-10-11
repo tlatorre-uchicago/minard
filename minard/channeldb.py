@@ -344,9 +344,10 @@ def get_all_thresholds(run):
 
     # Select the ZDISC information with the timestamp before the requested
     # VTHR information.
-    result = conn.execute("SELECT crate, slot, zero_disc FROM zdisc WHERE "
-                          "(ecalid <> '')  and timestamp < (SELECT timestamp FROM "
-                          "run_state WHERE run = %s) ORDER BY timestamp "
+    result = conn.execute("SELECT DISTINCT ON (crate, slot) crate, slot,  zero_disc "
+                          "FROM zdisc WHERE "
+                          "(ecalid <> '')  AND timestamp < (SELECT timestamp FROM "
+                          "run_state WHERE run = %s) ORDER BY crate, slot, timestamp "
                           "DESC limit 304", (run,))
 
     rows = result.fetchall()
@@ -367,16 +368,17 @@ def get_all_thresholds(run):
     for crate in range(19):
         for slot in range(16):
             # No Vthr information, slot is missing
-            if thr[crate][slot] != 0:
+            if thr[crate][slot] != 0 and zero[crate][slot] != 0:
                 for channel in range(len(thr[crate][slot])):
                     threshold = thr[crate][slot][channel] - zero[crate][slot][channel]
                     lcn = crate*512+slot*32+channel
                     if thr[crate][slot][channel] <= 254:
                         disc[lcn] = int(threshold)
                         disc_average += int(threshold) 
+                        # Only count online, non-maxed channels
+                        online_channels += 1
                     else: 
                         count_max_thresholds += 1
-                    online_channels += 1
 
     disc_average = round(float(disc_average) / online_channels, 3)
 
@@ -398,10 +400,13 @@ def get_maxed_thresholds(run):
     rows = result.fetchall()
 
     maxed = []
+    channels = []
     for crate, slot, vthr in rows:
         for j in range(len(vthr)):
             if vthr[j] >= 254:
-                maxed.append((crate,slot,j))
+                channels.append(j)
+        maxed.append((crate,slot,channels))
+        channels = []
 
     return maxed
 
