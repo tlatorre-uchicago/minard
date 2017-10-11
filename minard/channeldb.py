@@ -313,6 +313,9 @@ def get_all_thresholds(run):
     above zero and some information about channels with
     maxed thresholds.
     """
+    from .detector_state import get_latest_run
+
+    message = ""
 
     conn = engine.connect()
 
@@ -320,32 +323,46 @@ def get_all_thresholds(run):
     thr = [[0 for i in range(16)] for j in range(19)]
     disc = [9999]*9728
 
-    # Select most recent zdisc with ecalid field.
-    result = conn.execute("SELECT crate, slot, zero_disc FROM zdisc WHERE "
-        "(ecalid <> '') ORDER BY timestamp DESC limit 304")
-   
-    if result is None:
-        return None
+    if run == 0:
+        result = conn.execute("SELECT crate, slot, vthr FROM current_detector_state "
+                              "ORDER BY crate, slot")
+    else:
+        result = conn.execute("SELECT crate, slot, vthr FROM detector_state WHERE "
+                              "run = %s ORDER BY crate, slot", run)
 
     rows = result.fetchall()
-    for crate, slot, zero_disc in rows:
-        zero[crate][slot] = zero_disc
 
-    result = conn.execute("SELECT crate, slot, vthr FROM detector_state WHERE "
-        "run = %s ORDER BY crate, slot", run)
+    if not rows:
+        message = "Failure getting vthr information."
+        return None, None, None, message
 
-    if result is None:
-        return None
-
-    rows = result.fetchall()
     for crate, slot, vthr in rows:
         thr[crate][slot] = vthr
+
+    if run == 0:
+        run = get_latest_run()
+
+    # Select the ZDISC information with the timestamp before the requested
+    # VTHR information.
+    result = conn.execute("SELECT crate, slot, zero_disc FROM zdisc WHERE "
+                          "(ecalid <> '')  and timestamp < (SELECT timestamp FROM "
+                          "run_state WHERE run = %s) ORDER BY timestamp "
+                          "DESC limit 304", (run,))
+
+    rows = result.fetchall()
+
+    # Result is empty, probably zdisc info didn't exist
+    if not rows:
+        message = "Failure getting zdisc info, only goes back to run 103216." 
+        return None, None, None, message
+
+    for crate, slot, zero_disc in rows:
+        zero[crate][slot] = zero_disc
 
     disc_average = 0
     lower_disc_average = 0
     online_channels = 0
     count_max_thresholds = 0
-    maxed_thresholds = []
 
     for crate in range(19):
         for slot in range(16):
@@ -354,17 +371,39 @@ def get_all_thresholds(run):
                 for channel in range(len(thr[crate][slot])):
                     threshold = thr[crate][slot][channel] - zero[crate][slot][channel]
                     lcn = crate*512+slot*32+channel
-                    if thr[crate][slot][channel] != 255:
+                    if thr[crate][slot][channel] <= 254:
                         disc[lcn] = int(threshold)
                         disc_average += int(threshold) 
                     else: 
                         count_max_thresholds += 1
-                        maxed_thresholds.append((crate,slot,channel))
                     online_channels += 1
 
     disc_average = round(float(disc_average) / online_channels, 3)
 
-    return disc, disc_average, count_max_thresholds, maxed_thresholds
+    return disc, disc_average, count_max_thresholds, message
+
+def get_maxed_thresholds(run):
+    """
+    Get the crate, card, channels of all maxed discriminator thresholds (255)
+    """
+    conn = engine.connect()
+
+    if run == 0:
+        result = conn.execute("SELECT crate, slot, vthr FROM current_detector_state "
+            "ORDER BY crate, slot")
+    else:
+        result = conn.execute("SELECT crate, slot, vthr FROM detector_state WHERE "
+            "run = %s ORDER BY crate, slot", run)
+
+    rows = result.fetchall()
+
+    maxed = []
+    for crate, slot, vthr in rows:
+        for j in range(len(vthr)):
+            if vthr[j] >= 254:
+                maxed.append((crate,slot,j))
+
+    return maxed
 
 def get_channel_status(crate, slot, channel):
     """

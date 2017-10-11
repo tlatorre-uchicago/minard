@@ -152,6 +152,70 @@ def get_alarms(run=0):
 
     return [dict(zip(keys,row)) for row in rows]
 
+def compare_ecal_to_detector_state(run=0):
+    """
+    Comapre the detector state hardware settings for a run
+    to the ECAL ran most recently before that run
+    """
+
+    conn = engine.connect()
+
+    if(run == 0):
+        run = get_latest_run()
+
+    result = conn.execute("SELECT timestamp FROM run_state WHERE run = %s", run)
+    time = result.fetchone()
+
+    # Only select hardware values that are actually changed by the ECAL
+    result = conn.execute("SELECT DISTINCT ON (crate, slot) crate, slot, vthr, tcmos_isetm, "
+                           "vbal_0, vbal_1, mbid, dbid, tdisc_rmp FROM fecdoc WHERE "
+                           "timestamp < %s ORDER BY crate, slot, "
+                           "timestamp DESC LIMIT 304", time)
+
+    ecal_rows = result.fetchall()
+
+    result = conn.execute("SELECT DISTINCT ON (crate, slot) crate, slot, vthr, tcmos_isetm, "
+                          "vbal_0, vbal_1, mbid, dbid, tdisc_rmp FROM detector_state WHERE "
+                          "run = %s ORDER BY crate, slot, timestamp DESC LIMIT 304", run)
+
+    detector_rows = result.fetchall()
+
+    vthr = []
+    mbid = []
+    dbid = []
+    vbal0 = []
+    vbal1 = []
+    isetm = []
+    rmp = []
+
+    for crate1, slot1, vthr1, isetm1, vbal_01, vbal_11, mbid1, dbid1, rmp1 in ecal_rows:
+        for crate2, slot2, vthr2, isetm2, vbal_02, vbal_12, mbid2, dbid2, rmp2 in detector_rows:
+            if crate1 != crate2 or slot1 != slot2:
+                continue
+            for i in range(32):
+                if vthr1[i] != vthr2[i]:
+                    vthr.append((crate1, slot1, i, vthr1[i], vthr2[i]))
+                if vbal_01[i] != vbal_02[i]:
+                    vbal0.append((crate1, slot1, i, vbal_01[i], vbal_02[i]))
+                if vbal_11[i] != vbal_12[i]:
+                    vbal1.append((crate1, slot1, i, vbal_11[i], vbal_12[i]))
+                if i >= 8:
+                    continue
+                if rmp1[i] != rmp2[i]:
+                    rmp.append((crate1, slot1, i, rmp1[i], rmp2[i]))
+                if i >= 4:
+                    continue
+                if dbid1[i] != dbid2[i]:
+                    dbid.append((crate1, slot1, i, hex(int(dbid1[i])), hex(int(dbid2[i]))))
+                if i >= 2:
+                    continue
+                if isetm1[i] != isetm2[i]:
+                    isetm.append((crate1, slot1, i, isetm1[i], isetm2[i]))
+            if mbid1 != mbid2:
+                mbid.append((crate1, slot1, hex(int(mbid1)), hex(int(mbid2))))
+
+    return vthr, mbid, dbid, vbal0, vbal1, isetm, rmp
+
 def get_detector_state_check(run=0):
     """
     Checks the detector state for a given run to see if there are any unknown
