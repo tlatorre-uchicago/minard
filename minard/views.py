@@ -1079,9 +1079,9 @@ def occupancy_by_trigger():
 def occupancy_by_trigger_run(run_number):
 
     # Fixme testing
-    occupancy.check_occupancy(6, 0)
+    issues = occupancy.check_occupancy(6, 0)
 
-    return render_template('occupancy_by_trigger_run.html', run_number=run_number)
+    return render_template('occupancy_by_trigger_run.html', run_number=run_number, issues=issues)
 
 @app.route('/all_physics_dq')
 def all_physics_dq():

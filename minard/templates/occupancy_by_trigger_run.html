@@ -16,7 +16,30 @@
 </div>
 
 <div class="container">
-
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th> Crate </th>
+        <th> Slot </th>
+        <th> Issue </th>
+      </tr>
+    </thead>
+    {% if issues %}
+      {% for i in issues %}
+        <tr class="danger">
+          <th> {{i[0]}} </th>
+          <th> {{i[1]}} </th>
+          <th> ESUM Occupancy </th>
+       </tr>
+     {% endfor %}
+     {% else %}
+       <tr class="success">
+         <th> - </th>
+         <th> - </th>
+         <th> None </th>
+       </tr>
+    {% endif %} 
+  </table>
 
     <div class="panel-group">
         <div class="panel panel-default-test">

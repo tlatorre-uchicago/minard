@@ -244,11 +244,19 @@
                 <table class="table table-bordered">
                     <tr>
                         <th>CMOS Rate</th>
-                        <td>{{ polling_info['cmos_rate'] }}</td>
+                        {% if polling_info['cmos_rate'] %}
+                          <td>{{ polling_info['cmos_rate'] }}</td>
+                        {% else %}
+                          <td> None </td>
+                        {% endif %}
                     </tr>
                     <tr>
                         <th>Base Current</th>
-                        <td>{{ polling_info['base_current'] }}</td>
+                        {% if polling_info['base_current'] %}
+                          <td>{{ polling_info['base_current'] }}</td>
+                        {% else %}
+                          <td> None </td>
+                        {% endif %}
                     </tr>
                 </table>
                 {% endif %}

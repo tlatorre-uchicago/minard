@@ -54,9 +54,13 @@ def check_occupancy(trigger_type, run):
 
         slot_average[lcn] += data[i]
 
+    issues = []
     for i in range(304):
         crate = i/16
         slot = i%16
         if channel_count[i] != 0 and slot_average[i]/(channel_count[i]*norm_by_trigger) < 2e-5:
-                print i, crate, slot, slot_average[i], channel_count[i], slot_average[i]/(channel_count[i]*norm_by_trigger)
+            print i, crate, slot, slot_average[i], channel_count[i], slot_average[i]/(channel_count[i]*norm_by_trigger)
+            issues.append((crate, slot))
 
+    return issues
+                
