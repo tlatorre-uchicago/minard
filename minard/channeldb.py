@@ -400,13 +400,12 @@ def get_maxed_thresholds(run):
     rows = result.fetchall()
 
     maxed = []
-    channels = []
     for crate, slot, vthr in rows:
+        channels = []
         for j in range(len(vthr)):
             if vthr[j] >= 254:
                 channels.append(j)
         maxed.append((crate,slot,channels))
-        channels = []
 
     return maxed
 
