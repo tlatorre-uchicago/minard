@@ -247,8 +247,10 @@ def update_channel_status():
 def ecal_state_diff():
 
     run = request.args.get("run", 0, type=int)
+    crate = request.args.get("crate", -1, type=int)
+    slot = request.args.get("slot", -1, type=int)
 
-    vthr, mbid, dbid, vbal0, vbal1, isetm, rmp = detector_state.compare_ecal_to_detector_state(run)
+    vthr, mbid, dbid, vbal0, vbal1, isetm, rmp = detector_state.compare_ecal_to_detector_state(run, crate, slot)
 
     return render_template('ecal_state_diff.html', run=run, vthr=vthr, mbid=mbid, dbid=dbid, vbal0=vbal0, vbal1=vbal1, isetm=isetm, rmp=rmp)
 

@@ -17,12 +17,58 @@ h1 {
     {{ super() }}
 
 <div class="container">
-  
+  <table class="table table-hover">
+    <tr class="info"> <th> Compare ECAL setting to the hardware settings for a given run/crate/slot. Select a run larger than 105827 and run = 0 for the current state. </th> </tr>
+  </table>
   <div class="row">
-
-    <h1> Compare ECAL to run: </h1>
-    <input align="center" style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{run}} onKeyDown="if(event.keyCode==13) get_run(this.value);"></input>
-
+    <div class="col-md-8 col-md-offset-2">
+      <h1> Compare ECAL to run: </h1>
+      <input align="center" style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{run}} onKeyDown="if(event.keyCode==13) update(this.value, crate.value, slot.value);"></input>
+      <label for="crate">Crate</label>
+      <select id="crate" onchange="update(run.value, this.value, slot.value);">
+          <option value="-1">-</option>
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+          <option value="13">13</option>
+          <option value="14">14</option>
+          <option value="15">15</option>
+          <option value="16">16</option>
+          <option value="17">17</option>
+          <option value="18">18</option>
+          <option value="19">19</option>
+      </select>
+      <label for="slot">Card</label>
+      <select id="slot" onchange="update(run.value, crate.value, this.value);">
+          <option value="-1">-</option>
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+          <option value="13">13</option>
+          <option value="14">14</option>
+          <option value="15">15</option>
+      </select>
+    </div>
   </div>
 
   <div class="row">
@@ -322,3 +368,23 @@ h1 {
   </div>
 </div>
 {% endblock %}
+{% block script %}
+  <script>
+    if (url_params.crate) {
+      document.getElementById("crate").value = url_params.crate;
+    }
+    if (url_params.slot) {
+      document.getElementById("slot").value = url_params.slot;
+    }
+
+    function update(run, crate, slot){
+      params = {};
+      params["run"] = run;
+      params["crate"] = crate;
+      params["slot"] = slot;
+      window.location.replace($SCRIPT_ROOT + "/ecal_state_diff?" + $.param(params));
+    }
+
+  </script>
+{% endblock %}
+
