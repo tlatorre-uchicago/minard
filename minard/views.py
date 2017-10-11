@@ -245,7 +245,6 @@ def update_channel_status():
 
 @app.route('/ecal_state_diff')
 def ecal_state_diff():
-
     run = request.args.get("run", 0, type=int)
     crate = request.args.get("crate", -1, type=int)
     slot = request.args.get("slot", -1, type=int)

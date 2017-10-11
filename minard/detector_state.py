@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 from .views import app
 from .db import engine
-from .channeldb import get_nominal_settings_for_run, get_pmt_types
+from .channeldb import get_nominal_settings_for_run
 from collections import defaultdict
 from .polling import polling_summary, CHECK_RATES_START_RUN
 
@@ -157,11 +157,11 @@ def compare_ecal_to_detector_state(run, crate, slot):
     Comapre the detector state hardware settings for a run
     to the ECAL ran most recently before that run. Allows
     user to select crate and slot as well.
+    Returns lists with differences between the states.
     """
-
     conn = engine.connect()
 
-    if(run == 0):
+    if run == 0:
         run = get_latest_run()
 
     # Only select hardware values that are actually changed by the ECAL
