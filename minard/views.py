@@ -245,7 +245,6 @@ def update_channel_status():
 
 @app.route('/ecal_state_diff')
 def ecal_state_diff():
-
     run = request.args.get("run", 0, type=int)
 
     vthr, mbid, dbid, vbal0, vbal1, isetm, rmp = detector_state.compare_ecal_to_detector_state(run)
