@@ -18,6 +18,7 @@ import os
 import sys
 import random
 import detector_state
+import orca
 import nlrat
 import pingcratesdb
 import redisdb
@@ -355,6 +356,19 @@ def l2():
     if not request.args.get('step') or not request.args.get('height'):
         return redirect(url_for('l2',step=step,height=height,_external=True))
     return render_template('l2.html',step=step,height=height)
+
+@app.route('/orca-session-logs')
+def orca_session_logs():
+    limit = request.args.get("limit", 10, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    if offset < 0:
+        offset = 0
+    results = orca.get_orca_session_logs(limit, offset)
+
+    if results is None:
+	return render_template('orca_session_logs.html', error="No orca session logs.")
+
+    return render_template('orca_session_logs.html', results=results, limit=limit, offset=offset)
 
 @app.route('/nhit-monitor-thresholds')
 def nhit_monitor_thresholds():
