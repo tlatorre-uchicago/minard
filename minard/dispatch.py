@@ -209,6 +209,8 @@ def pull():
             cache_pmt[id] += 1
 
             if pmt.CrateID == 17 and pmt.BoardID == 15:
+                if pmt.ChannelID == 4:
+                    cache['trig:fecd']['N16'] += 1
                 if pmt.ChannelID == 17:
                     cache['trig:fecd']['20LB'] += 1
                 elif pmt.ChannelID == 19:

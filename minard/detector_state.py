@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 from .views import app
-from .db import engine, engine_test
-from .channeldb import get_nominal_settings_for_run, get_pmt_types
+from .db import engine
+from .channeldb import get_nominal_settings_for_run
 from collections import defaultdict
 from .polling import polling_summary, CHECK_RATES_START_RUN
 
@@ -152,28 +152,29 @@ def get_alarms(run=0):
 
     return [dict(zip(keys,row)) for row in rows]
 
-def compare_ecal_to_detector_state(run=0):
-
+def compare_ecal_to_detector_state(run, crate, slot):
+    """
+    Comapre the detector state hardware settings for a run
+    to the ECAL ran most recently before that run. Allows
+    user to select crate and slot as well.
+    Returns lists with differences between the states.
+    """
     conn = engine.connect()
 
-    if(run == 0):
+    if run == 0:
         run = get_latest_run()
 
-    result = conn.execute("SELECT timestamp FROM run_state WHERE run = %s", run)
-    time = result.fetchone()
-
-    conn_test = engine_test.connect()
-
     # Only select hardware values that are actually changed by the ECAL
-    result = conn_test.execute("SELECT DISTINCT ON (crate, slot) crate, slot, vthr, tcmos_isetm, "
-                               "vbal_0, vbal_1, mbid, dbid, tdisc_rmp FROM fecdoc WHERE "
-                               "timestamp < %s ORDER BY crate, slot, "
-                               "timestamp DESC LIMIT 304", time)
+    result = conn.execute("SELECT DISTINCT ON (crate, slot) crate, slot, vthr, tcmos_isetm, "
+                           "vbal_0, vbal_1, mbid, dbid, tdisc_rmp FROM fecdoc WHERE "
+                           "timestamp < (SELECT timestamp FROM "
+                           "run_state WHERE run = %s) ORDER BY crate, slot, "
+                           "timestamp DESC LIMIT 304", run)
 
     ecal_rows = result.fetchall()
 
     result = conn.execute("SELECT DISTINCT ON (crate, slot) crate, slot, vthr, tcmos_isetm, "
-                          "vbal_0, vbal_1, mbid, dbid, tdisc_rmp FROM detector_state WHERE " 
+                          "vbal_0, vbal_1, mbid, dbid, tdisc_rmp FROM detector_state WHERE "
                           "run = %s ORDER BY crate, slot, timestamp DESC LIMIT 304", run)
 
     detector_rows = result.fetchall()
@@ -185,9 +186,14 @@ def compare_ecal_to_detector_state(run=0):
     vbal1 = []
     isetm = []
     rmp = []
+
     for crate1, slot1, vthr1, isetm1, vbal_01, vbal_11, mbid1, dbid1, rmp1 in ecal_rows:
         for crate2, slot2, vthr2, isetm2, vbal_02, vbal_12, mbid2, dbid2, rmp2 in detector_rows:
             if crate1 != crate2 or slot1 != slot2:
+                continue
+            if crate != -1 and crate != crate1: 
+                continue
+            if slot != -1 and slot != slot1:
                 continue
             for i in range(32):
                 if vthr1[i] != vthr2[i]:

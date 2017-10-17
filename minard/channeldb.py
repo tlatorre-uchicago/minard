@@ -3,7 +3,6 @@ from .db import engine
 from .views import app
 import psycopg2
 import psycopg2.extensions
-import detector_state
 
 class ChannelStatusForm(Form):
     """
@@ -228,14 +227,10 @@ def get_most_recent_polling_info(crate, slot, channel):
 
     conn = engine.connect()
 
-    # Get the run during which cmos check rates was run most recently
-    result = conn.execute("SELECT run FROM cmos ORDER by run DESC limit 1")
-    cmos_run = result.fetchone()
-    for run in cmos_run:
-        run_ = run
-
-    result = conn.execute("SELECT * FROM cmos WHERE run = %s and crate = %s "
-        "AND slot = %s AND channel = %s", (run_, crate, slot, channel))
+    # Get the latest cmos rates
+    result = conn.execute("SELECT * FROM cmos WHERE crate = %s "
+        "AND slot = %s AND channel = %s ORDER BY run DESC LIMIT 1",
+        (crate, slot, channel))
 
     if result is None:
         return None, None
@@ -243,30 +238,22 @@ def get_most_recent_polling_info(crate, slot, channel):
     keys = result.keys()
     row = result.fetchone()
 
-    if not row:
-        cmos = None
-    else:
+    if row:
         cmos = dict(zip(keys,row))
-        polls = cmos.copy()
+        polls.update(cmos)
 
-    # Get the run during which base check rates was run most recently
-    result = conn.execute("SELECT run FROM base ORDER by run DESC limit 1")
-    base_run = result.fetchone()
-    for run in base_run:
-        run_ = run
-
-    result = conn.execute("SELECT * FROM base WHERE run = %s and crate = %s "
-        "AND slot = %s AND channel = %s", (run_, crate, slot, channel))
+    # Get the latest base currents
+    result = conn.execute("SELECT * FROM base WHERE crate = %s "
+        "AND slot = %s AND channel = %s ORDER BY run DESC LIMIT 1",
+        (crate, slot, channel))
 
     if result is None:
         return None, None
 
     keys = result.keys()
     row = result.fetchone()
- 
-    if not row:
-        base = None
-    else:
+
+    if row:
         base = dict(zip(keys,row))
         polls.update(base)
 
@@ -274,17 +261,16 @@ def get_most_recent_polling_info(crate, slot, channel):
 
 def get_discriminator_threshold(crate, slot, channel):
     """
-    Get the current discriminator threshold for a specified 
-    crate, card, and channel. Returns a disctionary of the 
-    discriminator threshold and zero threshold.
+    Get the current discriminator threshold for a specified crate, card, and
+    channel. Returns a dictionary of the discriminator threshold and zero
+    threshold.
     """
-
     conn = engine.connect()
 
     # Select most recent zdisc with ecalid field
     result = conn.execute("SELECT zero_disc FROM zdisc WHERE "
-        "(ecalid <> '') and crate = %s and slot = %s "
-        "ORDER BY timestamp DESC limit 1", (crate, slot))
+        "(ecalid <> '') AND crate = %s AND slot = %s "
+        "ORDER BY timestamp DESC LIMIT 1", (crate, slot))
 
     if result is None:
         return None
@@ -299,7 +285,8 @@ def get_discriminator_threshold(crate, slot, channel):
 
     # Get the current discriminator threshold
     result = conn.execute("SELECT vthr FROM current_detector_state WHERE "
-        "crate = %s and slot = %s", (crate, slot))
+        "crate = %s AND slot = %s", (crate, slot))
+
     if result is None:
         return None
 
@@ -318,11 +305,12 @@ def get_discriminator_threshold(crate, slot, channel):
 
 def get_all_thresholds(run):
     """
-    Get the discriminator threshold and zero threshold
-    for the entire detector. Return a list of thresholds
-    above zero and some information about channels with
-    maxed thresholds.
+    Get the discriminator threshold and zero threshold for the entire detector.
+    Returns a list of thresholds above zero and some information about channels
+    with maxed thresholds.
     """
+    # hack to avoid circular imports
+    from .detector_state import get_latest_run
 
     message = ""
 
@@ -334,37 +322,37 @@ def get_all_thresholds(run):
 
     if run == 0:
         result = conn.execute("SELECT crate, slot, vthr FROM current_detector_state "
-            "ORDER BY crate, slot")
+                              "ORDER BY crate, slot")
     else:
         result = conn.execute("SELECT crate, slot, vthr FROM detector_state WHERE "
-            "run = %s ORDER BY crate, slot", run)
+                              "run = %s ORDER BY crate, slot", run)
 
     rows = result.fetchall()
 
     if not rows:
         message = "Failure getting vthr information."
-        return 0, 0, 0, message
+        return None, None, None, message
 
     for crate, slot, vthr in rows:
         thr[crate][slot] = vthr
 
     if run == 0:
-        run = detector_state.get_latest_run()
-
-    result = conn.execute("SELECT timestamp from run_state where run = %s", run)
-    time = result.fetchone()
+        run = get_latest_run()
 
     # Select the ZDISC information with the timestamp before the requested
     # VTHR information.
-    result = conn.execute("SELECT crate, slot, zero_disc FROM zdisc WHERE "
-        "(ecalid <> '')  and timestamp < %s ORDER BY timestamp DESC limit 304", time)
+    result = conn.execute("SELECT DISTINCT ON (crate, slot) crate, slot, zero_disc "
+                          "FROM zdisc WHERE "
+                          "(ecalid <> '')  AND timestamp < (SELECT timestamp FROM "
+                          "run_state WHERE run = %s) ORDER BY crate, slot, timestamp "
+                          "DESC LIMIT 304", (run,))
 
     rows = result.fetchall()
 
     # Result is empty, probably zdisc info didn't exist
     if not rows:
         message = "Failure getting zdisc info, only goes back to run 103216." 
-        return 0, 0, 0, message
+        return None, None, None, message
 
     for crate, slot, zero_disc in rows:
         zero[crate][slot] = zero_disc
@@ -377,16 +365,17 @@ def get_all_thresholds(run):
     for crate in range(19):
         for slot in range(16):
             # No Vthr information, slot is missing
-            if thr[crate][slot] != 0:
+            if thr[crate][slot] != 0 and zero[crate][slot] != 0:
                 for channel in range(len(thr[crate][slot])):
                     threshold = thr[crate][slot][channel] - zero[crate][slot][channel]
                     lcn = crate*512+slot*32+channel
-                    if thr[crate][slot][channel] != 255:
+                    if thr[crate][slot][channel] <= 254:
                         disc[lcn] = int(threshold)
                         disc_average += int(threshold) 
+                        # Only count online, non-maxed channels
+                        online_channels += 1
                     else: 
                         count_max_thresholds += 1
-                    online_channels += 1
 
     disc_average = round(float(disc_average) / online_channels, 3)
 
@@ -394,7 +383,9 @@ def get_all_thresholds(run):
 
 def get_maxed_thresholds(run):
     """
-    Get the crate, card, channels of all maxed discriminator thresholds (255)
+    Get the crate, card, channels of all discriminator thresholds >= 254.
+
+    Returns a list of the form [(crate, slot, [channels]), ...].
     """
     conn = engine.connect()
 
@@ -409,9 +400,11 @@ def get_maxed_thresholds(run):
 
     maxed = []
     for crate, slot, vthr in rows:
+        channels = []
         for j in range(len(vthr)):
-            if vthr[j] == 255:
-                maxed.append((crate,slot,j))
+            if vthr[j] >= 254:
+                channels.append(j)
+        maxed.append((crate,slot,channels))
 
     return maxed
 

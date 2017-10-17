@@ -19,6 +19,7 @@ import os
 import sys
 import random
 import detector_state
+import orca
 import nlrat
 import physics_dq
 import pingcratesdb
@@ -250,10 +251,11 @@ def update_channel_status():
 
 @app.route('/ecal_state_diff')
 def ecal_state_diff():
-
     run = request.args.get("run", 0, type=int)
+    crate = request.args.get("crate", -1, type=int)
+    slot = request.args.get("slot", -1, type=int)
 
-    vthr, mbid, dbid, vbal0, vbal1, isetm, rmp = detector_state.compare_ecal_to_detector_state(run)
+    vthr, mbid, dbid, vbal0, vbal1, isetm, rmp = detector_state.compare_ecal_to_detector_state(run, crate, slot)
 
     return render_template('ecal_state_diff.html', run=run, vthr=vthr, mbid=mbid, dbid=dbid, vbal0=vbal0, vbal1=vbal1, isetm=isetm, rmp=rmp)
 
@@ -359,6 +361,19 @@ def l2():
     if not request.args.get('step') or not request.args.get('height'):
         return redirect(url_for('l2',step=step,height=height,_external=True))
     return render_template('l2.html',step=step,height=height)
+
+@app.route('/orca-session-logs')
+def orca_session_logs():
+    limit = request.args.get("limit", 10, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    if offset < 0:
+        offset = 0
+    results = orca.get_orca_session_logs(limit, offset)
+
+    if results is None:
+	return render_template('orca_session_logs.html', error="No orca session logs.")
+
+    return render_template('orca_session_logs.html', results=results, limit=limit, offset=offset)
 
 @app.route('/nhit-monitor-thresholds')
 def nhit_monitor_thresholds():
