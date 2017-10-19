@@ -82,11 +82,12 @@
                         <li class='dropdown'>
 			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Nearline Monitoring <b class='caret'></b></a>
                             <ul class='dropdown-menu'>
+                                {{ nav_link('nearline_monitoring_summary', 'Summary') }}
                                 {{ nav_link('pingcrates', 'Ping Crates') }}  
-                                {{ nav_link('check_rates_summary', 'Check Rates Summary') }}
                                 {{ nav_link('occupancy_by_trigger', 'Occupancy by Trigger') }}
                                 {{ nav_link('channelflags', 'Channel Flags') }}  
                                 {{ nav_link('trigger_clock_jump', 'Trigger Clock Jumps') }}
+                                {{ nav_link('check_rates_summary', 'Check Rates Summary') }}
                                 {{ nav_link('rathome', 'RAT') }}
                             </ul>
                         <!-- Dropdown PMTcal -->
@@ -101,10 +102,9 @@
                         <li class='dropdown'>
                             <a href='#' class='dropdown-toggle' data-toggle='dropdown'>Data Quality <b class='caret'></b></a>
                             <ul class='dropdown-menu'>
-                                {{ nav_link('all_physics_dq', 'Physics DQ') }}
+                                {{ nav_link('physicsdq', 'Physics DQ') }}
                                 {{ nav_link('calibdq_tellie', 'TELLIE  DQ') }}
                                 {{ nav_link('calibdq_smellie', 'SMELLIE DQ') }}
-                                {{ nav_link('physicsdq', 'DQHL') }}
                           </ul>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">

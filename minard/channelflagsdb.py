@@ -35,14 +35,16 @@ def get_channel_flags(limit):
         count_sync24[run] = 0
         count_missed[run] = 0
 
-    result = conn.execute("SELECT DISTINCT ON (crate, slot, channel, run) run, "
+    result = conn.execute("SELECT DISTINCT ON (crate, slot, channel, run) run, crate, "
                           "cmos_sync16, cgt_sync24, missed_count FROM channel_flags "
                           "WHERE run > %i ORDER BY crate, slot, channel, run DESC, timestamp DESC" \
                           % int(current_run - limit))
 
     rows = result.fetchall()
 
-    for run, cmos_sync16, cgt_sync24, missed_count in rows:
+    for run, crate, cmos_sync16, cgt_sync24, missed_count in rows:
+        if crate == -1:
+            continue
         if cmos_sync16 != 0:
             count_sync16[run] += 1
         if cgt_sync24 != 0:
@@ -74,6 +76,8 @@ def get_channel_flags_by_run(run):
     list_missed = []
 
     for crate, slot, channel, sync16, sync24, missed in rows:
+        if crate == -1:
+            continue
         if missed != 0:
             list_missed.append((crate, slot, channel, missed))
         if sync16 != 0:

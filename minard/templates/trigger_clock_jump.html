@@ -26,16 +26,30 @@
         <th> # of 10MHz Clock Jumps </th>
         <th> # of 50MHz Clock Jumps </th>
       </tr>
-    {% for run in runs %}
-        <th> <a href="{{ url_for("trigger_clock_jump_run",run_number=run)}}">{{run}}</a></th>
-        <th> {{njump10[run]}} </th>
-        <th> {{njump50[run]}} </th>
-      </tr>
+    {% for run in all_runs %}
+      {% if runs[run] %}
+        {% if (njump10[run] + njump50[run]) > 20 %}
+          <tr class="danger">
+        {% elif (njump10[run] + njump50[run]) > 0 %}
+          <tr class="warning">
+        {% else %}
+          <tr class="info">
+        {% endif %}
+          <th> <a href="{{ url_for("trigger_clock_jump_run",run_number=run)}}">{{run}}</a></th>
+          <th> {{njump10[run]}} </th>
+          <th> {{njump50[run]}} </th>
+        </tr>
+      {% else %}
+        <tr class="info">
+          <th> {{run}} </th>
+          <th> 0 </th>
+          <th> 0 </th>
+        </tr>
+      {% endif %}
     {% endfor %}
     </thead>
   </table>
 </div>
-
 {% endblock %}
 {% block script %}
   <script>

@@ -1,40 +1,56 @@
-from .db import engine
-from polling import relay_status, channel_information, pmt_type, check_hv_status
-import json
+from .db import engine_test
+from .detector_state import get_latest_run
 
-def occupancy_by_trigger(trigger_type, run):
+def occupancy_by_trigger(trigger_type, run, find_issues):
 
-    datafile = open("/home/tannerbk/minard/fake_data/OccupancyByTrigger.ratdb")
+    conn = engine_test.connect()
 
-    data = json.load(datafile)
+    result = conn.execute("SELECT DISTINCT ON (run, crate, slot, channel, trigger_bit) "
+                          "crate, slot, channel, trigger_norm, occupancy "
+                          "FROM trigger_occupancy WHERE trigger_bit = %s AND run = %s "
+                          "ORDER BY run, crate, slot, channel, trigger_bit ", \
+                          (trigger_type, run))
 
-    norm_str = 'trigger_norm_' + str(trigger_type)
-    type_str = 'trigger_' + str(trigger_type)
+    rows = result.fetchall()
 
-    norm_by_trigger = data[norm_str]
-    data_by_trigger = data[type_str]
+    data = [0]*9728
+    trigger_norm = 0
+    for crate, slot, channel, norm, occupancy in rows:
+        lcn = crate*512 + slot*32 + channel
+        trigger_norm = norm
+        data[lcn] = occupancy
 
-    if norm_by_trigger == 0:
-        data_by_trigger = [0.0]*9728
-        return data_by_trigger
+    if trigger_norm == 0:
+        data = [0]*9728
+        return data
 
-    data_by_trigger = [float(x) / norm_by_trigger for x in data_by_trigger]
+    data = [float(x) / trigger_norm for x in data]
 
-    return data_by_trigger
+    if find_issues:
+        issues = check_occupancy(trigger_type, data, norm)
+        return issues
 
-def check_occupancy(trigger_type, run):
+    return data
 
-    conn = engine.connect()
 
-    datafile = open("/home/tannerbk/minard/fake_data/OccupancyByTrigger.ratdb")
+def run_list(limit):
 
-    data1 = json.load(datafile)
+    conn = engine_test.connect()
 
-    type_str = 'trigger_' + str(trigger_type)
-    norm_str = 'trigger_norm_' + str(trigger_type)
+    current_run = get_latest_run()
 
-    norm_by_trigger = data1[norm_str]
-    data = data1[type_str]
+    result = conn.execute("SELECT DISTINCT ON (run) run FROM trigger_occupancy "
+                          "WHERE run > %s ORDER BY run DESC", (current_run - limit))
+
+    rows = result.fetchall()
+    runs = []
+    for run in rows:
+        runs.append(run[0])
+
+    return runs
+
+
+def check_occupancy(trigger_type, data, norm):
 
     # Fixme do slot average
     slot_average = [0.0]*304
@@ -44,11 +60,9 @@ def check_occupancy(trigger_type, run):
 
         crate = i/512
         card = (i%512)/32
-        channel = (i%512)%32
-
         lcn = card + 16*crate
 
-        if data[i] == -1:
+        if data[i] < 0:
             channel_count[lcn] -= 1
             continue
 
@@ -58,9 +72,9 @@ def check_occupancy(trigger_type, run):
     for i in range(304):
         crate = i/16
         slot = i%16
-        if channel_count[i] != 0 and slot_average[i]/(channel_count[i]*norm_by_trigger) < 2e-5:
-            print i, crate, slot, slot_average[i], channel_count[i], slot_average[i]/(channel_count[i]*norm_by_trigger)
+        if channel_count[i] != 0 and slot_average[i]/(channel_count[i]) < 4e-5:
+            print i, crate, slot, slot_average[i], channel_count[i], slot_average[i]/(channel_count[i])
             issues.append((crate, slot))
 
     return issues
-                
+

@@ -4,7 +4,7 @@ from polling import overall_status
 import HLDQTools
 from pingcratesdb import ping_crates_list
 from channelflagsdb import get_channel_flags
-
+from triggerclockjumpsdb import get_clock_jumps
 
 def get_run_list(limit, selected_run):
 
@@ -56,26 +56,7 @@ def get_run_list(limit, selected_run):
     # THIS IS SO SLOW, because it requires so many PSQL queries
     # check_rates_fail = overall_status(physics_runs)
 
-    # This is SOOOO SLOW, because it uses COUCH
-    dqhl_fail = {}
-    run_info = []
-    for i in range(len(physics_runs)):
-        run = int(physics_runs[i])
-        fail = 0
-        try:
-            run_info.append(HLDQTools.import_HLDQ_ratdb(run))
-            check_types = HLDQTools.generateHLDQProcStatus(run_info[i])
-            for j in check_types:
-                if not fail:
-                    dqhl_fail[run] = 0
-                if not check_types[j]:
-                    fail = 1
-                    dqhl_fail[run] = 1
-        except Exception as e:
-            dqhl_fail[run] = -1
-            continue
-
-    return physics_runs, check_rates_fail, ping_crates_fail, channel_flags_fail, dqhl_fail
+    return physics_runs, check_rates_fail, ping_crates_fail, channel_flags_fail
 
 
 def ping_failures(ping_list):

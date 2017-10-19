@@ -15,6 +15,22 @@ def get_latest_run():
 
     return result.fetchone()[0]
 
+def get_runs_with_run_type(run, run_type):
+    """
+    Returns a list all runs with a certain run type with a given run limit
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT run from run_state where run > %s and (run_type & %s = %s) ", \
+                          (run, run_type, run_type))
+
+    rows = result.fetchall()
+    runs_with_runtype = []
+    for run in rows:
+        runs_with_runtype.append(int(run[0]))
+
+    return runs_with_runtype
+
 def get_mtc_state_for_run(run=0):
     """
     Returns a dictionary of the mtc settings for a given run. If there is no

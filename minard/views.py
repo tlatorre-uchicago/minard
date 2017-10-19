@@ -21,7 +21,7 @@ import random
 import detector_state
 import orca
 import nlrat
-import physics_dq
+import nearline_monitor
 import pingcratesdb
 import triggerclockjumpsdb
 import redisdb
@@ -418,7 +418,7 @@ def nearline_summary():
     jobs = request.args.get("jobs", "All", type=str)
     limit = request.args.get("limit", 100, type=int)
     mode = request.args.get("mode", 0, type=int)
-    nearline_run = request.args.get("run", 0, type=int)
+    runtype = request.args.get("runtype", -1, type=int)
     run = int(redis.get('nearline:current_run'))
     detector_run = detector_state.get_latest_run()
     if run != detector_run - 1:
@@ -429,7 +429,9 @@ def nearline_summary():
     jobtypes = nearline_settings.jobTypes
     failmodes = nearline_settings.failModes
     index = failmodes.keys()
-    
+    runTypes = nlrat.RUN_TYPES
+    runTypes[-1] = "All"
+ 
     # Check if any jobs were not launched
     program_check = []
     not_launched = []
@@ -442,7 +444,16 @@ def nearline_summary():
     if nearline_run != 0:
         limit = run - nearline_run
 
+    run_list = [x for x in range(run-limit, run)]
+    if runtype == -1:
+        selectedType = "All"
+    else:
+        selectedType = runTypes[runtype]
+        run_list = detector_state.get_runs_with_run_type(run - limit, (1<<runtype))
+
     for previous_run in range(limit):
+        if run - previous_run not in run_list:
+            continue
         old_programs = redis.hgetall('nearline:%i' % (run - previous_run))
         for program, status in old_programs.iteritems():
             program_check.append(program)
@@ -458,7 +469,7 @@ def nearline_summary():
             if jobtypes[i] not in program_check and jobtypes[i] != "All":
                 not_launched.append((jobtypes[i], run-previous_run)) 
 
-    return render_template('nearline_summary.html', run=run, failures=failures, all_failures=all_failures, warning=warning, jobs=jobs, jobtypes=jobtypes, mode=mode, failmodes=failmodes, index=index, not_launched=not_launched, limit=limit, nearline_run=nearline_run)
+    return render_template('nearline_summary.html', run=run, failures=failures, all_failures=all_failures, warning=warning, jobs=jobs, jobtypes=jobtypes, mode=mode, failmodes=failmodes, index=index, not_launched=not_launched, limit=limit, nearline_run=nearline_run, runTypes=runTypes, selectedType=selectedType, runtype=runtype)
 
 @app.route('/get_l2')
 def get_l2():
@@ -684,7 +695,7 @@ def query_occupancy():
     trigger_type = request.args.get('type',0,type=int)
     run = request.args.get('run',0,type=int)
 
-    values = occupancy.occupancy_by_trigger(trigger_type, run)
+    values = occupancy.occupancy_by_trigger(trigger_type, run, False)
 
     return jsonify(values=values)
 
@@ -1083,29 +1094,31 @@ def noise_run_detail(run_number):
 def occupancy_by_trigger():
     limit = request.args.get("limit", 25, type=int)
 
-    run = detector_state.get_latest_run()
-    run_list = []
-    for run in range(run-limit, run+1):
-        run_list.append(run)
+    runs = occupancy.run_list(limit)
 
-    return render_template('occupancy_by_trigger.html', run_list=run_list, limit=limit)
+    count_issues = {}
+    for run in runs:
+        issues = occupancy.occupancy_by_trigger(6, run, True)
+        count_issues[run] = len(issues)
+
+    return render_template('occupancy_by_trigger.html', runs=runs, limit=limit, count_issues=count_issues)
 
 @app.route('/occupancy_by_trigger_run/<run_number>')
 def occupancy_by_trigger_run(run_number):
 
-    # Fixme testing
-    issues = occupancy.check_occupancy(6, 0)
+    print ("TESTING")
+    issues = occupancy.occupancy_by_trigger(6, run_number, True)
 
     return render_template('occupancy_by_trigger_run.html', run_number=run_number, issues=issues)
 
-@app.route('/all_physics_dq')
-def all_physics_dq():
+@app.route('/nearline_monitoring_summary')
+def nearline_monitoring_summary():
     limit = request.args.get("limit", 2, type=int)
     run = request.args.get("run", 0, type=int)
 
-    physics_runs, check_rates_fail, ping_crates_fail, channel_flags_fail, dqhl_fail = physics_dq.get_run_list(limit, run)
+    physics_runs, check_rates_fail, ping_crates_fail, channel_flags_fail = nearline_monitor.get_run_list(limit, run)
 
-    return render_template('all_physics_dq.html', physics_runs=physics_runs, limit=limit, check_rates_fail=check_rates_fail, ping_crates_fail=ping_crates_fail, channel_flags_fail=channel_flags_fail, dqhl_fail=dqhl_fail)
+    return render_template('nearline_monitoring_summary.html', physics_runs=physics_runs, limit=limit, check_rates_fail=check_rates_fail, ping_crates_fail=ping_crates_fail, channel_flags_fail=channel_flags_fail)
 
 @app.route('/physicsdq')
 def physicsdq():
@@ -1146,8 +1159,8 @@ def channelflagsbychannel(run_number):
 @app.route('/trigger_clock_jump')
 def trigger_clock_jump():
     limit = request.args.get("limit", 25, type=int)
-    runs, njump10, njump50 = triggerclockjumpsdb.get_clock_jumps(limit)
-    return render_template('trigger_clock_jump.html', runs=runs, limit=limit, njump10=njump10, njump50=njump50)
+    all_runs, runs, njump10, njump50 = triggerclockjumpsdb.get_clock_jumps(limit)
+    return render_template('trigger_clock_jump.html', all_runs=all_runs, runs=runs, limit=limit, njump10=njump10, njump50=njump50)
 
 @app.route('/trigger_clock_jump_run/<run_number>')
 def trigger_clock_jump_run(run_number):

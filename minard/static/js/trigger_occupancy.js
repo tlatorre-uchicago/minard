@@ -25,7 +25,7 @@ var color_scale = d3.scale.linear()
 var crate = crate_view();
 var crate_update = crate_view().scale(color_scale);
 
-function setup() {
+function setup(run) {
 
     // set up crate view
     d3.select("#crateX").datum([]).call(crate);
@@ -46,7 +46,7 @@ function setup() {
     // Default values
     var i = [0, 1, 2, 3, 4, 6, 7, 10, 11];
     for(var x in i) {
-       update(i[x], 0);
+       update(i[x], run);
     }
 }
 

@@ -184,6 +184,8 @@
   <script src="{{ url_for('static', filename='js/crate.js') }}"></script>
   <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
   <script src="{{ url_for('static', filename='js/trigger_occupancy.js') }}"></script>
-  <script> setup(); </script>
+  <script> 
+      setup({{run_number}}); 
+  </script>
 {% endblock %}
 

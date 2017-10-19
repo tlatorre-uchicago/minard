@@ -1,13 +1,39 @@
 {% extends "layout.html" %}
-{% block title %}Physics DQ Summary{% endblock %}
+{% block title %}Nearline Monitoring Summary{% endblock %}
 {% block head %}
   {{ super() }}
+<style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #f0f0f0;
+}
+</style>
 {% endblock %}
 {% block body %}
   {{ super() }}
 
 <div class="page-header">
-  <h1 align="center">Physics Data Quality Summary</h1>
+  <h1 align="center">Nearline Monitoring Summary</h1>
+</div>
+
+<div class="container">
+    <table class="table table-bordered">
+      <tr> <th> Ping crates checks the N100/N20 trigger signals for each crate. </th> </tr>
+      <tr> <th> The occupancy check finds offline slots or crates missing ESUMH trigger signals. </th> </tr>
+      <tr> <th> The channel flags check finds out-of-sync channels or channels dropping data.  </th> </tr>
+      <tr> <th> The clock jump check counts the number of bad clock ticks on the 10 and 50MHz clocks. </tr>
+  </table>
 </div>
 
 <div class="container">
@@ -27,7 +53,6 @@
     <thead>
       <tr> 
         <th> Run </th>
-        <th> <a href="{{url_for('physicsdq')}}">DQHL</a> </th>
         <th> <a href="{{url_for('pingcrates')}}">Ping Crates</a> </th>
         <th> <a href="{{url_for('occupancy_by_trigger')}}">Occupancy</a> </th>
         <th> <a href="{{url_for('channelflags')}}">Channel Flags</a> </th>
@@ -37,13 +62,6 @@
     {% for run in physics_runs %}
       <tr>
         <th> {{run}} </th>
-        {% if dqhl_fail[run] == 1 %}
-          <th class="danger">Fail</th>
-        {% elif dqhl_fail[run] == 0 %}
-          <th class="success">Pass</th>
-        {% else %}
-          <th class="info">Not Run </th>
-        {% endif %}
         {% if ping_crates_fail[run] %}
           <th class="danger">Fail</th>
         {% else %}
@@ -71,7 +89,7 @@
       params = {};
       params["limit"] = limit;
       params["run"] = run;
-      window.location.replace($SCRIPT_ROOT + "/all_physics_dq?" + $.param(params));
+      window.location.replace($SCRIPT_ROOT + "/nearline_monitoring_summary?" + $.param(params));
     }
   </script>
 {% endblock %}
