@@ -12,6 +12,8 @@ def occupancy_by_trigger(trigger_type, run, find_issues):
                           (trigger_type, run))
 
     rows = result.fetchall()
+    if not rows:
+        return None
 
     data = [0]*9728
     trigger_norm = 0
@@ -72,8 +74,7 @@ def check_occupancy(trigger_type, data, norm):
     for i in range(304):
         crate = i/16
         slot = i%16
-        if channel_count[i] != 0 and slot_average[i]/(channel_count[i]) < 4e-5:
-            print i, crate, slot, slot_average[i], channel_count[i], slot_average[i]/(channel_count[i])
+        if channel_count[i] != 0 and slot_average[i]/(channel_count[i]) < 3e-5:
             issues.append((crate, slot))
 
     return issues

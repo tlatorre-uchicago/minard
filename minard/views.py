@@ -1106,19 +1106,28 @@ def occupancy_by_trigger():
 @app.route('/occupancy_by_trigger_run/<run_number>')
 def occupancy_by_trigger_run(run_number):
 
-    print ("TESTING")
+    # ESUMH is 6th trigger bit
     issues = occupancy.occupancy_by_trigger(6, run_number, True)
 
     return render_template('occupancy_by_trigger_run.html', run_number=run_number, issues=issues)
 
 @app.route('/nearline_monitoring_summary')
 def nearline_monitoring_summary():
-    limit = request.args.get("limit", 2, type=int)
+    limit = request.args.get("limit", 10, type=int)
     run = request.args.get("run", 0, type=int)
 
-    physics_runs, check_rates_fail, ping_crates_fail, channel_flags_fail = nearline_monitor.get_run_list(limit, run)
+    runs = []
+    latest_run = detector_state.get_latest_run()
+    for run in range(latest_run-limit, latest_run):
+        runs.append(run)
 
-    return render_template('nearline_monitoring_summary.html', physics_runs=physics_runs, limit=limit, check_rates_fail=check_rates_fail, ping_crates_fail=ping_crates_fail, channel_flags_fail=channel_flags_fail)
+    runTypes = nearline_monitor.get_run_types(limit)
+
+    runs = sorted(runs, reverse=True)
+
+    clock_jump_fail, ping_crates_fail, channel_flags_fail, occupancy_fail = nearline_monitor.get_run_list(limit, run, runs)
+
+    return render_template('nearline_monitoring_summary.html', runs=runs, limit=limit, clock_jump_fail=clock_jump_fail, ping_crates_fail=ping_crates_fail, channel_flags_fail=channel_flags_fail, occupancy_fail=occupancy_fail, runTypes=runTypes)
 
 @app.route('/physicsdq')
 def physicsdq():
@@ -1147,7 +1156,7 @@ def pingcrates_run(run_number):
 
 @app.route('/channelflags')
 def channelflags():
-    limit = request.args.get("limit", 100, type=int)
+    limit = request.args.get("limit", 25, type=int)
     runs, nsync16, nsync24, sync16s, sync24s, missed = channelflagsdb.get_channel_flags(limit)
     return render_template('channelflags.html', runs=runs, nsync16=nsync16, nsync24=nsync24, sync16s=sync16s, sync24s=sync24s, missed=missed, limit=limit)
 
@@ -1159,8 +1168,8 @@ def channelflagsbychannel(run_number):
 @app.route('/trigger_clock_jump')
 def trigger_clock_jump():
     limit = request.args.get("limit", 25, type=int)
-    all_runs, runs, njump10, njump50 = triggerclockjumpsdb.get_clock_jumps(limit)
-    return render_template('trigger_clock_jump.html', all_runs=all_runs, runs=runs, limit=limit, njump10=njump10, njump50=njump50)
+    runs, njump10, njump50 = triggerclockjumpsdb.get_clock_jumps(limit)
+    return render_template('trigger_clock_jump.html', runs=runs, limit=limit, njump10=njump10, njump50=njump50)
 
 @app.route('/trigger_clock_jump_run/<run_number>')
 def trigger_clock_jump_run(run_number):

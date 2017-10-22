@@ -1,70 +1,88 @@
 from .db import engine
-from detector_state import get_latest_run
-from polling import overall_status
-import HLDQTools
-from pingcratesdb import ping_crates_list
-from channelflagsdb import get_channel_flags
-from triggerclockjumpsdb import get_clock_jumps
+from .detector_state import get_latest_run
+from .pingcratesdb import ping_crates_list
+from .channelflagsdb import get_channel_flags
+from .triggerclockjumpsdb import get_clock_jumps
+from .nlrat import RUN_TYPES
+from .occupancy import run_list, occupancy_by_trigger
 
-def get_run_list(limit, selected_run):
-
+def get_run_list(limit, selected_run, all_runs):
+    '''
+    Returns dictionaries keeping track of a list
+    of failures for each nearline job
+    '''
     conn = engine.connect()
 
-    if selected_run == 0:
-        # If not selected run, list all runs since latest run - limit
-        run = get_latest_run()
-        result = conn.execute("SELECT run FROM run_state "
-                              "WHERE run > %s AND (run_type & 4 = 4)", run - limit)
+    ping_list = ping_crates_list(limit)
+    ping_crates_fail = {}
+    for i in ping_list:
+        run = int(i[1])
+        if i[6] == "Fail":
+            ping_crates_fail[run] = 1
+        if i[6] == "Pass" or i[6] == "Warn":
+            ping_crates_fail[run] = 0    
 
-    else:
-        # Make sure selected run is a physics run
-        result = conn.execute("SELECT run FROM run_state "
-                              "WHERE run = %s AND (run_type & 4 = 4)", selected_run)
-        if result is None:
-           return None
+    runs, nsync16, nsync24, count_sync16, count_sync24, count_missed = get_channel_flags(limit)
+    channel_flags_fail = {}
+    for run in all_runs:
+        run = int(run)
+        try:
+            if((count_sync16[run] > 25 and count_sync16[run] <= 100) or count_missed[run] > 100):
+                channel_flags_fail[run] = 2
+            elif(count_sync16[run] > 100):
+                channel_flags_fail[run] = 1
+            else:
+                channel_flags_fail[run] = 0
+        except Exception as e:
+            channel_flags_fail[run] = -1
+            continue
+
+    clock_jumps_fail = {}
+    runs, njump10, njump50 = get_clock_jumps(limit) 
+    for run in all_runs:
+        try:
+            if njump10[run] > 10 or njump50[run] > 10:
+                clock_jumps_fail[run] = 1
+            else:
+                clock_jumps_fail[run] = 0
+        except Exception as e:
+            clock_jumps_fail[run] = -1
+            continue
+
+    occupancy_fail = {}
+    runs = run_list(limit) 
+    for run in all_runs:
+        try:
+            issues = occupancy_by_trigger(6, run, True)
+            if len(issues) > 5:
+                occupancy_fail[run] = 1
+            else:
+                occupancy_fail[run] = 0
+        except Exception as e:
+            occupancy_fail[run] = -1
+            continue
+
+    return clock_jumps_fail, ping_crates_fail, channel_flags_fail, occupancy_fail
+
+
+def get_run_types(limit):
+    '''
+    Return a dictionary of run types for each run in the list
+    '''
+    conn = engine.connect()
+
+    latest_run = get_latest_run()
+
+    result = conn.execute("SELECT run, run_type FROM run_state WHERE run > %s", (latest_run - limit - 1))
 
     rows = result.fetchall()
 
-    # Grab the recent physics runs or the selected runs
-    physics_runs = []
-    for run in rows:
-        physics_runs.insert(0, run[0])
+    runtypes = {}
+    for run, run_type in rows:
+        for i in range(len(RUN_TYPES)):
+            if (run_type & (1<<i)):
+                runtypes[run] = RUN_TYPES[i]
+                break
 
-    # FIXME how does this work for selected run??
-    ping_list = ping_crates_list(limit)
-    runs, nsync16, nsync24, count_sync16, count_sync24, count_missed = get_channel_flags(limit)
+    return runtypes
 
-    check_rates_fail = []
-
-    ping_crates_fail = ping_failures(ping_list)
-
-    # FIXME make a function
-    channel_flags_fail = {}
-    for run in physics_runs:
-       run = int(run)
-       try:
-           if((count_sync16[run] > 25 and count_sync16[run] <= 100) or count_missed[run] > 100):
-               channel_flags_fail[run] = 2
-           elif(count_sync16[run] > 100):
-               channel_flags_fail[run] = 1
-           else:
-               channel_flags_fail[run] = 0
-       except Exception as e:
-           channel_flags_fail[run] = -1
-           continue
-
-    # THIS IS SO SLOW, because it requires so many PSQL queries
-    # check_rates_fail = overall_status(physics_runs)
-
-    return physics_runs, check_rates_fail, ping_crates_fail, channel_flags_fail
-
-
-def ping_failures(ping_list):
-
-    ping_failure = {}
-    for i in ping_list:
-        if i[6] == "Fail":
-            run = int(i[1])
-            ping_failure[run] = 1
-
-    return ping_failure

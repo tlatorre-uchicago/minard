@@ -53,21 +53,31 @@ tr:nth-child(even) {
     <thead>
       <tr> 
         <th> Run </th>
+        <th> Run Type </th>
         <th> <a href="{{url_for('pingcrates')}}">Ping Crates</a> </th>
-        <th> <a href="{{url_for('occupancy_by_trigger')}}">Occupancy</a> </th>
-        <th> <a href="{{url_for('channelflags')}}">Channel Flags</a> </th>
         <th> <a href="{{url_for('trigger_clock_jump')}}">Clock Jumps</a> </th>
+        <th> <a href="{{url_for('channelflags')}}">Channel Flags</a> </th>
+        <th> <a href="{{url_for('occupancy_by_trigger')}}">Occupancy</a> </th>
       </tr>
     </thead>
-    {% for run in physics_runs %}
+    {% for run in runs %}
       <tr>
         <th> {{run}} </th>
-        {% if ping_crates_fail[run] %}
+        <th> {{runTypes[run]}} </th>
+        {% if ping_crates_fail[run] == 1 %}
           <th class="danger">Fail</th>
-        {% else %}
+        {% elif ping_crates_fail[run] == 0 %}
           <th class="success">Pass</th>
+        {% else %}
+          <th class="info">Not Run</th> 
         {% endif %}
-        <th> - </th>
+        {% if clock_jump_fail[run] == 1 %}
+          <th class="danger">Fail</th>
+        {% elif clock_jump_fail[run] == 0 %}
+          <th class="success">Pass</th>
+        {% else %}
+          <th class="info">Not Run</th> 
+        {% endif %}
         {% if channel_flags_fail[run] == 1 %}
           <th class="danger">Fail</th>
         {% elif channel_flags_fail[run] == 2 %}
@@ -77,7 +87,13 @@ tr:nth-child(even) {
         {% else %}
           <th class="info">Not Run </th>
         {% endif %}
-        <th> - </th>
+        {% if occupancy_fail[run] == 1 %}
+          <th class="danger">Fail</th>
+        {% elif occupancy_fail[run] == 0 %}
+          <th class="success">Pass</th>
+        {% else %}
+          <th class="info">Not Run</th> 
+        {% endif %}
       <tr>
     {% endfor %}
   </table>

@@ -15,16 +15,12 @@ def get_clock_jumps(limit):
 
     rows = result.fetchall()
 
-    all_runs = []
-    runs = {}
+    runs = []
     njump10 = {}
     njump50 = {}
-
-    for run in range(current_run - limit, current_run):
-        all_runs.append(run)
-       
+ 
     for run in rows:
-        runs[run[0]] = run[0]
+        runs.append(run[0])
         njump10[run[0]] = 0
         njump50[run[0]] = 0
 
@@ -42,9 +38,7 @@ def get_clock_jumps(limit):
         if jump50:
             njump50[run] +=1
 
-    all_runs = sorted(all_runs, reverse=True)
-
-    return all_runs, runs, njump10, njump50
+    return runs, njump10, njump50
 
 def get_clock_jumps_by_run(run):
 
