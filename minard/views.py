@@ -954,7 +954,7 @@ def eca_status_detail(run_number):
         if result == pow(2,offset):
             return 1
 
-    run_status = int(redisdb.get_run_status(run_number))
+    run_status = redisdb.get_run_status(int(run_number))
 
     return render_template('eca_status_detail_%s.html' % run_type,
 			    run_number=run_number, statusfmt=statusfmt, testBit=testBit, run_status=run_status)
@@ -1013,7 +1013,7 @@ def pcatellie():
 
 @app.route('/pca_run_detail/<run_number>')
 def pca_run_detail(run_number):
-    run = redisdb.runs_after_run('pca_tellie_run_by_number', int(run_number), int(run_number)+1)
+    run = redisdb.runs_after_run('pca_tellie_runs_by_number', int(run_number), int(run_number)+1)
     return render_template('pca_run_detail.html',
                            run_number=run_number,
                            run=run)
