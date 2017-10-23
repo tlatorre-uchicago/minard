@@ -29,22 +29,17 @@ function setup(run) {
 
     // set up crate view
     d3.select("#crateX").datum([]).call(crate);
-    d3.select("#crateXX").datum([]).call(crate);
-    d3.select("#crateXXX").datum([]).call(crate);
-    d3.select("#crateY").datum([]).call(crate);
     d3.select("#crateYY").datum([]).call(crate);
     d3.select("#crateZ").datum([]).call(crate);
     d3.select("#crateI").datum([]).call(crate);
     d3.select("#crateJ").datum([]).call(crate);
-    d3.select("#crateK").datum([]).call(crate);
-    d3.select("#crateA").datum([]).call(crate);
 
     // line break after crate 9 to get
     // XSNOED style
     $(".crate9").after("<br>");
 
     // Default values
-    var i = [0, 1, 2, 3, 4, 6, 7, 10, 11];
+    var i = [0, 4, 6, 7, 10];
     for(var x in i) {
        update(i[x], run);
     }
@@ -59,15 +54,6 @@ function update(trigger_type, run_number) {
         if(trigger_type == 0){
             d3.select('#crateX').datum(values).call(crate_update);
         }
-        if(trigger_type == 1){
-            d3.select('#crateXX').datum(values).call(crate_update);
-        }
-        if(trigger_type == 2){
-            d3.select('#crateXXX').datum(values).call(crate_update);
-        }
-        else if(trigger_type == 3){
-            d3.select('#crateY').datum(values).call(crate_update);
-        }
         else if(trigger_type == 4){
             d3.select('#crateYY').datum(values).call(crate_update);
         }
@@ -79,9 +65,6 @@ function update(trigger_type, run_number) {
         }
         else if(trigger_type == 10){
             d3.select('#crateJ').datum(values).call(crate_update);
-        }
-        else if(trigger_type == 11){
-            d3.select('#crateK').datum(values).call(crate_update);
         }
     });
 }

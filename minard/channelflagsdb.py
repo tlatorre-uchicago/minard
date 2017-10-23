@@ -1,6 +1,5 @@
-from .db import engine_test
+from .db import engine_nl
 from .detector_state import get_latest_run
-
 
 def get_channel_flags(limit):
     """
@@ -8,8 +7,7 @@ def get_channel_flags(limit):
     The dictionaries keep track of the number of sync16s, number of syn24s,
     number of out-of-sync channels, and number of missed count channels.
     """
-
-    conn = engine_test.connect()
+    conn = engine_nl.connect()
 
     current_run = get_latest_run()
 
@@ -60,8 +58,7 @@ def get_channel_flags_by_run(run):
     Returns a list of the missed count and out-of-sync channels
     for a requested run
     """
-
-    conn = engine_test.connect()
+    conn = engine_nl.connect()
 
     # Find all of the out-of-sync and missed-count channels for the run selected
     result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) crate, slot, channel, "

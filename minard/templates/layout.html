@@ -56,7 +56,6 @@
                                 {{ nav_link('check_rates', 'Check Rates') }}
                                 {{ nav_link('update_mtca_crate_mapping', 'Update MTCA+ Mapping') }}
                                 {{ nav_link('alarms', 'Alarms') }}
-                                {{ nav_link('orca_session_logs', 'Orca') }}
                                 <li><a href="logs">DAQ Logs</a></li>
                             </ul>
                         <!-- Dropdown Channel -->
@@ -106,6 +105,7 @@
                                 {{ nav_link('calibdq_tellie', 'TELLIE  DQ') }}
                                 {{ nav_link('calibdq_smellie', 'SMELLIE DQ') }}
                           </ul>
+                        {{ nav_link('orca_session_logs', 'Orca') }}
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
                         <li><a href="{{ url_for('docs') }}">Docs</a></li>

@@ -16,30 +16,28 @@
 </div>
 
 <div class="container">
-  <table class="table table-hover">
-    <thead>
-      <tr>
-        <th> Crate </th>
-        <th> Slot </th>
-        <th> Issue </th>
-      </tr>
-    </thead>
-    {% if issues %}
-      {% for i in issues %}
-        <tr class="danger">
-          <th> {{i[0]}} </th>
-          <th> {{i[1]}} </th>
-          <th> ESUM Occupancy </th>
-       </tr>
-     {% endfor %}
-     {% else %}
-       <tr class="success">
-         <th> - </th>
-         <th> - </th>
-         <th> None </th>
-       </tr>
-    {% endif %} 
-  </table>
+    <div class="row">
+        <div class="col-md-4 col-md-offset-4">
+            <table class="table table-hover">
+                {% if issues %}
+                    <thead>
+                        <tr>
+                            <th> Crate </th>
+                            <th> Slot(s) </th>
+                        </tr>
+                    </thead>
+                    {% for i in range(19) %}
+                        {% if issues[i] %}
+                            <tr class="danger">
+                                <th> {{i}} </th>
+                                <th> {{issues[i]}} </th>
+                            </tr>
+                        {% endif %}
+                    {% endfor %} 
+                {% endif %}
+            </table>
+        </div>
+    </div>
 
     <div class="panel-group">
         <div class="panel panel-default-test">
@@ -75,57 +73,12 @@
         <div class="panel panel-default-test">
             <div class="panel-heading">
                 <h3 class="panel-title" align="center">
-                    <a data-toggle="collapse" data-parent="accordion" href="#collapsen100m">
-                        N100M
-                    </a>
-                </h3>
-                <div id="collapsen100m" class="panel-collapse collapse">
-                    <div class="panel-body" id="crateXX" align="center"> </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="panel-group">
-        <div class="panel panel-default-test">
-            <div class="panel-heading">
-                <h3 class="panel-title" align="center">
-                    <a data-toggle="collapse" data-parent="accordion" href="#collapsen100h">
-                        N100H
-                    </a>
-                </h3>
-                <div id="collapsen100h" class="panel-collapse collapse">
-                    <div class="panel-body" id="crateXXX" align="center"> </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="panel-group">
-        <div class="panel panel-default-test">
-            <div class="panel-heading">
-                <h3 class="panel-title" align="center">
                     <a data-toggle="collapse" data-parent="accordion" href="#collapsen20lb">
                         N20LB
                     </a>
                 </h3>
                 <div id="collapsen20lb" class="panel-collapse collapse">
                     <div class="panel-body" id="crateYY" align="center"> </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="panel-group">
-        <div class="panel panel-default-test">
-            <div class="panel-heading">
-                <h3 class="panel-title" align="center">
-                    <a data-toggle="collapse" data-parent="accordion" href="#collapsen20">
-                        N20
-                    </a>
-                </h3>
-                <div id="collapsen20" class="panel-collapse collapse">
-                    <div class="panel-body" id="crateY" align="center"> </div>
                 </div>
             </div>
         </div>
@@ -156,21 +109,6 @@
                 </h3>
                 <div id="collapsepgt" class="panel-collapse collapse">
                     <div class="panel-body" id="crateJ" align="center"> </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="panel-group">
-        <div class="panel panel-default-test">
-            <div class="panel-heading">
-                <h3 class="panel-title" align="center">
-                    <a data-toggle="collapse" data-parent="accordion" href="#collapsemiss">
-                        PRESCALE
-                    </a>
-                </h3>
-                <div id="collapsemiss" class="panel-collapse collapse">
-                    <div class="panel-body" id="crateK" align="center"> </div>
                 </div>
             </div>
         </div>

@@ -42,13 +42,13 @@
       </tr>
     </thead>
     {% for i in data %}
-        {% if i[6] == "Pass" %}
+        {% if i[6] == 0 %}
           <tr class="success">
-        {% elif i[6] == "Fail" %}
+        {% elif i[6] == 1 %}
           <tr class="danger">
-        {% elif i[6] == "Warn" %}
+        {% elif i[6] == 2 %}
           <tr class="warning">
-        {% elif i[6] == "Override" %}
+        {% elif i[6] == 3 %}
           <tr class="info">
         {% endif %} 
         <th><a href="{{url_for('pingcrates_run',run_number=i[1]) }}">{{i[1]}}</a></th>
