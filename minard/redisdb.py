@@ -48,12 +48,12 @@ def get_run_by_number(RUN_INDEX, runnum):
         p.hgetall(key)
     return p.execute()    
 
-def get_run_status(key_index, runnum):
+def get_run_status(run):
     '''
     Returns run status for specific run by run number
     Requires Redis instance, and run number.
     '''
-    return redis.hget("%s%i" % (key_index, int(runnum)), "run_status")
+    return int(redis.hget("eca-run-%i" % run, "run_status"))
 
 def del_run_from_db(key_index, run_number):
     '''
