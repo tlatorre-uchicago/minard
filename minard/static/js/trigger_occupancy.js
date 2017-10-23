@@ -29,7 +29,7 @@ function setup(run) {
 
     // set up crate view
     d3.select("#crateX").datum([]).call(crate);
-    d3.select("#crateYY").datum([]).call(crate);
+    d3.select("#crateY").datum([]).call(crate);
     d3.select("#crateZ").datum([]).call(crate);
     d3.select("#crateI").datum([]).call(crate);
     d3.select("#crateJ").datum([]).call(crate);
@@ -55,7 +55,7 @@ function update(trigger_type, run_number) {
             d3.select('#crateX').datum(values).call(crate_update);
         }
         else if(trigger_type == 4){
-            d3.select('#crateYY').datum(values).call(crate_update);
+            d3.select('#crateY').datum(values).call(crate_update);
         }
         else if(trigger_type == 6){
             d3.select('#crateZ').datum(values).call(crate_update);

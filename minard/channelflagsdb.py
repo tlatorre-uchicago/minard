@@ -12,8 +12,8 @@ def get_channel_flags(limit):
     current_run = get_latest_run()
 
     result = conn.execute("SELECT DISTINCT ON (run) run, sync16, sync24 "
-                          "FROM channel_flags WHERE run > %i "
-                          "ORDER BY run DESC, timestamp DESC" % (current_run - limit))
+                          "FROM channel_flags WHERE run > %s "
+                          "ORDER BY run DESC, timestamp DESC", (current_run - limit))
 
     rows = result.fetchall()
 
@@ -35,8 +35,8 @@ def get_channel_flags(limit):
 
     result = conn.execute("SELECT DISTINCT ON (crate, slot, channel, run) run, crate, "
                           "cmos_sync16, cgt_sync24, missed_count FROM channel_flags "
-                          "WHERE run > %i ORDER BY crate, slot, channel, run DESC, timestamp DESC" \
-                          % int(current_run - limit))
+                          "WHERE run > %s ORDER BY crate, slot, channel, run DESC, timestamp DESC", \
+                          int(current_run - limit))
 
     rows = result.fetchall()
 
@@ -63,8 +63,8 @@ def get_channel_flags_by_run(run):
     # Find all of the out-of-sync and missed-count channels for the run selected
     result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) crate, slot, channel, "
                           "cmos_sync16, cgt_sync24, missed_count FROM channel_flags "
-                          "WHERE run = %i ORDER BY crate, slot, channel, run DESC, timestamp DESC" \
-                          % int(run))
+                          "WHERE run = %s ORDER BY crate, slot, channel, run DESC, timestamp DESC", \
+                          int(run))
 
     rows = result.fetchall()
 
@@ -87,15 +87,15 @@ def get_channel_flags_by_run(run):
 
     # Now try and find out of sync channels identified in later runs
     try:
-        result = conn.execute("SELECT run FROM channel_flags WHERE run > %i and sync16 > 0 "
-                              "ORDER by run ASC, timestamp DESC limit 1" % int(run))
+        result = conn.execute("SELECT run FROM channel_flags WHERE run > %s and sync16 > 0 "
+                              "ORDER by run ASC, timestamp DESC limit 1", int(run))
         if result is None:
             sync16run = run + 1
         else:
             sync16run = result.fetchone()[0]
 
-        result = conn.execute("SELECT run FROM channel_flags WHERE run > %i and sync24 > 0 "
-                              "ORDER by run ASC, timestamp DESC limit 1" % int(run))
+        result = conn.execute("SELECT run FROM channel_flags WHERE run > %s and sync24 > 0 "
+                              "ORDER by run ASC, timestamp DESC limit 1", int(run))
         if result is None:
             sync24run = run + 1
         else:
@@ -103,9 +103,9 @@ def get_channel_flags_by_run(run):
 
         result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) crate, slot, channel, "
                               "cmos_sync16_pr FROM channel_flags "
-                              "WHERE run = %i and sync16 > 0 "
-                              "ORDER by crate, slot, channel, run DESC, timestamp DESC" \
-                              % int(sync16run))
+                              "WHERE run = %s and sync16 > 0 "
+                              "ORDER by crate, slot, channel, run DESC, timestamp DESC", \
+                              int(sync16run))
         rows = result.fetchall()
 
         for crate, slot, channel, cmos_sync16_pr in rows:
@@ -114,9 +114,9 @@ def get_channel_flags_by_run(run):
 
         result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) crate, slot, channel, "
                               "cgt_sync24_pr FROM channel_flags "
-                              "WHERE run = %i and sync24 > 0 "
-                              "ORDER by crate, slot, channel, run DESC, timestamp DESC" \
-                              % int(sync24run))
+                              "WHERE run = %s and sync24 > 0 "
+                              "ORDER by crate, slot, channel, run DESC, timestamp DESC", \
+                              int(sync24run))
         rows = result.fetchall()
 
         for crate, slot, channel, cgt_sync24_pr in rows:

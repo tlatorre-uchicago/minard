@@ -272,21 +272,6 @@ def polling_summary(run):
     return crate_average, crun, brun, messages
 
 
-def overall_status(run_list):
-
-    # FIXME, this is soooo slow
-    # Probably don't even need this once occupancy check is in
-    check_rates_fail = {}
-    for run in run_list:
-        average, crun, brun, messages = polling_summary(run)
-        for i, j, k in average:
-            if(((j > 5000 or j < 400) and j > -1) and i != 19) or \
-              (i == 19 and (j > 15000 or j < 400)):
-               check_rates_fail[run] = 1
-
-    return check_rates_fail  
-
-
 def polling_check(high_rate, low_rate, pct_change):
 
     conn = engine.connect()
@@ -407,7 +392,7 @@ def check_hv_status(relays, types, channel_info, crate, slot, channel):
     # Check the PMT is normal or HQE
     if types[lcn] in (LOWG, NECK, FECD, BUTT, NONE):
         return 0
-    # Check the resistor is not pulled
+    # Check the resistor is not pulled or channel is not marked as bad
     if channel_info[lcn][0] or channel_info[lcn][1]:
         return 0
 

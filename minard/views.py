@@ -5,7 +5,6 @@ from itertools import product
 import time
 from redis import Redis
 from os.path import join
-from ast import literal_eval
 import json
 import tools
 import HLDQTools
@@ -419,6 +418,7 @@ def nearline_summary():
     limit = request.args.get("limit", 100, type=int)
     mode = request.args.get("mode", 0, type=int)
     runtype = request.args.get("runtype", -1, type=int)
+    nearline_run = request.args.get("run", 0, type=int) 
     run = int(redis.get('nearline:current_run'))
     detector_run = detector_state.get_latest_run()
     if run != detector_run - 1:

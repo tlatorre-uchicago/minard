@@ -21,8 +21,8 @@ def get_runs_with_run_type(run, run_type):
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT run from run_state where run > %s and (run_type & %s = %s) ", \
-                          (run, run_type, run_type))
+    result = conn.execute("SELECT run from run_state where run > %s AND (run_type & %s) > 0 ", \
+                          (run, run_type))
 
     rows = result.fetchall()
     runs_with_runtype = []
