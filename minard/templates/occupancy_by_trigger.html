@@ -11,7 +11,7 @@
 </div>
 
 <div class="container">
-  <div class="col-md-6 col-md-offset-2">
+  <div class="col-md-3 col-md-offset-4">
     Show:
     <select id="limit" onchange="get_limit(this.value);">
       <option selected value="{{limit}}">{{limit}}</option>
@@ -29,13 +29,13 @@
         </tr>
       </thead>
       <thead>
-       {% for run in runs %}
-        <tr> 
-          <th><a href="{{url_for('occupancy_by_trigger_run',run_number=run) }}">{{run}}</a></th>
-          {% if count_issues[run] %}
-             <th> {{count_issues[run]}}  </th>
-          {% endif %}
-        </tr>
+        {% for run in runs %}
+          <tr> 
+            <th><a href="{{url_for('occupancy_by_trigger_run',run_number=run) }}">{{run}}</a></th>
+            {% if count_issues[run] %}
+               <th> {{count_issues[run]}}  </th>
+            {% endif %}
+          </tr>
         {% endfor %}
       </thead>
     </table>
