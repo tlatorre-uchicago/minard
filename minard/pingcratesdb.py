@@ -1,4 +1,4 @@
-from .db import engine
+from .db import engine_nl
 from .detector_state import get_latest_run, get_mtc_state_for_run
 
 # When we started keeping ping crates data in psql database
@@ -10,7 +10,6 @@ def crates_failed(run):
     MTCA/+ relay mapping information. Returns four strings for
     display on the monitoring website
     '''
-
     mtc = get_mtc_state_for_run(run)
 
     # MTCA/+ relays for the run
@@ -18,7 +17,7 @@ def crates_failed(run):
     n100_relay = mtca_relays[0]
     n20_relay = mtca_relays[1]
 
-    conn = engine.connect()
+    conn = engine_nl.connect()
 
     # Get ping crates information from detector state
     result = conn.execute("SELECT n100_crates_failed, n20_crates_failed FROM ping_crates "
@@ -32,13 +31,11 @@ def crates_failed(run):
     # Find any failures (not warnings)
     for n100, n20 in result.fetchall():
         for i in n100:
-            if i < 20:
-                n100_failed.append(i)
-                n100_str+=str(i)+", "
+            n100_failed.append(i)
+            n100_str+=str(i)+", "
         for i in n20:
-            if i < 20: # warnings are > 20
-                n20_failed.append(i)
-                n20_str+=str(i)+", "
+            n20_failed.append(i)
+            n20_str+=str(i)+", "
 
     mismapped_n100 = ""
     mismapped_n20 = ""
@@ -98,14 +95,14 @@ def crates_failed_messages(run):
                 messages.append("crate %s failed N20 checks in ping crates" % n20)
         if mn100:
             if len(mn100) > 2:
-                messages.append("Warning: crates %s N100 is mismapped !" % mn100)
+                messages.append("Warning: crates %s N100 is mismapped!" % mn100)
             else:
-                messages.append("Warning: crate %s N100 is mismapped !" % mn100)
+                messages.append("Warning: crate %s N100 is mismapped!" % mn100)
         if mn20:
             if len(mn20) > 2:
-                messages.append("Warning: crates %s N20 is mismapped !" % mn20)
+                messages.append("Warning: crates %s N20 is mismapped!" % mn20)
             else:
-                messages.append("Warning: crate %s N20 is mismapped !" % mn20)
+                messages.append("Warning: crate %s N20 is mismapped!" % mn20)
     except Exception as e:
         # No avaiable ping crates data, no need to warn
         pass
@@ -121,62 +118,51 @@ def ping_crates_list(limit):
 
     run = get_latest_run()
 
-    conn = engine.connect()
+    conn = engine_nl.connect()
 
     # Get all ping crates information from detector state since (run - limit)
     result = conn.execute("SELECT DISTINCT ON (run) timestamp, run,  n100_crates_failed, "
-                          "n20_crates_failed FROM ping_crates WHERE run > %s "
+                          "n20_crates_failed, n100_crates_warned, n20_crates_warned, "
+                          "status FROM ping_crates WHERE run > %s "
                           "ORDER BY run, timestamp DESC", (run-limit))
 
     ping_info = []
+    for timestamp, run, n100, n20, n100w, n20w, status in result:
 
-    for timestamp, run, n100, n20 in result:
+        # Messages for the crate failures
+        n100_fail_str=""
+        n20_fail_str=""
+        n100_warn_str=""
+        n20_warn_str=""
 
-        n100_fail_str = ""
-        n20_fail_str = ""
-        n100_warn_str = ""
-        n20_warn_str = ""
-        status = "Pass"
-
-        # N100 ping crates status
         for i in range(len(n100)):
-            if n100[i] < 20:
-                n100_fail_str+=str(n100[i]) + ", "
-                status = "Fail"
-            elif(n100[i] >= 40):
-                n100_fail_str+=str(n100[i]%40) + ", "
-                status = "Override"
-            else:
-                n100_warn_str+=str(n100[i]%20) + ", "
-                if status != "Fail":
-                    status = "Warn"
+            n100_fail_str+=str(n100[i]) + ", "
 
-        # N20 ping crates status
+        for i in range(len(n100w)):
+            n100_warn_str+=str(n100w[i]) + ", "
+
         for i in range(len(n20)):
-            if n20[i] < 20:
-                n20_fail_str+=str(n20[i]) + ", " 
-                status = "Fail"
-            elif(n20[i] >= 40):
-                n20_fail_str+=str(n20[i]%40) + ", " 
-                status = "Override"
-            else:
-                n20_warn_str+=str(n20[i]%20) + ", "
-                if status != "Fail":
-                    status = "Warn"
+            n20_fail_str+=str(n20[i]) + ", " 
+
+        for i in range(len(n20w)):
+            n20_warn_str+=str(n20w[i]) + ", " 
 
         # Reformatting of the messages
         if n100_fail_str == "":
             n100_fail_str = "None"
         else:
             n100_fail_str = n100_fail_str[0:-2]
+
         if n20_fail_str == "":
             n20_fail_str = "None"
         else:
             n20_fail_str = n20_fail_str[0:-2]
+
         if n100_warn_str == "":
             n100_warn_str = "None"
         else:
             n100_warn_str = n100_warn_str[0:-2]
+
         if n20_warn_str == "":
             n20_warn_str = "None"
         else:
