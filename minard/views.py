@@ -1125,9 +1125,9 @@ def nearline_monitoring_summary():
 
     runs = sorted(runs, reverse=True)
 
-    clock_jump_fail, ping_crates_fail, channel_flags_fail, occupancy_fail = nearline_monitor.get_run_list(limit, run, runs)
+    clock_jumps, ping_crates, channel_flags, occupancy = nearline_monitor.get_run_list(limit, run, runs)
 
-    return render_template('nearline_monitoring_summary.html', runs=runs, limit=limit, clock_jump_fail=clock_jump_fail, ping_crates_fail=ping_crates_fail, channel_flags_fail=channel_flags_fail, occupancy_fail=occupancy_fail, runTypes=runTypes)
+    return render_template('nearline_monitoring_summary.html', runs=runs, limit=limit, clock_jumps=clock_jumps, ping_crates=ping_crates, channel_flags=channel_flags, occupancy=occupancy, runTypes=runTypes)
 
 @app.route('/physicsdq')
 def physicsdq():

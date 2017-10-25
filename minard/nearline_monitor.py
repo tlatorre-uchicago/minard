@@ -15,21 +15,30 @@ def get_run_list(limit, selected_run, all_runs):
 
     ping_list = ping_crates_list(limit)
     ping_crates_fail = {}
+    ping_runs = []
     for i in ping_list:
         run = int(i[1])
-        if i[6] == "Fail":
+        ping_runs.append(run)
+        if i[6] == 1:
             ping_crates_fail[run] = 1
-        if i[6] == "Pass" or i[6] == "Warn":
-            ping_crates_fail[run] = 0    
+        elif i[6] == 0:
+            ping_crates_fail[run] = 0
+        elif i[6] == 2:
+            ping_crates_fail[run] = 2
+    for run in all_runs:
+        if run in ping_runs:
+            continue
+        ping_crates_fail[run] = -1
 
     runs, nsync16, nsync24, count_sync16, count_sync24, count_missed = get_channel_flags(limit)
     channel_flags_fail = {}
     for run in all_runs:
         run = int(run)
         try:
-            if((count_sync16[run] > 25 and count_sync16[run] <= 100) or count_missed[run] > 100):
+            if((count_sync16[run] >= 32 and count_sync16[run] < 64) or \
+                count_missed[run] >= 64 and count_missed[run] < 256):
                 channel_flags_fail[run] = 2
-            elif(count_sync16[run] > 100):
+            elif(count_sync16[run] >= 64 or count_missed[run] >= 256):
                 channel_flags_fail[run] = 1
             else:
                 channel_flags_fail[run] = 0
@@ -41,7 +50,10 @@ def get_run_list(limit, selected_run, all_runs):
     runs, njump10, njump50 = get_clock_jumps(limit) 
     for run in all_runs:
         try:
-            if njump10[run] > 10 or njump50[run] > 10:
+            if((njump10[run] + njump50[run]) >= 10 and \
+               (njump10[run] + njump50[run]) < 20):
+                clock_jumps_fail[run] = 2
+            elif(njump10[run] + njump50[run] >= 20):
                 clock_jumps_fail[run] = 1
             else:
                 clock_jumps_fail[run] = 0
