@@ -19,7 +19,7 @@ for (var key in colorbrewer) {
 color_scales = d3.entries(color_scales);
 
 var color_scale = d3.scale.linear()
-    .domain(linspace(0,0.001,5))
+    .domain(linspace(0,0.001,8))
     .range(color_scales[12].value);
 
 var crate = crate_view();
