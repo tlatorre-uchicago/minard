@@ -179,7 +179,8 @@ def polling_summary(run):
 
     result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) "
                           "cmos_rate, crate, slot, channel FROM cmos "
-                          "WHERE run = %s", (crun,))
+                          "WHERE run = %s ORDER BY crate, slot, channel, "
+                          "timestamp DESC", (crun,))
     if result is None:
         messages.append("Polling query failed for cmos rates, run %i" % crun)
         return 0, 0, 0, messages
@@ -217,7 +218,8 @@ def polling_summary(run):
 
     result = conn.execute("SELECT DISTINCT ON (crate, slot, channel) "
                           "base_current, crate, slot, channel FROM base "
-                          "WHERE run = %s", (brun,))
+                          "WHERE run = %s ORDER BY crate, slot, channel, "
+                          "timestamp DESC", (brun,))
 
     if result is None:
         messages.append("Polling query failed for base currents, run %i" % brun)
@@ -390,8 +392,8 @@ def check_hv_status(relays, types, channel_info, crate, slot, channel):
     # Check the PMT is normal or HQE
     if types[lcn] in (LOWG, NECK, FECD, BUTT, NONE):
         return 0
-    # Check the resistor is not pulled
-    if channel_info[lcn][0]:
+    # Check the resistor is not pulled or channel is not marked as bad
+    if channel_info[lcn][0] or channel_info[lcn][1]:
         return 0
 
     return 1

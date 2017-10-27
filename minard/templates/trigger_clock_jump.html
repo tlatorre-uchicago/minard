@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+{% block title %}Trigger Clock Jumps{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+<div class="container">
+
+  <h2 align="left">Information For the User</h2>
+    <table class="table table-hover">
+      <tr class="success"> <th> The run status is "Pass" if there were less than 10 total clock jumps on the 10MHz and 50MHz clocks. </th> </tr>
+      <tr class="danger"> <th>  The run status is "Fail" if there were more than 20 total clock jumps on the 10MHz and 50MHz clocks. This is not necessarily an issue because these clock jumps are corrected, but it might indicate an issue with the run. </th> </tr>
+      <tr class="warning"> <th> The run status is "Notice" if there were between 10 and 20 total clock jumps on the 10MHz and 50MHz clocks. </th> </tr>
+  </table>
+
+</div>
+
+
+<div class="page-header">
+  <h1 align="center">Trigger Clock Jumps</h1>
+</div>
+
+<div class="container">
+  Select
+  <select id="limit" onchange="get_limit(this.value);">
+    <option selected value="{{limit}}">{{limit}}</option>
+    {% for n in [10, 25, 50, 100, 500] %}
+      {% if n != limit %}
+        <option value="{{n}}">{{n}}</option>
+      {% endif %}
+    {% endfor %}
+  </select> previous runs
+  <table class="table table-hover">
+    <thead>
+      <tr> 
+        <th> Run Number </th>
+        <th> # of 10MHz Clock Jumps </th>
+        <th> # of 50MHz Clock Jumps </th>
+      </tr>
+    {% for run in runs %}
+        {% if (njump10[run] + njump50[run]) > 20 %}
+          <tr class="danger">
+        {% elif (njump10[run] + njump50[run]) > 10 %}
+          <tr class="warning">
+        {% else %}
+          <tr class="success">
+        {% endif %}
+            <th> <a href="{{ url_for("trigger_clock_jump_run",run_number=run)}}">{{run}}</a></th>
+            <th> {{njump10[run]}} </th>
+            <th> {{njump50[run]}} </th>
+        </tr>
+    {% endfor %}
+    </thead>
+  </table>
+</div>
+{% endblock %}
+{% block script %}
+  <script>
+    function get_limit(limit){
+      params = {};
+      params["limit"] = limit;
+      window.location.replace($SCRIPT_ROOT + "/trigger_clock_jump?" + $.param(params));
+    }
+  </script>
+{% endblock %}

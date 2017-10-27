@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% block title %}Occupancy By Trigger{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+<div class="page-header">
+  <h1 align="center">Occupancy By Trigger</h1>
+</div>
+
+<div class="container">
+  <div class="col-md-6 col-md-offset-3">
+    Show:
+    <select id="limit" onchange="get_limit(this.value);">
+      <option selected value="{{limit}}">{{limit}}</option>
+      {% for n in [10, 25, 50, 100, 500] %}
+        {% if n != limit %}
+          <option value="{{n}}">{{n}}</option>
+        {% endif %}
+      {% endfor %}
+    </select> previous runs
+    <table class="table table-hover">
+      <thead>
+        <tr> 
+          <th> Run </th>
+          <th> Crate </th>
+          <th> Number of Slots </th>
+        </tr>
+      </thead>
+      <thead>
+        {% for run in runs %}
+          {% if count[run] > 1 %}
+            <tr class="danger">
+          {% else %}
+            <tr class="success"> 
+          {% endif %}
+            <th><a href="{{url_for('occupancy_by_trigger_run',run_number=run) }}">{{run}}</a></th>
+            {% if crates[run] %}
+              <th> {{crates[run]}} </th>
+              {% if slots[run] %}
+                <th> {{slots[run]}} </th>
+              {% endif %}
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </thead>
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block script %}
+  <script>
+    function get_limit(limit){
+      params = {};
+      params["limit"] = limit;
+      window.location.replace($SCRIPT_ROOT + "/occupancy_by_trigger?" + $.param(params));
+    }
+  </script>
+{% endblock %}
+

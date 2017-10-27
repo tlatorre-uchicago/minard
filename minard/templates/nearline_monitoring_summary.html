@@ -1,0 +1,119 @@
+{% extends "layout.html" %}
+{% block title %}Nearline Monitoring Summary{% endblock %}
+{% block head %}
+  {{ super() }}
+<style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #f0f0f0;
+}
+</style>
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+<div class="page-header">
+  <h1 align="center">Nearline Monitoring Summary</h1>
+</div>
+
+<div class="container">
+    <table class="table table-bordered">
+      <tr> <th> Ping crates checks the N100/N20 trigger signals for each crate. </th> </tr>
+      <tr> <th> The channel flags check finds out-of-sync channels or channels dropping data.  </th> </tr>
+      <tr> <th> The clock jump check counts the number of bad clock ticks on the 10 and 50MHz clocks. </tr>
+      <tr> <th> The occupancy check finds offline slots or crates missing ESUMH trigger signals. </th> </tr>
+  </table>
+</div>
+
+<div class="container">
+  List physics runs over the last  
+  <select id="limit" onchange="get_runs(this.value, 0);">
+    <option selected value="{{limit}}">{{limit}}</option>
+    {% for n in [5, 10, 25, 50, 100, 500] %}
+      {% if n != limit %}
+        <option value="{{n}}">{{n}}</option>
+      {% endif %}
+    {% endfor %}
+  </select> runs, or select run: 
+
+  <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" onKeyDown="if(event.keyCode==13) get_runs(1, this.value);"></input>
+
+  <table class="table table-hover">
+    <thead>
+      <tr> 
+        <th> Run </th>
+        <th> Run Type </th>
+        <th> <a href="{{url_for('pingcrates')}}">Ping Crates</a> </th>
+        <th> <a href="{{url_for('trigger_clock_jump')}}">Clock Jumps</a> </th>
+        <th> <a href="{{url_for('channelflags')}}">Channel Flags</a> </th>
+        <th> <a href="{{url_for('occupancy_by_trigger')}}">Occupancy</a> </th>
+      </tr>
+    </thead>
+    {% for run in runs %}
+      <tr>
+        <th> {{run}} </th>
+        <th> {{runTypes[run]}} </th>
+        {% if ping_crates[run] == 1 %}
+          <th class="danger">Fail</th>
+        {% elif ping_crates[run] == 2 %}
+          <th class="warning">Notice</th>
+        {% elif ping_crates[run] == 0 %}
+          <th class="success">Pass</th>
+        {% else %}
+          <th class="info">Not Run</th> 
+        {% endif %}
+
+        {% if clock_jumps[run] == 1 %}
+          <th class="danger">Fail</th>
+        {% elif clock_jumps[run] == 2 %}
+          <th class="warning">Notice</th>
+        {% elif clock_jumps[run] == 0 %}
+          <th class="success">Pass</th>
+        {% else %}
+          <th class="info">Not Run</th> 
+        {% endif %}
+
+        {% if channel_flags[run] == 1 %}
+          <th class="danger">Fail</th>
+        {% elif channel_flags[run] == 2 %}
+          <th class="warning"> Notice</th>
+        {% elif channel_flags[run] == 0 %}
+          <th class="success">Pass</th>
+        {% else %}
+          <th class="info">Not Run </th>
+        {% endif %}
+
+        {% if occupancy[run] == 1 %}
+          <th class="danger">Fail</th>
+        {% elif occupancy[run] == 0 %}
+          <th class="success">Pass</th>
+        {% else %}
+          <th class="info">Not Run</th> 
+        {% endif %}
+      <tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}
+{% block script %}
+  <script>
+    function get_runs(limit, run){
+      params = {};
+      params["limit"] = limit;
+      params["run"] = run;
+      window.location.replace($SCRIPT_ROOT + "/nearline_monitoring_summary?" + $.param(params));
+    }
+  </script>
+{% endblock %}
+

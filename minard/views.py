@@ -20,10 +20,14 @@ import random
 import detector_state
 import orca
 import nlrat
+import nearline_monitor
 import pingcratesdb
+import triggerclockjumpsdb
 import redisdb
 import fiber_position
 import nearline_settings
+import occupancy
+import channelflagsdb
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds
 from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form
@@ -413,7 +417,8 @@ def nearline_summary():
     jobs = request.args.get("jobs", "All", type=str)
     limit = request.args.get("limit", 100, type=int)
     mode = request.args.get("mode", 0, type=int)
-    nearline_run = request.args.get("run", 0, type=int)
+    runtype = request.args.get("runtype", -1, type=int)
+    nearline_run = request.args.get("run", 0, type=int) 
     run = int(redis.get('nearline:current_run'))
     detector_run = detector_state.get_latest_run()
     if run != detector_run - 1:
@@ -424,7 +429,9 @@ def nearline_summary():
     jobtypes = nearline_settings.jobTypes
     failmodes = nearline_settings.failModes
     index = failmodes.keys()
-    
+    runTypes = nlrat.RUN_TYPES
+    runTypes[-1] = "All"
+ 
     # Check if any jobs were not launched
     program_check = []
     not_launched = []
@@ -437,7 +444,16 @@ def nearline_summary():
     if nearline_run != 0:
         limit = run - nearline_run
 
+    run_list = [x for x in range(run-limit, run)]
+    if runtype == -1:
+        selectedType = "All"
+    else:
+        selectedType = runTypes[runtype]
+        run_list = detector_state.get_runs_with_run_type(run - limit, (1<<runtype))
+
     for previous_run in range(limit):
+        if run - previous_run not in run_list:
+            continue
         old_programs = redis.hgetall('nearline:%i' % (run - previous_run))
         for program, status in old_programs.iteritems():
             program_check.append(program)
@@ -453,7 +469,7 @@ def nearline_summary():
             if jobtypes[i] not in program_check and jobtypes[i] != "All":
                 not_launched.append((jobtypes[i], run-previous_run)) 
 
-    return render_template('nearline_summary.html', run=run, failures=failures, all_failures=all_failures, warning=warning, jobs=jobs, jobtypes=jobtypes, mode=mode, failmodes=failmodes, index=index, not_launched=not_launched, limit=limit, nearline_run=nearline_run)
+    return render_template('nearline_summary.html', run=run, failures=failures, all_failures=all_failures, warning=warning, jobs=jobs, jobtypes=jobtypes, mode=mode, failmodes=failmodes, index=index, not_launched=not_launched, limit=limit, nearline_run=nearline_run, runTypes=runTypes, selectedType=selectedType, runtype=runtype)
 
 @app.route('/get_l2')
 def get_l2():
@@ -673,6 +689,15 @@ CHANNELS = [crate << 9 | card << 5 | channel \
             for crate, card, channel in product(range(20),range(16),range(32))]
 
 OWL_TUBES = [2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 7152, 7153, 7154, 7155, 7156, 7157, 7158, 7159, 7160, 7161, 7162, 7163, 7164, 7165, 7166, 7167, 9712, 9713, 9714, 9715, 9716, 9717, 9718, 9719, 9720, 9721, 9722, 9723, 9724, 9725, 9726, 9727]
+
+@app.route('/query_occupancy')
+def query_occupancy():
+    trigger_type = request.args.get('type',0,type=int)
+    run = request.args.get('run',0,type=int)
+
+    values = occupancy.occupancy_by_trigger(trigger_type, run, False)
+
+    return jsonify(values=values)
 
 @app.route('/query_polling')
 def query_polling():
@@ -1065,6 +1090,57 @@ def noise_run_detail(run_number):
     else:
         return render_template('noise_run_detail.html', run=0, run_number=run_number)
 
+@app.route('/occupancy_by_trigger')
+def occupancy_by_trigger():
+    limit = request.args.get("limit", 25, type=int)
+
+    runs = occupancy.run_list(limit)
+
+    crates = {}
+    slots = {}
+    count = {}
+    for run in runs:
+        # Only check ESUMH
+        issues = occupancy.occupancy_by_trigger(6, run, True)
+        crates[run] = ""
+        slots[run] = ""
+        count[run] = 0
+        for i in issues:
+            crates[run]+=(str(i) + ', ')
+            slots[run]+=(str(len(issues[i])) + ', ')
+            for j in issues[i]:
+                count[run]+=1
+        crates[run] = str(crates[run])[0:-2]
+        slots[run] = str(slots[run])[0:-2]
+
+    return render_template('occupancy_by_trigger.html', runs=runs, limit=limit, crates=crates, slots=slots, count=count)
+
+@app.route('/occupancy_by_trigger_run/<run_number>')
+def occupancy_by_trigger_run(run_number):
+
+    # ESUMH is 6th trigger bit
+    issues = occupancy.occupancy_by_trigger(6, run_number, True)
+
+    return render_template('occupancy_by_trigger_run.html', run_number=run_number, issues=issues)
+
+@app.route('/nearline_monitoring_summary')
+def nearline_monitoring_summary():
+    limit = request.args.get("limit", 10, type=int)
+    run = request.args.get("run", 0, type=int)
+
+    runs = []
+    latest_run = detector_state.get_latest_run()
+    for run in range(latest_run-limit+1, latest_run):
+        runs.append(run)
+
+    runTypes = nearline_monitor.get_run_types(limit)
+
+    runs = sorted(runs, reverse=True)
+
+    clock_jumps, ping_crates, channel_flags, occupancy = nearline_monitor.get_run_list(limit, run, runs)
+
+    return render_template('nearline_monitoring_summary.html', runs=runs, limit=limit, clock_jumps=clock_jumps, ping_crates=ping_crates, channel_flags=channel_flags, occupancy=occupancy, runTypes=runTypes)
+
 @app.route('/physicsdq')
 def physicsdq():
     limit = request.args.get("limit", 10, type=int)
@@ -1090,6 +1166,28 @@ def pingcrates():
 def pingcrates_run(run_number):
     return render_template('pingcrates_run.html', run_number=run_number)
 
+@app.route('/channelflags')
+def channelflags():
+    limit = request.args.get("limit", 25, type=int)
+    runs, nsync16, nsync24, sync16s, sync24s, missed = channelflagsdb.get_channel_flags(limit)
+    return render_template('channelflags.html', runs=runs, nsync16=nsync16, nsync24=nsync24, sync16s=sync16s, sync24s=sync24s, missed=missed, limit=limit)
+
+@app.route('/channelflagsbychannel/<run_number>')
+def channelflagsbychannel(run_number):
+    missed_count, cmos_sync16, cgt_sync24, cmos_sync16_pr, cgt_sync24_pr = channelflagsdb.get_channel_flags_by_run(run_number)
+    return render_template('channelflagsbychannel.html', missed_count=missed_count, cmos_sync16=cmos_sync16, cgt_sync24=cgt_sync24, cmos_sync16_pr=cmos_sync16_pr, cgt_sync24_pr=cgt_sync24_pr, run_number=run_number)
+
+@app.route('/trigger_clock_jump')
+def trigger_clock_jump():
+    limit = request.args.get("limit", 25, type=int)
+    runs, njump10, njump50 = triggerclockjumpsdb.get_clock_jumps(limit)
+    return render_template('trigger_clock_jump.html', runs=runs, limit=limit, njump10=njump10, njump50=njump50)
+
+@app.route('/trigger_clock_jump_run/<run_number>')
+def trigger_clock_jump_run(run_number):
+    data10, data50 = triggerclockjumpsdb.get_clock_jumps_by_run(run_number)
+    return render_template('trigger_clock_jump_run.html', run_number=run_number, data10=data10, data50=data50)
+ 
 @app.route('/physicsdq/<run_number>')
 def physicsdq_run_number(run_number):
     ratdb_dict = HLDQTools.import_HLDQ_ratdb(int(run_number))
