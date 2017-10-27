@@ -16,28 +16,6 @@
 </div>
 
 <div class="container">
-    <div class="row">
-        <div class="col-md-4 col-md-offset-4">
-            <table class="table table-hover">
-                {% if issues %}
-                    <thead>
-                        <tr>
-                            <th> Crate </th>
-                            <th> Slot(s) </th>
-                        </tr>
-                    </thead>
-                    {% for i in range(19) %}
-                        {% if issues[i] %}
-                            <tr class="danger">
-                                <th> {{i}} </th>
-                                <th> {{issues[i]}} </th>
-                            </tr>
-                        {% endif %}
-                    {% endfor %} 
-                {% endif %}
-            </table>
-        </div>
-    </div>
 
     <div class="panel-group">
         <div class="panel panel-default-test">

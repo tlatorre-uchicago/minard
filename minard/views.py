@@ -1096,12 +1096,24 @@ def occupancy_by_trigger():
 
     runs = occupancy.run_list(limit)
 
-    count_issues = {}
+    crates = {}
+    slots = {}
+    count = {}
     for run in runs:
+        # Only check ESUMH
         issues = occupancy.occupancy_by_trigger(6, run, True)
-        count_issues[run] = len(issues)
+        crates[run] = ""
+        slots[run] = ""
+        count[run] = 0
+        for i in issues:
+            crates[run]+=(str(i) + ', ')
+            slots[run]+=(str(len(issues[i])) + ', ')
+            for j in issues[i]:
+                count[run]+=1
+        crates[run] = str(crates[run])[0:-2]
+        slots[run] = str(slots[run])[0:-2]
 
-    return render_template('occupancy_by_trigger.html', runs=runs, limit=limit, count_issues=count_issues)
+    return render_template('occupancy_by_trigger.html', runs=runs, limit=limit, crates=crates, slots=slots, count=count)
 
 @app.route('/occupancy_by_trigger_run/<run_number>')
 def occupancy_by_trigger_run(run_number):
