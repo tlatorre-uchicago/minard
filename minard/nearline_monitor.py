@@ -65,8 +65,14 @@ def get_run_list(limit, selected_run, all_runs):
     runs = run_list(limit) 
     for run in all_runs:
         try:
+            # Check ESUMH Occupancy
             issues = occupancy_by_trigger(6, run, True)
-            if len(issues) > 5:
+            count_slots = 0
+            # If more than one slot has an issue
+            for i in issues:
+                for j in issues[i]:
+                    count_slots+=1
+            if count_slots > 1:
                 occupancy_fail[run] = 1
             else:
                 occupancy_fail[run] = 0
@@ -85,7 +91,7 @@ def get_run_types(limit):
 
     latest_run = get_latest_run()
 
-    result = conn.execute("SELECT run, run_type FROM run_state WHERE run > %s", (latest_run - limit - 1))
+    result = conn.execute("SELECT run, run_type FROM run_state WHERE run > %s", (latest_run - limit))
 
     rows = result.fetchall()
 

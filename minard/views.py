@@ -1130,7 +1130,7 @@ def nearline_monitoring_summary():
 
     runs = []
     latest_run = detector_state.get_latest_run()
-    for run in range(latest_run-limit, latest_run):
+    for run in range(latest_run-limit+1, latest_run):
         runs.append(run)
 
     runTypes = nearline_monitor.get_run_types(limit)
