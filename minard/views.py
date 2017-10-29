@@ -1126,20 +1126,22 @@ def occupancy_by_trigger_run(run_number):
 @app.route('/nearline_monitoring_summary')
 def nearline_monitoring_summary():
     limit = request.args.get("limit", 10, type=int)
-    run = request.args.get("run", 0, type=int)
+    selected_run = request.args.get("run", 0, type=int)
 
-    runs = []
-    latest_run = detector_state.get_latest_run()
-    for run in range(latest_run-limit+1, latest_run):
-        runs.append(run)
+    if not selected_run:
+        runs = []
+        latest_run = detector_state.get_latest_run()
+        for run in range(latest_run-limit+1, latest_run):
+            runs.append(run)
+        runTypes = nearline_monitor.get_run_types(limit)
+        runs = sorted(runs, reverse=True)
+    else:
+        runs = [selected_run]
+        runTypes = nearline_monitor.run_type(selected_run) 
 
-    runTypes = nearline_monitor.get_run_types(limit)
+    clock_jumps, ping_crates, channel_flags, occupancy = nearline_monitor.get_run_list(limit, selected_run, runs)
 
-    runs = sorted(runs, reverse=True)
-
-    clock_jumps, ping_crates, channel_flags, occupancy = nearline_monitor.get_run_list(limit, run, runs)
-
-    return render_template('nearline_monitoring_summary.html', runs=runs, limit=limit, clock_jumps=clock_jumps, ping_crates=ping_crates, channel_flags=channel_flags, occupancy=occupancy, runTypes=runTypes)
+    return render_template('nearline_monitoring_summary.html', runs=runs, selected_run=selected_run, limit=limit, clock_jumps=clock_jumps, ping_crates=ping_crates, channel_flags=channel_flags, occupancy=occupancy, runTypes=runTypes)
 
 @app.route('/physicsdq')
 def physicsdq():
