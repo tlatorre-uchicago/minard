@@ -505,7 +505,7 @@ def get_trigger_scan_for_run(run):
         >>> get_trigger_scan_for_run(1000)
         {'N100MED': {'name':'N100MED', 'crate': 17, 'baseline': 4078, 'adc_per_nhit': -2.33}, ...}
     """
-    names = ['N100HI','N100LO','N100MED','N20LB','N20']
+    names = ['N100HI','N100LO','N100MED','N20LB','N20','OWLN']
 
     conn = engine.connect()
 
