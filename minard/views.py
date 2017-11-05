@@ -1093,27 +1093,15 @@ def noise_run_detail(run_number):
 @app.route('/occupancy_by_trigger')
 def occupancy_by_trigger():
     limit = request.args.get("limit", 25, type=int)
+    selected_run = request.args.get("run", 0, type=int)
 
-    runs = occupancy.run_list(limit)
+    if not selected_run:
+        runs = occupancy.run_list(limit)
+    else:
+        runs = [selected_run]
+    status, crates, slots, count = occupancy.occupancy_by_trigger_limit(limit, selected_run) 
 
-    crates = {}
-    slots = {}
-    count = {}
-    for run in runs:
-        # Only check ESUMH
-        issues = occupancy.occupancy_by_trigger(6, run, True)
-        crates[run] = ""
-        slots[run] = ""
-        count[run] = 0
-        for i in issues:
-            crates[run]+=(str(i) + ', ')
-            slots[run]+=(str(len(issues[i])) + ', ')
-            for j in issues[i]:
-                count[run]+=1
-        crates[run] = str(crates[run])[0:-2]
-        slots[run] = str(slots[run])[0:-2]
-
-    return render_template('occupancy_by_trigger.html', runs=runs, limit=limit, crates=crates, slots=slots, count=count)
+    return render_template('occupancy_by_trigger.html', runs=runs, limit=limit, crates=crates, slots=slots, count=count, selected_run=selected_run)
 
 @app.route('/occupancy_by_trigger_run/<run_number>')
 def occupancy_by_trigger_run(run_number):
@@ -1125,7 +1113,7 @@ def occupancy_by_trigger_run(run_number):
 
 @app.route('/nearline_monitoring_summary')
 def nearline_monitoring_summary():
-    limit = request.args.get("limit", 10, type=int)
+    limit = request.args.get("limit", 25, type=int)
     selected_run = request.args.get("run", 0, type=int)
 
     if not selected_run:
@@ -1160,9 +1148,10 @@ def physicsdq():
 
 @app.route('/pingcrates')
 def pingcrates():
-    limit = request.args.get("limit", 100, type=int)
-    data = pingcratesdb.ping_crates_list(limit)
-    return render_template('pingcrates.html', data=data, limit=limit)
+    limit = request.args.get("limit", 25, type=int)
+    selected_run = request.args.get("run", 0, type=int)
+    data = pingcratesdb.ping_crates_list(limit, selected_run)
+    return render_template('pingcrates.html', data=data, limit=limit, selected_run=selected_run)
 
 @app.route('/pingcrates_run/<run_number>')
 def pingcrates_run(run_number):
@@ -1171,8 +1160,26 @@ def pingcrates_run(run_number):
 @app.route('/channelflags')
 def channelflags():
     limit = request.args.get("limit", 25, type=int)
-    runs, nsync16, nsync24, sync16s, sync24s, missed = channelflagsdb.get_channel_flags(limit)
-    return render_template('channelflags.html', runs=runs, nsync16=nsync16, nsync24=nsync24, sync16s=sync16s, sync24s=sync24s, missed=missed, limit=limit)
+    selected_run = request.args.get("run", 0, type=int)
+    if selected_run == 0:
+        runs, nsync16, nsync24, sync16s, sync24s, missed, sync16s_pr, sync24s_pr = channelflagsdb.get_channel_flags(limit)
+    else:
+        nsync16 = {}
+        nsync24 = {}
+        missed = {}
+        sync16s = {}
+        sync24s = {}
+        sync16s_pr = {}
+        sync24s_pr = {}
+        runs = [selected_run]
+        missed_count, cmos_sync16, cgt_sync24, cmos_sync16_pr, cgt_sync24_pr = channelflagsdb.get_channel_flags_by_run(selected_run)
+        sync16s[selected_run] = len(cmos_sync16)
+        sync16s_pr[selected_run] = len(cmos_sync16_pr)
+        sync24s[selected_run] = len(cgt_sync24)
+        sync24s_pr[selected_run] = len(cgt_sync24_pr)
+        missed[selected_run] = len(missed_count)
+        nsync16[selected_run], nsync24[selected_run] = channelflagsdb.get_number_of_syncs(selected_run)
+    return render_template('channelflags.html', runs=runs, nsync16=nsync16, nsync24=nsync24, sync16s=sync16s, sync24s=sync24s, missed=missed, sync16s_pr=sync16s_pr, sync24s_pr=sync24s_pr, limit=limit, selected_run=selected_run)
 
 @app.route('/channelflagsbychannel/<run_number>')
 def channelflagsbychannel(run_number):
@@ -1182,8 +1189,9 @@ def channelflagsbychannel(run_number):
 @app.route('/trigger_clock_jump')
 def trigger_clock_jump():
     limit = request.args.get("limit", 25, type=int)
-    runs, njump10, njump50 = triggerclockjumpsdb.get_clock_jumps(limit)
-    return render_template('trigger_clock_jump.html', runs=runs, limit=limit, njump10=njump10, njump50=njump50)
+    selected_run = request.args.get("run", 0, type=int)
+    runs, njump10, njump50 = triggerclockjumpsdb.get_clock_jumps(limit, selected_run)
+    return render_template('trigger_clock_jump.html', runs=runs, limit=limit, njump10=njump10, njump50=njump50, selected_run=selected_run)
 
 @app.route('/trigger_clock_jump_run/<run_number>')
 def trigger_clock_jump_run(run_number):

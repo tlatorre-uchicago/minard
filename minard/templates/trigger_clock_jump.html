@@ -10,6 +10,7 @@
 
   <h2 align="left">Information For the User</h2>
     <table class="table table-hover">
+      <tr> <th> The trigger clock jump processor looks for bit-flips on the 10MHz and 50MHz clocks that cause jumps in the clock ticks. This page reports the number of those clock jumps for both clocks. The trigger clock jumps are corrected in RAT using the other clock, but a run with many clock jumps might have other problems. Click the run number to see a list of the GTID and size of the clock jumps.
       <tr class="success"> <th> The run status is "Pass" if there were less than 10 total clock jumps on the 10MHz and 50MHz clocks. </th> </tr>
       <tr class="danger"> <th>  The run status is "Fail" if there were more than 20 total clock jumps on the 10MHz and 50MHz clocks. This is not necessarily an issue because these clock jumps are corrected, but it might indicate an issue with the run. </th> </tr>
       <tr class="warning"> <th> The run status is "Notice" if there were between 10 and 20 total clock jumps on the 10MHz and 50MHz clocks. </th> </tr>
@@ -23,15 +24,18 @@
 </div>
 
 <div class="container">
-  Select
-  <select id="limit" onchange="get_limit(this.value);">
+  List runs over the last
+  <select id="limit" onchange="get_limit(this.value, 0);">
     <option selected value="{{limit}}">{{limit}}</option>
     {% for n in [10, 25, 50, 100, 500] %}
       {% if n != limit %}
         <option value="{{n}}">{{n}}</option>
       {% endif %}
     {% endfor %}
-  </select> previous runs
+  </select> runs, or select run:
+
+  <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value);"></input>
+
   <table class="table table-hover">
     <thead>
       <tr> 
@@ -58,9 +62,10 @@
 {% endblock %}
 {% block script %}
   <script>
-    function get_limit(limit){
+    function get_limit(limit, run){
       params = {};
       params["limit"] = limit;
+      params["run"] = run;
       window.location.replace($SCRIPT_ROOT + "/trigger_clock_jump?" + $.param(params));
     }
   </script>

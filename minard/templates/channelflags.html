@@ -10,6 +10,7 @@
 
   <h2 align="left">Information For the User</h2>
     <table class="table table-hover">
+      <tr> <th> The channel flags processor looks for channels out-of-sync or dropping data. These channels will be thrown away in analysis, so we want to make sure there aren't too many of these channels being flagged during data taking. The processor also keeps track of the number of sync16 and sync24s that occur during the run. The number of out-of-sync channels for previous runs shows any channel identified in the run that will be thrown away for previvous runs up to the most recent run with a sync16 (usually just the previous run). Click the run number to see a list of the channels with these error flags. </th> </tr>
       <tr class="success"> <th> There aren't too many channels out-of-sync or dropping data, the run status is "Pass". Click the run number to see the list of channels. </th> </tr>
       <tr class="danger"> <th>  If over 64 channels are out of sync or more than 256 channels with missed counts, the run status is "Fail"  </th> </tr>
       <tr class="warning"> <th> If more than 32 channels are out-of-sync or there are more than 64 channels with missed counts, the run status is "Notice" </th> </tr>
@@ -24,30 +25,33 @@
 </div>
 
 <div class="container">
-  Select
-  <select id="limit" onchange="get_limit(this.value);">
+  List runs over the last
+  <select id="limit" onchange="get_limit(this.value, 0);">
     <option selected value="{{limit}}">{{limit}}</option>
     {% for n in [10, 25, 50, 100, 500] %}
       {% if n != limit %}
         <option value="{{n}}">{{n}}</option>
       {% endif %}
     {% endfor %}
-  </select> previous runs
+  </select> runs, or select run:
+
+  <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value);"></input>
+
   <table class="table table-hover">
     <thead>
       <tr> 
         <th> Run Number </th>
         <th> # Sync 16s </th>
         <th> # Sync 24s </th>
-        <th> # Channels w/ Sync 16 Flags </th>
-        <th> # Channels w/ Sync 24 Flags </th>
-        <th> # Channels w/ Missed Counts </th>
+        <th> # Channels Out-Of-Sync Current Run </th>
+        <th> # Channels Out-Of-Sync Previous Runs</th>
+        <th> # Channels With Missed Counts </th>
       </tr>
     </thead>
     {% for run in runs %}
-        {% if (missed[run] >= 64 and missed[run] < 256) or (sync16s[run] >= 32 and sync16s[run] < 64) %}
+        {% if (missed[run] >= 64 and missed[run] < 256) or (sync16s[run] >= 32 and sync16s[run] < 64 and sync16s_pr[run] < 64) %}
             <tr class="warning">
-        {% elif sync16s[run] >= 64 or missed[run] >= 256 %}
+        {% elif sync16s[run] >= 64 or missed[run] >= 256 or sync16s_pr[run] >= 64 %}
             <tr class="danger">
         {% else %}
             <tr class="success">
@@ -55,8 +59,8 @@
         <th> <a href="{{ url_for("channelflagsbychannel",run_number=run)}}">{{run}}</a> </th>
         <th> {{nsync16[run]}}</th>
         <th> {{nsync24[run]}}</th>
-        <th> {{sync16s[run]}}</th>
-        <th> {{sync24s[run]}}</th>
+        <th> {{sync16s[run] + sync24s[run]}} </th>
+        <th> {{sync16s_pr[run] + sync24s_pr[run]}} </th>
         <th> {{missed[run]}}</th>
       </tr>
     {% endfor %}
@@ -65,9 +69,10 @@
 {% endblock %}
 {% block script %}
   <script>
-    function get_limit(limit){
+    function get_limit(limit, run){
       params = {};
       params["limit"] = limit;
+      params["run"] = run;
       window.location.replace($SCRIPT_ROOT + "/channelflags?" + $.param(params));
     }
   </script>

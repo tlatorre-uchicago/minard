@@ -9,6 +9,7 @@
 <div class="container">
   <h2 align="left">Information For the User</h2>
     <table class="table table-hover">
+      <tr> <th> Ping crates runs at the beginning of every physics runs and pedestals each slot in the detector individually. The ping crates processor loops over those events and looks at the CAEN signals for N100L and N20LB. Any issues with the trigger signals are identified by looking at the peak, width, rise time, and fall time. Click the run number to see plots showing information about the N100 and N20 trigger signals. <th> <tr>
       <tr class="success"> <th> If the run status is "Pass" the N100 and N20 trigger signals look good for all crates and slots! </th> </tr>
       <tr class="danger"> <th>  If the run status is "Fail" note it in the shift report and the shift slack. No immediate action is needed, but it might be a data quality issue. </th> </tr>
       <tr class="warning"> <th> If the run status is "Notice" a detector expert will take a look. No action is needed. </th> </tr>
@@ -21,15 +22,18 @@
 </div>
 
 <div class="container">
-  Show:
-  <select id="limit" onchange="get_limit(this.value);">
+  List runs over the last
+  <select id="limit" onchange="get_limit(this.value, 0);">
     <option selected value="{{limit}}">{{limit}}</option>
     {% for n in [10, 25, 50, 100, 500] %}
       {% if n != limit %}
         <option value="{{n}}">{{n}}</option>
       {% endif %}
     {% endfor %}
-  </select> previous runs
+  </select> runs, or select run:
+
+  <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value);"></input>
+
   <table class="table table-hover">
     <thead>
       <tr> 
@@ -64,9 +68,10 @@
 {% endblock %}
 {% block script %}
   <script>
-    function get_limit(limit){
+    function get_limit(limit, run){
       params = {};
       params["limit"] = limit;
+      params["run"] = run;
       window.location.replace($SCRIPT_ROOT + "/pingcrates?" + $.param(params));
     }
   </script>
