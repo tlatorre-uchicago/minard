@@ -39,7 +39,7 @@ function setup(run) {
     $(".crate9").after("<br>");
 
     // Default values
-    var i = [0, 4, 6, 7, 10];
+    var i = [0, 4, 6];
     for(var x in i) {
        update(i[x], run);
     }
@@ -59,12 +59,6 @@ function update(trigger_type, run_number) {
         }
         else if(trigger_type == 6){
             d3.select('#crateZ').datum(values).call(crate_update);
-        }
-        else if(trigger_type == 7){
-            d3.select('#crateI').datum(values).call(crate_update);
-        }
-        else if(trigger_type == 10){
-            d3.select('#crateJ').datum(values).call(crate_update);
         }
     });
 }

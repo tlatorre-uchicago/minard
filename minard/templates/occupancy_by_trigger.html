@@ -6,45 +6,64 @@
 {% block body %}
   {{ super() }}
 
+<div class="container">
+
+  <h2 align="left">Information For the User</h2>
+    <table class="table table-hover">
+      <tr> <th> The trigger occupancy processor looks at the occupancy of ESUMH triggered events and checks the occupancy of each slot to make sure its not too low. Low occupancy slots are most often caused by either a loss of high voltage (relays trip open) or the ESUMH trigger not working. For shorter runs it is possible to get false failures, so look for trends across runs. Clicking the run number will display the ESUMH, N100L, and N20LB occupancy for the run. The processor only runs on physics runs longer than 30 minutes long.
+      <tr class="success"> <th> The occupancy of ESUMH triggered events is not low in any slot in the detector. </th> </tr>
+      <tr class="danger"> <th>  The occupancy of ESUMH triggered events for one or more slots in the detector is low.  </th> </tr>
+  </table>
+
+</div>
+
+
 <div class="page-header">
   <h1 align="center">Occupancy By Trigger</h1>
 </div>
 
 <div class="container">
   <div class="col-md-6 col-md-offset-3">
-    Show:
-    <select id="limit" onchange="get_limit(this.value);">
+    Show runs over the last
+    <select id="limit" onchange="get_limit(this.value, 0);">
       <option selected value="{{limit}}">{{limit}}</option>
       {% for n in [10, 25, 50, 100, 500] %}
         {% if n != limit %}
           <option value="{{n}}">{{n}}</option>
         {% endif %}
       {% endfor %}
-    </select> previous runs
+    </select> runs, or select run:
+
+    <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value);"></input>
+
     <table class="table table-hover">
       <thead>
         <tr> 
           <th> Run </th>
           <th> Crate </th>
-          <th> Number of Slots </th>
+          <th> Slots </th>
         </tr>
       </thead>
       <thead>
-        {% for run in runs %}
-          {% if count[run] > 1 %}
-            <tr class="danger">
-          {% else %}
-            <tr class="success"> 
-          {% endif %}
-            <th><a href="{{url_for('occupancy_by_trigger_run',run_number=run) }}">{{run}}</a></th>
-            {% if crates[run] %}
-              <th> {{crates[run]}} </th>
-              {% if slots[run] %}
-                <th> {{slots[run]}} </th>
-              {% endif %}
+        {% if runs %}
+          {% for run in runs %}
+            {% if count[run] >= 1 %}
+              <tr class="danger">
+            {% else %}
+              <tr class="success"> 
             {% endif %}
-          </tr>
-        {% endfor %}
+              <th><a href="{{url_for('occupancy_by_trigger_run',run_number=run) }}">{{run}}</a></th>
+              {% if crates[run] %}
+                <th> {{crates[run]}} </th>
+                {% if slots[run] %}
+                  <th> {{slots[run]}} </th>
+                {% endif %}
+              {% endif %}
+            </tr>
+          {% endfor %}
+        {% else %}
+          <th> No data found </th>
+        {% endif %}
       </thead>
     </table>
   </div>
@@ -52,9 +71,10 @@
 {% endblock %}
 {% block script %}
   <script>
-    function get_limit(limit){
+    function get_limit(limit, run){
       params = {};
       params["limit"] = limit;
+      params["run"] = run;
       window.location.replace($SCRIPT_ROOT + "/occupancy_by_trigger?" + $.param(params));
     }
   </script>

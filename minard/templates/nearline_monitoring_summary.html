@@ -37,7 +37,7 @@ tr:nth-child(even) {
 </div>
 
 <div class="container">
-  List physics runs over the last  
+  List runs over the last  
   <select id="limit" onchange="get_runs(this.value, 0);">
     {% if selected_run != 0 %}
       <option selected value="-">-</option>
@@ -51,7 +51,7 @@ tr:nth-child(even) {
     {% endfor %}
   </select> runs, or select run: 
 
-  <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_runs(1, this.value);"></input>
+  <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_runs(0, this.value);"></input>
 
   <table class="table table-hover">
     <thead>

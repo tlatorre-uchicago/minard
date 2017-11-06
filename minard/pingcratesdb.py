@@ -110,7 +110,7 @@ def crates_failed_messages(run):
     return messages
 
 
-def ping_crates_list(limit):
+def ping_crates_list(limit, selected_run):
     '''
     Returns a list of ping crates information for runs larger
     than the current run - limit
@@ -120,11 +120,17 @@ def ping_crates_list(limit):
 
     conn = engine_nl.connect()
 
-    # Get all ping crates information from detector state since (run - limit)
-    result = conn.execute("SELECT DISTINCT ON (run) timestamp, run,  n100_crates_failed, "
-                          "n20_crates_failed, n100_crates_warned, n20_crates_warned, "
-                          "status FROM ping_crates WHERE run > %s "
-                          "ORDER BY run, timestamp DESC", (run-limit))
+    if selected_run == 0:
+        # Get all ping crates information from detector state since (run - limit)
+        result = conn.execute("SELECT DISTINCT ON (run) timestamp, run,  n100_crates_failed, "
+                              "n20_crates_failed, n100_crates_warned, n20_crates_warned, "
+                              "status FROM ping_crates WHERE run > %s "
+                              "ORDER BY run, timestamp DESC", (run-limit))
+    else:
+        result = conn.execute("SELECT DISTINCT ON (run) timestamp, run,  n100_crates_failed, "
+                              "n20_crates_failed, n100_crates_warned, n20_crates_warned, "
+                              "status FROM ping_crates WHERE run = %s "
+                              "ORDER BY run, timestamp DESC", selected_run)
 
     ping_info = []
     for timestamp, run, n100, n20, n100w, n20w, status in result:

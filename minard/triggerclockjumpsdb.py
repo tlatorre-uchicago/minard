@@ -1,7 +1,7 @@
 from .db import engine_nl
 from .detector_state import get_latest_run
 
-def get_clock_jumps(limit):
+def get_clock_jumps(limit, selected_run):
     """
     Returns a list of runs and dictionaries
     specifing the number of clock jump for 
@@ -11,9 +11,16 @@ def get_clock_jumps(limit):
 
     current_run = get_latest_run()
 
-    result = conn.execute("SELECT DISTINCT ON (run) run "
-                          "FROM trigger_clock_jumps WHERE run > %i "
-                          "ORDER BY run DESC, timestamp DESC" % (current_run - limit))
+    if selected_run == 0:
+        result = conn.execute("SELECT DISTINCT ON (run) run "
+                              "FROM trigger_clock_jumps WHERE run > %i "
+                              "ORDER BY run DESC, timestamp DESC" % \
+                              (current_run - limit))
+    else:
+        result = conn.execute("SELECT DISTINCT ON (run) run "
+                              "FROM trigger_clock_jumps WHERE run = %i "
+                              "ORDER BY run DESC, timestamp DESC" % \
+                              (selected_run))
 
     rows = result.fetchall()
 
@@ -26,11 +33,18 @@ def get_clock_jumps(limit):
         njump10[run[0]] = 0
         njump50[run[0]] = 0
 
-    result = conn.execute("SELECT DISTINCT ON (run, gtid10, gtid50) "
-                          "run, clockjump10, clockjump50 "
-                          "FROM trigger_clock_jumps WHERE run > %i "
-                          "ORDER BY run DESC, gtid10, gtid50, timestamp DESC" \
-                          % (current_run - limit))
+    if selected_run == 0:
+        result = conn.execute("SELECT DISTINCT ON (run, gtid10, gtid50) "
+                              "run, clockjump10, clockjump50 "
+                              "FROM trigger_clock_jumps WHERE run > %i "
+                              "ORDER BY run DESC, gtid10, gtid50, timestamp DESC" \
+                              % (current_run - limit))
+    else:
+        result = conn.execute("SELECT DISTINCT ON (run, gtid10, gtid50) "
+                              "run, clockjump10, clockjump50 "
+                              "FROM trigger_clock_jumps WHERE run = %i "
+                              "ORDER BY run DESC, gtid10, gtid50, timestamp DESC" \
+                              % (selected_run))
 
     rows = result.fetchall()
 
