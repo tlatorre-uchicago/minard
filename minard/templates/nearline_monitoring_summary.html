@@ -69,39 +69,39 @@ tr:nth-child(even) {
         <th> {{run}} </th>
         <th> {{runTypes[run]}} </th>
         {% if ping_crates[run] == 1 %}
-          <th class="danger">Fail</th>
+          <th class="danger"><a href="{{ url_for("pingcrates_run", run_number=run) }}">Fail</a></th>
         {% elif ping_crates[run] == 2 %}
-          <th class="warning">Notice</th>
+          <th class="warning"><a href="{{ url_for("pingcrates_run", run_number=run) }}">Notice</a></th>
         {% elif ping_crates[run] == 0 %}
-          <th class="success">Pass</th>
+          <th class="success"><a href="{{ url_for("pingcrates_run", run_number=run) }}">Pass</a></th>
         {% else %}
           <th class="info">Not Run</th> 
         {% endif %}
 
         {% if clock_jumps[run] == 1 %}
-          <th class="danger">Fail</th>
+          <th class="danger"><a href="{{ url_for("trigger_clock_jump_run", run_number=run) }}">Fail</a></th>
         {% elif clock_jumps[run] == 2 %}
-          <th class="warning">Notice</th>
+          <th class="warning"><a href="{{ url_for("trigger_clock_jump_run", run_number=run) }}">Notice</a></th>
         {% elif clock_jumps[run] == 0 %}
-          <th class="success">Pass</th>
+          <th class="success"><a href="{{ url_for("trigger_clock_jump_run", run_number=run) }}">Pass</a></th>
         {% else %}
           <th class="info">Not Run</th> 
         {% endif %}
 
         {% if channel_flags[run] == 1 %}
-          <th class="danger">Fail</th>
+          <th class="danger"><a href="{{ url_for("channelflagsbychannel", run_number=run) }}">Fail</a></th>
         {% elif channel_flags[run] == 2 %}
-          <th class="warning"> Notice</th>
+          <th class="warning"><a href="{{ url_for("channelflagsbychannel", run_number=run) }}">Notice</a></th>
         {% elif channel_flags[run] == 0 %}
-          <th class="success">Pass</th>
+          <th class="success"><a href="{{ url_for("channelflagsbychannel", run_number=run) }}">Pass</a></th>
         {% else %}
           <th class="info">Not Run </th>
         {% endif %}
 
         {% if occupancy[run] == 1 %}
-          <th class="danger">Fail</th>
+          <th class="danger"><a href="{{ url_for("occupancy_by_trigger_run", run_number=run) }}">Fail</a></th>
         {% elif occupancy[run] == 0 %}
-          <th class="success">Pass</th>
+          <th class="success"><a href="{{ url_for("occupancy_by_trigger_run", run_number=run) }}">Pass</a></th>
         {% else %}
           <th class="info">Not Run</th> 
         {% endif %}
