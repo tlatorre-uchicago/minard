@@ -10,21 +10,24 @@ def occupancy_by_trigger_limit(limit, selected_run):
 
     latest_run = get_latest_run()
 
-    if selected_run == 0:
-        result = conn.execute("SELECT DISTINCT ON (run, crate, slot) "
-                              "run, status, crate, slot "
-                              "FROM esumh_occupancy_fail WHERE run > %s "
-                              "ORDER BY run, crate, slot", \
-                              (latest_run - limit))
-    else:
-        result = conn.execute("SELECT DISTINCT ON (run, crate, slot) "
-                              "run, status, crate, slot "
-                              "FROM esumh_occupancy_fail WHERE run = %s " 
-                              "AND timestamp = (SELECT timestamp FROM "
-                              "esumh_occupancy WHERE run = %s ORDER BY "
-                              "timestamp DESC LIMIT 1) "
-                              "ORDER BY run, crate, slot", \
-                              (selected_run))
+    try:
+        if selected_run == 0:
+            result = conn.execute("SELECT DISTINCT ON (run, crate, slot) "
+                                  "run, status, crate, slot "
+                                  "FROM esumh_occupancy_fail WHERE run > %s "
+                                  "ORDER BY run, crate, slot", \
+                                  (latest_run - limit))
+        else:
+            result = conn.execute("SELECT DISTINCT ON (run, crate, slot) "
+                                  "run, status, crate, slot "
+                                  "FROM esumh_occupancy_fail WHERE run = %s " 
+                                  "AND timestamp = (SELECT timestamp FROM "
+                                  "esumh_occupancy WHERE run = %s ORDER BY "
+                                  "timestamp DESC LIMIT 1) "
+                                  "ORDER BY run, crate, slot", \
+                                  (selected_run))
+    except Exception:
+        return {}, {}, {}
 
     rows = result.fetchall()
 
