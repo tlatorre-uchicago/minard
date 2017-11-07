@@ -41,7 +41,7 @@ def occupancy_run(run):
     Return the ESUM occupancy status of a selected run
     '''
     occupancy_fail = {}
-    status,_,_,_ = occupancy_by_trigger_limit(0, run)
+    status,_,_ = occupancy_by_trigger_limit(0, run)
     try:
         if status[run] == 1:
             occupancy_fail[run] = 1
@@ -58,7 +58,7 @@ def occupancy(limit, all_runs):
     Return a dictionary of ESUM occupancy status by run
     '''
     occupancy_fail = {}
-    status,_,_,_ = occupancy_by_trigger_limit(limit, 0)
+    status,_,_ = occupancy_by_trigger_limit(limit, 0)
     for run in all_runs:
         try:
             # Check ESUMH Occupancy

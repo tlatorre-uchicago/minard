@@ -45,25 +45,31 @@
         </tr>
       </thead>
       <thead>
-        {% if runs %}
-          {% for run in runs %}
-            {% if count[run] >= 1 %}
-              <tr class="danger">
-            {% else %}
-              <tr class="success"> 
-            {% endif %}
-              <th><a href="{{url_for('occupancy_by_trigger_run',run_number=run) }}">{{run}}</a></th>
-              {% if crates[run] %}
-                <th> {{crates[run]}} </th>
-                {% if slots[run] %}
-                  <th> {{slots[run]}} </th>
+      {% for run in runs %}
+        {% if status[run] != -1 %}
+          {% if status[run] == 1 %}
+            <tr class="danger">
+          {% elif status[run] == 0 %}
+            <tr class="success"> 
+          {% endif %}
+          <th><a href="{{url_for('occupancy_by_trigger_run',run_number=run) }}">{{run}}</a></th>
+          <th> {{crates[run]}} </th>
+          {% if slots[(run, -1)] %}
+             <th> {{slots[(run, -1)]}} </th>
+          {% else %}
+            <th>
+              {% for i in range(19) %} 
+                {% if slots[(run, i)] %}
+                  {{slots[(run, i)]}}
                 {% endif %}
-              {% endif %}
-            </tr>
-          {% endfor %}
+              {% endfor %}
+            </th>
+          {% endif %}
         {% else %}
-          <th> No data found </th>
+            <th> No data found </th>
         {% endif %}
+        </tr>
+      {% endfor %}
       </thead>
     </table>
   </div>

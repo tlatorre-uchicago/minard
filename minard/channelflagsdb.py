@@ -108,8 +108,9 @@ def get_number_of_syncs(run):
                           "WHERE run = %s ORDER BY timestamp DESC limit 1", (run))
 
     rows = result.fetchall()
-    nsync16s = 0
-    nsync24s = 0
+
+    nsync16s = -1
+    nsync24s = -1
     for run, sync16, sync24 in rows:
         nsync16s = sync16
         nsync24s = sync24

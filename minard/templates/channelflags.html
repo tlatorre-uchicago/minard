@@ -49,20 +49,24 @@
       </tr>
     </thead>
     {% for run in runs %}
-        {% if (missed[run] >= 64 and missed[run] < 256) or (sync16s[run] >= 32 and sync16s[run] < 64 and sync16s_pr[run] < 64) %}
-            <tr class="warning">
-        {% elif sync16s[run] >= 64 or missed[run] >= 256 or sync16s_pr[run] >= 64 %}
-            <tr class="danger">
+        {% if nsync16[run] != -1 and nsync24[run] != -1 %}
+            {% if (missed[run] >= 64 and missed[run] < 256) or (sync16s[run] >= 32 and sync16s[run] < 64 and sync16s_pr[run] < 64) %}
+                <tr class="warning">
+            {% elif sync16s[run] >= 64 or missed[run] >= 256 or sync16s_pr[run] >= 64 %}
+                <tr class="danger">
+            {% else %}
+                <tr class="success">
+            {% endif %}
+            <th> <a href="{{ url_for("channelflagsbychannel",run_number=run)}}">{{run}}</a> </th>
+            <th> {{nsync16[run]}}</th>
+            <th> {{nsync24[run]}}</th>
+            <th> {{sync16s[run] + sync24s[run]}} </th>
+            <th> {{sync16s_pr[run] + sync24s_pr[run]}} </th>
+            <th> {{missed[run]}}</th>
         {% else %}
-            <tr class="success">
+            <th> No data found </th>
         {% endif %}
-        <th> <a href="{{ url_for("channelflagsbychannel",run_number=run)}}">{{run}}</a> </th>
-        <th> {{nsync16[run]}}</th>
-        <th> {{nsync24[run]}}</th>
-        <th> {{sync16s[run] + sync24s[run]}} </th>
-        <th> {{sync16s_pr[run] + sync24s_pr[run]}} </th>
-        <th> {{missed[run]}}</th>
-      </tr>
+        </tr>
     {% endfor %}
   </table>
 </div>
