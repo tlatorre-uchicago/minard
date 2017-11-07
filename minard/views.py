@@ -1099,9 +1099,14 @@ def occupancy_by_trigger():
         runs = occupancy.run_list(limit)
     else:
         runs = [selected_run]
-    status, crates, slots, count = occupancy.occupancy_by_trigger_limit(limit, selected_run) 
 
-    return render_template('occupancy_by_trigger.html', runs=runs, limit=limit, crates=crates, slots=slots, count=count, selected_run=selected_run)
+    status, crates, slots = occupancy.occupancy_by_trigger_limit(limit, selected_run) 
+
+    # If no data for selected run
+    if len(status) == 0:
+        status[selected_run] = -1        
+
+    return render_template('occupancy_by_trigger.html', runs=runs, limit=limit, crates=crates, slots=slots, status=status, selected_run=selected_run)
 
 @app.route('/occupancy_by_trigger_run/<run_number>')
 def occupancy_by_trigger_run(run_number):

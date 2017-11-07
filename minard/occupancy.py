@@ -19,7 +19,10 @@ def occupancy_by_trigger_limit(limit, selected_run):
     else:
         result = conn.execute("SELECT DISTINCT ON (run, crate, slot) "
                               "run, status, crate, slot "
-                              "FROM esumh_occupancy_fail WHERE run = %s "
+                              "FROM esumh_occupancy_fail WHERE run = %s " 
+                              "AND timestamp = (SELECT timestamp FROM "
+                              "esumh_occupancy WHERE run = %s ORDER BY "
+                              "timestamp DESC LIMIT 1) "
                               "ORDER BY run, crate, slot", \
                               (selected_run))
 
@@ -28,13 +31,14 @@ def occupancy_by_trigger_limit(limit, selected_run):
     crates = {}
     slots = {}
     status = {}
-    count = {}
+    runs = []
     for run, run_status, crate, slot in rows:
         status[run] = run_status
+        if run not in runs:
+            runs.append(run)
         if run_status == 0:
             crates[run] = "None"
-            slots[run] = "None"
-            count[run] = 0
+            slots[(run, -1)] = "None"
             continue
         try:
             if crate != crates[run][-1]:
@@ -42,13 +46,17 @@ def occupancy_by_trigger_limit(limit, selected_run):
         except Exception as e:
             crates[run] = [crate]
         try:
-            slots[run].append(slot)
-            count[run]+=1
+            slots[(run,crate)].append(slot)
         except Exception as e:
-            slots[run] = [slot]
-            count[run] = 1
+            slots[(run,crate)] = [slot]
 
-    return status, crates, slots, count
+    # Some formatting
+    for run in runs:
+        if crates[run] == "None":
+            continue
+        crates[run] = str(crates[run])[1:-1]
+
+    return status, crates, slots
  
 
 def occupancy_by_trigger(trigger_type, run, find_issues):

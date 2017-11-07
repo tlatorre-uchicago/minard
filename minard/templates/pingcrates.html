@@ -45,7 +45,8 @@
         <th> Processed Time </th>
       </tr>
     </thead>
-    {% for i in data %}
+    {% if data %}
+      {% for i in data %}
         {% if i[6] == 0 %}
           <tr class="success">
         {% elif i[6] == 1 %}
@@ -61,8 +62,11 @@
         <th> {{i[4]}} </th>
         <th> {{i[5]}} </th>
         <th> {{i[0]}} </th>
-      </tr>
-    {% endfor %}
+        </tr>
+      {% endfor %}
+    {% else %}
+      <th> No data found </th>
+    {% endif %}
   </table>
 </div>
 {% endblock %}
