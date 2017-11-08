@@ -13,13 +13,13 @@ def get_clock_jumps(limit, selected_run):
 
     if selected_run == 0:
         result = conn.execute("SELECT DISTINCT ON (run) run "
-                              "FROM trigger_clock_jumps WHERE run > %i "
-                              "ORDER BY run DESC, timestamp DESC" % \
+                              "FROM trigger_clock_jumps WHERE run > %s "
+                              "ORDER BY run DESC, timestamp DESC", \
                               (current_run - limit))
     else:
         result = conn.execute("SELECT DISTINCT ON (run) run "
-                              "FROM trigger_clock_jumps WHERE run = %i "
-                              "ORDER BY run DESC, timestamp DESC" % \
+                              "FROM trigger_clock_jumps WHERE run = %s "
+                              "ORDER BY run DESC, timestamp DESC", \
                               (selected_run))
 
     rows = result.fetchall()

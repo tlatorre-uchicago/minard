@@ -66,7 +66,7 @@ tr:nth-child(even) {
     </thead>
     {% for run in runs %}
       <tr>
-        <th> <a href="{{url_for('nearline',run_number=run)}}">{{run}}</a> </th>
+        <th> <a href="{{url_for('nearline',run=run)}}">{{run}}</a> </th>
         <th> {{runTypes[run]}} </th>
         {% if ping_crates[run] == 1 %}
           <th class="danger"><a href="{{ url_for("pingcrates_run", run_number=run) }}">Fail</a></th>
