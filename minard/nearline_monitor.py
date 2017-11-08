@@ -191,7 +191,8 @@ def ping_crates_run(run):
     result = conn.execute("SELECT status FROM ping_crates WHERE run = %i" % run)
     try:
         row = result.fetchone()[0]
-        if row == 0:
+        # Status is pass or override
+        if row == 0 or row == 3: 
             ping_crates_status[run] = 0
         elif row == 1:
             ping_crates_status[run] = 1
