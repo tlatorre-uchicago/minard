@@ -23,6 +23,7 @@ import nlrat
 import nearline_monitor
 import pingcratesdb
 import triggerclockjumpsdb
+import muons
 import redisdb
 import fiber_position
 import nearline_settings
@@ -1190,6 +1191,13 @@ def channelflags():
 def channelflagsbychannel(run_number):
     missed_count, cmos_sync16, cgt_sync24, cmos_sync16_pr, cgt_sync24_pr = channelflagsdb.get_channel_flags_by_run(run_number)
     return render_template('channelflagsbychannel.html', missed_count=missed_count, cmos_sync16=cmos_sync16, cgt_sync24=cgt_sync24, cmos_sync16_pr=cmos_sync16_pr, cgt_sync24_pr=cgt_sync24_pr, run_number=run_number)
+
+@app.route('/muon_list')
+def muon_list():
+    limit = request.args.get("limit", 25, type=int)
+    selected_run = request.args.get("run", 0, type=int)
+    runs, gtids = muons.get_muons(limit, selected_run)
+    return render_template('muon_list.html', runs=runs, limit=limit, selected_run=selected_run, gtids=gtids)
 
 @app.route('/trigger_clock_jump')
 def trigger_clock_jump():
