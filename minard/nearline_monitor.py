@@ -5,6 +5,7 @@ from .channelflagsdb import get_channel_flags, get_channel_flags_by_run
 from .triggerclockjumpsdb import get_clock_jumps, get_clock_jumps_by_run
 from .nlrat import RUN_TYPES
 from .occupancy import run_list, occupancy_by_trigger, occupancy_by_trigger_limit
+import time
 
 # Limits for failing channel flags check
 OUT_OF_SYNC_1 = 32
@@ -16,17 +17,22 @@ MISSED_COUNT_2 = 256
 CLOCK_JUMP_1 = 10
 CLOCK_JUMP_2 = 20
 
-def get_run_list(limit, selected_run, all_runs):
+def get_run_list(limit, selected_run, run_range_low, run_range_high, all_runs):
     '''
     Returns dictionaries keeping track of a list
     of failures for each nearline job
     '''
 
     if not selected_run:
-        ping_crates_status = ping_crates(limit, all_runs)
-        channel_flags_status = channel_flags(limit, all_runs) 
-        clock_jumps_status = clock_jumps(limit, all_runs)
-        occupancy_status = occupancy(limit, all_runs)
+        print time.time()
+        ping_crates_status = ping_crates(limit, run_range_low, run_range_high, all_runs)
+        print time.time()
+        channel_flags_status = channel_flags(limit, run_range_low, run_range_high, all_runs, True) 
+        print time.time()
+        clock_jumps_status = clock_jumps(limit, run_range_low, run_range_high, all_runs)
+        print time.time()
+        occupancy_status = occupancy(limit, run_range_low, run_range_high, all_runs)
+        print time.time()
     else:
         ping_crates_status = ping_crates_run(selected_run)
         channel_flags_status = channel_flags_run(selected_run)
@@ -41,7 +47,7 @@ def occupancy_run(run):
     Return the ESUM occupancy status of a selected run
     '''
     occupancy_fail = {}
-    status,_,_ = occupancy_by_trigger_limit(0, run)
+    status,_,_ = occupancy_by_trigger_limit(0, run, 0, 0)
     try:
         if status[run] == 1:
             occupancy_fail[run] = 1
@@ -53,12 +59,12 @@ def occupancy_run(run):
     return occupancy_fail
 
 
-def occupancy(limit, all_runs):
+def occupancy(limit, run_range_low, run_range_high, all_runs):
     '''
     Return a dictionary of ESUM occupancy status by run
     '''
     occupancy_fail = {}
-    status,_,_ = occupancy_by_trigger_limit(limit, 0)
+    status,_,_ = occupancy_by_trigger_limit(limit, 0, run_range_low, run_range_high)
     for run in all_runs:
         try:
             # Check ESUMH Occupancy
@@ -103,13 +109,13 @@ def clock_jumps_run(run):
     return clock_jumps_status
 
 
-def clock_jumps(limit, all_runs):
+def clock_jumps(limit, run_range_low, run_range_high, all_runs):
     '''
     Return a dictionary of clock jumps status by run
     '''
     clock_jumps_fail = {}
 
-    _, njump10, njump50 = get_clock_jumps(limit, 0) 
+    _, njump10, njump50 = get_clock_jumps(limit, 0, run_range_low, run_range_high) 
     for run in all_runs:
         try:
             if((njump10[run] + njump50[run]) >= CLOCK_JUMP_1 and \
@@ -142,7 +148,7 @@ def channel_flags_run(run):
         channel_flags_status[run] = -1
         return channel_flags_status
     
-    missed, sync16, sync24, _, _ = get_channel_flags_by_run(run)
+    missed, sync16, sync24, _, _, _, _, _ = get_channel_flags_by_run(run)
     missed = len(missed)
     sync16 = len(sync16)
     sync24 = len(sync24)
@@ -157,11 +163,11 @@ def channel_flags_run(run):
     return channel_flags_status 
 
 
-def channel_flags(limit, all_runs):
+def channel_flags(limit, run_range_low, run_range_high, all_runs, summary):
     '''
     Return a dictionary of channel flags status by run
     '''
-    _, _, _, count_sync16, _, count_missed, count_sync16_pr, _ = get_channel_flags(limit)
+    _, _, _, count_sync16, _, count_missed, count_sync16_pr, _, _, _, _ = get_channel_flags(limit, run_range_low, run_range_high, summary)
     channel_flags_fail = {}
     for run in all_runs:
         run = int(run)
@@ -204,11 +210,11 @@ def ping_crates_run(run):
     return ping_crates_status
 
 
-def ping_crates(limit, all_runs):
+def ping_crates(limit, run_range_low, run_range_high, all_runs):
     '''
     Return a dictionary of ping crates status by run
     '''
-    ping_list = ping_crates_list(limit, 0)
+    ping_list = ping_crates_list(limit, 0, run_range_low, run_range_high)
     ping_crates_fail = {}
     ping_runs = []
     for i in ping_list:
@@ -245,7 +251,7 @@ def run_type(selected_run):
     return runtypes
 
 
-def get_run_types(limit):
+def get_run_types(limit, run_range_low, run_range_high):
     '''
     Return a dictionary of run types for each run in the list
     '''
@@ -253,8 +259,13 @@ def get_run_types(limit):
 
     latest_run = get_latest_run()
 
-    result = conn.execute("SELECT run, run_type FROM run_state WHERE run > %s", \
-                          (latest_run - limit))
+    if not run_range_high:
+        result = conn.execute("SELECT run, run_type FROM run_state WHERE run > %s", \
+                              (latest_run - limit))
+    else:
+        result = conn.execute("SELECT run, run_type FROM run_state WHERE "
+                              "run >= %s AND run <= %s", \
+                              (run_range_low, run_range_high))
 
     rows = result.fetchall()
 

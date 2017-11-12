@@ -37,85 +37,99 @@ tr:nth-child(even) {
 </div>
 
 <div class="container">
-  List runs over the last  
-  <select id="limit" onchange="get_runs(this.value, 0);">
-    {% if selected_run != 0 %}
-      <option selected value="-">-</option>
-    {% else %}
-      <option selected value="{{limit}}">{{limit}}</option>
-    {% endif %}
-    {% for n in [5, 10, 25, 50, 100, 500] %}
-      {% if n != limit %}
-        <option value="{{n}}">{{n}}</option>
-      {% endif %}
-    {% endfor %}
-  </select> runs, or select run: 
-
-  <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_runs(0, this.value);"></input>
-
-  <table class="table table-hover">
-    <thead>
-      <tr> 
-        <th> Run </th>
-        <th> Run Type </th>
-        <th> <a href="{{url_for('pingcrates')}}">Ping Crates</a> </th>
-        <th> <a href="{{url_for('trigger_clock_jump')}}">Clock Jumps</a> </th>
-        <th> <a href="{{url_for('channelflags')}}">Channel Flags</a> </th>
-        <th> <a href="{{url_for('occupancy_by_trigger')}}">Occupancy</a> </th>
+  <div class="col-md-12">
+    <table class="table table-hover">
+      <tr>
+        <th> Limit: </th>
+        <th> Select Run: </th>
+        <th> Run Range: </th>
       </tr>
-    </thead>
-    {% for run in runs %}
       <tr>
-        <th> <a href="{{url_for('nearline',run=run)}}">{{run}}</a> </th>
-        <th> {{runTypes[run]}} </th>
-        {% if ping_crates[run] == 1 %}
-          <th class="danger"><a href="{{ url_for("pingcrates_run", run_number=run) }}">Fail</a></th>
-        {% elif ping_crates[run] == 2 %}
-          <th class="warning"><a href="{{ url_for("pingcrates_run", run_number=run) }}">Notice</a></th>
-        {% elif ping_crates[run] == 0 %}
-          <th class="success"><a href="{{ url_for("pingcrates_run", run_number=run) }}">Pass</a></th>
-        {% else %}
-          <th class="info">Not Run</th> 
-        {% endif %}
+        <th> <select id="limit" onchange="get_limit(this.value, 0, 0, 0);">
+               {% if selected_run != 0 or run_range_high != 0 %}
+                 <option selected value="-">-</option>
+               {% else %}
+                 <option selected value="{{limit}}">{{limit}}</option>
+               {% endif %}
+               {% for n in [10, 25, 50, 100, 500] %}
+                 {% if n != limit %}
+                   <option value="{{n}}">{{n}}</option>
+                 {% endif %}
+               {% endfor %}
+             </select> </th>
 
-        {% if clock_jumps[run] == 1 %}
-          <th class="danger"><a href="{{ url_for("trigger_clock_jump_run", run_number=run) }}">Fail</a></th>
-        {% elif clock_jumps[run] == 2 %}
-          <th class="warning"><a href="{{ url_for("trigger_clock_jump_run", run_number=run) }}">Notice</a></th>
-        {% elif clock_jumps[run] == 0 %}
-          <th class="success"><a href="{{ url_for("trigger_clock_jump_run", run_number=run) }}">Pass</a></th>
-        {% else %}
-          <th class="info">Not Run</th> 
-        {% endif %}
+        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value, 0, 0);"></input> </th>
+        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="low" value={{run_range_low}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, this.value, high.value);"></input>
+             - <input style="margin-bottom: 30px; width: 80px;" type="text" id="high" value={{run_range_high}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, low.value, this.value);"></input> </th>
+      </tr>
+    </table>
 
-        {% if channel_flags[run] == 1 %}
-          <th class="danger"><a href="{{ url_for("channelflagsbychannel", run_number=run) }}">Fail</a></th>
-        {% elif channel_flags[run] == 2 %}
-          <th class="warning"><a href="{{ url_for("channelflagsbychannel", run_number=run) }}">Notice</a></th>
-        {% elif channel_flags[run] == 0 %}
-          <th class="success"><a href="{{ url_for("channelflagsbychannel", run_number=run) }}">Pass</a></th>
-        {% else %}
-          <th class="info">Not Run </th>
-        {% endif %}
+    <table class="table table-hover">
+      <thead>
+        <tr> 
+          <th> Run </th>
+          <th> Run Type </th>
+          <th> <a href="{{url_for('pingcrates')}}">Ping Crates</a> </th>
+          <th> <a href="{{url_for('trigger_clock_jump')}}">Clock Jumps</a> </th>
+          <th> <a href="{{url_for('channelflags')}}">Channel Flags</a> </th>
+          <th> <a href="{{url_for('occupancy_by_trigger')}}">Occupancy</a> </th>
+        </tr>
+      </thead>
+      {% for run in runs %}
+        <tr>
+          <th> <a href="{{url_for('nearline',run=run)}}">{{run}}</a> </th>
+          <th> {{runTypes[run]}} </th>
+          {% if ping_crates[run] == 1 %}
+            <th class="danger"><a href="{{ url_for("pingcrates_run", run_number=run) }}">Fail</a></th>
+          {% elif ping_crates[run] == 2 %}
+            <th class="warning"><a href="{{ url_for("pingcrates_run", run_number=run) }}">Notice</a></th>
+          {% elif ping_crates[run] == 0 %}
+            <th class="success"><a href="{{ url_for("pingcrates_run", run_number=run) }}">Pass</a></th>
+          {% else %}
+            <th class="info">Not Run</th> 
+          {% endif %}
 
-        {% if occupancy[run] == 1 %}
-          <th class="danger"><a href="{{ url_for("occupancy_by_trigger_run", run_number=run) }}">Fail</a></th>
-        {% elif occupancy[run] == 0 %}
-          <th class="success"><a href="{{ url_for("occupancy_by_trigger_run", run_number=run) }}">Pass</a></th>
-        {% else %}
-          <th class="info">Not Run</th> 
-        {% endif %}
-      <tr>
-    {% endfor %}
-  </table>
+          {% if clock_jumps[run] == 1 %}
+            <th class="danger"><a href="{{ url_for("trigger_clock_jump_run", run_number=run) }}">Fail</a></th>
+          {% elif clock_jumps[run] == 2 %}
+            <th class="warning"><a href="{{ url_for("trigger_clock_jump_run", run_number=run) }}">Notice</a></th>
+          {% elif clock_jumps[run] == 0 %}
+            <th class="success"><a href="{{ url_for("trigger_clock_jump_run", run_number=run) }}">Pass</a></th>
+          {% else %}
+            <th class="info">Not Run</th> 
+          {% endif %}
+
+          {% if channel_flags[run] == 1 %}
+            <th class="danger"><a href="{{ url_for("channelflagsbychannel", run_number=run) }}">Fail</a></th>
+          {% elif channel_flags[run] == 2 %}
+            <th class="warning"><a href="{{ url_for("channelflagsbychannel", run_number=run) }}">Notice</a></th>
+          {% elif channel_flags[run] == 0 %}
+            <th class="success"><a href="{{ url_for("channelflagsbychannel", run_number=run) }}">Pass</a></th>
+          {% else %}
+            <th class="info">Not Run </th>
+          {% endif %}
+
+          {% if occupancy[run] == 1 %}
+            <th class="danger"><a href="{{ url_for("occupancy_by_trigger_run", run_number=run) }}">Fail</a></th>
+          {% elif occupancy[run] == 0 %}
+            <th class="success"><a href="{{ url_for("occupancy_by_trigger_run", run_number=run) }}">Pass</a></th>
+          {% else %}
+            <th class="info">Not Run</th> 
+          {% endif %}
+        <tr>
+      {% endfor %}
+    </table>
+  </div>
 </div>
 {% endblock %}
 {% block script %}
   <script>
-    function get_runs(limit, run){
+    function get_limit(limit, run, low, high){
       params = {};
       params["limit"] = limit;
       params["run"] = run;
+      params["run_range_low"] = low;
+      params["run_range_high"] = high;
       window.location.replace($SCRIPT_ROOT + "/nearline_monitoring_summary?" + $.param(params));
     }
   </script>

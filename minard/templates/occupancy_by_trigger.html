@@ -23,18 +23,32 @@
 </div>
 
 <div class="container">
-  <div class="col-md-6 col-md-offset-3">
-    Show runs over the last
-    <select id="limit" onchange="get_limit(this.value, 0);">
-      <option selected value="{{limit}}">{{limit}}</option>
-      {% for n in [10, 25, 50, 100, 500] %}
-        {% if n != limit %}
-          <option value="{{n}}">{{n}}</option>
-        {% endif %}
-      {% endfor %}
-    </select> runs, or select run:
+  <div class="col-md-10 col-md-offset-1">
+    <table class="table table-hover">
+      <tr>
+        <th> Limit: </th>
+        <th> Select Run: </th>
+        <th> Run Range: </th>
+      </tr>
+      <tr>
+        <th> <select id="limit" onchange="get_limit(this.value, 0, 0, 0);">
+               {% if selected_run != 0 or run_range_high != 0 %}
+                 <option selected value="-">-</option>
+               {% else %}
+                 <option selected value="{{limit}}">{{limit}}</option>
+               {% endif %}
+               {% for n in [10, 25, 50, 100, 500] %}
+                 {% if n != limit %}
+                   <option value="{{n}}">{{n}}</option>
+                 {% endif %}
+               {% endfor %}
+             </select> </th>
 
-    <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value);"></input>
+        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value, 0, 0);"></input> </th>
+        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="low" value={{run_range_low}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, this.value, high.value);"></input>
+             - <input style="margin-bottom: 30px; width: 80px;" type="text" id="high" value={{run_range_high}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, low.value, this.value);"></input> </th>
+      </tr>
+    </table>
 
     <table class="table table-hover">
       <thead>
@@ -77,10 +91,12 @@
 {% endblock %}
 {% block script %}
   <script>
-    function get_limit(limit, run){
+    function get_limit(limit, run, low, high){
       params = {};
       params["limit"] = limit;
       params["run"] = run;
+      params["run_range_low"] = low;
+      params["run_range_high"] = high;
       window.location.replace($SCRIPT_ROOT + "/occupancy_by_trigger?" + $.param(params));
     }
   </script>

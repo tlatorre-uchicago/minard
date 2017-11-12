@@ -22,60 +22,78 @@
 </div>
 
 <div class="container">
-  List runs over the last
-  <select id="limit" onchange="get_limit(this.value, 0);">
-    <option selected value="{{limit}}">{{limit}}</option>
-    {% for n in [10, 25, 50, 100, 500] %}
-      {% if n != limit %}
-        <option value="{{n}}">{{n}}</option>
-      {% endif %}
-    {% endfor %}
-  </select> runs, or select run:
-
-  <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value);"></input>
-
-  <table class="table table-hover">
-    <thead>
-      <tr> 
-        <th> Run </th>
-        <th> N100 Fail </th>
-        <th> N20 Fail </th>
-        <th> N100 Notice </th>
-        <th> N20 Notice </th>
-        <th> Processed Time </th>
+  <div class="col-md-12">
+    <table class="table table-hover">
+      <tr>
+        <th> Limit: </th>
+        <th> Select Run: </th>
+        <th> Run Range: </th>
       </tr>
-    </thead>
-    {% if data %}
-      {% for i in data %}
-        {% if i[6] == 0 %}
-          <tr class="success">
-        {% elif i[6] == 1 %}
-          <tr class="danger">
-        {% elif i[6] == 2 %}
-          <tr class="warning">
-        {% elif i[6] == 3 %}
-          <tr class="info">
-        {% endif %} 
-        <th><a href="{{url_for('pingcrates_run',run_number=i[1]) }}">{{i[1]}}</a></th>
-        <th> {{i[2]}} </th>
-        <th> {{i[3]}} </th>
-        <th> {{i[4]}} </th>
-        <th> {{i[5]}} </th>
-        <th> {{i[0]}} </th>
+      <tr>
+        <th> <select id="limit" onchange="get_limit(this.value, 0, 0, 0);">
+               {% if selected_run != 0 or run_range_high != 0 %}
+                 <option selected value="-">-</option>
+               {% else %}
+                 <option selected value="{{limit}}">{{limit}}</option>
+               {% endif %}
+               {% for n in [10, 25, 50, 100, 500] %}
+                 {% if n != limit %}
+                   <option value="{{n}}">{{n}}</option>
+                 {% endif %}
+               {% endfor %}
+             </select> </th>
+
+        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value, 0, 0);"></input> </th>
+        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="low" value={{run_range_low}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, this.value, high.value);"></input>
+             - <input style="margin-bottom: 30px; width: 80px;" type="text" id="high" value={{run_range_high}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, low.value, this.value);"></input> </th>
+      </tr>
+    </table>
+
+    <table class="table table-hover">
+      <thead>
+        <tr> 
+          <th> Run </th>
+          <th> N100 Fail </th>
+          <th> N20 Fail </th>
+          <th> N100 Notice </th>
+          <th> N20 Notice </th>
+          <th> Processed Time </th>
         </tr>
-      {% endfor %}
-    {% else %}
-      <th> No data found </th>
-    {% endif %}
-  </table>
+      </thead>
+      {% if data %}
+        {% for i in data %}
+          {% if i[6] == 0 %}
+            <tr class="success">
+          {% elif i[6] == 1 %}
+            <tr class="danger">
+          {% elif i[6] == 2 %}
+            <tr class="warning">
+          {% elif i[6] == 3 %}
+            <tr class="info">
+          {% endif %} 
+          <th><a href="{{url_for('pingcrates_run',run_number=i[1]) }}">{{i[1]}}</a></th>
+          <th> {{i[2]}} </th>
+          <th> {{i[3]}} </th>
+          <th> {{i[4]}} </th>
+          <th> {{i[5]}} </th>
+          <th> {{i[0]}} </th>
+          </tr>
+        {% endfor %}
+      {% else %}
+        <th> No data found </th>
+      {% endif %}
+    </table>
+  </div>
 </div>
 {% endblock %}
 {% block script %}
   <script>
-    function get_limit(limit, run){
+    function get_limit(limit, run, low, high){
       params = {};
       params["limit"] = limit;
       params["run"] = run;
+      params["run_range_low"] = low;
+      params["run_range_high"] = high;
       window.location.replace($SCRIPT_ROOT + "/pingcrates?" + $.param(params));
     }
   </script>
