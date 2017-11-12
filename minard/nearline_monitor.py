@@ -5,7 +5,6 @@ from .channelflagsdb import get_channel_flags, get_channel_flags_by_run
 from .triggerclockjumpsdb import get_clock_jumps, get_clock_jumps_by_run
 from .nlrat import RUN_TYPES
 from .occupancy import run_list, occupancy_by_trigger, occupancy_by_trigger_limit
-import time
 
 # Limits for failing channel flags check
 OUT_OF_SYNC_1 = 32
@@ -24,15 +23,10 @@ def get_run_list(limit, selected_run, run_range_low, run_range_high, all_runs):
     '''
 
     if not selected_run:
-        print time.time()
         ping_crates_status = ping_crates(limit, run_range_low, run_range_high, all_runs)
-        print time.time()
         channel_flags_status = channel_flags(limit, run_range_low, run_range_high, all_runs, True) 
-        print time.time()
         clock_jumps_status = clock_jumps(limit, run_range_low, run_range_high, all_runs)
-        print time.time()
         occupancy_status = occupancy(limit, run_range_low, run_range_high, all_runs)
-        print time.time()
     else:
         ping_crates_status = ping_crates_run(selected_run)
         channel_flags_status = channel_flags_run(selected_run)
