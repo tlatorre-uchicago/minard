@@ -1204,7 +1204,7 @@ def channelflags():
 
 @app.route('/channelflagsbychannel/<run_number>')
 def channelflagsbychannel(run_number):
-    missed_count, cmos_sync16, cgt_sync24, cmos_sync16_pr, cgt_sync24_pr = channelflagsdb.get_channel_flags_by_run(run_number)
+    missed_count, cmos_sync16, cgt_sync24, cmos_sync16_pr, cgt_sync24_pr,_,_,_ = channelflagsdb.get_channel_flags_by_run(run_number)
     return render_template('channelflagsbychannel.html', missed_count=missed_count, cmos_sync16=cmos_sync16, cgt_sync24=cgt_sync24, cmos_sync16_pr=cmos_sync16_pr, cgt_sync24_pr=cgt_sync24_pr, run_number=run_number)
 
 @app.route('/trigger_clock_jump')

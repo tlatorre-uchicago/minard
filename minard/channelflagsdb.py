@@ -74,20 +74,11 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary):
             lcn = crate*512+slot*32+channel
             if types[lcn] in (PMT_TYPES['LOWG'], PMT_TYPES['FECD'], \
                               PMT_TYPES['BUTT'], PMT_TYPES['NONE']):
-                try:
-                    count_other[run] +=1 
-                except KeyError:
-                    count_other[run] = 1
+                count_other[run] += 1
             if types[lcn] in (PMT_TYPES['OWL'], PMT_TYPES['NECK']):
-                try:
-                    count_owl[run] +=1 
-                except KeyError:
-                    count_owl[run] = 1
+                count_owl[run] += 1
             if types[lcn] in (PMT_TYPES['HQE'], PMT_TYPES['NORMAL']):
-                try:
-                    count_normal[run] +=1 
-                except KeyError:
-                    count_normal[run] = 1
+                count_normal[run] += 1
         if cmos_sync16 != 0 and cmos_sync16 is not None:
             count_sync16[run] += 1
         if cgt_sync24 != 0 and cgt_sync24 is not None:
@@ -137,20 +128,11 @@ def get_channel_flags_by_run(run):
             lcn = crate*512+slot*32+channel
             if types[lcn] in (PMT_TYPES['LOWG'], PMT_TYPES['FECD'], \
                               PMT_TYPES['BUTT'], PMT_TYPES['NONE']):
-                try:
-                    count_other[run] +=1 
-                except KeyError:
-                    count_other[run] = 1
+                count_other[run] += 1
             if types[lcn] in (PMT_TYPES['OWL'], PMT_TYPES['NECK']):
-                try:
-                    count_owl[run] +=1 
-                except KeyError:
-                    count_owl[run] = 1
+                count_owl[run] += 1
             if types[lcn] in (PMT_TYPES['HQE'], PMT_TYPES['NORMAL']):
-                try:
-                    count_normal[run] +=1 
-                except KeyError:
-                    count_normal[run] = 1
+                count_normal[run] += 1
         if missed != 0 and missed is not None:
             list_missed.append((crate, slot, channel, missed))
         if sync16 != 0 and sync16 is not None:
