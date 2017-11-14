@@ -1182,8 +1182,9 @@ def channelflags():
     selected_run = request.args.get("run", 0, type=int)
     run_range_low = request.args.get("run_range_low", 0, type=int)
     run_range_high = request.args.get("run_range_high", 0, type=int)
+    gold_runs = request.args.get("gold_runs", 0, type=int)
     if not selected_run:
-        runs, nsync16, nsync24, sync16s, sync24s, missed, sync16s_pr, sync24s_pr, normal, owl, other = channelflagsdb.get_channel_flags(limit, run_range_low, run_range_high, False)
+        runs, nsync16, nsync24, sync16s, sync24s, missed, sync16s_pr, sync24s_pr, normal, owl, other = channelflagsdb.get_channel_flags(limit, run_range_low, run_range_high, False, gold_runs)
     else:
         nsync16 = {}
         nsync24 = {}

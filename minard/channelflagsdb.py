@@ -1,15 +1,15 @@
 from .db import engine_nl, engine
 from .detector_state import get_latest_run
 from .polling import pmt_type, PMT_TYPES
+from .run_list import run_list
 
-def get_channel_flags(limit, run_range_low, run_range_high, summary):
+def get_channel_flags(limit, run_range_low, run_range_high, summary, rlist):
     """
     Returns a list of runs and 5 dictionaries using the run number as the keys.
     The dictionaries keep track of the number of sync16s, number of syn24s,
     number of out-of-sync channels, and number of missed count channels.
     """
     conn = engine_nl.connect()
-
 
     if not run_range_high:
         current_run = get_latest_run()
@@ -50,7 +50,6 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary):
     count_other = {}
 
     for run, sync16, sync24 in rows:
-        runs.append(run)
         nsync16[run] = sync16
         nsync24[run] = sync24     
 
@@ -65,11 +64,17 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary):
 
     rows = result_all.fetchall()
 
+    if rlist:
+        golden_runs = run_list()
+
     if not summary:
         detector_conn = engine.connect()
         types = pmt_type(detector_conn)
 
     for run, cmos_sync16, cgt_sync24, missed_count, cmos_sync16_pr, cgt_sync24_pr, crate, slot, channel in rows:
+        #if rlist and run not in golden_runs:
+        #    continue
+        #print run
         if crate is not None and not summary:
             lcn = crate*512+slot*32+channel
             if types[lcn] in (PMT_TYPES['LOWG'], PMT_TYPES['FECD'], \
