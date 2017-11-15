@@ -1,6 +1,5 @@
 from .db import engine_nl
 from .detector_state import get_latest_run, get_mtc_state_for_run
-from .run_list import golden_run_list
 
 # When we started keeping ping crates data in psql database
 PING_CRATES_START_RUN = 104878
@@ -140,12 +139,10 @@ def ping_crates_list(limit, selected_run, run_range_low, run_range_high, gold):
                               "status FROM ping_crates WHERE run = %s "
                               "ORDER BY run, timestamp DESC", selected_run)
 
-    if gold:
-        gold_runs = golden_run_list(run - limit, run_range_low, run_range_high)
 
     ping_info = []
     for timestamp, run, n100, n20, n100w, n20w, status in result:
-        if gold and run not in gold_runs:
+        if gold != 0 and run not in gold:
             continue
 
         # Messages for the crate failures

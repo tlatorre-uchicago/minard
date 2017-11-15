@@ -1,7 +1,6 @@
 from .db import engine_nl, engine
 from .detector_state import get_latest_run
 from .polling import pmt_type, PMT_TYPES
-from .run_list import golden_run_list
 
 def get_channel_flags(limit, run_range_low, run_range_high, summary, gold):
     """
@@ -36,9 +35,6 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary, gold):
                               "run DESC, timestamp DESC", \
                               (run_range_low, run_range_high))
 
-    gold_runs = []
-    if gold:
-        gold_runs = golden_run_list((current_run-limit), run_range_low, run_range_high)
 
     rows = result.fetchall()
 
@@ -59,7 +55,7 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary, gold):
 
     for run, sync16, sync24, time in rows:
         # Gold run selection
-        if gold and run not in gold_runs:
+        if gold != 0 and run not in gold:
             continue
         runs.append(run)
         nsync16[run] = sync16
@@ -85,7 +81,7 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary, gold):
 
     for run, cmos_sync16, cgt_sync24, missed_count, cmos_sync16_pr, cgt_sync24_pr, crate, slot, channel, time in rows:
         # Gold run selection
-        if gold and run not in gold_runs:
+        if gold != 0 and run not in gold:
             continue
         # Only the most recent information, per run
         if time != timestamp[run]:

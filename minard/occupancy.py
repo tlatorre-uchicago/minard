@@ -1,6 +1,5 @@
 from .db import engine_nl
 from .detector_state import get_latest_run
-from .run_list import golden_run_list
 
 def occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_high, gold):
     """
@@ -36,10 +35,6 @@ def occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_hig
     except Exception as e:
         return {}, {}, {}
 
-    gold_runs = []
-    if gold:
-        gold_runs = golden_run_list(latest_run - limit, run_range_low, run_range_high)
-
     rows = result.fetchall()
 
     crates = {}
@@ -49,7 +44,7 @@ def occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_hig
     # Check the ESUMH occupancy by run and format the message
     # for the monitoring page
     for run, run_status, crate, slot in rows:
-        if gold and run not in gold_runs:
+        if gold != 0 and run not in gold:
             continue
         status[run] = run_status
         if run not in runs:
@@ -126,13 +121,10 @@ def run_list(limit, run_range_low, run_range_high, gold):
                               "WHERE run >= %s and run <= %s ORDER BY run DESC", \
                               (run_range_low, run_range_high))
 
-    if gold:
-        gold_runs = golden_run_list((latest_run-limit), run_range_low, run_range_high)
-
     rows = result.fetchall()
     runs = []
     for run in rows:
-        if gold and run[0] not in gold_runs:
+        if gold != 0 and run[0] not in gold:
             continue
         runs.append(run[0])
 
