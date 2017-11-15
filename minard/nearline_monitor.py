@@ -41,7 +41,7 @@ def occupancy_run(run):
     Return the ESUM occupancy status of a selected run
     '''
     occupancy_fail = {}
-    status,_,_ = occupancy_by_trigger_limit(0, run, 0, 0)
+    status,_,_ = occupancy_by_trigger_limit(0, run, 0, 0, 0)
     try:
         if status[run] == 1:
             occupancy_fail[run] = 1
@@ -58,7 +58,7 @@ def occupancy(limit, run_range_low, run_range_high, all_runs):
     Return a dictionary of ESUM occupancy status by run
     '''
     occupancy_fail = {}
-    status,_,_ = occupancy_by_trigger_limit(limit, 0, run_range_low, run_range_high)
+    status,_,_ = occupancy_by_trigger_limit(limit, 0, run_range_low, run_range_high, 0)
     for run in all_runs:
         try:
             # Check ESUMH Occupancy
@@ -109,7 +109,7 @@ def clock_jumps(limit, run_range_low, run_range_high, all_runs):
     '''
     clock_jumps_fail = {}
 
-    _, njump10, njump50 = get_clock_jumps(limit, 0, run_range_low, run_range_high) 
+    _, njump10, njump50 = get_clock_jumps(limit, 0, run_range_low, run_range_high, 0) 
     for run in all_runs:
         try:
             if((njump10[run] + njump50[run]) >= CLOCK_JUMP_1 and \
@@ -161,7 +161,7 @@ def channel_flags(limit, run_range_low, run_range_high, all_runs, summary):
     '''
     Return a dictionary of channel flags status by run
     '''
-    _, _, _, count_sync16, _, count_missed, count_sync16_pr, _, _, _, _ = get_channel_flags(limit, run_range_low, run_range_high, summary)
+    _, _, _, count_sync16, _, count_missed, count_sync16_pr, _, _, _, _ = get_channel_flags(limit, run_range_low, run_range_high, summary, 0)
     channel_flags_fail = {}
     for run in all_runs:
         run = int(run)
@@ -208,7 +208,7 @@ def ping_crates(limit, run_range_low, run_range_high, all_runs):
     '''
     Return a dictionary of ping crates status by run
     '''
-    ping_list = ping_crates_list(limit, 0, run_range_low, run_range_high)
+    ping_list = ping_crates_list(limit, 0, run_range_low, run_range_high, 0)
     ping_crates_fail = {}
     ping_runs = []
     for i in ping_list:

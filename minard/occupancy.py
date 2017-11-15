@@ -1,16 +1,18 @@
 from .db import engine_nl
 from .detector_state import get_latest_run
+from .run_list import golden_run_list
 
-def occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_high):
+def occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_high, gold):
     """
     Returns a dictionary of the ESUMH occupacy status
     indexed by run
     """
     conn = engine_nl.connect()
 
+    latest_run = get_latest_run()
+
     try:
         if not selected_run and not run_range_high:
-            latest_run = get_latest_run()
             result = conn.execute("SELECT DISTINCT ON (run, crate, slot) "
                                   "run, status, crate, slot "
                                   "FROM esumh_occupancy_fail WHERE run > %s "
@@ -32,8 +34,11 @@ def occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_hig
                                   "ORDER BY run, crate, slot", \
                                   (selected_run, selected_run))
     except Exception as e:
-        print str(e)
         return {}, {}, {}
+
+    gold_runs = []
+    if gold:
+        gold_runs = golden_run_list(latest_run - limit, run_range_low, run_range_high)
 
     rows = result.fetchall()
 
@@ -41,7 +46,11 @@ def occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_hig
     slots = {}
     status = {}
     runs = []
+    # Check the ESUMH occupancy by run and format the message
+    # for the monitoring page
     for run, run_status, crate, slot in rows:
+        if gold and run not in gold_runs:
+            continue
         status[run] = run_status
         if run not in runs:
             runs.append(run)
@@ -101,7 +110,7 @@ def occupancy_by_trigger(trigger_type, run, find_issues):
     return data
 
 
-def run_list(limit, run_range_low, run_range_high):
+def run_list(limit, run_range_low, run_range_high, gold):
     """
     Get a list of runs where the trigger
     occupancy job ran.
@@ -109,17 +118,22 @@ def run_list(limit, run_range_low, run_range_high):
     conn = engine_nl.connect()
 
     if not run_range_high:
-        current_run = get_latest_run()
+        latest_run = get_latest_run()
         result = conn.execute("SELECT DISTINCT ON (run) run FROM esumh_occupancy_fail "
-                              "WHERE run > %s ORDER BY run DESC", (current_run - limit))
+                              "WHERE run > %s ORDER BY run DESC", (latest_run - limit))
     else:
         result = conn.execute("SELECT DISTINCT ON (run) run FROM esumh_occupancy_fail "
                               "WHERE run >= %s and run <= %s ORDER BY run DESC", \
                               (run_range_low, run_range_high))
 
+    if gold:
+        gold_runs = golden_run_list((latest_run-limit), run_range_low, run_range_high)
+
     rows = result.fetchall()
     runs = []
     for run in rows:
+        if gold and run[0] not in gold_runs:
+            continue
         runs.append(run[0])
 
     return runs

@@ -1096,19 +1096,20 @@ def occupancy_by_trigger():
     selected_run = request.args.get("run", 0, type=int)
     run_range_low = request.args.get("run_range_low", 0, type=int)
     run_range_high = request.args.get("run_range_high", 0, type=int)
+    gold_runs = request.args.get("gold_runs", 0, type=int)
 
     if not selected_run:
-        runs = occupancy.run_list(limit, run_range_low, run_range_high)
+        runs = occupancy.run_list(limit, run_range_low, run_range_high, gold_runs)
     else:
         runs = [selected_run]
 
-    status, crates, slots = occupancy.occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_high)
+    status, crates, slots = occupancy.occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_high, gold_runs)
 
     # If no data for selected run
     if len(status) == 0:
         status[selected_run] = -1        
 
-    return render_template('occupancy_by_trigger.html', runs=runs, limit=limit, crates=crates, slots=slots, status=status, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high)
+    return render_template('occupancy_by_trigger.html', runs=runs, limit=limit, crates=crates, slots=slots, status=status, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, gold_runs=gold_runs)
 
 @app.route('/occupancy_by_trigger_run/<run_number>')
 def occupancy_by_trigger_run(run_number):
@@ -1169,8 +1170,9 @@ def pingcrates():
     selected_run = request.args.get("run", 0, type=int)
     run_range_low = request.args.get("run_range_low", 0, type=int)
     run_range_high = request.args.get("run_range_high", 0, type=int)
-    data = pingcratesdb.ping_crates_list(limit, selected_run, run_range_low, run_range_high)
-    return render_template('pingcrates.html', data=data, limit=limit, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high)
+    gold_runs = request.args.get("gold_runs", 0, type=int)
+    data = pingcratesdb.ping_crates_list(limit, selected_run, run_range_low, run_range_high, gold_runs)
+    return render_template('pingcrates.html', data=data, limit=limit, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, gold_runs=gold_runs)
 
 @app.route('/pingcrates_run/<run_number>')
 def pingcrates_run(run_number):
@@ -1201,7 +1203,7 @@ def channelflags():
         sync24s_pr[selected_run] = len(cgt_sync24_pr)
         missed[selected_run] = len(missed_count)
         nsync16[selected_run], nsync24[selected_run] = channelflagsdb.get_number_of_syncs(selected_run)
-    return render_template('channelflags.html', runs=runs, nsync16=nsync16, nsync24=nsync24, sync16s=sync16s, sync24s=sync24s, missed=missed, sync16s_pr=sync16s_pr, sync24s_pr=sync24s_pr, limit=limit, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, normal=normal, owl=owl, other=other)
+    return render_template('channelflags.html', runs=runs, nsync16=nsync16, nsync24=nsync24, sync16s=sync16s, sync24s=sync24s, missed=missed, sync16s_pr=sync16s_pr, sync24s_pr=sync24s_pr, limit=limit, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, normal=normal, owl=owl, other=other, gold_runs=gold_runs)
 
 @app.route('/channelflagsbychannel/<run_number>')
 def channelflagsbychannel(run_number):
@@ -1214,8 +1216,9 @@ def trigger_clock_jump():
     selected_run = request.args.get("run", 0, type=int)
     run_range_low = request.args.get("run_range_low", 0, type=int)
     run_range_high = request.args.get("run_range_high", 0, type=int)
-    runs, njump10, njump50 = triggerclockjumpsdb.get_clock_jumps(limit, selected_run, run_range_low, run_range_high)
-    return render_template('trigger_clock_jump.html', runs=runs, limit=limit, njump10=njump10, njump50=njump50, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high)
+    gold_runs = request.args.get("gold_runs", 0, type=int)
+    runs, njump10, njump50 = triggerclockjumpsdb.get_clock_jumps(limit, selected_run, run_range_low, run_range_high, gold_runs)
+    return render_template('trigger_clock_jump.html', runs=runs, limit=limit, njump10=njump10, njump50=njump50, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, gold_runs=gold_runs)
 
 @app.route('/trigger_clock_jump_run/<run_number>')
 def trigger_clock_jump_run(run_number):

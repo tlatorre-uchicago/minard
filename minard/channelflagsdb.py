@@ -1,9 +1,9 @@
 from .db import engine_nl, engine
 from .detector_state import get_latest_run
 from .polling import pmt_type, PMT_TYPES
-from .run_list import run_list
+from .run_list import golden_run_list
 
-def get_channel_flags(limit, run_range_low, run_range_high, summary, rlist):
+def get_channel_flags(limit, run_range_low, run_range_high, summary, gold):
     """
     Returns a list of runs and 5 dictionaries using the run number as the keys.
     The dictionaries keep track of the number of sync16s, number of syn24s,
@@ -11,32 +11,39 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary, rlist):
     """
     conn = engine_nl.connect()
 
+    current_run = get_latest_run()
+
     if not run_range_high:
-        current_run = get_latest_run()
-        result = conn.execute("SELECT DISTINCT ON (run) run, sync16, sync24 "
+        result = conn.execute("SELECT DISTINCT ON (run) run, sync16, sync24, timestamp "
                               "FROM channel_flags WHERE run > %s "
                               "ORDER BY run DESC, timestamp DESC", \
                               (current_run - limit))
         result_all = conn.execute("SELECT DISTINCT ON (crate, slot, channel, run) run, "
                               "cmos_sync16, cgt_sync24, missed_count, cmos_sync16_pr, "
-                              "cgt_sync24_pr, crate, slot, channel FROM channel_flags "
+                              "cgt_sync24_pr, crate, slot, channel, timestamp FROM channel_flags "
                               "WHERE run > %s ORDER BY crate, slot, channel, "
                               "run DESC, timestamp DESC", \
-                              int(current_run - limit))
+                              (current_run - limit))
     else:
-        result = conn.execute("SELECT DISTINCT ON (run) run, sync16, sync24 "
+        result = conn.execute("SELECT DISTINCT ON (run) run, sync16, sync24, timestamp "
                               "FROM channel_flags WHERE run >= %s AND run <= %s "
                               "ORDER BY run DESC, timestamp DESC", \
                               (run_range_low, run_range_high))
         result_all = conn.execute("SELECT DISTINCT ON (crate, slot, channel, run) run, "
                               "cmos_sync16, cgt_sync24, missed_count, cmos_sync16_pr, "
-                              "cgt_sync24_pr, crate, slot, channel FROM channel_flags "
+                              "cgt_sync24_pr, crate, slot, channel, timestamp FROM channel_flags "
                               "WHERE run >= %s AND run <= %s ORDER BY crate, slot, channel, "
                               "run DESC, timestamp DESC", \
                               (run_range_low, run_range_high))
 
+    gold_runs = []
+    if gold:
+        gold_runs = golden_run_list((current_run-limit), run_range_low, run_range_high)
+
     rows = result.fetchall()
 
+    # Keep track of the number of out-of-sync and missed count channels
+    # by run number. Also looks at the type of PMT that has the issue.
     runs = []
     nsync16 = {}
     nsync24 = {}
@@ -48,11 +55,18 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary, rlist):
     count_normal = {}
     count_owl = {}
     count_other = {}
+    timestamp = {}
 
-    for run, sync16, sync24 in rows:
+    for run, sync16, sync24, time in rows:
+        # Gold run selection
+        if gold and run not in gold_runs:
+            continue
+        runs.append(run)
         nsync16[run] = sync16
-        nsync24[run] = sync24     
+        nsync24[run] = sync24
+        timestamp[run] = time
 
+        # Start with 0 counts of each type
         count_sync16[run] = 0
         count_sync24[run] = 0
         count_missed[run] = 0
@@ -64,18 +78,21 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary, rlist):
 
     rows = result_all.fetchall()
 
-    if rlist:
-        golden_runs = run_list()
-
+    # Grab the PMT type if its asked for
     if not summary:
         detector_conn = engine.connect()
         types = pmt_type(detector_conn)
 
-    for run, cmos_sync16, cgt_sync24, missed_count, cmos_sync16_pr, cgt_sync24_pr, crate, slot, channel in rows:
-        #if rlist and run not in golden_runs:
-        #    continue
-        #print run
+    for run, cmos_sync16, cgt_sync24, missed_count, cmos_sync16_pr, cgt_sync24_pr, crate, slot, channel, time in rows:
+        # Gold run selection
+        if gold and run not in gold_runs:
+            continue
+        # Only the most recent information, per run
+        if time != timestamp[run]:
+            continue
+        # Crate is None when no flags in the run
         if crate is not None and not summary:
+            # PMT type indexed by lcn
             lcn = crate*512+slot*32+channel
             if types[lcn] in (PMT_TYPES['LOWG'], PMT_TYPES['FECD'], \
                               PMT_TYPES['BUTT'], PMT_TYPES['NONE']):
@@ -84,6 +101,7 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary, rlist):
                 count_owl[run] += 1
             if types[lcn] in (PMT_TYPES['HQE'], PMT_TYPES['NORMAL']):
                 count_normal[run] += 1
+        # Count the number of each issue
         if cmos_sync16 != 0 and cmos_sync16 is not None:
             count_sync16[run] += 1
         if cgt_sync24 != 0 and cgt_sync24 is not None:

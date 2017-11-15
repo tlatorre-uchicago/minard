@@ -1,5 +1,6 @@
 from .db import engine_nl
 from .detector_state import get_latest_run, get_mtc_state_for_run
+from .run_list import golden_run_list
 
 # When we started keeping ping crates data in psql database
 PING_CRATES_START_RUN = 104878
@@ -110,7 +111,7 @@ def crates_failed_messages(run):
     return messages
 
 
-def ping_crates_list(limit, selected_run, run_range_low, run_range_high):
+def ping_crates_list(limit, selected_run, run_range_low, run_range_high, gold):
     '''
     Returns a list of ping crates information for runs larger
     than the current run - limit
@@ -121,24 +122,31 @@ def ping_crates_list(limit, selected_run, run_range_low, run_range_high):
     conn = engine_nl.connect()
 
     if not selected_run and not run_range_high:
-        # Get all ping crates information from detector state since (run - limit)
+        # Get all ping crates information from the nearline database since (run - limit)
         result = conn.execute("SELECT DISTINCT ON (run) timestamp, run,  n100_crates_failed, "
                               "n20_crates_failed, n100_crates_warned, n20_crates_warned, "
                               "status FROM ping_crates WHERE run > %s "
                               "ORDER BY run, timestamp DESC", (run-limit))
     elif run_range_high:
+        # Get all ping crates information from the nearline database over run range
         result = conn.execute("SELECT DISTINCT ON (run) timestamp, run,  n100_crates_failed, "
                               "n20_crates_failed, n100_crates_warned, n20_crates_warned, "
                               "status FROM ping_crates WHERE run >= %s AND run <= %s "
                               "ORDER BY run, timestamp DESC", (run_range_low, run_range_high))
     else:
+        # Get all ping crates information from the nearline database for a selected run
         result = conn.execute("SELECT DISTINCT ON (run) timestamp, run,  n100_crates_failed, "
                               "n20_crates_failed, n100_crates_warned, n20_crates_warned, "
                               "status FROM ping_crates WHERE run = %s "
                               "ORDER BY run, timestamp DESC", selected_run)
 
+    if gold:
+        gold_runs = golden_run_list(run - limit, run_range_low, run_range_high)
+
     ping_info = []
     for timestamp, run, n100, n20, n100w, n20w, status in result:
+        if gold and run not in gold_runs:
+            continue
 
         # Messages for the crate failures
         n100_fail_str=""

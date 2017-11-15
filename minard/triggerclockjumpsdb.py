@@ -1,7 +1,8 @@
 from .db import engine_nl
 from .detector_state import get_latest_run
+from .run_list import golden_run_list
 
-def get_clock_jumps(limit, selected_run, run_range_low, run_range_high):
+def get_clock_jumps(limit, selected_run, run_range_low, run_range_high, gold):
     """
     Returns a list of runs and dictionaries
     specifing the number of clock jump for 
@@ -28,13 +29,19 @@ def get_clock_jumps(limit, selected_run, run_range_low, run_range_high):
                               "ORDER BY run DESC, timestamp DESC", \
                               (selected_run))
 
+    gold_runs = []
+    if gold:
+        gold_runs = golden_run_list((current_run-limit), run_range_low, run_range_high)
+
     rows = result.fetchall()
 
     runs = []
     njump10 = {}
     njump50 = {}
- 
+
     for run in rows:
+        if gold and run[0] not in gold_runs:
+            continue
         runs.append(run[0])
         njump10[run[0]] = 0
         njump50[run[0]] = 0
@@ -61,12 +68,15 @@ def get_clock_jumps(limit, selected_run, run_range_low, run_range_high):
     rows = result.fetchall()
 
     for run, jump10, jump50 in rows:
+        if gold and run not in gold_runs:
+            continue
         if jump10:
             njump10[run] +=1 
         if jump50:
             njump50[run] +=1
 
     return runs, njump10, njump50
+
 
 def get_clock_jumps_by_run(run):
     """
