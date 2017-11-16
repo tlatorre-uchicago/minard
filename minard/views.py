@@ -1156,8 +1156,11 @@ def nearline_monitoring_summary():
         runTypes = nearline_monitor.get_run_types(limit, run_range_low, run_range_high, gold_runs)
         runs = sorted(runs, reverse=True)
     else:
-        runs = [selected_run]
-        runTypes = nearline_monitor.run_type(selected_run) 
+        runs = []
+        runTypes = []
+        if not gold or selected_run in gold_runs:
+            runs = [selected_run]
+            runTypes = nearline_monitor.run_type(selected_run)
 
     clock_jumps, ping_crates, channel_flags, occupancy = nearline_monitor.get_run_list(limit, selected_run, run_range_low, run_range_high, runs, gold_runs)
 
