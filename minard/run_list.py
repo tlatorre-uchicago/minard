@@ -13,7 +13,7 @@ def golden_run_list(selected_run, limit, run_range_low, run_range_high):
         result = conn.execute("SELECT DISTINCT ON (run) run FROM evaluated_runs WHERE list = "
                               "(SELECT id FROM run_lists WHERE name = 'gold') AND run > %s ORDER BY run", \
                               (latest_run - limit))
-    if run_range_high:
+    elif run_range_high:
         result = conn.execute("SELECT DISTINCT ON (run) run FROM evaluated_runs WHERE list = "
                               "(SELECT id FROM run_lists WHERE name = 'gold') AND run >= %s AND run <= %s "
                               "ORDER BY run", (run_range_low, run_range_high))
