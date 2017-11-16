@@ -3,8 +3,7 @@ from .detector_state import get_latest_run
 
 def occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_high, gold):
     """
-    Returns a dictionary of the ESUMH occupacy status
-    indexed by run
+    Returns a dictionary of the ESUMH occupacy status indexed by run
     """
     conn = engine_nl.connect()
 
@@ -26,7 +25,7 @@ def occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_hig
         else:
             result = conn.execute("SELECT DISTINCT ON (run, crate, slot) "
                                   "run, status, crate, slot "
-                                  "FROM esumh_occupancy_fail WHERE run = %s " 
+                                  "FROM esumh_occupancy_fail WHERE run = %s "
                                   "AND timestamp = (SELECT timestamp FROM "
                                   "esumh_occupancy_fail WHERE run = %s ORDER BY "
                                   "timestamp DESC LIMIT 1) "

@@ -1101,7 +1101,7 @@ def occupancy_by_trigger():
 
     gold_runs = 0
     if gold:
-        gold_runs = golden_run_list(limit, run_range_low, run_range_high)
+        gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
 
     if not selected_run:
         runs = occupancy.run_list(limit, run_range_low, run_range_high, gold_runs)
@@ -1134,7 +1134,7 @@ def nearline_monitoring_summary():
 
     gold_runs = 0
     if gold:
-        gold_runs = golden_run_list(limit, run_range_low, run_range_high)
+        gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
 
     if not selected_run:
         runs = []
@@ -1188,7 +1188,7 @@ def pingcrates():
 
     gold_runs = 0
     if gold:
-        gold_runs = golden_run_list(limit, run_range_low, run_range_high)
+        gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
 
     data = pingcratesdb.ping_crates_list(limit, selected_run, run_range_low, run_range_high, gold_runs)
     return render_template('pingcrates.html', data=data, limit=limit, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold)
@@ -1207,7 +1207,7 @@ def channelflags():
 
     gold_runs = 0
     if gold:
-        gold_runs = golden_run_list(limit, run_range_low, run_range_high)
+        gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
 
     if not selected_run:
         runs, nsync16, nsync24, sync16s, sync24s, missed, sync16s_pr, sync24s_pr, normal, owl, other = channelflagsdb.get_channel_flags(limit, run_range_low, run_range_high, False, gold_runs)
@@ -1244,7 +1244,7 @@ def trigger_clock_jump():
 
     gold_runs = 0
     if gold:
-        gold_runs = golden_run_list(limit, run_range_low, run_range_high)
+        gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
 
     runs, njump10, njump50 = triggerclockjumpsdb.get_clock_jumps(limit, selected_run, run_range_low, run_range_high, gold_runs)
 
