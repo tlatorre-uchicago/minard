@@ -33,7 +33,7 @@
         <th> Run Range: </th>
       </tr>
       <tr>
-        <th> <select id="limit" onchange="get_limit(this.value, 0, 0, 0, 0);">
+        <th> <select id="limit" onchange="get_limit(this.value, 0, 0, 0, {{gold}});">
                {% if selected_run != 0 or run_range_high != 0 %}
                  <option selected value="-">-</option>
                {% else %}
@@ -46,9 +46,9 @@
                {% endfor %}
              </select> </th>
 
-        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value, 0, 0, 0);"></input> </th>
-        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="low" value={{run_range_low}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, this.value, high.value, 0);"></input>
-             - <input style="margin-bottom: 30px; width: 80px;" type="text" id="high" value={{run_range_high}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, low.value, this.value, 0);"></input> </th>
+        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value, 0, 0, {{gold}});"></input> </th>
+        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="low" value={{run_range_low}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, this.value, high.value, {{gold}});"></input>
+             - <input style="margin-bottom: 30px; width: 80px;" type="text" id="high" value={{run_range_high}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, low.value, this.value, {{gold}});"></input> </th>
         {% if not gold %}
           <th> <button type="submit" class="btn btn-success" onclick="get_limit(limit.value, run.value, low.value, high.value, 1)">Show Only Gold Runs</button> </th>
         {% else %} 
