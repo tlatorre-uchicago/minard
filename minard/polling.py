@@ -17,21 +17,21 @@ PMT_TYPES = {
 CHECK_RATES_START_RUN = 103215
 
 
-def polling_runs():
+def polling_runs(limit=100):
     """
     Returns two lists of runs, one where CMOS rates were polled using check
     rates, the other where base currents were polled using check rates.
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT DISTINCT ON (run) run FROM cmos ORDER BY run DESC LIMIT 100")
+    result = conn.execute("SELECT DISTINCT ON (run) run FROM cmos ORDER BY run DESC LIMIT %s", (limit,))
 
     if result is not None:
         keys = result.keys()
         rows = result.fetchall()
         cmos_runs = [dict(zip(keys,row)) for row in rows]
 
-    result = conn.execute("SELECT DISTINCT ON (run) run FROM base ORDER BY run DESC LIMIT 100")
+    result = conn.execute("SELECT DISTINCT ON (run) run FROM base ORDER BY run DESC LIMIT %s", (limit,))
 
     if result is not None:
         keys = result.keys()
