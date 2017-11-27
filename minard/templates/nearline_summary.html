@@ -39,8 +39,13 @@
                     </select> </th>
                     <th> 
                         <select id="mode" onchange="get_limit(limit.value, job.value, this.value, rtype.value);">
-                            <option value=1>All Failures</option>
-                            <option value=2>Not Launched</option>
+                            {% if mode == 1 %}
+                                <option selected value="1">All Failures</option>
+                                <option value="2">Not Launched</option>
+                            {% else %}
+                                <option selected value="2">Not Launched</option>
+                                <option value="1">All Failures</option>
+                            {% endif %}
                         </select>
                     </th>
                     <th> 

@@ -429,7 +429,7 @@ def nearline_summary():
     runTypes[-1] = "All"
  
     # Check if any jobs were not launched
-    program_check = []
+    program_check = {}
     not_launched = []
 
     # Get failures over last (limit) runs
@@ -450,15 +450,16 @@ def nearline_summary():
         if run - previous_run not in run_list:
             continue
         old_programs = redis.hgetall('nearline:%i' % (run - previous_run))
+        program_check[previous_run] = []
         for program, status in old_programs.iteritems():
-            program_check.append(program)
+            program_check[previous_run].append(program)
             # Job failed, was killed, was not executable, timed out, 
             if status == "1" or status == "-1" or status == "98" or \
                status == "97" or status == "3" or status == "2":
                 failures.append((program, status, run-previous_run))
         # Check if all the jobs were run
         for i in range(len(jobtypes)):
-            if jobtypes[i] not in program_check and jobtypes[i] != "All":
+            if jobtypes[i] not in program_check[previous_run] and jobtypes[i] != "All":
                 not_launched.append((jobtypes[i], run-previous_run)) 
 
     return render_template('nearline_summary.html', run=run, failures=failures, jobs=jobs, jobtypes=jobtypes, mode=mode, not_launched=not_launched, limit=limit, runTypes=runTypes, selectedType=selectedType, runtype=runtype)
