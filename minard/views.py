@@ -418,9 +418,7 @@ def nearline_summary():
     limit = request.args.get("limit", 100, type=int)
     mode = request.args.get("mode", 1, type=int)
     runtype = request.args.get("runtype", -1, type=int)
-    nearline_run = request.args.get("run", 0, type=int) 
-    #run = int(redis.get('nearline:current_run'))
-    run = 106801
+    run = int(redis.get('nearline:current_run'))
     detector_run = detector_state.get_latest_run()
 
     # Nearline job types and ways in which the jobs fail
@@ -434,9 +432,6 @@ def nearline_summary():
 
     # Get failures over last (limit) runs
     failures = []
-
-    if nearline_run != 0:
-        limit = run - nearline_run
 
     # Allows sorting by run type
     run_list = [x for x in range(run-limit, run)]
