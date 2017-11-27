@@ -3,7 +3,6 @@ from .views import app
 from .db import engine
 from .channeldb import get_nominal_settings_for_run
 from collections import defaultdict
-from .polling import polling_summary, CHECK_RATES_START_RUN
 
 def get_latest_run():
     """
@@ -415,31 +414,6 @@ def get_detector_state_check(run=0):
                             ("on" if sequencer else "off", "on" if sequencer_nominal else "off")))
                     if not sequencer:
                         channels.append((crate, slot, channel, "sequencer is off, but channel is at HV! Potential blind flasher!"))
-
-    try:
-        if run <= CHECK_RATES_START_RUN:
-            return messages, channels
-        crate_average, crun, brun, polling_messages = polling_summary(run)
-        for i in range(len(crate_average)):
-            if i < 19:
-                if ((crate_average[i][1] < 400 and crate_average[i][1] != -1) \
-                   or crate_average[i][1] > 5000):
-                    messages.append("Warning: Average CMOS rate is %.1f Hz for crate %i. Most recent cmos polling is run %i" % (crate_average[i][1], i, crun))
-                if crate_average[i][2] < 50 and crate_average[i][2] != -1:
-                    messages.append("Warning: Average base current is %i for crate %i. Most recent base polling is run %i" % (crate_average[i][2], i, brun))
-            # Different thresholds for the OWLs
-            elif i == 19:
-                if ((crate_average[i][1] < 400 and crate_average[i][1] != -1) \
-                   or crate_average[i][1] > 15000):
-                    messages.append("Warning: Average CMOS rate is %.1f Hz for the OWLs. Most recent cmos polling is run %i" % (crate_average[i][1], crun))
-                if crate_average[i][2] < 50 and crate_average[i][2] != -1:
-                    messages.append("Warning: Average base current is %i for the OWLs. Most recent base polling is run %i" % (crate_average[i][2], brun))
-            # Skip the HQEs
-            else:
-                continue
-    except Exception as e:
-        messages.append("Could not get crate averages from check rates.")
-        pass
 
     return messages, channels
 
