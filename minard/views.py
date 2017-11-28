@@ -414,37 +414,26 @@ def nearline(run=None):
 
 @app.route('/nearline_summary')
 def nearline_summary():
-    warning = []
     jobs = request.args.get("jobs", "All", type=str)
     limit = request.args.get("limit", 100, type=int)
-    mode = request.args.get("mode", 0, type=int)
+    mode = request.args.get("mode", 1, type=int)
     runtype = request.args.get("runtype", -1, type=int)
-    nearline_run = request.args.get("run", 0, type=int) 
     run = int(redis.get('nearline:current_run'))
     detector_run = detector_state.get_latest_run()
-    if run != detector_run - 1:
-        warning.append(run)
-        warning.append(detector_run)
 
     # Nearline job types and ways in which the jobs fail
     jobtypes = nearline_settings.jobTypes
-    failmodes = nearline_settings.failModes
-    index = failmodes.keys()
     runTypes = nlrat.RUN_TYPES
     runTypes[-1] = "All"
  
     # Check if any jobs were not launched
-    program_check = []
+    program_check = {}
     not_launched = []
 
     # Get failures over last (limit) runs
     failures = []
-    # Include warnings, not run, and debug
-    all_failures = []
 
-    if nearline_run != 0:
-        limit = run - nearline_run
-
+    # Allows sorting by run type
     run_list = [x for x in range(run-limit, run)]
     if runtype == -1:
         selectedType = "All"
@@ -456,21 +445,19 @@ def nearline_summary():
         if run - previous_run not in run_list:
             continue
         old_programs = redis.hgetall('nearline:%i' % (run - previous_run))
+        program_check[previous_run] = []
         for program, status in old_programs.iteritems():
-            program_check.append(program)
-            # Job failed, was killed, is not executable, or timed out, 
-            if status == "1" or status == "-1" or status == "98" or status == "97":
+            program_check[previous_run].append(program)
+            # Job failed, was killed, was not executable, timed out, 
+            if status == "1" or status == "-1" or status == "98" or \
+               status == "97" or status == "3" or status == "2":
                 failures.append((program, status, run-previous_run))
-                all_failures.append((program, status, run-previous_run))
-            # Job status is warning, debug, or not run
-            elif status == "2" or status == "3" or status == "4":
-                all_failures.append((program, status, run-previous_run))
         # Check if all the jobs were run
         for i in range(len(jobtypes)):
-            if jobtypes[i] not in program_check and jobtypes[i] != "All":
+            if jobtypes[i] not in program_check[previous_run] and jobtypes[i] != "All":
                 not_launched.append((jobtypes[i], run-previous_run)) 
 
-    return render_template('nearline_summary.html', run=run, failures=failures, all_failures=all_failures, warning=warning, jobs=jobs, jobtypes=jobtypes, mode=mode, failmodes=failmodes, index=index, not_launched=not_launched, limit=limit, nearline_run=nearline_run, runTypes=runTypes, selectedType=selectedType, runtype=runtype)
+    return render_template('nearline_summary.html', run=run, failures=failures, jobs=jobs, jobtypes=jobtypes, mode=mode, not_launched=not_launched, limit=limit, runTypes=runTypes, selectedType=selectedType, runtype=runtype)
 
 @app.route('/get_l2')
 def get_l2():
