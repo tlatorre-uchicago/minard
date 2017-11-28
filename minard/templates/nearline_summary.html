@@ -164,9 +164,7 @@
 			        <th class="danger"> Not Launched </th>
 		                <th> {{ program }} </th>
                                 <th><a href="{{ url_for("nearline", run=run) }}">{{ run }}</a></th>
-                                <th>
-                                    <a href="{{ "/monitoring/nearline/logs/%i/%s.log" % (run,program) }}">{{ program }}.log</a>
-                                </th>
+                                <th> - </th>
                             {% endif %}
 		        </tr>
 		        {% endfor %}

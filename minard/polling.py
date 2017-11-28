@@ -2,34 +2,36 @@ from .db import engine
 import detector_state
 
 # PMT Type defines
-LOWG      = 0x21
-NONE      = 0x0
-NECK      = 0x9
-FECD      = 0x10
-BUTT      = 0x81
-OWL       = 0x41
-NECK      = 0x09
-HQE       = 0x101
+PMT_TYPES = {
+    'LOWG'   : 0x21,
+    'NONE'   : 0x0,
+    'NECK'   : 0x9,
+    'FECD'   : 0x10,
+    'BUTT'   : 0x81,
+    'OWL'    : 0x41,
+    'HQE'    : 0x101,
+    'NORMAL' : 0x3,
+}
 
 # First run we started saving polling data
 CHECK_RATES_START_RUN = 103215
 
 
-def polling_runs():
+def polling_runs(limit=100):
     """
     Returns two lists of runs, one where CMOS rates were polled using check
     rates, the other where base currents were polled using check rates.
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT DISTINCT ON (run) run FROM cmos ORDER BY run DESC")
+    result = conn.execute("SELECT DISTINCT ON (run) run FROM cmos ORDER BY run DESC LIMIT %s", (limit,))
 
     if result is not None:
         keys = result.keys()
         rows = result.fetchall()
         cmos_runs = [dict(zip(keys,row)) for row in rows]
 
-    result = conn.execute("SELECT DISTINCT ON (run) run FROM base ORDER BY run DESC")
+    result = conn.execute("SELECT DISTINCT ON (run) run FROM base ORDER BY run DESC LIMIT %s", (limit,))
 
     if result is not None:
         keys = result.keys()
@@ -192,10 +194,11 @@ def polling_summary(run):
     for cmos_rate, crate, slot, channel in row:
         lcn = crate*512 + slot*32 + channel
         if not check_hv_status(relays_cmos, types, channel_info, crate, slot, channel):
-            if types[lcn] == OWL or types[lcn] == NECK:
+            if types[lcn] == PMT_TYPES['OWL'] or \
+               types[lcn] == PMT_TYPES['NECK']:
                 crates_cmos[19]-=1
                 crates_cmos[crate]-=1
-            elif types[lcn] == HQE:
+            elif types[lcn] == PMT_TYPES['HQE']:
                 crates_cmos[20]-=1
                 crates_cmos[crate]-=1
             else:
@@ -205,10 +208,11 @@ def polling_summary(run):
         # Need to be a little careful with this since it potentially masks issues
         # For now I've chosen 200kHz, but might need to be tuned
         if cmos_rate < 200000:
-            if types[lcn] == OWL or types[lcn] == NECK:
+            if types[lcn] == PMT_TYPES['OWL'] or \
+               types[lcn] == PMT_TYPES['NECK']:
                 crate_average_cmos[19] += float(cmos_rate)
                 crates_cmos[crate]-=1
-            elif types[lcn] == HQE:
+            elif types[lcn] == PMT_TYPES['HQE']:
                 crate_average_cmos[20] += float(cmos_rate)
                 crates_cmos[crate]-=1
             else:
@@ -232,10 +236,11 @@ def polling_summary(run):
     for base_current, crate, slot, channel in row:
         lcn = crate*512 + slot*32 + channel
         if not check_hv_status(relays_base, types, channel_info, crate, slot, channel):
-            if types[lcn] == OWL or types[lcn] == NECK:
+            if types[lcn] == PMT_TYPES['OWL'] or \
+               types[lcn] == PMT_TYPES['NECK']:
                 crates_base[19]-=1
                 crates_base[crate]-=1
-            elif types[lcn] == HQE:
+            elif types[lcn] == PMT_TYPES['HQE']:
                 crates_base[20]-=1
                 crates_base[crate]-=1
             else:
@@ -245,10 +250,11 @@ def polling_summary(run):
         # needing to check the channeldb. This should not mask any issues
         # since we're mostly looking for many channels at 0.
         if base_current > -10:
-            if types[lcn] == OWL or types[lcn] == NECK:
+            if types[lcn] == PMT_TYPES['OWL'] or \
+               types[lcn] == PMT_TYPES['NECK']:
                 crate_average_base[19] += float(base_current)
                 crates_base[crate]-=1
-            elif types[lcn] == HQE:
+            elif types[lcn] == PMT_TYPES['HQE']:
                 crate_average_base[20] += float(base_current)
                 crates_base[crate]-=1
             else:
@@ -390,7 +396,9 @@ def check_hv_status(relays, types, channel_info, crate, slot, channel):
     if not(hv_relay_mask & (1 << (slot*4 + (3-channel//8)))):
         return 0
     # Check the PMT is normal or HQE
-    if types[lcn] in (LOWG, NECK, FECD, BUTT, NONE):
+    if types[lcn] in (PMT_TYPES['LOWG'], PMT_TYPES['NECK'], \
+                      PMT_TYPES['FECD'], PMT_TYPES['BUTT'], \
+                      PMT_TYPES['NONE']):
         return 0
     # Check the resistor is not pulled or channel is not marked as bad
     if channel_info[lcn][0] or channel_info[lcn][1]:

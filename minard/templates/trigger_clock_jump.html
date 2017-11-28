@@ -24,53 +24,79 @@
 </div>
 
 <div class="container">
-  List runs over the last
-  <select id="limit" onchange="get_limit(this.value, 0);">
-    <option selected value="{{limit}}">{{limit}}</option>
-    {% for n in [10, 25, 50, 100, 500] %}
-      {% if n != limit %}
-        <option value="{{n}}">{{n}}</option>
-      {% endif %}
-    {% endfor %}
-  </select> runs, or select run:
-
-  <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value);"></input>
-
-  <table class="table table-hover">
-    <thead>
-      <tr> 
-        <th> Run Number </th>
-        <th> # of 10MHz Clock Jumps </th>
-        <th> # of 50MHz Clock Jumps </th>
+  <div class="col-md-10 col-md-offset-1">
+    <table class="table table-hover">
+      <tr>
+        <th> Limit: </th>
+        <th> Select Run: </th>
+        <th> Run Range: </th>
       </tr>
-    {% if runs %}
+      <tr>
+        <th> <select id="limit" onchange="get_limit(this.value, 0, 0, 0, {{gold}});">
+               {% if selected_run != 0 or run_range_high != 0 %}
+                 <option selected value="-">-</option>
+               {% else %}
+                 <option selected value="{{limit}}">{{limit}}</option>
+               {% endif %}
+               {% for n in [10, 25, 50, 100, 500] %}
+                 {% if n != limit %}
+                   <option value="{{n}}">{{n}}</option>
+                 {% endif %}
+               {% endfor %}
+             </select> </th>
+
+        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value, 0, 0, {{gold}});"></input> </th>
+        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="low" value={{run_range_low}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, this.value, high.value, {{gold}});"></input>
+             - <input style="margin-bottom: 30px; width: 80px;" type="text" id="high" value={{run_range_high}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, low.value, this.value, {{gold}});"></input> </th>
+        {% if not gold %}
+          <th> <button type="submit" class="btn btn-success" onclick="get_limit(limit.value, run.value, low.value, high.value, 1)">Show Only Gold Runs</button> </th>
+        {% else %}
+          <th> <button type="submit" class="btn btn-success" onclick="get_limit(limit.value, run.value, low.value, high.value, 0)">Show All Runs</button> </th>
+        {% endif %}
+      </tr>
+    </table>
+
+
+    <table class="table table-hover">
+      <thead>
+        <tr> 
+          <th> Run Number </th>
+          <th> # of 10MHz Clock Jumps </th>
+          <th> # of 50MHz Clock Jumps </th>
+        </tr>
+      {% if runs %}
         {% for run in runs %}
-            {% if (njump10[run] + njump50[run]) > 20 %}
-              <tr class="danger">
-            {% elif (njump10[run] + njump50[run]) > 10 %}
-              <tr class="warning">
-            {% else %}
-              <tr class="success">
-            {% endif %}
-                <th> <a href="{{ url_for("trigger_clock_jump_run",run_number=run)}}">{{run}}</a></th>
-                <th> {{njump10[run]}} </th>
-                <th> {{njump50[run]}} </th>
-            </tr>
+          {% if (njump10[run] + njump50[run]) > 20 %}
+            <tr class="danger">
+          {% elif (njump10[run] + njump50[run]) > 10 %}
+            <tr class="warning">
+          {% else %}
+            <tr class="success">
+          {% endif %}
+            <th> <a href="{{ url_for("trigger_clock_jump_run",run_number=run)}}">{{run}}</a></th>
+            <th> {{njump10[run]}} </th>
+            <th> {{njump50[run]}} </th>
+          </tr>
         {% endfor %}
-    {% else %}
+      {% else %}
         <th> No data found </th>
-    {% endif %}
-    </thead>
-  </table>
+      {% endif %}
+      </thead>
+    </table>
+  </div>
 </div>
 {% endblock %}
 {% block script %}
   <script>
-    function get_limit(limit, run){
+    function get_limit(limit, run, low, high, gold){
       params = {};
       params["limit"] = limit;
       params["run"] = run;
+      params["run_range_low"] = low;
+      params["run_range_high"] = high;
+      params["gold_runs"] = gold;
       window.location.replace($SCRIPT_ROOT + "/trigger_clock_jump?" + $.param(params));
     }
+
   </script>
 {% endblock %}

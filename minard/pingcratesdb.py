@@ -110,7 +110,7 @@ def crates_failed_messages(run):
     return messages
 
 
-def ping_crates_list(limit, selected_run):
+def ping_crates_list(limit, selected_run, run_range_low, run_range_high, gold):
     '''
     Returns a list of ping crates information for runs larger
     than the current run - limit
@@ -120,20 +120,30 @@ def ping_crates_list(limit, selected_run):
 
     conn = engine_nl.connect()
 
-    if selected_run == 0:
-        # Get all ping crates information from detector state since (run - limit)
+    if not selected_run and not run_range_high:
+        # Get all ping crates information from the nearline database since (run - limit)
         result = conn.execute("SELECT DISTINCT ON (run) timestamp, run,  n100_crates_failed, "
                               "n20_crates_failed, n100_crates_warned, n20_crates_warned, "
                               "status FROM ping_crates WHERE run > %s "
                               "ORDER BY run, timestamp DESC", (run-limit))
+    elif run_range_high:
+        # Get all ping crates information from the nearline database over run range
+        result = conn.execute("SELECT DISTINCT ON (run) timestamp, run,  n100_crates_failed, "
+                              "n20_crates_failed, n100_crates_warned, n20_crates_warned, "
+                              "status FROM ping_crates WHERE run >= %s AND run <= %s "
+                              "ORDER BY run, timestamp DESC", (run_range_low, run_range_high))
     else:
+        # Get all ping crates information from the nearline database for a selected run
         result = conn.execute("SELECT DISTINCT ON (run) timestamp, run,  n100_crates_failed, "
                               "n20_crates_failed, n100_crates_warned, n20_crates_warned, "
                               "status FROM ping_crates WHERE run = %s "
                               "ORDER BY run, timestamp DESC", selected_run)
 
+
     ping_info = []
     for timestamp, run, n100, n20, n100w, n20w, status in result:
+        if gold != 0 and run not in gold:
+            continue
 
         # Messages for the crate failures
         n100_fail_str=""

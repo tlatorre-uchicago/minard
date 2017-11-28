@@ -1,32 +1,37 @@
 from .db import engine_nl
 from .detector_state import get_latest_run
 
-def occupancy_by_trigger_limit(limit, selected_run):
+def occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_high, gold):
     """
-    Returns a dictionary of the ESUMH occupacy status
-    indexed by run
+    Returns a dictionary of the ESUMH occupacy status indexed by run
     """
     conn = engine_nl.connect()
 
     latest_run = get_latest_run()
 
     try:
-        if selected_run == 0:
+        if not selected_run and not run_range_high:
             result = conn.execute("SELECT DISTINCT ON (run, crate, slot) "
                                   "run, status, crate, slot "
                                   "FROM esumh_occupancy_fail WHERE run > %s "
                                   "ORDER BY run, crate, slot", \
                                   (latest_run - limit))
+        elif run_range_high:
+            result = conn.execute("SELECT DISTINCT ON (run, crate, slot) "
+                                  "run, status, crate, slot "
+                                  "FROM esumh_occupancy_fail WHERE run >= %s "
+                                  "AND run <= %s ORDER BY run, crate, slot", \
+                                  (run_range_low, run_range_high))
         else:
             result = conn.execute("SELECT DISTINCT ON (run, crate, slot) "
                                   "run, status, crate, slot "
-                                  "FROM esumh_occupancy_fail WHERE run = %s " 
+                                  "FROM esumh_occupancy_fail WHERE run = %s "
                                   "AND timestamp = (SELECT timestamp FROM "
-                                  "esumh_occupancy WHERE run = %s ORDER BY "
+                                  "esumh_occupancy_fail WHERE run = %s ORDER BY "
                                   "timestamp DESC LIMIT 1) "
                                   "ORDER BY run, crate, slot", \
-                                  (selected_run))
-    except Exception:
+                                  (selected_run, selected_run))
+    except Exception as e:
         return {}, {}, {}
 
     rows = result.fetchall()
@@ -35,7 +40,11 @@ def occupancy_by_trigger_limit(limit, selected_run):
     slots = {}
     status = {}
     runs = []
+    # Check the ESUMH occupancy by run and format the message
+    # for the monitoring page
     for run, run_status, crate, slot in rows:
+        if gold != 0 and run not in gold:
+            continue
         status[run] = run_status
         if run not in runs:
             runs.append(run)
@@ -95,21 +104,27 @@ def occupancy_by_trigger(trigger_type, run, find_issues):
     return data
 
 
-def run_list(limit):
+def run_list(limit, run_range_low, run_range_high, gold):
     """
     Get a list of runs where the trigger
     occupancy job ran.
     """
     conn = engine_nl.connect()
 
-    current_run = get_latest_run()
-
-    result = conn.execute("SELECT DISTINCT ON (run) run FROM esumh_occupancy_fail "
-                          "WHERE run > %s ORDER BY run DESC", (current_run - limit))
+    if not run_range_high:
+        latest_run = get_latest_run()
+        result = conn.execute("SELECT DISTINCT ON (run) run FROM esumh_occupancy_fail "
+                              "WHERE run > %s ORDER BY run DESC", (latest_run - limit))
+    else:
+        result = conn.execute("SELECT DISTINCT ON (run) run FROM esumh_occupancy_fail "
+                              "WHERE run >= %s and run <= %s ORDER BY run DESC", \
+                              (run_range_low, run_range_high))
 
     rows = result.fetchall()
     runs = []
     for run in rows:
+        if gold != 0 and run[0] not in gold:
+            continue
         runs.append(run[0])
 
     return runs

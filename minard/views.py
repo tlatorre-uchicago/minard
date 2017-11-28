@@ -29,6 +29,7 @@ import fiber_position
 import nearline_settings
 import occupancy
 import channelflagsdb
+from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds
 from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form
@@ -1095,19 +1096,26 @@ def noise_run_detail(run_number):
 def occupancy_by_trigger():
     limit = request.args.get("limit", 25, type=int)
     selected_run = request.args.get("run", 0, type=int)
+    run_range_low = request.args.get("run_range_low", 0, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    gold = request.args.get("gold_runs", 0, type=int)
+
+    gold_runs = 0
+    if gold:
+        gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
 
     if not selected_run:
-        runs = occupancy.run_list(limit)
+        runs = occupancy.run_list(limit, run_range_low, run_range_high, gold_runs)
     else:
         runs = [selected_run]
 
-    status, crates, slots = occupancy.occupancy_by_trigger_limit(limit, selected_run) 
+    status, crates, slots = occupancy.occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_high, gold_runs)
 
     # If no data for selected run
     if len(status) == 0:
         status[selected_run] = -1        
 
-    return render_template('occupancy_by_trigger.html', runs=runs, limit=limit, crates=crates, slots=slots, status=status, selected_run=selected_run)
+    return render_template('occupancy_by_trigger.html', runs=runs, limit=limit, crates=crates, slots=slots, status=status, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold)
 
 @app.route('/occupancy_by_trigger_run/<run_number>')
 def occupancy_by_trigger_run(run_number):
@@ -1121,21 +1129,43 @@ def occupancy_by_trigger_run(run_number):
 def nearline_monitoring_summary():
     limit = request.args.get("limit", 25, type=int)
     selected_run = request.args.get("run", 0, type=int)
+    run_range_low = request.args.get("run_range_low", 0, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    gold = request.args.get("gold_runs", 0, type=int)
+
+    gold_runs = 0
+    if gold:
+        gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
 
     if not selected_run:
         runs = []
         latest_run = detector_state.get_latest_run()
-        for run in range(latest_run-limit+1, latest_run):
-            runs.append(run)
-        runTypes = nearline_monitor.get_run_types(limit)
+        if not run_range_high:
+            for run in range(latest_run-limit+1, latest_run):
+                if gold and run not in gold_runs:
+                    continue
+                runs.append(run)
+        else:
+            if run_range_high > latest_run:
+                run_range_high = latest_run
+            if run_range_low > run_range_high:
+                run_range_high = run_range_low
+            for run in range(run_range_low, run_range_high+1):
+                if gold and run not in gold_runs:
+                    continue
+                runs.append(run)
+        runTypes = nearline_monitor.get_run_types(limit, run_range_low, run_range_high, gold_runs)
         runs = sorted(runs, reverse=True)
     else:
-        runs = [selected_run]
-        runTypes = nearline_monitor.run_type(selected_run) 
+        runs = []
+        runTypes = []
+        if not gold or selected_run in gold_runs:
+            runs = [selected_run]
+            runTypes = nearline_monitor.run_type(selected_run)
 
-    clock_jumps, ping_crates, channel_flags, occupancy = nearline_monitor.get_run_list(limit, selected_run, runs)
+    clock_jumps, ping_crates, channel_flags, occupancy = nearline_monitor.get_run_list(limit, selected_run, run_range_low, run_range_high, runs, gold_runs)
 
-    return render_template('nearline_monitoring_summary.html', runs=runs, selected_run=selected_run, limit=limit, clock_jumps=clock_jumps, ping_crates=ping_crates, channel_flags=channel_flags, occupancy=occupancy, runTypes=runTypes)
+    return render_template('nearline_monitoring_summary.html', runs=runs, selected_run=selected_run, limit=limit, clock_jumps=clock_jumps, ping_crates=ping_crates, channel_flags=channel_flags, occupancy=occupancy, runTypes=runTypes, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold)
 
 @app.route('/physicsdq')
 def physicsdq():
@@ -1156,8 +1186,16 @@ def physicsdq():
 def pingcrates():
     limit = request.args.get("limit", 25, type=int)
     selected_run = request.args.get("run", 0, type=int)
-    data = pingcratesdb.ping_crates_list(limit, selected_run)
-    return render_template('pingcrates.html', data=data, limit=limit, selected_run=selected_run)
+    run_range_low = request.args.get("run_range_low", 0, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    gold = request.args.get("gold_runs", 0, type=int)
+
+    gold_runs = 0
+    if gold:
+        gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
+
+    data = pingcratesdb.ping_crates_list(limit, selected_run, run_range_low, run_range_high, gold_runs)
+    return render_template('pingcrates.html', data=data, limit=limit, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold)
 
 @app.route('/pingcrates_run/<run_number>')
 def pingcrates_run(run_number):
@@ -1167,8 +1205,16 @@ def pingcrates_run(run_number):
 def channelflags():
     limit = request.args.get("limit", 25, type=int)
     selected_run = request.args.get("run", 0, type=int)
-    if selected_run == 0:
-        runs, nsync16, nsync24, sync16s, sync24s, missed, sync16s_pr, sync24s_pr = channelflagsdb.get_channel_flags(limit)
+    run_range_low = request.args.get("run_range_low", 0, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    gold = request.args.get("gold_runs", 0, type=int)
+
+    gold_runs = 0
+    if gold:
+        gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
+
+    if not selected_run:
+        runs, nsync16, nsync24, sync16s, sync24s, missed, sync16s_pr, sync24s_pr, normal, owl, other = channelflagsdb.get_channel_flags(limit, run_range_low, run_range_high, False, gold_runs)
     else:
         nsync16 = {}
         nsync24 = {}
@@ -1178,18 +1224,18 @@ def channelflags():
         sync16s_pr = {}
         sync24s_pr = {}
         runs = [selected_run]
-        missed_count, cmos_sync16, cgt_sync24, cmos_sync16_pr, cgt_sync24_pr = channelflagsdb.get_channel_flags_by_run(selected_run)
+        missed_count, cmos_sync16, cgt_sync24, cmos_sync16_pr, cgt_sync24_pr, normal, owl, other = channelflagsdb.get_channel_flags_by_run(selected_run)
         sync16s[selected_run] = len(cmos_sync16)
         sync16s_pr[selected_run] = len(cmos_sync16_pr)
         sync24s[selected_run] = len(cgt_sync24)
         sync24s_pr[selected_run] = len(cgt_sync24_pr)
         missed[selected_run] = len(missed_count)
         nsync16[selected_run], nsync24[selected_run] = channelflagsdb.get_number_of_syncs(selected_run)
-    return render_template('channelflags.html', runs=runs, nsync16=nsync16, nsync24=nsync24, sync16s=sync16s, sync24s=sync24s, missed=missed, sync16s_pr=sync16s_pr, sync24s_pr=sync24s_pr, limit=limit, selected_run=selected_run)
+    return render_template('channelflags.html', runs=runs, nsync16=nsync16, nsync24=nsync24, sync16s=sync16s, sync24s=sync24s, missed=missed, sync16s_pr=sync16s_pr, sync24s_pr=sync24s_pr, limit=limit, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, normal=normal, owl=owl, other=other, gold=gold)
 
 @app.route('/channelflagsbychannel/<run_number>')
 def channelflagsbychannel(run_number):
-    missed_count, cmos_sync16, cgt_sync24, cmos_sync16_pr, cgt_sync24_pr = channelflagsdb.get_channel_flags_by_run(run_number)
+    missed_count, cmos_sync16, cgt_sync24, cmos_sync16_pr, cgt_sync24_pr,_,_,_ = channelflagsdb.get_channel_flags_by_run(run_number)
     return render_template('channelflagsbychannel.html', missed_count=missed_count, cmos_sync16=cmos_sync16, cgt_sync24=cgt_sync24, cmos_sync16_pr=cmos_sync16_pr, cgt_sync24_pr=cgt_sync24_pr, run_number=run_number)
 
 @app.route('/muon_list')
@@ -1203,8 +1249,17 @@ def muon_list():
 def trigger_clock_jump():
     limit = request.args.get("limit", 25, type=int)
     selected_run = request.args.get("run", 0, type=int)
-    runs, njump10, njump50 = triggerclockjumpsdb.get_clock_jumps(limit, selected_run)
-    return render_template('trigger_clock_jump.html', runs=runs, limit=limit, njump10=njump10, njump50=njump50, selected_run=selected_run)
+    run_range_low = request.args.get("run_range_low", 0, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    gold = request.args.get("gold_runs", 0, type=int)
+
+    gold_runs = 0
+    if gold:
+        gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
+
+    runs, njump10, njump50 = triggerclockjumpsdb.get_clock_jumps(limit, selected_run, run_range_low, run_range_high, gold_runs)
+
+    return render_template('trigger_clock_jump.html', runs=runs, limit=limit, njump10=njump10, njump50=njump50, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold)
 
 @app.route('/trigger_clock_jump_run/<run_number>')
 def trigger_clock_jump_run(run_number):
