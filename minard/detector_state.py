@@ -417,13 +417,13 @@ def get_detector_state_check(run=0):
 
     return messages, channels
 
-def get_nhit_monitor_thresholds(limit=100):
+def get_nhit_monitor_thresholds(limit=100, offset=0):
     """
     Returns a list of the latest nhit monitor records in the database.
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT * FROM nhit_monitor_thresholds ORDER BY timestamp DESC LIMIT %s", (limit,))
+    result = conn.execute("SELECT * FROM nhit_monitor_thresholds ORDER BY timestamp DESC LIMIT %s OFFSET %s", (limit,offset))
 
     if result is None:
         return None

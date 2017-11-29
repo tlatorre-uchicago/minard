@@ -377,12 +377,14 @@ def orca_session_logs():
 
 @app.route('/nhit-monitor-thresholds')
 def nhit_monitor_thresholds():
-    results = detector_state.get_nhit_monitor_thresholds()
+    limit = request.args.get("limit", 100, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    results = detector_state.get_nhit_monitor_thresholds(limit, offset)
 
     if results is None:
 	return render_template('nhit_monitor_thresholds.html', error="No nhit monitor records.")
 
-    return render_template('nhit_monitor_thresholds.html', results=results)
+    return render_template('nhit_monitor_thresholds.html', results=results, limit=limit, offset=offset)
 
 @app.route('/nhit-monitor/<int:key>')
 def nhit_monitor(key):
