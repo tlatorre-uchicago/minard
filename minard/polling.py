@@ -13,9 +13,6 @@ PMT_TYPES = {
     'NORMAL' : 0x3,
 }
 
-# First run we started saving polling data
-CHECK_RATES_START_RUN = 103215
-
 
 def polling_runs(limit=100):
     """
