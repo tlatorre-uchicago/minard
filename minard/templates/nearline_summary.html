@@ -69,7 +69,7 @@
         {% if failures and mode == 1 %}
     	  {% for program, status, run in failures %}
             <tr>
-              {% if jobs == "All" or jobs == program %}
+              {% if jobs == "All" or jobs == program or (jobs == "Critical" and program in criticalJobs) %}
     	        {% if status|int == 1 %}
     	          <th class="danger"> Failed </th>
                 {% elif status|int == 97 %}

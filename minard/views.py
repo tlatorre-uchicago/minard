@@ -418,13 +418,16 @@ def nearline_summary():
     limit = request.args.get("limit", 100, type=int)
     mode = request.args.get("mode", 1, type=int)
     runtype = request.args.get("runtype", -1, type=int)
-    run = int(redis.get('nearline:current_run'))
-    detector_run = detector_state.get_latest_run()
+    #run = int(redis.get('nearline:current_run'))
+    run = 106801
 
     # Nearline job types and ways in which the jobs fail
     jobtypes = nearline_settings.jobTypes
     runTypes = nlrat.RUN_TYPES
     runTypes[-1] = "All"
+
+    criticalJobs = ["BLINDNESS_CHUNKER","RUN","CLOCK_JUMPS","DQHL","CHANNEL_FLAGS",\
+                    "CHS","DAQ","DQLL"]
  
     # Check if any jobs were not launched
     program_check = {}
@@ -454,10 +457,11 @@ def nearline_summary():
                 failures.append((program, status, run-previous_run))
         # Check if all the jobs were run
         for i in range(len(jobtypes)):
-            if jobtypes[i] not in program_check[previous_run] and jobtypes[i] != "All":
+            if jobtypes[i] not in program_check[previous_run] and \
+               jobtypes[i] != "All" and jobtypes[i] != "Critical":
                 not_launched.append((jobtypes[i], run-previous_run)) 
 
-    return render_template('nearline_summary.html', run=run, failures=failures, jobs=jobs, jobtypes=jobtypes, mode=mode, not_launched=not_launched, limit=limit, runTypes=runTypes, selectedType=selectedType, runtype=runtype)
+    return render_template('nearline_summary.html', run=run, failures=failures, jobs=jobs, jobtypes=jobtypes, criticalJobs=criticalJobs, mode=mode, not_launched=not_launched, limit=limit, runTypes=runTypes, selectedType=selectedType, runtype=runtype)
 
 @app.route('/get_l2')
 def get_l2():
