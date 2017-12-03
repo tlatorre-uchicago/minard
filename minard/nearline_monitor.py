@@ -5,6 +5,7 @@ from .channelflagsdb import get_channel_flags, get_channel_flags_by_run
 from .triggerclockjumpsdb import get_clock_jumps, get_clock_jumps_by_run
 from .nlrat import RUN_TYPES
 from .occupancy import run_list, occupancy_by_trigger, occupancy_by_trigger_limit
+from .muonsdb import get_muons
 
 # Limits for failing channel flags check
 OUT_OF_SYNC_1 = 32
@@ -16,49 +17,56 @@ MISSED_COUNT_2 = 256
 CLOCK_JUMP_1 = 10
 CLOCK_JUMP_2 = 20
 
+#Limit for muons failing check
+MUONS = 20
+MISSED_MUONS = 1000
+
 def get_run_list(limit, selected_run, run_range_low, run_range_high, all_runs, gold):
     '''
     Returns dictionaries keeping track of a list
     of failures for each nearline job
     '''
 
+    occupancy_status = occupancy(limit, selected_run, run_range_low, run_range_high, all_runs, gold)
+    muon_status = muons(limit, selected_run, run_range_low, run_range_high, all_runs, gold)
     if not selected_run:
         ping_crates_status = ping_crates(limit, run_range_low, run_range_high, all_runs, gold)
         channel_flags_status = channel_flags(limit, run_range_low, run_range_high, all_runs, True, gold) 
         clock_jumps_status = clock_jumps(limit, run_range_low, run_range_high, all_runs, gold)
-        occupancy_status = occupancy(limit, run_range_low, run_range_high, all_runs, gold)
     else:
         ping_crates_status = ping_crates_run(selected_run)
         channel_flags_status = channel_flags_run(selected_run)
         clock_jumps_status = clock_jumps_run(selected_run)
-        occupancy_status = occupancy_run(selected_run)
 
-    return clock_jumps_status, ping_crates_status, channel_flags_status, occupancy_status
-
-
-def occupancy_run(run):
-    '''
-    Return the ESUM occupancy status of a selected run
-    '''
-    occupancy_fail = {}
-    status,_,_ = occupancy_by_trigger_limit(0, run, 0, 0, 0)
-    try:
-        if status[run] == 1:
-            occupancy_fail[run] = 1
-        elif status[run] == 0:
-            occupancy_fail[run] = 0
-    except Exception as e:
-        occupancy_fail[run] = -1
-
-    return occupancy_fail
+    return clock_jumps_status, ping_crates_status, channel_flags_status, occupancy_status, muon_status
 
 
-def occupancy(limit, run_range_low, run_range_high, all_runs, gold):
+def muons(limit, selected_run, run_range_low, run_range_high, all_runs, gold):
+
+    muon_fail = {}
+    _, muons, _, mmuons = get_muons(limit, selected_run, run_range_low, run_range_high, gold)
+
+    for run in all_runs:
+        try:
+            if len(muons[run][0]) > MUONS:
+                muon_fail[run] = 1
+            elif len(mmuons[run][0]) > MISSED_MUONS:
+                muon_fail[run] = 1
+            else:
+                muon_fail[run] = 0
+        except Exception as e:
+            muon_fail[run] = -1
+            continue
+
+    return muon_fail
+
+
+def occupancy(limit, selected_run, run_range_low, run_range_high, all_runs, gold):
     '''
     Return a dictionary of ESUM occupancy status by run
     '''
     occupancy_fail = {}
-    status,_,_ = occupancy_by_trigger_limit(limit, 0, run_range_low, run_range_high, gold)
+    status,_,_ = occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_high, gold)
     for run in all_runs:
         try:
             # Check ESUMH Occupancy
@@ -229,49 +237,40 @@ def ping_crates(limit, run_range_low, run_range_high, all_runs, gold):
     return ping_crates_fail
 
 
-def run_type(selected_run):
-    '''
-    Return the run_type for a selected run
-    '''
-    conn = engine.connect()
-
-    result = conn.execute("SELECT run_type FROM run_state WHERE run > %s" % selected_run)
-    row = result.fetchone()[0]
-    runtypes = {}
-    for i in range(len(RUN_TYPES)):
-        if (row & (1<<i)):
-            runtypes[selected_run] = RUN_TYPES[i]
-            break
-
-    return runtypes
-
-
-def get_run_types(limit, run_range_low, run_range_high, gold):
+def get_run_types(limit, selected_run, run_range_low, run_range_high, gold):
     '''
     Return a dictionary of run types for each run in the list
     '''
     conn = engine.connect()
 
-    latest_run = get_latest_run()
-
-    if not run_range_high:
-        result = conn.execute("SELECT run, run_type FROM run_state WHERE run > %s", \
+    if not selected_run and not run_range_high:
+        # Nearline jobs run after run has finished
+        latest_run = get_latest_run()
+        result = conn.execute("SELECT DISTINCT ON (run) "
+                              "run, run_type FROM run_state WHERE "
+                              "run > %s ORDER BY run DESC", \
                               (latest_run - limit))
-    else:
-        result = conn.execute("SELECT run, run_type FROM run_state WHERE "
-                              "run >= %s AND run <= %s", \
+    elif run_range_high:
+        result = conn.execute("SELECT DISTINCT ON (run) "
+                              "run, run_type FROM run_state WHERE "
+                              "run >= %s AND run <= %s ORDER BY run DESC", \
                               (run_range_low, run_range_high))
+    else:
+        result = conn.execute("SELECT DISTINCT ON (run) "
+                              "run, run_type FROM run_state WHERE "
+                              "run = %s" % selected_run)
 
     rows = result.fetchall()
 
+    runs = []
     runtypes = {}
     for run, run_type in rows:
         if gold != 0 and run not in gold:
             continue
+        runs.append(run)
         for i in range(len(RUN_TYPES)):
             if (run_type & (1<<i)):
                 runtypes[run] = RUN_TYPES[i]
                 break
 
-    return runtypes
-
+    return runtypes, runs

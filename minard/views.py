@@ -23,7 +23,7 @@ import nlrat
 import nearline_monitor
 import pingcratesdb
 import triggerclockjumpsdb
-import muons
+import muonsdb
 import redisdb
 import fiber_position
 import nearline_settings
@@ -1171,35 +1171,11 @@ def nearline_monitoring_summary():
     if gold:
         gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
 
-    if not selected_run:
-        runs = []
-        latest_run = detector_state.get_latest_run()
-        if not run_range_high:
-            for run in range(latest_run-limit+1, latest_run):
-                if gold and run not in gold_runs:
-                    continue
-                runs.append(run)
-        else:
-            if run_range_high > latest_run:
-                run_range_high = latest_run
-            if run_range_low > run_range_high:
-                run_range_high = run_range_low
-            for run in range(run_range_low, run_range_high+1):
-                if gold and run not in gold_runs:
-                    continue
-                runs.append(run)
-        runTypes = nearline_monitor.get_run_types(limit, run_range_low, run_range_high, gold_runs)
-        runs = sorted(runs, reverse=True)
-    else:
-        runs = []
-        runTypes = []
-        if not gold or selected_run in gold_runs:
-            runs = [selected_run]
-            runTypes = nearline_monitor.run_type(selected_run)
+    runTypes, runs = nearline_monitor.get_run_types(limit, selected_run, run_range_low, run_range_high, gold_runs)
 
-    clock_jumps, ping_crates, channel_flags, occupancy = nearline_monitor.get_run_list(limit, selected_run, run_range_low, run_range_high, runs, gold_runs)
+    clock_jumps, ping_crates, channel_flags, occupancy, muons = nearline_monitor.get_run_list(limit, selected_run, run_range_low, run_range_high, runs, gold_runs)
 
-    return render_template('nearline_monitoring_summary.html', runs=runs, selected_run=selected_run, limit=limit, clock_jumps=clock_jumps, ping_crates=ping_crates, channel_flags=channel_flags, occupancy=occupancy, runTypes=runTypes, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold)
+    return render_template('nearline_monitoring_summary.html', runs=runs, selected_run=selected_run, limit=limit, clock_jumps=clock_jumps, ping_crates=ping_crates, channel_flags=channel_flags, occupancy=occupancy, muons=muons, runTypes=runTypes, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold)
 
 @app.route('/physicsdq')
 def physicsdq():
@@ -1276,8 +1252,42 @@ def channelflagsbychannel(run_number):
 def muon_list():
     limit = request.args.get("limit", 25, type=int)
     selected_run = request.args.get("run", 0, type=int)
-    runs, gtids = muons.get_muons(limit, selected_run)
-    return render_template('muon_list.html', runs=runs, limit=limit, selected_run=selected_run, gtids=gtids)
+    run_range_low = request.args.get("run_range_low", 0, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    gold = request.args.get("gold_runs", 0, type=int)
+
+    gold_runs = 0
+    if gold:
+        gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
+
+    mruns, mgtids, mmruns, mmgtids = muonsdb.get_muons(limit, selected_run, run_range_low, run_range_high, gold_runs)
+
+    return render_template('muon_list.html', mruns=mruns, limit=limit, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold, mgtids=mgtids, mmgtids=mmgtids)
+
+@app.route('/muons_by_run/<run_number>')
+def muons_by_run(run_number):
+    _, muons, _, mmuons = muonsdb.get_muons(0, run_number, 0, 0, 0) 
+    run_number=int(run_number)
+
+    # Make parsing of muon info easier
+    gtids = muons[run_number][0]
+    days = muons[run_number][1]
+    secs = muons[run_number][2]
+    nsecs = muons[run_number][3]
+    muon_info = []
+    for i in range(len(gtids)):
+        muon_info.append((gtids[i], days[i], secs[i], nsecs[i]))
+
+    # Make parsing of missed muon info easier
+    mgtids = mmuons[run_number][0]
+    mdays = mmuons[run_number][1]
+    msecs = mmuons[run_number][2]
+    mnsecs = mmuons[run_number][3]
+    mmuon_info = []
+    for i in range(len(mgtids)):
+        mmuon_info.append((mgtids[i], mdays[i], msecs[i], mnsecs[i]))
+
+    return render_template('muons_by_run.html', run_number=run_number, muon_info=muon_info, mmuon_info=mmuon_info) 
 
 @app.route('/trigger_clock_jump')
 def trigger_clock_jump():
