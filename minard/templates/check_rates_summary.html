@@ -42,7 +42,9 @@ h2 {margin-bottom: 5px;}
             </tr>
           </thead>
             {% for i in crate_average %}
-              {% if ((i[1] > 5000 or (i[1] < 400 and i[1] > -1.0)) and i[0] != 19) or (i[0] == 19 and i[1] > 15000) %}
+              <!-- Crate average CMOS rate check is run dependent based on when disc. threshold raised  -->
+              {% if ((i[1] > 5000 or (((i[1] < 400 and crun < 104613) or (i[1] < 325))
+                    and i[1] > -1.0)) and i[0] != 19) or (i[0] == 19 and i[1] > 15000) %}
                 <tr class="danger">
               {% elif i[1] == -1.0 %}
                 <tr class="warning">
