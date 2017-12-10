@@ -1271,21 +1271,17 @@ def muons_by_run(run_number):
 
     # Make parsing of muon info easier
     gtids = muons[run_number][0]
-    days = muons[run_number][1]
-    secs = muons[run_number][2]
-    nsecs = muons[run_number][3]
+    times = muons[run_number][1]
     muon_info = []
     for i in range(len(gtids)):
-        muon_info.append((gtids[i], days[i], secs[i], nsecs[i]))
+        muon_info.append((gtids[i], times[i]))
 
     # Make parsing of missed muon info easier
     mgtids = mmuons[run_number][0]
-    mdays = mmuons[run_number][1]
-    msecs = mmuons[run_number][2]
-    mnsecs = mmuons[run_number][3]
+    mtimes = mmuons[run_number][1]
     mmuon_info = []
     for i in range(len(mgtids)):
-        mmuon_info.append((mgtids[i], mdays[i], msecs[i], mnsecs[i]))
+        mmuon_info.append((mgtids[i], mtimes[i]))
 
     return render_template('muons_by_run.html', run_number=run_number, muon_info=muon_info, mmuon_info=mmuon_info) 
 

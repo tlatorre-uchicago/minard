@@ -246,10 +246,11 @@ def get_run_types(limit, selected_run, run_range_low, run_range_high, gold):
     if not selected_run and not run_range_high:
         # Nearline jobs run after run has finished
         latest_run = get_latest_run()
+        # Don't look at the current run
         result = conn.execute("SELECT DISTINCT ON (run) "
                               "run, run_type FROM run_state WHERE "
-                              "run > %s ORDER BY run DESC", \
-                              (latest_run - limit))
+                              "run < %s and run > %s ORDER BY run DESC", \
+                              (latest_run, latest_run - limit))
     elif run_range_high:
         result = conn.execute("SELECT DISTINCT ON (run) "
                               "run, run_type FROM run_state WHERE "

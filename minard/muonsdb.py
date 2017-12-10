@@ -1,5 +1,8 @@
 from .db import engine_nl
 from .detector_state import get_latest_run
+import time
+
+TZERO = 14610*24*3600
 
 def get_muons(limit, selected_run, run_range_low, run_range_high, gold):
     """
@@ -33,21 +36,33 @@ def get_muons(limit, selected_run, run_range_low, run_range_high, gold):
     rows_muons = result_muons.fetchall()
     rows_missed = result_missed.fetchall()
 
+
     muon_runs = []
     muon = {}
     for run, gtids, days, secs, nsecs in rows_muons:
         if gold !=0 and run not in gold:
             continue
+        t_array = []
         muon_runs.append(run)
-        muon[run] = [gtids, days, secs, nsecs]
+        for t in range(len(days)):
+            total_secs = TZERO + days[t]*24*3600 + secs[t] + float(nsecs[t])/1e9
+            stime = time.strftime("%a, %d %b %Y %H:%M:%S ", time.gmtime(total_secs))
+            t_array.append(stime)
+        muon[run] = [gtids, t_array]
+            
 
     missed_muon_runs = []
     missed_muon = {}
     for run, gtids, days, secs, nsecs in rows_missed:
         if gold !=0 and run not in gold:
             continue
+        t_array = []
+        for t in range(len(days)):
+            total_secs = TZERO + days[t]*24*3600 + secs[t] + float(nsecs[t])/1e9
+            stime = time.strftime("%a, %d %b %Y %H:%M:%S ", time.gmtime(total_secs))
+            t_array.append(stime)
         missed_muon_runs.append(run)
-        missed_muon[run] = [gtids, days, secs, nsecs]
+        missed_muon[run] = [gtids, t_array]
 
     return muon_runs, muon, missed_muon_runs, missed_muon
 
