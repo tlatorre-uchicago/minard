@@ -291,6 +291,14 @@ def get_detector_state_check(run=0):
                     else:
                         messages.append("crates %s are out of the %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
 
+    # TUBII channel mapping changed at run 107556
+    if run == 0 or run > 107556:
+        attenuated = [3, 6, 7]
+        nonattenuated = [0, 1, 2, 4, 5]
+    else:
+        attenuated = [2, 3, 6]
+        nonattenuated = [0, 1, 4, 5, 7]
+
     if tubii_key is None:
         messages.append("tubii state unknown")
     else:
@@ -307,9 +315,9 @@ def get_detector_state_check(run=0):
         # Hard-coded for current TUBII cabling
         if gain_reg is not None:
             for i in range(8):
-                if i in (2,3,6) and (tubii_gain[i] & gain_reg):
+                if i in attenuated and (tubii_gain[i] & gain_reg):
                     attenuated_channels.append(i)
-                elif i in (0,1,4,5,7) and not (tubii_gain[i] & gain_reg):
+                elif i in nonattenuated and not (tubii_gain[i] & gain_reg):
                     non_attenuated_channels.append(i)
             if len(attenuated_channels):
                 if len(attenuated_channels) == 1:
