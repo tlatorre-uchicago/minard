@@ -183,6 +183,51 @@ def channel_database():
     results = get_channels(request.args, limit)
     return render_template('channel_database.html', results=results, limit=limit)
 
+@app.template_filter('channel_status')
+def filter_channel_status(row):
+    status = []
+    if row['pmt_removed']:
+        status.append("PMT Removed")
+    if row['pmt_reinstalled']:
+        status.append("PMT Reinstalled")
+    if row['low_occupancy']:
+        status.append("Low Occ.")
+    if row['zero_occupancy']:
+        status.append("Zero Occ.")
+    if row['screamer']:
+        status.append("Screamer")
+    if row['bad_discriminator']:
+        status.append("Bad Disc.")
+    if row['no_n100']:
+        status.append("No N100")
+    if row['no_n20']:
+        status.append("No N20")
+    if row['no_esum']:
+        status.append("No ESUM")
+    if row['cable_pulled']:
+        status.append("Cable pulled")
+    if row['bad_cable']:
+        status.append("Bad Cable")
+    if row['resistor_pulled']:
+        status.append("Resistor pulled")
+    if row['disable_n100']:
+        status.append("Disable N100")
+    if row['disable_n20']:
+        status.append("Disable N20")
+    if row['high_dropout']:
+        status.append("High Dropout")
+    if row['bad_base_current']:
+        status.append("Bad Base Current")
+    if row['bad_data']:
+        status.append("Bad Data")
+    if row['bad_calibration']:
+        status.append("Bad Calibration")
+
+    if len(status) == 0:
+        return "Perfect!"
+
+    return ", ".join(status)
+
 @app.route('/channel-status')
 def channel_status():
     crate = request.args.get("crate", 0, type=int)
@@ -377,12 +422,14 @@ def orca_session_logs():
 
 @app.route('/nhit-monitor-thresholds')
 def nhit_monitor_thresholds():
-    results = detector_state.get_nhit_monitor_thresholds()
+    limit = request.args.get("limit", 100, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    results = detector_state.get_nhit_monitor_thresholds(limit, offset)
 
     if results is None:
 	return render_template('nhit_monitor_thresholds.html', error="No nhit monitor records.")
 
-    return render_template('nhit_monitor_thresholds.html', results=results)
+    return render_template('nhit_monitor_thresholds.html', results=results, limit=limit, offset=offset)
 
 @app.route('/nhit-monitor/<int:key>')
 def nhit_monitor(key):

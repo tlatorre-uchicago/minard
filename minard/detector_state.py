@@ -257,12 +257,11 @@ def get_detector_state_check(run=0):
     channels = []
     messages = []
 
-    mtc = get_mtc_state(mtc_key)
-    tubii = get_tubii_state(tubii_key)
-
-    if mtc is None:
+    if mtc_key is None:
         messages.append("mtc state unknown")
     else:
+        mtc = get_mtc_state(mtc_key)
+
         gt_crate_mask = mtc['gt_crate_mask']
         if gt_crate_mask is None:
             messages.append("GT crate mask unknown")
@@ -292,9 +291,11 @@ def get_detector_state_check(run=0):
                     else:
                         messages.append("crates %s are out of the %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
 
-    if tubii is None:
+    if tubii_key is None:
         messages.append("tubii state unknown")
     else:
+        tubii = get_tubii_state(tubii_key)
+
         control_reg = tubii['control_reg']
         if control_reg is not None and (control_reg & (1<<2)):
             messages.append("TUBII ECAL bit set")
@@ -330,7 +331,7 @@ def get_detector_state_check(run=0):
             messages.append("crate %i is off" % crate)
             continue
 
-        if gt_crate_mask is not None and mtc is not None and not (gt_crate_mask & (1<<crate)):
+        if gt_crate_mask is not None and mtc_key is not None and not (gt_crate_mask & (1<<crate)):
             messages.append("crate %i is not in the GT crate mask" % crate)
 
         xl3_mode = detector_state[crate]['xl3_mode']
@@ -417,13 +418,13 @@ def get_detector_state_check(run=0):
 
     return messages, channels
 
-def get_nhit_monitor_thresholds(limit=100):
+def get_nhit_monitor_thresholds(limit=100, offset=0):
     """
     Returns a list of the latest nhit monitor records in the database.
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT * FROM nhit_monitor_thresholds ORDER BY timestamp DESC LIMIT %s", (limit,))
+    result = conn.execute("SELECT * FROM nhit_monitor_thresholds ORDER BY timestamp DESC LIMIT %s OFFSET %s", (limit,offset))
 
     if result is None:
         return None
