@@ -79,6 +79,7 @@ tr:nth-child(even) {
           <th> <a href="{{url_for('trigger_clock_jump')}}">Clock Jumps</a> </th>
           <th> <a href="{{url_for('channelflags')}}">Channel Flags</a> </th>
           <th> <a href="{{url_for('occupancy_by_trigger')}}">Occupancy</a> </th>
+          <th> <a href="{{url_for('muon_list')}}">Muons</a></th>
         </tr>
       </thead>
       {% for run in runs %}
@@ -119,6 +120,14 @@ tr:nth-child(even) {
             <th class="danger"><a href="{{ url_for("occupancy_by_trigger_run", run_number=run) }}">Fail</a></th>
           {% elif occupancy[run] == 0 %}
             <th class="success"><a href="{{ url_for("occupancy_by_trigger_run", run_number=run) }}">Pass</a></th>
+          {% else %}
+            <th class="info">Not Run</th> 
+          {% endif %}
+
+          {% if muons[run] == 1 %}
+            <th class="danger"><a href="{{ url_for("muons_by_run", run_number=run) }}">Fail</a></th>
+          {% elif muons[run] == 0 %}
+            <th class="success"><a href="{{ url_for("muons_by_run", run_number=run) }}">Pass</a></th>
           {% else %}
             <th class="info">Not Run</th> 
           {% endif %}
