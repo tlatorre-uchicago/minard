@@ -465,17 +465,15 @@ def nearline_summary():
     limit = request.args.get("limit", 100, type=int)
     mode = request.args.get("mode", 1, type=int)
     runtype = request.args.get("runtype", -1, type=int)
-    #run = int(redis.get('nearline:current_run'))
-    run = 106801
+    run = int(redis.get('nearline:current_run'))
 
     # Nearline job types and ways in which the jobs fail
     jobtypes = nearline_settings.jobTypes
     runTypes = nlrat.RUN_TYPES
     runTypes[-1] = "All"
 
-    criticalJobs = ["BLINDNESS_CHUNKER","RUN","CLOCK_JUMPS","DQHL","CHANNEL_FLAGS",\
-                    "CHS","DAQ","DQLL"]
- 
+    criticalJobs = nearline_settings.criticalJobs
+
     # Check if any jobs were not launched
     program_check = {}
     not_launched = []
