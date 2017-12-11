@@ -65,19 +65,19 @@
         </tr>
       {% if mruns %}
         {% for mrun in mruns %}
-          {% if (mgtids[mrun][0])|length > 20 or (mmgtids[mrun][0])|length > 1000 %}
+          {% if mcount[mrun] > 20 or mmcount[mrun] > 1000 %}
             <tr class="danger">
           {% else %}
             <tr class="success">
           {% endif %}
             <th> <a href="{{ url_for("muons_by_run",run_number=mrun)}}">{{mrun}}</th>
-            <th> {{mgtids[mrun][0]|length}} </th>
-            {% if mgtids[mrun][0][0] == -1 %}
+            <th> {{mcount[mrun]}} </th>
+            {% if mfake[mrun] %}
               <th> Yes </th>
             {% else %}
               <th> No </th>
             {% endif %}
-            <th> {{mmgtids[mrun][0]|length}} </th>
+            <th> {{mmcount[mrun]}} </th>
           </tr>
         {% endfor %}
       {% else %}

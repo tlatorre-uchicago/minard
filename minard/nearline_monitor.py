@@ -44,13 +44,13 @@ def get_run_list(limit, selected_run, run_range_low, run_range_high, all_runs, g
 def muons(limit, selected_run, run_range_low, run_range_high, all_runs, gold):
 
     muon_fail = {}
-    _, muons, _, mmuons = get_muons(limit, selected_run, run_range_low, run_range_high, gold)
+    _, mcount, _, _, mmcount = get_muons(limit, selected_run, run_range_low, run_range_high, gold)
 
     for run in all_runs:
         try:
-            if len(muons[run][0]) > MUONS:
+            if mcount[run] > MUONS:
                 muon_fail[run] = 1
-            elif len(mmuons[run][0]) > MISSED_MUONS:
+            elif mmcount[run] > MISSED_MUONS:
                 muon_fail[run] = 1
             else:
                 muon_fail[run] = 0

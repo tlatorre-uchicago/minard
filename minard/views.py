@@ -1262,13 +1262,13 @@ def muon_list():
     if gold:
         gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
 
-    mruns, mgtids, mmruns, mmgtids = muonsdb.get_muons(limit, selected_run, run_range_low, run_range_high, gold_runs)
+    mruns, mcount, mfake, mmruns, mmcount = muonsdb.get_muons(limit, selected_run, run_range_low, run_range_high, gold_runs)
 
-    return render_template('muon_list.html', mruns=mruns, limit=limit, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold, mgtids=mgtids, mmgtids=mmgtids)
+    return render_template('muon_list.html', mruns=mruns, limit=limit, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold, mcount=mcount, mmcount=mmcount, mfake=mfake)
 
 @app.route('/muons_by_run/<run_number>')
 def muons_by_run(run_number):
-    _, muons, _, mmuons = muonsdb.get_muons(0, run_number, 0, 0, 0) 
+    _, muons, _, mmuons = muonsdb.get_muon_info_by_run(int(run_number)) 
     run_number=int(run_number)
 
     # Make parsing of muon info easier
