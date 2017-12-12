@@ -169,7 +169,7 @@ def channel_flags(limit, run_range_low, run_range_high, all_runs, summary, gold)
     '''
     Return a dictionary of channel flags status by run
     '''
-    _, _, _, count_sync16, _, count_missed, count_sync16_pr, _, _, _, _ = \
+    _, _, _, _, count_sync16, _, count_missed, count_sync16_pr, _, _, _, _ = \
         get_channel_flags(limit, run_range_low, run_range_high, summary, gold)
     channel_flags_fail = {}
     for run in all_runs:
