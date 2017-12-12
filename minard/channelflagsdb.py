@@ -13,7 +13,7 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary, gold):
     current_run = get_latest_run()
 
     if not run_range_high:
-        result = conn.execute("SELECT DISTINCT ON (run) run, sync16, sync24, timestamp "
+        result = conn.execute("SELECT DISTINCT ON (run) run, sync16, sync24, resync, timestamp "
                               "FROM channel_flags WHERE run > %s "
                               "ORDER BY run DESC, timestamp DESC", \
                               (current_run - limit))
@@ -24,7 +24,7 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary, gold):
                               "run DESC, timestamp DESC", \
                               (current_run - limit))
     else:
-        result = conn.execute("SELECT DISTINCT ON (run) run, sync16, sync24, timestamp "
+        result = conn.execute("SELECT DISTINCT ON (run) run, sync16, sync24, resync, timestamp "
                               "FROM channel_flags WHERE run >= %s AND run <= %s "
                               "ORDER BY run DESC, timestamp DESC", \
                               (run_range_low, run_range_high))
@@ -43,6 +43,7 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary, gold):
     runs = []
     nsync16 = {}
     nsync24 = {}
+    nresyncs = {}
     count_sync16 = {}
     count_sync24 = {}
     count_missed = {}
@@ -53,7 +54,7 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary, gold):
     count_other = {}
     timestamp = {}
 
-    for run, sync16, sync24, time in rows:
+    for run, sync16, sync24, resync, time in rows:
         # Gold run selection
         if gold != 0 and run not in gold:
             continue
@@ -61,6 +62,7 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary, gold):
         nsync16[run] = sync16
         nsync24[run] = sync24
         timestamp[run] = time
+        nresyncs[run] = resync
 
         # Start with 0 counts of each type
         count_sync16[run] = 0
@@ -109,7 +111,7 @@ def get_channel_flags(limit, run_range_low, run_range_high, summary, gold):
         if cgt_sync24_pr != 0 and cgt_sync24_pr is not None:
             count_sync24_pr[run] += 1
 
-    return runs, nsync16, nsync24, count_sync16, count_sync24, count_missed, count_sync16_pr, count_sync24_pr, count_normal, count_owl, count_other
+    return runs, nsync16, nsync24, nresyncs, count_sync16, count_sync24, count_missed, count_sync16_pr, count_sync24_pr, count_normal, count_owl, count_other
 
 def get_channel_flags_by_run(run):
     """
@@ -173,16 +175,18 @@ def get_number_of_syncs(run):
 
     conn = engine_nl.connect()
 
-    result = conn.execute("SELECT run, sync16, sync24 FROM channel_flags "
+    result = conn.execute("SELECT run, sync16, sync24, resync FROM channel_flags "
                           "WHERE run = %s ORDER BY timestamp DESC limit 1", (run))
 
     rows = result.fetchall()
 
     nsync16s = -1
     nsync24s = -1
-    for run, sync16, sync24 in rows:
+    resyncs = -1
+    for run, sync16, sync24, resync in rows:
         nsync16s = sync16
         nsync24s = sync24
+        resyncs = resync
 
-    return nsync16s, nsync24s
+    return nsync16s, nsync24s, resyncs
 

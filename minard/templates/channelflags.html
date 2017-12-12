@@ -64,6 +64,7 @@
           <th> Run Number </th>
           <th> # Sync 16s </th>
           <th> # Sync 24s </th>
+          <th> Resync </th>
           <th> # Channels Out-Of-Sync Current Run </th>
           <th> # Channels Out-Of-Sync Previous Runs</th>
           <th> # Channels With Missed Counts </th>
@@ -84,6 +85,13 @@
               <th> <a href="{{ url_for("channelflagsbychannel",run_number=run)}}">{{run}}</a> </th>
               <th> {{nsync16[run]}}</th>
               <th> {{nsync24[run]}}</th>
+              {% if nresyncs[run] == 1 %}
+                <th> Yes </th>
+              {% elif nresyncs[run] == 0 %}
+                <th> No </th>
+              {% else %}
+                <th> - </th>
+              {% endif %}
               <th> {{sync16s[run] + sync24s[run]}} </th>
               <th> {{sync16s_pr[run] + sync24s_pr[run]}} </th>
               <th> {{missed[run]}}</th>
