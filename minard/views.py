@@ -95,6 +95,8 @@ PROGRAMS = [#Program('builder','builder1', description="event builder"),
             Program('estop-monitor','sbc', description="estop server",
 		    display_log=False),
             Program('tubii','tubii', description="tubii server",
+		    display_log=False),
+            Program('noel','buffer1', description="noel server",
 		    display_log=False)
 ]
 
