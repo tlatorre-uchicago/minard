@@ -1263,9 +1263,9 @@ def muon_list():
     if gold:
         gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
 
-    mruns, mcount, mfake, mmruns, mmcount = muonsdb.get_muons(limit, selected_run, run_range_low, run_range_high, gold_runs)
+    mruns, mcount, mfake, mmruns, mmcount, livetime = muonsdb.get_muons(limit, selected_run, run_range_low, run_range_high, gold_runs)
 
-    return render_template('muon_list.html', mruns=mruns, limit=limit, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold, mcount=mcount, mmcount=mmcount, mfake=mfake)
+    return render_template('muon_list.html', mruns=mruns, limit=limit, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold, mcount=mcount, mmcount=mmcount, mfake=mfake, livetime=livetime)
 
 @app.route('/muons_by_run/<run_number>')
 def muons_by_run(run_number):

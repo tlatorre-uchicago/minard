@@ -62,6 +62,7 @@
           <th> Number of Muons </th>
           <th> Fake Muon Needed </th>
           <th> Number of Missed Muons </th>
+          <th> Livetime lost to Muons (s) </th>
         </tr>
       {% if mruns %}
         {% for mrun in mruns %}
@@ -70,7 +71,7 @@
           {% else %}
             <tr class="success">
           {% endif %}
-            <th> <a href="{{ url_for("muons_by_run",run_number=mrun)}}">{{mrun}}</th>
+            <th> <a href="{{ url_for("muons_by_run",run_number=mrun)}}">{{mrun}}</a></th>
             <th> {{mcount[mrun]}} </th>
             {% if mfake[mrun] %}
               <th> Yes </th>
@@ -78,6 +79,7 @@
               <th> No </th>
             {% endif %}
             <th> {{mmcount[mrun]}} </th>
+            <th> {{livetime[mrun]}} </th>
           </tr>
         {% endfor %}
       {% else %}

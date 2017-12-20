@@ -13,7 +13,7 @@ def get_muons(limit, selected_run, run_range_low, run_range_high, gold):
 
     if not selected_run and not run_range_high:
         current_run = get_latest_run()
-        result_muons = conn.execute("SELECT DISTINCT ON (run) run, array_length(gtids, 1), gtids "
+        result_muons = conn.execute("SELECT DISTINCT ON (run) run, array_length(gtids, 1), gtids, days, secs, nsecs "
                                     "FROM muons where run > %s ORDER BY run DESC, "
                                     "timestamp DESC", (current_run - limit))
         result_missed = conn.execute("SELECT DISTINCT ON (run) run, array_length(gtids, 1) "
@@ -38,13 +38,25 @@ def get_muons(limit, selected_run, run_range_low, run_range_high, gold):
     muon_runs = []
     muon_count = {}
     muon_fake = {}
-    for run, count, gtids in rows_muons:
+    livetime_lost = {}
+    for run, count, gtids, days, secs, nsecs in rows_muons:
         if gold !=0 and run not in gold:
             continue
         muon_runs.append(run)
         muon_count[run] = count
         if gtids and gtids[0] == -1:
             muon_fake[run] = 1
+        livetime = []
+        # Count the livetime lost to muons by run, accounting for overlap
+        for t in range(len(days)):
+            time = days[t]*24*3600 + secs[t] + float(nsecs[t])/1e9
+            livetime.append(time)
+            if t == 0:
+                livetime_lost[run] = 20
+            elif(livetime[t] > livetime[t-1] + 20):
+                livetime_lost[run] += 20
+            else:
+                livetime_lost[run] += int((livetime[t] - livetime[t-1]))
 
     missed_muon_runs = []
     missed_muon_count = {}
@@ -54,7 +66,7 @@ def get_muons(limit, selected_run, run_range_low, run_range_high, gold):
         missed_muon_runs.append(run)
         missed_muon_count[run] = count
 
-    return muon_runs, muon_count, muon_fake, missed_muon_runs, missed_muon_count
+    return muon_runs, muon_count, muon_fake, missed_muon_runs, missed_muon_count, livetime_lost
 
 
 def get_muon_info_by_run(selected_run):
