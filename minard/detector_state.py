@@ -56,11 +56,11 @@ def get_tubii_state_for_run(run=0):
 
     result = conn.execute("SELECT * FROM tubii WHERE key = (SELECT tubii FROM run_state WHERE run = %s)", (run,))
 
-    if result is None:
-        return None
-
     keys = result.keys()
     row = result.fetchone()
+
+    if row is None:
+        return None
 
     return dict(zip(keys,row))
 
