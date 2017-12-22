@@ -225,7 +225,7 @@ def ping_crates(limit, run_range_low, run_range_high, all_runs, gold):
         ping_runs.append(run)
         if i[6] == 1:
             ping_crates_fail[run] = 1
-        elif i[6] == 0:
+        elif i[6] == 0 or i[6] == 3:
             ping_crates_fail[run] = 0
         elif i[6] == 2:
             ping_crates_fail[run] = 2
