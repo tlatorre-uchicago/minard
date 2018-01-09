@@ -13,21 +13,23 @@ def get_muons(limit, selected_run, run_range_low, run_range_high, gold):
 
     if not selected_run and not run_range_high:
         current_run = get_latest_run()
-        result_muons = conn.execute("SELECT DISTINCT ON (run) run, array_length(gtids, 1), gtids, days, secs, nsecs "
+        result_muons = conn.execute("SELECT DISTINCT ON (run) run, array_length(gtids, 1), "
+                                    "gtids, days, secs, nsecs "
                                     "FROM muons where run > %s ORDER BY run DESC, "
                                     "timestamp DESC", (current_run - limit))
         result_missed = conn.execute("SELECT DISTINCT ON (run) run, array_length(gtids, 1) "
                                      "FROM missed_muons where run > %s ORDER BY run DESC, "
                                      "timestamp DESC", (current_run - limit))
     elif run_range_high:
-        result_muons = conn.execute("SELECT DISTINCT ON (run) run, array_length(gtids, 1), gtids "
+        result_muons = conn.execute("SELECT DISTINCT ON (run) run, array_length(gtids, 1), "
+                                    "gtids, days, secs, nsecs "
                                     "FROM muons where run >= %s AND run <= %s ORDER BY run DESC, "
                                     "timestamp DESC", (run_range_low, run_range_high))
         result_missed = conn.execute("SELECT DISTINCT ON (run) run, array_length(gtids, 1) "
                                      "FROM missed_muons where run >= %s AND run <= %s ORDER BY run DESC, "
                                      "timestamp DESC", (run_range_low, run_range_high))
     else:
-        result_muons = conn.execute("SELECT run, array_length(gtids, 1), gtids "
+        result_muons = conn.execute("SELECT run, array_length(gtids, 1), gtids, days, secs, nsecs "
                                     "FROM muons where run = %s", (selected_run))
         result_missed = conn.execute("SELECT run, array_length(gtids, 1) "
                                      "FROM missed_muons where run = %s", (selected_run))
