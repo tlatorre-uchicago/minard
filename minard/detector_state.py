@@ -423,6 +423,8 @@ def get_detector_state_check(run=0):
                             ("on" if sequencer else "off", "on" if sequencer_nominal else "off")))
                     if not sequencer:
                         channels.append((crate, slot, channel, "sequencer is off, but channel is at HV! Potential blind flasher!"))
+                    if readout_mask is not None and not (readout_mask & (1<<slot)) and xl3_mode == 2:
+                        channels.append((crate, slot, channel, "Channel not being read out, but is at HV! Potential blind flasher!"))
 
     return messages, channels
 
