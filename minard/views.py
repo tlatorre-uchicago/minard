@@ -1302,9 +1302,9 @@ def trigger_clock_jump():
     if gold:
         gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
 
-    runs, njump10, njump50 = triggerclockjumpsdb.get_clock_jumps(limit, selected_run, run_range_low, run_range_high, gold_runs)
+    runs, njump10, njump50, clock_status = triggerclockjumpsdb.get_clock_jumps(limit, selected_run, run_range_low, run_range_high, gold_runs)
 
-    return render_template('trigger_clock_jump.html', runs=runs, limit=limit, njump10=njump10, njump50=njump50, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold)
+    return render_template('trigger_clock_jump.html', runs=runs, limit=limit, njump10=njump10, njump50=njump50, clock_status=clock_status, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold)
 
 @app.route('/trigger_clock_jump_run/<run_number>')
 def trigger_clock_jump_run(run_number):

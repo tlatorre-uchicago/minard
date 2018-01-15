@@ -117,7 +117,7 @@ def clock_jumps(limit, run_range_low, run_range_high, all_runs, gold):
     '''
     clock_jumps_fail = {}
 
-    _, njump10, njump50 = get_clock_jumps(limit, 0, run_range_low, run_range_high, gold) 
+    _, njump10, njump50, _ = get_clock_jumps(limit, 0, run_range_low, run_range_high, gold)
     for run in all_runs:
         try:
             if((njump10[run] + njump50[run]) >= CLOCK_JUMP_1 and \

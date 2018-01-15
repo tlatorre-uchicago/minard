@@ -9,12 +9,20 @@ def get_clock_jumps(limit, selected_run, run_range_low, run_range_high, gold):
     """
     conn = engine_nl.connect()
 
-    current_run = get_latest_run()
 
     if not selected_run and not run_range_high:
+        current_run = get_latest_run()
         result = conn.execute("SELECT DISTINCT ON (run) run "
                               "FROM trigger_clock_jumps WHERE run > %s "
                               "ORDER BY run DESC, timestamp DESC", \
+                              (current_run - limit))
+        result_online = conn.execute("SELECT DISTINCT ON (run) run, status "
+                                     "FROM clock_status WHERE run > %s "
+                                     "ORDER BY run DESC", (current_run - limit))
+        result_gtids = conn.execute("SELECT DISTINCT ON (run, gtid10, gtid50) "
+                              "run, clockjump10, clockjump50 "
+                              "FROM trigger_clock_jumps WHERE run > %s "
+                              "ORDER BY run DESC, gtid10, gtid50, timestamp DESC", \
                               (current_run - limit))
     elif run_range_high:
         result = conn.execute("SELECT DISTINCT ON (run) run "
@@ -22,10 +30,26 @@ def get_clock_jumps(limit, selected_run, run_range_low, run_range_high, gold):
                               "AND run <= %s "
                               "ORDER BY run DESC, timestamp DESC", \
                               (run_range_low, run_range_high))
+        result_online = conn.execute("SELECT DISTINCT ON (run) run, status "
+                                     "FROM clock_status WHERE run >= %s AND run <= %s "
+                                     "ORDER BY run DESC", (run_range_low, run_range_high))
+        result_gtids = conn.execute("SELECT DISTINCT ON (run, gtid10, gtid50) "
+                              "run, clockjump10, clockjump50 "
+                              "FROM trigger_clock_jumps WHERE run >= %s AND run <= %s "
+                              "ORDER BY run DESC, gtid10, gtid50, timestamp DESC", \
+                              (run_range_low, run_range_high))
     else:
         result = conn.execute("SELECT DISTINCT ON (run) run "
                               "FROM trigger_clock_jumps WHERE run = %s "
                               "ORDER BY run DESC, timestamp DESC", \
+                              (selected_run))
+        result_online = conn.execute("SELECT DISTINCT ON (run) run, status "
+                                     "FROM clock_status WHERE run = %s "
+                                     "ORDER BY run DESC", (selected_run))
+        result_gtids = conn.execute("SELECT DISTINCT ON (run, gtid10, gtid50) "
+                              "run, clockjump10, clockjump50 "
+                              "FROM trigger_clock_jumps WHERE run = %s "
+                              "ORDER BY run DESC, gtid10, gtid50, timestamp DESC", \
                               (selected_run))
 
     rows = result.fetchall()
@@ -41,26 +65,15 @@ def get_clock_jumps(limit, selected_run, run_range_low, run_range_high, gold):
         njump10[run[0]] = 0
         njump50[run[0]] = 0
 
-    if not selected_run and not run_range_high:
-        result = conn.execute("SELECT DISTINCT ON (run, gtid10, gtid50) "
-                              "run, clockjump10, clockjump50 "
-                              "FROM trigger_clock_jumps WHERE run > %s "
-                              "ORDER BY run DESC, gtid10, gtid50, timestamp DESC", \
-                              (current_run - limit))
-    elif run_range_high:
-        result = conn.execute("SELECT DISTINCT ON (run, gtid10, gtid50) "
-                              "run, clockjump10, clockjump50 "
-                              "FROM trigger_clock_jumps WHERE run >= %s AND run <= %s "
-                              "ORDER BY run DESC, gtid10, gtid50, timestamp DESC", \
-                              (run_range_low, run_range_high))
-    else:
-        result = conn.execute("SELECT DISTINCT ON (run, gtid10, gtid50) "
-                              "run, clockjump10, clockjump50 "
-                              "FROM trigger_clock_jumps WHERE run = %s "
-                              "ORDER BY run DESC, gtid10, gtid50, timestamp DESC", \
-                              (selected_run))
+    rows = result_online.fetchall()
 
-    rows = result.fetchall()
+    clock_offline = {}
+    for run, status in rows:
+        if gold != 0 and run not in gold:
+            continue
+        clock_offline[run] = status
+
+    rows = result_gtids.fetchall()
 
     for run, jump10, jump50 in rows:
         if gold != 0 and run not in gold:
@@ -70,7 +83,7 @@ def get_clock_jumps(limit, selected_run, run_range_low, run_range_high, gold):
         if jump50:
             njump50[run] +=1
 
-    return runs, njump10, njump50
+    return runs, njump10, njump50, clock_offline
 
 
 def get_clock_jumps_by_run(run):
