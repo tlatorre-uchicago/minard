@@ -21,6 +21,7 @@ import detector_state
 import orca
 import nlrat
 import nearline_monitor
+import nearlinedb
 import pingcratesdb
 import triggerclockjumpsdb
 import muonsdb
@@ -456,9 +457,10 @@ def trigger():
 @app.route('/nearline/<int:run>')
 def nearline(run=None):
     if run is None:
-        run = int(redis.get('nearline:current_run'))
+        run = nearlinedb.current_run()
 
-    programs = redis.hgetall('nearline:%i' % run)
+    use_redis = False
+    programs = nearlinedb.get_nearline_status(run)
 
     return render_template('nearline.html', run=run, programs=programs)
 
