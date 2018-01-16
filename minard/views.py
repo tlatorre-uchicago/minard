@@ -459,7 +459,6 @@ def nearline(run=None):
     if run is None:
         run = nearlinedb.current_run()
 
-    use_redis = False
     programs = nearlinedb.get_nearline_status(run)
 
     return render_template('nearline.html', run=run, programs=programs)
