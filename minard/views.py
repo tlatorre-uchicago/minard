@@ -30,6 +30,7 @@ import redisdb
 import fiber_position
 import occupancy
 import channelflagsdb
+import dropout
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds
@@ -1327,3 +1328,11 @@ def calibdq_smellie_run_number(run_number):
 def calibdq_smellie_subrun_number(run_number,subrun_number):
     run_num, check_dict, runInfo = HLDQTools.import_SMELLIEDQ_ratdb(int(run_number))
     return render_template('calibdq_smellie_subrun.html', run_number=run_number, subrun_number=subrun_number, runInformation=runInfo)
+
+@app.route("/dropout")
+def dropout_overview():
+    return render_template("dropout.html")
+
+@app.route("/_dropout_fits")
+def _dropout_fits():
+    return dropout.get_fits()
