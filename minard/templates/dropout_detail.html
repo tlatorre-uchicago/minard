@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block title %}Dropout{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/metricsgraphics.css') }}" media="screen">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/mg_line_brushing.css') }}" media="screen">
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div id="plot-container"> </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/metricsgraphics.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
+    <script>
+z = {}
+$.getJSON("_dropout_detail/{{run_number}}", function(data) {
+    z  = data
+    console.log(data);
+    mg_data = []
+    l1_data = []
+    l2_data = []
+    // [ [ [x1,y1],[x1,y1] ], [ [x2, y2], [x2, y2]] , ...] 
+    for(var i=0; i<data.x_vals.length; i+=2) {
+        l1_data.push({"x":data.x_vals[i], "y": data.y_vals[i]});
+    }
+    for(var i=0; i<data.x_vals.length; i+=2) {
+        l2_data.push({"x":data.x_vals[i], "y": data.fit_vals[i]});
+    }
+    mg_data = [l1_data, l2_data];
+    MG.data_graphic({
+        title :"N100 Dropout",
+        data:mg_data,
+        target:"#plot-container",
+        chart_type:"line",
+        full_width:true,
+        animate_on_load: true,
+        area:false,
+        height:440,
+        right:40,
+        left:95,
+        legend:["Data", "Fit"],
+        aggregate_rollover:true,
+        colors:["blue", "red"],
+        x_accessor:"x",
+        y_accessor:"y",
+        x_label:"ADC Values",
+        y_label: "Probability Density"
+
+    });
+});
+
+    </script>
+{% endblock %}
