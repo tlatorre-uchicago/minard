@@ -1339,7 +1339,12 @@ def dropout_overview(run_number=None):
 @app.route("/_dropout_fits")
 def _dropout_fits():
     return dropout.get_fits()
+
 # TODO see if you can make this URL less long
-@app.route("/dropout/_dropout_detail/<int:run_number>")
-def _dropout_detail(run_number):
+@app.route("/dropout/_dropout_detail/N100/<int:run_number>")
+def _dropout_detail_n100(run_number):
     return dropout.get_details(run_number, 1)
+
+@app.route("/dropout/_dropout_detail/N20/<int:run_number>")
+def _dropout_detail_n20(run_number):
+    return dropout.get_details(run_number, 2)
