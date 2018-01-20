@@ -74,7 +74,6 @@
                 l2_data.push({"x":data.x_vals[i], "y": data.fit_vals[i]});
             }
 
-
             mg_data = [l1_data, l2_data];
             MG.data_graphic({
                 title :type,
@@ -93,31 +92,26 @@
                 y_accessor:"y",
                 x_label:"ADC Values",
                 y_axis: false
-
             });
+        }
+        function fill_in_fit_params(data, type) {
+            elem = document.getElementById(type+"-rate");
+            elem.textContent = data.rate;
+            elem = document.getElementById(type+"-sigma");
+            elem.textContent = data.sigma;
+            elem = document.getElementById(type+"-separation");
+            elem.textContent = data.separation;
+            elem = document.getElementById(type+"-position");
+            elem.textContent = data.peak_offset;
+
         }
 $.getJSON("_dropout_detail/N100/{{run_number}}", function(data) {
     new_dropout_plot(data, "N100");
-    elem = document.getElementById("N100-rate");
-    elem.textContent = data.rate;
-    elem = document.getElementById("N100-sigma");
-    elem.textContent = data.sigma;
-    elem = document.getElementById("N100-separation");
-    elem.textContent = data.separation;
-    elem = document.getElementById("N100-position");
-    elem.textContent = data.peak_offset;
+    fill_in_fit_params(data, "N100");
 });
 $.getJSON("_dropout_detail/N20/{{run_number}}", function(data) {
     new_dropout_plot(data, "N20");
-    elem = document.getElementById("N20-rate");
-    elem.textContent = data.rate;
-    elem = document.getElementById("N20-sigma");
-    elem.textContent = data.sigma;
-    elem = document.getElementById("N20-separation");
-    elem.textContent = data.separation;
-    elem = document.getElementById("N20-position");
-    elem.textContent = data.peak_offset;
+    fill_in_fit_params(data, "N20");
 });
-
     </script>
 {% endblock %}
