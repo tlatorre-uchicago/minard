@@ -1330,9 +1330,16 @@ def calibdq_smellie_subrun_number(run_number,subrun_number):
     return render_template('calibdq_smellie_subrun.html', run_number=run_number, subrun_number=subrun_number, runInformation=runInfo)
 
 @app.route("/dropout")
-def dropout_overview():
-    return render_template("dropout.html")
+@app.route("/dropout/<int:run_number>")
+def dropout_overview(run_number=None):
+    if run_number is None:
+        return render_template("dropout.html")
+    return render_template("dropout_detail.html", run_number=run_number)
 
 @app.route("/_dropout_fits")
 def _dropout_fits():
     return dropout.get_fits()
+# TODO see if you can make this URL less long
+@app.route("/dropout/_dropout_detail/<int:run_number>")
+def _dropout_detail(run_number):
+    return dropout.get_details(run_number, 1)

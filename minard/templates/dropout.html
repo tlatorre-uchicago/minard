@@ -18,164 +18,141 @@
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
     <script>
-        function draw_thing(data) {
+        function plot(data) {
             if( data == undefined || data == "" ) {
-                console.log("nooooo");
-                return;
+                return null;
             }
-            var start = d3.min(data, function(d) { return d[0]; }) - 1;
-            var end = d3.max(data, function(d) { return d[0]; }) + 1;
-            var ymax = d3.max(data, function(d) { return d[1][0] })
-            var ymin = d3.min(data, function(d) { return d[1][0] })
+            this.start = d3.min(data, function(d) { return d[0]; }) - 1;
+            this.end = d3.max(data, function(d) { return d[0]; }) + 1;
+            this.ymax = d3.max(data, function(d) { return d[1][0] })
+            this.ymin = d3.min(data, function(d) { return d[1][0] })
+            this.margin = {top: 10, right: 80, bottom: 80, left: 120};
+            this.width = $("#plot-container").width() - margin.left - margin.right
+            this.height = 400;
+            this.chart = null
 
-            var margin = {top: 10, right: 80, bottom: 80, left: 120};
-            var width = $("#plot-container").width() - margin.left - margin.right
-            var height = 400;
+            this.draw = function() {
+                var x = d3.scale.linear()
+                    .domain([start, end])
+                    .range([ 0, width ]);
 
-            var x = d3.scale.linear()
-                .domain([start, end])
-                .range([ 0, width ]);
+                var ypad = ymin*0.1;
+                var yppad = ymax*0.1;
 
-            var ypad = ymin*0.1;
-            var yppad = ymax*0.1;
+                var y;
+                y = d3.scale.linear()
+                    .domain([ymin-ypad, ymax+ypad])
+                    .range([height, 0]);
 
-            var y;
-            y = d3.scale.linear()
-                .domain([ymin-ypad, ymax+ypad])
-                .range([height, 0]);
+                this.chart = d3.select('#plot-container')
+                    .append('svg:svg')
+                    .attr('width', width + margin.right + margin.left)
+                    .attr('height', height + margin.top + margin.bottom)
+                    .attr('class', 'chart');
+                var valueline = d3.svg.line()
+                    .x(function(d) { return x(d[0]); })
+                    .y(function(d) { return y(d[1][0]); });
 
-            var chart = d3.select('#plot-container')
-                .append('svg:svg')
-                .attr('width', width + margin.right + margin.left)
-                .attr('height', height + margin.top + margin.bottom)
-                .attr('class', 'chart');
-            var valueline = d3.svg.line()
-                .x(function(d) { return x(d[0]); })
-                .y(function(d) { return y(d[1][0]); });
+                var main = chart.append('g')
+                    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+                    .attr('width', width)
+                    .attr('height', height)
+                    .attr('class', 'main');
 
-            var main = chart.append('g')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-                .attr('width', width)
-                .attr('height', height)
-                .attr('class', 'main');
+                var div = d3.select("body").append("div")
+                    .attr("class", "tooltip")
+                    .style("opacity", 0);
 
-            var div = d3.select("body").append("div")
-                .attr("class", "tooltip")
-                .style("opacity", 0);
+                // draw the x axis
+                var xAxis = d3.svg.axis()
+                    .scale(x)
+                    .orient('bottom')
+                    .tickSize(6)
+                    .ticks(6);
 
-            // draw the x axis
-            var xAxis = d3.svg.axis()
-                .scale(x)
-                .orient('bottom')
-                .tickSize(6)
-                .ticks(6);
+                main.append('g')
+                    .attr('transform', 'translate(0,' + height + ')')
+                    .attr('class', 'main axis date')
+                    .call(xAxis)
+                    .selectAll("text")
+                    .attr("x", 6)
+                    .attr("dy", "1.2em");
 
-            main.append('g')
-                .attr('transform', 'translate(0,' + height + ')')
-                .attr('class', 'main axis date')
-                .call(xAxis)
-                .selectAll("text")
-                .attr("x", 6)
-                .attr("dy", "1.2em");
+                // draw the y axis
+                var yAxis = d3.svg.axis()
+                    .scale(y)
+                    .orient('left')
+                    .tickSize(6)
+                    .ticks(8, "s");
 
-            // draw the y axis
-            var yAxis = d3.svg.axis()
-                .scale(y)
-                .orient('left')
-                .tickSize(6)
-                .ticks(8, "s");
+                main.append('g')
+                    .attr('transform', 'translate(0,0)')
+                    .attr('class', 'main axis')
+                    .call(yAxis);
 
-            main.append('g')
-                .attr('transform', 'translate(0,0)')
-                .attr('class', 'main axis')
-                .call(yAxis);
+                d3.selectAll(".tick > text")
+                    .style("font-size", "18px");
 
-            d3.selectAll(".tick > text")
-                .style("font-size", "18px");
+                var g = main.append("svg:g");
 
-            var g = main.append("svg:g");
+                g.append("path")
+                    .data([data])
+                    .attr("class", "line")
+                    .attr("d", valueline);
 
-            g.append("path")
-                .data([data])
-                .attr("class", "line")
-                .attr("d", valueline);
+                g.selectAll("scatter-dots")
+                    .data(data)
+                    .enter()
+                    .append("svg:a")
+                    .attr("xlink:href", function(d) {return "dropout/"+d[0]})
+                    .append("svg:circle")
+                    .attr("cx", function (d,i) { return x(d[0]); } )
+                    .attr("cy", function (d) { return y(d[1][0]); } )
+                    .attr("r", 8)
+                    .on("mouseover", function(d) {      
+                        div.transition()        
+                            .duration(200) 
+                            .style("opacity", .9);      
+                        div .html("(" + (d[0]) + ", "  + d[1][0] + ")")  
+                            .style("left", (d3.event.pageX) + "px")
+                            .style("top", (d3.event.pageY - 28) + "px");
+                    })                  
+                    .on("mouseout", function(d) {
+                        div.transition()
+                            .duration(500)
+                            .style("opacity", 0);   
+                    });
 
-            g.selectAll("scatter-dots")
-                .data(data)
-                .enter().append("svg:circle")
-                .attr("cx", function (d,i) { return x(d[0]); } )
-                .attr("cy", function (d) { return y(d[1][0]); } )
-                .attr("r", 8)
-                .on("mouseover", function(d) {      
-                    div.transition()        
-                        .duration(200) 
-                        .style("opacity", .9);      
-                    div .html("(" + (d[0]) + ","  + my_si_format(d[1][0]) + ")")  
-                        .style("left", (d3.event.pageX) + "px")
-                        .style("top", (d3.event.pageY - 28) + "px");
-                })                  
-                .on("mouseout", function(d) {
-                    div.transition()
-                        .duration(500)
-                        .style("opacity", 0);   
-                });
+                chart.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(0," + height + ")")
+                    .append("text")
+                    .attr("class", "label")
+                    .attr("x", width )
+                    .attr("y", 80)
+                    .style("text-anchor", "end")
+                    .text("Run Number")
+                    .style("font-size", "22px");
 
-            chart.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + height + ")")
-                .append("text")
-                .attr("class", "label")
-                .attr("x", width )
-                .attr("y", 80)
-                .style("text-anchor", "end")
-                .text("Run Number")
-                .style("font-size", "22px");
-
-            chart.append("g")
-                .attr("class", "y axis")
-                .append("text")
-                .attr("class", "label")
-                .attr("transform", "rotate(-90)")
-                .attr("dy", "2.0em")
-                .style("text-anchor", "end")
-                .text("CMOS Rate (Hz)")
-                .style("font-size", "22px");
+                chart.append("g")
+                    .attr("class", "y axis")
+                    .append("text")
+                    .attr("class", "label")
+                    .attr("transform", "rotate(-90)")
+                    .attr("dy", "2.0em")
+                    .style("text-anchor", "end")
+                    .text("Avg Channels Dropped Out")
+                    .style("font-size", "22px");
+            }
+            return this
         }
+        z ={}
         $.getJSON("_dropout_fits", function(data) {
             console.log(data);
-            draw_thing(data);
+            p = plot(data)
+            p.draw()
+            z = p
         });
-            //plot_div = document.getElementById("plot-container");
-            //table = document.createElement("table");
-            //table.className = "table table-striped";
-            //table.appendChild(document.createElement("tr"));
-            //h1 = document.createElement("th");
-            //h2 = document.createElement("th");
-            //h3 = document.createElement("th");
-            //h1.textContent = "Run";
-            //h2.textContent = "N100 Rate";
-            //h3.textContent = "N20 Rate";
-            //table.appendChild(h1);
-            //table.appendChild(h2);
-            //table.appendChild(h3);
-
-            //for(var i=0; i < data.length; i++) {
-            //    run_number = data[i][0]
-            //    rates = data[i][1]; // rates = [N100, N20]
-            //    row = document.createElement("tr");
-            //    r1 = document.createElement("td");
-            //    r2 = document.createElement("td");
-            //    r3 = document.createElement("td");
-            //    r1.textContent = run_number;
-            //    r2.textContent = rates[0];
-            //    r3.textContent = rates[1];
-            //    row.appendChild(r1);
-            //    row.appendChild(r2);
-            //    row.appendChild(r3);
-            //    table.appendChild(row);
-            //}
-            //plot_div.append(table);
-        //});
 
     </script>
 {% endblock %}

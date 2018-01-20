@@ -2,6 +2,14 @@ from .db import engine_nl
 import json
 import detector_state
 
+def get_details(run_number, trigger_type):
+    conn = engine_nl.connect()
+    command = "select f.rate, f.peak_offset, f.sigma, f.separation, p.x_vals, p.y_vals, p.fit_vals from dropout_fits as f INNER JOIN dropout_plots as p on f.fit_plot=p.key where p.run=%s and p.trigger_type=%s"
+    result = conn.execute(command, (run_number, trigger_type));
+    keys = result.keys()
+    data = result.fetchone()
+    return json.dumps(dict(zip(keys, data)))
+
 def get_fits(limit=100):
     """
     """
@@ -12,7 +20,6 @@ def get_fits(limit=100):
                           "fit.fit_plot=plots.key ORDER BY plots.run DESC LIMIT %s",
                           (limit, ))
 
-    #temp = zip(*result.fetchall())
     ret = {}
     for rate, trigger, run in result.fetchall():
         if not ret.has_key(run):
