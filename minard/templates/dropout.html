@@ -36,214 +36,130 @@
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
     <script>
-        function plot(data) {
-            if( data == undefined || data == "" ) {
-                return null;
-            }
-            this.start = d3.min(data, function(d) { return d[0]; }) - 1;
-            this.end = d3.max(data, function(d) { return d[0]; }) + 1;
-            this.ymax = d3.max(data, function(d) { return d[1][0] })
-            this.ymin = d3.min(data, function(d) { return d[1][0] })
-            this.margin = {top: 10, right: 80, bottom: 80, left: 120};
-            this.width = $("#plot-container").width() - margin.left - margin.right
-            this.height = 400;
-            this.chart = null
-            this.x = d3.scale.linear()
-                .domain([start+100, end-100])
-                .range([ 0, width ]);
-            var ypad = ymin;
-            var yppad = ymax;
-            this.y = d3.scale.linear()
-                .domain([ymin-ypad, ymax+ypad])
-                .range([height, 0]);
-            this.dots = null;
-            this.xAxis = null;
-            this.yAxis = null;
-
-            this.draw = function() {
-
-                this.chart = d3.select('#plot-container')
-                    .append('svg:svg')
-                    .attr('width', width + margin.right + margin.left)
-                    .attr('height', height + margin.top + margin.bottom)
-                    .attr('class', 'chart');
-
-                var valueline = d3.svg.line()
-                    .x(function(d) { return x(d[0]); })
-                    .y(function(d) { return y(d[1][0]); });
-
-                var main = chart.append('g')
-                    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-                    .attr('width', width)
-                    .attr('height', height)
-                    .attr('class', 'main');
-
-                var plotArea = main.append('g')
-                    .attr('clip-path', 'url(#plotAreaClip)');
-
-                plotArea.append('clipPath')
-                    .attr('id', 'plotAreaClip')
-                    .append('rect')
-                    .attr({ width: width, height: height });
-
-                var div = d3.select("body").append("div")
-                    .attr("class", "tooltip")
-                    .style("opacity", 0);
-
-                // draw the x axis
-                xAxis = d3.svg.axis()
-                    .scale(x)
-                    .orient('bottom')
-                    .tickSize(6)
-                    .ticks(6);
-
-                main.append('g')
-                    .attr('transform', 'translate(0,' + height + ')')
-                    .attr('class', 'main axis date')
-                    .call(xAxis)
-                    .selectAll("text")
-                    .attr("x", 6)
-                    .attr("dy", "1.2em");
-
-                // draw the y axis
-                yAxis = d3.svg.axis()
-                    .scale(y)
-                    .orient('left')
-                    .tickSize(6)
-                    .ticks(8, "s");
-
-                main.append('g')
-                    .attr('transform', 'translate(0,0)')
-                    .attr('class', 'main axis')
-                    .call(yAxis);
-
-                d3.selectAll(".tick > text")
-                    .style("font-size", "18px");
-
-                var g = main.append("svg:g");
-
-                g.append("path")
-                    .data([data])
-                    .attr("class", "line")
-                    .attr("d", valueline);
-
-                dots = g.selectAll("scatter-dots")
-                    .data(data)
-                    .enter()
-                    .append("svg:a")
-                    .attr("xlink:href", function(d) {return "dropout/"+d[0]})
-                    .append("svg:circle")
-                    .attr("cx", function (d,i) { return x(d[0]); } )
-                    .attr("cy", function (d) { return y(d[1][0]); } )
-                    .attr("r", 8)
-                    .on("mouseover", function(d) {      
-                        div.transition()        
-                            .duration(200) 
-                            .style("opacity", .9);      
-                        div .html("(" + (d[0]) + ", "  + d[1][0] + ")")  
-                            .style("left", (d3.event.pageX) + "px")
-                            .style("top", (d3.event.pageY - 28) + "px");
-                    })                  
-                    .on("mouseout", function(d) {
-                        div.transition()
-                            .duration(500)
-                            .style("opacity", 0);   
-                    });
-
-                chart.append("g")
-                    .attr("class", "x axis")
-                    .attr("transform", "translate(0," + height + ")")
-                    .append("text")
-                    .attr("class", "label")
-                    .attr("x", width )
-                    .attr("y", 80)
-                    .style("text-anchor", "end")
-                    .text("Run Number")
-                    .style("font-size", "22px");
-
-                chart.append("g")
-                    .attr("class", "y axis")
-                    .append("text")
-                    .attr("class", "label")
-                    .attr("transform", "rotate(-90)")
-                    .attr("dy", "2.0em")
-                    .style("text-anchor", "end")
-                    .text("Avg Channels Dropped Out")
-                    .style("font-size", "22px");
-
-            }
-            this.drawNav = function() {
-
-                var navWidth = width,
-                    navHeight = 200 - margin.top - margin.bottom;
-
-                var navChart = d3.select('#plot-container').classed('chart', true).append('svg')
-                    .classed('navigator', true)
-                    .attr('width', navWidth + margin.left + margin.right)
-                    .attr('height', navHeight + margin.top + margin.bottom)
-                    .append('g')
-                    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-                var navXScale = d3.scale.linear()
-                    .domain([start, end])
-                    .range([0, navWidth]),
-
-                    navYScale = d3.scale.linear()
-                    .domain([ymin, ymax])
-                    .range([navHeight, 0]);
-                var navXAxis = d3.svg.axis()
-                    .scale(navXScale)
-                    .orient('bottom');
-
-                navChart.append('g')
-                    .attr('class', 'x axis')
-                    .attr('transform', 'translate(0,' + navHeight + ')')
-                    .call(navXAxis);
-                var navData = d3.svg.area()
-                    .x(function (d) { return navXScale(d[0]); })
-                    .y0(navHeight)
-                    .y1(function (d) { return navYScale(d[1][0]); });
-
-                var navLine = d3.svg.line()
-                    .x(function (d) { return navXScale(d[0]); })
-                    .y(function (d) { return navYScale(d[1][0]); });
-
-                navChart.append('path')
-                    .attr('class', 'data')
-                    .attr('d', navData(data));
-
-                navChart.append('path')
-                    .attr('class', 'line')
-                    .attr('d', navLine(data));
-
-            redrawChart = function () {
-                chart.select('.x.axis').call(xAxis);
-                chart.select('.y.axis').call(yAxis);
-
-            }
-
-                var viewport = d3.svg.brush()
-                    .x(navXScale)
-                    .on("brush", function () {
-                        console.log(viewport.extent());
-                        x.domain(viewport.empty() ? navXScale.domain() : viewport.extent());
-                        redrawChart();
-    });
-                navChart.append("g")
-                    .attr("class", "viewport")
-                    .call(viewport)
-                    .selectAll("rect")
-                    .attr("height", navHeight);
-            }
-
-            return this
-        }
         z ={}
-        $.getJSON("_dropout_fits", function(data) {
-            p = plot(data)
-            p.draw();
-            p.drawNav();
-            z = p
+scrolling_line_chart = function() {
+    var xScale = d3.scale.linear(),
+        yScale = d3.scale.linear();
+
+    var valueline = d3.svg.line()
+        .x(function(d) { return xScale(d[0]); })
+        .y(function(d) { return yScale(d[1][0]); })
+
+    var div = d3.select("body")
+        .append("div")
+        .attr("class", "tooltip")
+        .style("opacity",0);
+    var scrolling_line_chart = function(selection) {
+        selection.each(function(data) {
+            line_graph = d3.select(this).selectAll('.scrolling_line_chart').data([data]);
+            line_graph.enter().append('g').classed("scrolling_line_chart", true);
+
+            dots = line_graph.selectAll("scatter-dots")
+                .data(data, function(d) { return d[0]; });
+
+            line_graph.append("path")
+                .datum(data)
+                .attr('fill', "none")
+                .attr("stroke", "steelblue")
+                .attr("d", valueline);
+
+            dots.enter()
+                .append('g')
+                .classed('scatter-dots', true)
+                .append("svg:a")
+                .attr("xlink:href", function(d) { return "dropout/"+d[0]; })
+                .append("svg:circle")
+                .attr("cx", function(d) { return xScale(d[0]); })
+                .attr("cy", function(d) { return yScale(d[1][0]); })
+                .attr("r", 8)
+                .on("mouseover", function(d) {
+                    div.transition()
+                        .duration(200)
+                        .style("opacity", 0.9);
+                    div.html("(" + d[0] + ", " + d[1][0] +")")
+                        .style("left", (d3.event.pageX)+"px")
+                        .style("top", (d3.event.PageY)+"px");
+                })
+                .on("mouseout", function(d) {
+                    div.transition()
+                        .duration(200)
+                        .style("opacity", 0);
+                });
+
+            dots.exit().remove();
         });
+    };
+
+    scrolling_line_chart.xScale = function(value) {
+        if(!arguments.length) {
+            return xScale;
+        }
+        xScale = value;
+        return scrolling_line_chart;
+    };
+
+    scrolling_line_chart.yScale = function(value) {
+        if(!arguments.length) {
+            return yScale;
+        }
+        yScale = value;
+        return scrolling_line_chart;
+    };
+    return scrolling_line_chart;
+
+}
+z =null;
+$.getJSON("_dropout_fits", function(data) {
+    xMin = d3.min(data, function(d) { return d[0];});
+    xMax = d3.max(data, function(d) { return d[0];});
+    yMin = d3.min(data, function(d) { return d[1][0];});
+    yMax = d3.max(data, function(d) { return d[1][0];});
+    // Add a bit of nice visual buffer
+    yMin -= yMin*0.1;
+    yMax += yMax*0.1;
+
+    margin = {top:10, right:80, bottom:80, left:120};
+    width = $("#plot-container").width() - margin.left - margin.right;
+    height = 400 - margin.top - margin.bottom;
+    xScale = d3.scale.linear()
+    yScale = d3.scale.linear()
+    z = scrolling_line_chart().xScale(xScale).yScale(yScale)
+
+    var xAxis = d3.svg.axis()
+    .scale(xScale)
+    .orient('bottom')
+    .ticks(5);
+
+    var yAxis = d3.svg.axis()
+    .scale(yScale)
+    .orient('left');
+
+    svg = d3.select("#plot-container").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom);
+    g = svg.append('g')
+        .attr("transform", "translate("+margin.left+", "+margin.top+")");
+
+    xScale.domain([xMin, xMax]).range([0,width]);
+    yScale.domain([yMin, yMax]).range([height, 0]);
+    g.append("g")
+    .attr("class", "x axis")
+    .attr("transform","translate(0,"+height+")")
+    .call(xAxis)
+
+    g.append("g")
+    .attr("class", "y axis")
+    .call(yAxis);
+
+    var plotArea = g.append('g');
+    plotArea.append("clipPath")
+        .attr("id", "plotAreaClip")
+        .append("rect")
+        .attr({width:width, height:height})
+    plotArea.attr("clip-path", "url(#plotAreaClip)");
+    plotArea.datum(data).call(z);
+
+});
 
     </script>
 {% endblock %}
