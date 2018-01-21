@@ -208,6 +208,7 @@ $.getJSON("_dropout_fits", function(data) {
     redraw = function() {
         d3.select('.scrolling_line_chart').remove();
         plotArea.call(z);
+        g.select('.x.axis').call(xAxis)
     }
     var viewport = d3.svg.brush()
         .x(navXscale)
