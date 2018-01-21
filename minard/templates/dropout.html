@@ -127,8 +127,7 @@ $.getJSON("_dropout_fits", function(data) {
 
     var xAxis = d3.svg.axis()
         .scale(xScale)
-        .orient('bottom')
-        .ticks(5);
+        .orient('bottom');
 
     var yAxis = d3.svg.axis()
         .scale(yScale)
@@ -172,10 +171,25 @@ $.getJSON("_dropout_fits", function(data) {
         .attr("class", "x axis")
         .attr("transform","translate(0,"+height+")")
         .call(xAxis)
+        .append("text")
+        .attr("class","label")
+        .attr("x", width)
+        .attr("y", 35)
+        .style("text-anchor","end")
+        .text("Run Number")
+        .style("font-size", "22px");
 
     g.append("g")
         .attr("class", "y axis")
-        .call(yAxis);
+        .call(yAxis)
+        .append("text")
+        .attr("class","label")
+        .attr("transform", "rotate(-90), translate(0,-80)")
+        .attr("dy", "2.0em")
+        .style("text-anchor", "end")
+        .text("Average Dropout")
+        .style("font-size", "22px");
+
 
     plotArea = g.append('g');
     plotArea.append("clipPath")
