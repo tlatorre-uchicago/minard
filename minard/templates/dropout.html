@@ -108,15 +108,15 @@ scrolling_line_chart = function() {
     return scrolling_line_chart;
 
 }
-z =null;
+
+z = null;
 $.getJSON("_dropout_fits", function(data) {
     xMin = d3.min(data, function(d) { return d[0];});
     xMax = d3.max(data, function(d) { return d[0];});
     yMin = d3.min(data, function(d) { return d[1][0];});
     yMax = d3.max(data, function(d) { return d[1][0];});
     // Add a bit of nice visual buffer
-    yMin -= yMin*0.1;
-    yMax += yMax*0.1;
+    yPad = [yMin*0.9, yMax*1.1]
 
     margin = {top:10, right:80, bottom:80, left:120};
     width = $("#plot-container").width() - margin.left - margin.right;
@@ -126,13 +126,39 @@ $.getJSON("_dropout_fits", function(data) {
     z = scrolling_line_chart().xScale(xScale).yScale(yScale)
 
     var xAxis = d3.svg.axis()
-    .scale(xScale)
-    .orient('bottom')
-    .ticks(5);
+        .scale(xScale)
+        .orient('bottom')
+        .ticks(5);
 
     var yAxis = d3.svg.axis()
-    .scale(yScale)
-    .orient('left');
+        .scale(yScale)
+        .orient('left');
+
+
+    var navWidth = width,
+    navHeight = 200 - margin.top - margin.bottom;
+
+    navXscale = d3.scale.linear()
+        .domain([xMin, xMax])
+        .range([0,navWidth])
+     navYscale = d3.scale.linear()
+        .domain([yMin, yMax])
+        .range([navHeight, 0]);
+    var navXaxis = d3.svg.axis()
+    .scale(navXscale)
+    .orient("bottom");
+
+    var navData = d3.svg.area()
+        .x(function(d) { return navXscale(d[0]); })
+        .y0(navHeight)
+        .y1(function(d) { return navYscale(d[1][0]); });
+    var navLine = d3.svg.line()
+        .x(function(d) {return navXscale(d[0]);})
+        .y(function(d) {return navYscale(d[1][0]);});
+
+
+
+
 
     svg = d3.select("#plot-container").append("svg")
         .attr("width", width + margin.left + margin.right)
@@ -141,17 +167,17 @@ $.getJSON("_dropout_fits", function(data) {
         .attr("transform", "translate("+margin.left+", "+margin.top+")");
 
     xScale.domain([xMin, xMax]).range([0,width]);
-    yScale.domain([yMin, yMax]).range([height, 0]);
+    yScale.domain(yPad).range([height, 0]);
     g.append("g")
-    .attr("class", "x axis")
-    .attr("transform","translate(0,"+height+")")
-    .call(xAxis)
+        .attr("class", "x axis")
+        .attr("transform","translate(0,"+height+")")
+        .call(xAxis)
 
     g.append("g")
-    .attr("class", "y axis")
-    .call(yAxis);
+        .attr("class", "y axis")
+        .call(yAxis);
 
-    var plotArea = g.append('g');
+    plotArea = g.append('g');
     plotArea.append("clipPath")
         .attr("id", "plotAreaClip")
         .append("rect")
@@ -159,7 +185,42 @@ $.getJSON("_dropout_fits", function(data) {
     plotArea.attr("clip-path", "url(#plotAreaClip)");
     plotArea.datum(data).call(z);
 
+    var navChart = d3.select("#plot-container")
+        .classed('chart', true)
+        .append('svg')
+    .classed('navigator', true)
+    .attr("width", navWidth+margin.left + margin.right)
+    .attr("height", navHeight + margin.top + margin.bottom)
+    .append('g')
+    .attr('transform', 'translate(' + margin.left + ',' + margin.top +')');
+    navChart.append("g")
+        .attr("class", "x axis")
+        .attr("transform", 'translate(0 ' + navHeight +')')
+        .call(navXaxis);
+
+    navChart.append('path')
+        .attr("class", "data")
+        .attr("d", navData(data));
+    navChart.append('path')
+        .attr("class", "line")
+        .attr("d", navLine(data));
+
+    redraw = function() {
+        d3.select('.scrolling_line_chart').remove();
+        plotArea.call(z);
+    }
+    var viewport = d3.svg.brush()
+        .x(navXscale)
+        .on("brush", function() {
+            xScale.domain(viewport.empty() ? navXscale.domain(): viewport.extent());
+            redraw();
+        });
+    navChart.append("g")
+        .attr("class", "viewport")
+        .call(viewport)
+        .selectAll('rect')
+        .attr("height", navHeight);
 });
 
     </script>
-{% endblock %}
+    {% endblock %}
