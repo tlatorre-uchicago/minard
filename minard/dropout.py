@@ -13,15 +13,14 @@ def get_details(run_number, trigger_type):
     except TypeError:
         return json.dumps(None)
 
-def get_fits(limit=100):
+def get_fits():
     """
     """
     conn = engine_nl.connect()
 
     result = conn.execute("SELECT fit.rate, plots.trigger_type, plots.run FROM dropout_fits AS fit "
                           "INNER JOIN dropout_plots AS plots ON "
-                          "fit.fit_plot=plots.key ORDER BY plots.run DESC LIMIT %s",
-                          (limit, ))
+                          "fit.fit_plot=plots.key ORDER BY plots.run DESC")
 
     ret = {}
     for rate, trigger, run in result.fetchall():
