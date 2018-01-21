@@ -64,27 +64,29 @@
     <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
     <script>
         function new_dropout_plot(data, type) {
-            mg_data = []
-            l1_data = []
-            l2_data = []
-            for(var i=0; i<data.x_vals.length; i+=2) {
-                l1_data.push({"x":data.x_vals[i], "y": data.y_vals[i]});
+            mg_data = null
+            if(data && data != undefined) {
+                l1_data = []
+                l2_data = []
+                for(var i=0; i<data.x_vals.length; i+=2) {
+                    l1_data.push({"x":data.x_vals[i], "y": data.y_vals[i]});
+                }
+                for(var i=0; i<data.x_vals.length; i+=2) {
+                    l2_data.push({"x":data.x_vals[i], "y": data.fit_vals[i]});
+                }
+                mg_data = [l1_data, l2_data];
             }
-            for(var i=0; i<data.x_vals.length; i+=2) {
-                l2_data.push({"x":data.x_vals[i], "y": data.fit_vals[i]});
-            }
-
-            mg_data = [l1_data, l2_data];
             MG.data_graphic({
                 title :type,
                 data:mg_data,
                 target:"#"+type+"-plot-container",
-                chart_type:"line",
+                chart_type:mg_data ? "line": "missing-data",
                 full_width:true,
                 animate_on_load: true,
                 area:false,
                 height:440,
                 right:40,
+                missing_text:"Could not get plot",
                 legend:["Data", "Fit"],
                 aggregate_rollover:true,
                 colors:["blue", "red"],
@@ -94,7 +96,11 @@
                 y_axis: false
             });
         }
+
         function fill_in_fit_params(data, type) {
+            if(!data || data == undefined) {
+                return;
+            }
             elem = document.getElementById(type+"-rate");
             elem.textContent = data.rate;
             elem = document.getElementById(type+"-sigma");

@@ -1,8 +1,26 @@
 {% extends "layout.html" %}
 {% block title %}Dropout{% endblock %}
 {% block head %}
+<style>
+.navigator .data {
+    fill: lightgrey;
+    stroke-width: 0px;
+}
+
+.navigator .line {
+    fill: none;
+    stroke: darkgrey;
+    stroke-width: 1px;
+}
+
+    .navigator .viewport {
+        stroke: grey;
+        fill: black;
+        fill-opacity: 0.2;
+    }
 </style>
     {{ super() }}
+
 {% endblock %}
 {% block body %}
     {{ super() }}
@@ -30,25 +48,26 @@
             this.width = $("#plot-container").width() - margin.left - margin.right
             this.height = 400;
             this.chart = null
+            this.x = d3.scale.linear()
+                .domain([start+100, end-100])
+                .range([ 0, width ]);
+            var ypad = ymin;
+            var yppad = ymax;
+            this.y = d3.scale.linear()
+                .domain([ymin-ypad, ymax+ypad])
+                .range([height, 0]);
+            this.dots = null;
+            this.xAxis = null;
+            this.yAxis = null;
 
             this.draw = function() {
-                var x = d3.scale.linear()
-                    .domain([start, end])
-                    .range([ 0, width ]);
-
-                var ypad = ymin*0.1;
-                var yppad = ymax*0.1;
-
-                var y;
-                y = d3.scale.linear()
-                    .domain([ymin-ypad, ymax+ypad])
-                    .range([height, 0]);
 
                 this.chart = d3.select('#plot-container')
                     .append('svg:svg')
                     .attr('width', width + margin.right + margin.left)
                     .attr('height', height + margin.top + margin.bottom)
                     .attr('class', 'chart');
+
                 var valueline = d3.svg.line()
                     .x(function(d) { return x(d[0]); })
                     .y(function(d) { return y(d[1][0]); });
@@ -59,12 +78,20 @@
                     .attr('height', height)
                     .attr('class', 'main');
 
+                var plotArea = main.append('g')
+                    .attr('clip-path', 'url(#plotAreaClip)');
+
+                plotArea.append('clipPath')
+                    .attr('id', 'plotAreaClip')
+                    .append('rect')
+                    .attr({ width: width, height: height });
+
                 var div = d3.select("body").append("div")
                     .attr("class", "tooltip")
                     .style("opacity", 0);
 
                 // draw the x axis
-                var xAxis = d3.svg.axis()
+                xAxis = d3.svg.axis()
                     .scale(x)
                     .orient('bottom')
                     .tickSize(6)
@@ -79,7 +106,7 @@
                     .attr("dy", "1.2em");
 
                 // draw the y axis
-                var yAxis = d3.svg.axis()
+                yAxis = d3.svg.axis()
                     .scale(y)
                     .orient('left')
                     .tickSize(6)
@@ -100,7 +127,7 @@
                     .attr("class", "line")
                     .attr("d", valueline);
 
-                g.selectAll("scatter-dots")
+                dots = g.selectAll("scatter-dots")
                     .data(data)
                     .enter()
                     .append("svg:a")
@@ -143,14 +170,78 @@
                     .style("text-anchor", "end")
                     .text("Avg Channels Dropped Out")
                     .style("font-size", "22px");
+
             }
+            this.drawNav = function() {
+
+                var navWidth = width,
+                    navHeight = 200 - margin.top - margin.bottom;
+
+                var navChart = d3.select('#plot-container').classed('chart', true).append('svg')
+                    .classed('navigator', true)
+                    .attr('width', navWidth + margin.left + margin.right)
+                    .attr('height', navHeight + margin.top + margin.bottom)
+                    .append('g')
+                    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+                var navXScale = d3.scale.linear()
+                    .domain([start, end])
+                    .range([0, navWidth]),
+
+                    navYScale = d3.scale.linear()
+                    .domain([ymin, ymax])
+                    .range([navHeight, 0]);
+                var navXAxis = d3.svg.axis()
+                    .scale(navXScale)
+                    .orient('bottom');
+
+                navChart.append('g')
+                    .attr('class', 'x axis')
+                    .attr('transform', 'translate(0,' + navHeight + ')')
+                    .call(navXAxis);
+                var navData = d3.svg.area()
+                    .x(function (d) { return navXScale(d[0]); })
+                    .y0(navHeight)
+                    .y1(function (d) { return navYScale(d[1][0]); });
+
+                var navLine = d3.svg.line()
+                    .x(function (d) { return navXScale(d[0]); })
+                    .y(function (d) { return navYScale(d[1][0]); });
+
+                navChart.append('path')
+                    .attr('class', 'data')
+                    .attr('d', navData(data));
+
+                navChart.append('path')
+                    .attr('class', 'line')
+                    .attr('d', navLine(data));
+
+            redrawChart = function () {
+                chart.select('.x.axis').call(xAxis);
+                chart.select('.y.axis').call(yAxis);
+
+            }
+
+                var viewport = d3.svg.brush()
+                    .x(navXScale)
+                    .on("brush", function () {
+                        console.log(viewport.extent());
+                        x.domain(viewport.empty() ? navXScale.domain() : viewport.extent());
+                        redrawChart();
+    });
+                navChart.append("g")
+                    .attr("class", "viewport")
+                    .call(viewport)
+                    .selectAll("rect")
+                    .attr("height", navHeight);
+            }
+
             return this
         }
         z ={}
         $.getJSON("_dropout_fits", function(data) {
-            console.log(data);
             p = plot(data)
-            p.draw()
+            p.draw();
+            p.drawNav();
             z = p
         });
 

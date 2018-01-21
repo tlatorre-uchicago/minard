@@ -8,7 +8,10 @@ def get_details(run_number, trigger_type):
     result = conn.execute(command, (run_number, trigger_type));
     keys = result.keys()
     data = result.fetchone()
-    return json.dumps(dict(zip(keys, data)))
+    try:
+        return json.dumps(dict(zip(keys, data)))
+    except TypeError:
+        return json.dumps(None)
 
 def get_fits(limit=100):
     """
