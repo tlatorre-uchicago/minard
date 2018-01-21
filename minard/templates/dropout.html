@@ -36,7 +36,6 @@
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
     <script>
-        z ={}
 scrolling_line_chart = function() {
     var xScale = d3.scale.linear(),
         yScale = d3.scale.linear();
@@ -45,10 +44,11 @@ scrolling_line_chart = function() {
         .x(function(d) { return xScale(d[0]); })
         .y(function(d) { return yScale(d[1][0]); })
 
-    var div = d3.select("body")
+    var div = d3.select("#plot-container")
         .append("div")
         .attr("class", "tooltip")
-        .style("opacity",0);
+        .style("opacity", 0);
+
     var scrolling_line_chart = function(selection) {
         selection.each(function(data) {
             line_graph = d3.select(this).selectAll('.scrolling_line_chart').data([data]);
@@ -109,7 +109,6 @@ scrolling_line_chart = function() {
 
 }
 
-z = null;
 $.getJSON("_dropout_fits", function(data) {
     xMin = d3.min(data, function(d) { return d[0];});
     xMax = d3.max(data, function(d) { return d[0];});
@@ -123,7 +122,7 @@ $.getJSON("_dropout_fits", function(data) {
     height = 400 - margin.top - margin.bottom;
     xScale = d3.scale.linear()
     yScale = d3.scale.linear()
-    z = scrolling_line_chart().xScale(xScale).yScale(yScale)
+    line_chart = scrolling_line_chart().xScale(xScale).yScale(yScale)
 
     var xAxis = d3.svg.axis()
         .scale(xScale)
@@ -197,7 +196,7 @@ $.getJSON("_dropout_fits", function(data) {
         .append("rect")
         .attr({width:width, height:height})
     plotArea.attr("clip-path", "url(#plotAreaClip)");
-    plotArea.datum(data).call(z);
+    plotArea.datum(data).call(line_chart);
 
     var navChart = d3.select("#plot-container")
         .classed('chart', true)
@@ -221,7 +220,7 @@ $.getJSON("_dropout_fits", function(data) {
 
     redraw = function() {
         d3.select('.scrolling_line_chart').remove();
-        plotArea.call(z);
+        plotArea.call(line_chart);
         g.select('.x.axis').call(xAxis)
     }
     var viewport = d3.svg.brush()
