@@ -1351,9 +1351,16 @@ def _dropout_fits(trigger_type=None):
         trigger_type = int(trigger_type)
     except ValueError:
             trigger_type = 1 if trigger_type.upper() == "N20" else 0
+
     trigger_type = 1 if trigger_type!=0 else 0
+    run_range = request.args.get("run_range", default=500, type=int)
+    run_min = request.args.get("run_min", default=-1, type=int)
+    run_max = request.args.get("run_max", default=-1, type=int)
+    if(run_min >0 and run_max > run_min):
+        run_range = (run_min, run_max)
+
     try:
-        return dropout.get_fits(trigger_type, run_range=500)
+        return dropout.get_fits(trigger_type, run_range=run_range)
     except Exception:
         return json.dumps(None)
 
