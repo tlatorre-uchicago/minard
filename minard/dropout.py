@@ -13,23 +13,16 @@ def get_details(run_number, trigger_type):
     except TypeError:
         return json.dumps(None)
 
-def get_fits():
+def get_fits(trigger_type=0):
     """
     """
     conn = engine_nl.connect()
 
-    result = conn.execute("SELECT fit.rate, plots.trigger_type, plots.run FROM dropout_fits AS fit "
+    result = conn.execute("SELECT plots.run, fit.rate FROM dropout_fits AS fit "
                           "INNER JOIN dropout_plots AS plots ON "
-                          "fit.fit_plot=plots.key ORDER BY plots.run DESC")
+                          "fit.fit_plot=plots.key where trigger_type=%s ORDER BY plots.run DESC",
+                          (1 if trigger_type==0 else 2,))
 
-    ret = {}
-    for rate, trigger, run in result.fetchall():
-        if not ret.has_key(run):
-            ret[run] = [None, None]
-        if trigger==1:
-            ret[run][0] = rate
-        if trigger==2:
-            ret[run][1] = rate
-
-    return json.dumps(ret.items())
-
+    ret = result.fetchall()
+    ret = [list(x) for x in ret]
+    return json.dumps(ret)

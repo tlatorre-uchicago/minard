@@ -1333,12 +1333,26 @@ def calibdq_smellie_subrun_number(run_number,subrun_number):
 @app.route("/dropout/<int:run_number>")
 def dropout_overview(run_number=None):
     if run_number is None:
-        return render_template("dropout.html")
+        trigger_type = request.args.get("trigger_type", default='0')
+        if trigger_type.isdigit():
+            trigger_type = int(trigger_type)
+        else:
+            trigger_type = 1 if trigger_type.upper() == "N20" else 0
+        trigger_type = 1 if trigger_type!=0 else 0
+        return render_template("dropout.html", trigger_type=trigger_type)
+
     return render_template("dropout_detail.html", run_number=run_number)
 
-@app.route("/_dropout_fits")
-def _dropout_fits():
-    return dropout.get_fits()
+@app.route("/_dropout_fits/<trigger_type>")
+def _dropout_fits(trigger_type=None):
+    if(trigger_type==None):
+        trigger_type=0
+    try:
+        trigger_type = int(trigger_type)
+    except ValueError:
+            trigger_type = 1 if trigger_type.upper() == "N20" else 0
+    trigger_type = 1 if trigger_type!=0 else 0
+    return dropout.get_fits(trigger_type)
 
 # TODO see if you can make this URL less long
 @app.route("/dropout/_dropout_detail/N100/<int:run_number>")

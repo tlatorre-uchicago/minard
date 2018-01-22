@@ -27,6 +27,11 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
+            <h1 class="text-center"> {{ "N20" if trigger_type > 0 else "N100" }} </h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
             <div id="plot-container">
             </div>
         </div>
@@ -42,7 +47,7 @@ scrolling_line_chart = function() {
 
     var valueline = d3.svg.line()
         .x(function(d) { return xScale(d[0]); })
-        .y(function(d) { return yScale(d[1][0]); })
+        .y(function(d) { return yScale(d[1]); })
 
     var div = d3.select("#plot-container")
         .append("div")
@@ -70,13 +75,13 @@ scrolling_line_chart = function() {
                 .attr("xlink:href", function(d) { return "dropout/"+d[0]; })
                 .append("svg:circle")
                 .attr("cx", function(d) { return xScale(d[0]); })
-                .attr("cy", function(d) { return yScale(d[1][0]); })
-                .attr("r", 8)
+                .attr("cy", function(d) { return yScale(d[1]); })
+                .attr("r", 4)
                 .on("mouseover", function(d) {
                     div.transition()
                         .duration(200)
                         .style("opacity", 0.9);
-                    div.html("(" + d[0] + ", " + d[1][0] +")")
+                    div.html("(" + d[0] + ", " + d[1] +")")
                         .style("left", (d3.event.pageX)+"px")
                         .style("top", (d3.event.PageY)+"px");
                 })
@@ -105,15 +110,16 @@ scrolling_line_chart = function() {
         yScale = value;
         return scrolling_line_chart;
     };
+
     return scrolling_line_chart;
 
 }
 
-$.getJSON("_dropout_fits", function(data) {
+$.getJSON("_dropout_fits/"+{{trigger_type}}, function(data) {
     xMin = d3.min(data, function(d) { return d[0];});
     xMax = d3.max(data, function(d) { return d[0];});
-    yMin = d3.min(data, function(d) { return d[1][0];});
-    yMax = d3.max(data, function(d) { return d[1][0];});
+    yMin = d3.min(data, function(d) { return d[1];});
+    yMax = d3.max(data, function(d) { return d[1];});
     // Add a bit of nice visual buffer
     yPad = [yMin*0.9, yMax*1.1]
 
@@ -149,10 +155,10 @@ $.getJSON("_dropout_fits", function(data) {
     var navData = d3.svg.area()
         .x(function(d) { return navXscale(d[0]); })
         .y0(navHeight)
-        .y1(function(d) { return navYscale(d[1][0]); });
+        .y1(function(d) { return navYscale(d[1]); });
     var navLine = d3.svg.line()
         .x(function(d) {return navXscale(d[0]);})
-        .y(function(d) {return navYscale(d[1][0]);});
+        .y(function(d) {return navYscale(d[1]);});
 
 
 
@@ -173,7 +179,7 @@ $.getJSON("_dropout_fits", function(data) {
         .append("text")
         .attr("class","label")
         .attr("x", width)
-        .attr("y", 35)
+        .attr("y", 40)
         .style("text-anchor","end")
         .text("Run Number")
         .style("font-size", "22px");
