@@ -1352,7 +1352,10 @@ def _dropout_fits(trigger_type=None):
     except ValueError:
             trigger_type = 1 if trigger_type.upper() == "N20" else 0
     trigger_type = 1 if trigger_type!=0 else 0
-    return dropout.get_fits(trigger_type)
+    try:
+        return dropout.get_fits(trigger_type, run_range=500)
+    except Exception:
+        return json.dumps(None)
 
 # TODO see if you can make this URL less long
 @app.route("/dropout/_dropout_detail/N100/<int:run_number>")

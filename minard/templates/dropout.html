@@ -116,6 +116,15 @@ scrolling_line_chart = function() {
 }
 
 $.getJSON("_dropout_fits/"+{{trigger_type}}, function(data) {
+    if(data == null || data.length==0 || data==undefined) {
+        container= document.getElementById("plot-container");
+        error_msg = document.createElement("div");
+        error_msg.className="alert alert-danger";
+        error_msg.textContent = "Failed to retrieve dropout info :(";
+        container.append(error_msg);
+        return;
+    }
+
     xMin = d3.min(data, function(d) { return d[0];});
     xMax = d3.max(data, function(d) { return d[0];});
     yMin = d3.min(data, function(d) { return d[1];});
