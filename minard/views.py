@@ -22,12 +22,12 @@ import orca
 import nlrat
 import nearline_monitor
 import nearlinedb
+import nearline_settings
 import pingcratesdb
 import triggerclockjumpsdb
 import muonsdb
 import redisdb
 import fiber_position
-import nearline_settings
 import occupancy
 import channelflagsdb
 from run_list import golden_run_list
@@ -463,27 +463,21 @@ def nearline(run=None):
 
     return render_template('nearline.html', run=run, programs=programs)
 
-@app.route('/nearline_summary')
-def nearline_summary():
+@app.route('/nearline_failures')
+def nearline_failures():
     jobs = request.args.get("jobs", "All", type=str)
     limit = request.args.get("limit", 100, type=int)
-    mode = request.args.get("mode", 1, type=int)
     runtype = request.args.get("runtype", -1, type=int)
-    run = int(redis.get('nearline:current_run'))
+    run_range_low = request.args.get("run_range_low", 0, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    run = nearlinedb.current_run()
 
     # Nearline job types and ways in which the jobs fail
-    jobtypes = nearline_settings.jobTypes
+    jobtypes = nearlinedb.job_types()
     runTypes = nlrat.RUN_TYPES
     runTypes[-1] = "All"
 
     criticalJobs = nearline_settings.criticalJobs
-
-    # Check if any jobs were not launched
-    program_check = {}
-    not_launched = []
-
-    # Get failures over last (limit) runs
-    failures = []
 
     # Allows sorting by run type
     run_list = [x for x in range(run-limit, run)]
@@ -493,24 +487,17 @@ def nearline_summary():
         selectedType = runTypes[runtype]
         run_list = detector_state.get_runs_with_run_type(run - limit, (1<<runtype))
 
-    for previous_run in range(limit):
-        if run - previous_run not in run_list:
-            continue
-        old_programs = redis.hgetall('nearline:%i' % (run - previous_run))
-        program_check[previous_run] = []
-        for program, status in old_programs.iteritems():
-            program_check[previous_run].append(program)
-            # Job failed, was killed, was not executable, timed out, 
-            if status == "1" or status == "-1" or status == "98" or \
-               status == "97" or status == "3" or status == "2":
-                failures.append((program, status, run-previous_run))
-        # Check if all the jobs were run
-        for i in range(len(jobtypes)):
-            if jobtypes[i] not in program_check[previous_run] and \
-               jobtypes[i] != "All" and jobtypes[i] != "Critical":
-                not_launched.append((jobtypes[i], run-previous_run)) 
+    failure_runs, failure_jobs = nearlinedb.get_failed_runs(run - limit, run_range_low, run_range_high)
 
-    return render_template('nearline_summary.html', run=run, failures=failures, jobs=jobs, jobtypes=jobtypes, criticalJobs=criticalJobs, mode=mode, not_launched=not_launched, limit=limit, runTypes=runTypes, selectedType=selectedType, runtype=runtype)
+
+    index = 0
+    # Apply the run type to the failure list
+    for run in failure_runs:
+        if run not in run_list:
+            del failure_runs[index]
+        index+=1
+
+    return render_template('nearline_failures.html', run=run, failure_runs=failure_runs, failure_jobs=failure_jobs, jobs=jobs, jobtypes=jobtypes, criticalJobs=criticalJobs, limit=limit, runTypes=runTypes, selectedType=selectedType, runtype=runtype, run_range_low=run_range_low, run_range_high=run_range_high)
 
 @app.route('/get_l2')
 def get_l2():
