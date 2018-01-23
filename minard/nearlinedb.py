@@ -73,7 +73,7 @@ def get_failed_runs(run, run_range_low=0, run_range_high=0):
     failed = [-1, 1, 2, 3, 97, 98]
     failed_map = {}
     for run, name, status in rows:
-        if job_status[(run, name)] in failed:
+        if job_status[(run, name)] in failed and status in failed:
             try:
                 failed_map[run].append((str(name), int(status)))
             except KeyError:
