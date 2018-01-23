@@ -100,6 +100,7 @@ dotted_line_chart = function() {
             temp = dots.enter()
                 .append('g')
                 .classed('scatter-dots', true);
+
             if(point_link_function) {
                 temp = temp.append("svg:a")
                     .attr("xlink:href", point_link_function);
@@ -189,39 +190,6 @@ dotted_line_chart = function() {
 
 }
 
-$(document).ready(function() {
-    trigger_type = {{trigger_type}};
-    if(trigger_type == 1) {
-        d3.select("#n20_radio").attr("checked", true);
-    }
-    else {
-        d3.select("#n100_radio").attr("checked", true);
-    }
-    draw_plot(trigger_type, null);
-});
-
-update_plot = function() {
-    // 1. GetValues from input
-    run_min = document.getElementById("run_min_text").value;
-    run_max = document.getElementById("run_max_text").value;
-    trigger_type = document.getElementById("n100_radio").checked ? 0 : 1;
-    // 2. Provide basical validation
-    run_min = Number(run_min);
-    run_max = Number(run_max);
-    if(run_min > run_max) {
-        var temp = run_max;
-        run_max = run_min;
-        run_min = temp;
-    }
-    // 3. destroy existing plot
-    d3.select("#plot-container").selectAll("*").remove()
-    // 4. call draw_plot()
-    draw_plot(trigger_type, [run_min, run_max]);
-    // 5. Change title
-    document.getElementById("plot-title").textContent =  trigger_type==0 ? "N100" : "N20";
-
-
-}
 draw_plot = function(trigger_type, bounds) {
     xMin = null;
     xMax = null;
@@ -378,6 +346,37 @@ draw_plot = function(trigger_type, bounds) {
 
 }
 
+update_plot = function() {
+    // 1. GetValues from input
+    run_min = document.getElementById("run_min_text").value;
+    run_max = document.getElementById("run_max_text").value;
+    trigger_type = document.getElementById("n100_radio").checked ? 0 : 1;
+    // 2. Provide basical validation
+    run_min = Number(run_min);
+    run_max = Number(run_max);
+    if(run_min > run_max) {
+        var temp = run_max;
+        run_max = run_min;
+        run_min = temp;
+    }
+    // 3. destroy existing plot
+    d3.select("#plot-container").selectAll("*").remove()
+    // 4. call draw_plot()
+    draw_plot(trigger_type, [run_min, run_max]);
+    // 5. Change title
+    document.getElementById("plot-title").textContent =  trigger_type==0 ? "N100" : "N20";
+}
+
+$(document).ready(function() {
+    trigger_type = {{trigger_type}};
+    if(trigger_type == 1) {
+        d3.select("#n20_radio").attr("checked", true);
+    }
+    else {
+        d3.select("#n100_radio").attr("checked", true);
+    }
+    draw_plot(trigger_type, null);
+});
 
     </script>
     {% endblock %}
