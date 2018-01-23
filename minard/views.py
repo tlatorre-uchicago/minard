@@ -30,6 +30,7 @@ import redisdb
 import fiber_position
 import occupancy
 import channelflagsdb
+import dropout
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds
@@ -1327,3 +1328,47 @@ def calibdq_smellie_run_number(run_number):
 def calibdq_smellie_subrun_number(run_number,subrun_number):
     run_num, check_dict, runInfo = HLDQTools.import_SMELLIEDQ_ratdb(int(run_number))
     return render_template('calibdq_smellie_subrun.html', run_number=run_number, subrun_number=subrun_number, runInformation=runInfo)
+
+@app.route("/dropout")
+@app.route("/dropout/<int:run_number>")
+def dropout_overview(run_number=None):
+    if run_number is None:
+        trigger_type = request.args.get("trigger_type", default='0')
+        if trigger_type.isdigit():
+            trigger_type = int(trigger_type)
+        else:
+            trigger_type = 1 if trigger_type.upper() == "N20" else 0
+        trigger_type = 1 if trigger_type!=0 else 0
+        return render_template("dropout.html", trigger_type=trigger_type)
+
+    return render_template("dropout_detail.html", run_number=run_number)
+
+@app.route("/_dropout_fits/<trigger_type>")
+def _dropout_fits(trigger_type=None):
+    if(trigger_type==None):
+        trigger_type=0
+    try:
+        trigger_type = int(trigger_type)
+    except ValueError:
+            trigger_type = 1 if trigger_type.upper() == "N20" else 0
+
+    trigger_type = 1 if trigger_type!=0 else 0
+    run_range = request.args.get("run_range", default=500, type=int)
+    run_min = request.args.get("run_min", default=-1, type=int)
+    run_max = request.args.get("run_max", default=-1, type=int)
+    if(run_min >0 and run_max > run_min):
+        run_range = (run_min, run_max)
+
+    try:
+        return dropout.get_fits(trigger_type, run_range=run_range)
+    except Exception:
+        return json.dumps(None)
+
+# TODO see if you can make this URL less long
+@app.route("/dropout/_dropout_detail/N100/<int:run_number>")
+def _dropout_detail_n100(run_number):
+    return dropout.get_details(run_number, 1)
+
+@app.route("/dropout/_dropout_detail/N20/<int:run_number>")
+def _dropout_detail_n20(run_number):
+    return dropout.get_details(run_number, 2)
