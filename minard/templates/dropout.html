@@ -18,13 +18,13 @@
         fill: black;
         fill-opacity: 0.2;
     }
+
     input[type="number"] {
         border:none;
         background: transparent;
         border-bottom: 1px solid #000000;
         text-align: middle;
     }
-
 </style>
     {{ super() }}
 
@@ -64,7 +64,7 @@
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
     <script>
-scrolling_line_chart = function() {
+dotted_line_chart = function() {
     var xScale = d3.scale.linear(),
         yScale = d3.scale.linear();
 
@@ -77,10 +77,10 @@ scrolling_line_chart = function() {
         .attr("class", "tooltip")
         .style("opacity", 0);
 
-    var scrolling_line_chart = function(selection) {
+    var dotted_line_chart = function(selection) {
         selection.each(function(data) {
-            line_graph = d3.select(this).selectAll('.scrolling_line_chart').data([data]);
-            line_graph.enter().append('g').classed("scrolling_line_chart", true);
+            line_graph = d3.select(this).selectAll('.dotted_line_chart').data([data]);
+            line_graph.enter().append('g').classed("dotted_line_chart", true);
 
             dots = line_graph.selectAll("scatter-dots")
                 .data(data, function(d) { return d[0]; });
@@ -118,23 +118,23 @@ scrolling_line_chart = function() {
         });
     };
 
-    scrolling_line_chart.xScale = function(value) {
+    dotted_line_chart.xScale = function(value) {
         if(!arguments.length) {
             return xScale;
         }
         xScale = value;
-        return scrolling_line_chart;
+        return dotted_line_chart;
     };
 
-    scrolling_line_chart.yScale = function(value) {
+    dotted_line_chart.yScale = function(value) {
         if(!arguments.length) {
             return yScale;
         }
         yScale = value;
-        return scrolling_line_chart;
+        return dotted_line_chart;
     };
 
-    return scrolling_line_chart;
+    return dotted_line_chart;
 
 }
 
@@ -150,12 +150,11 @@ $(document).ready(function() {
 });
 
 update_plot = function() {
-    // 1. Remove existing error
-    // 2. GetValues from input
+    // 1. GetValues from input
     run_min = document.getElementById("run_min_text").value;
     run_max = document.getElementById("run_max_text").value;
     trigger_type = document.getElementById("n100_radio").checked ? 0 : 1;
-    // 3. Validate input and display error
+    // 2. Provide basical validation
     run_min = Number(run_min);
     run_max = Number(run_max);
     if(run_min > run_max) {
@@ -163,11 +162,11 @@ update_plot = function() {
         run_max = run_min;
         run_min = temp;
     }
-    // 4. if no errors destroy plot
+    // 3. destroy existing plot
     d3.select("#plot-container").selectAll("*").remove()
-    // 5. call draw_plot()
+    // 4. call draw_plot()
     draw_plot(trigger_type, [run_min, run_max]);
-    // 6. Change title
+    // 5. Change title
     document.getElementById("plot-title").textContent =  trigger_type==0 ? "N100" : "N20";
 
 
@@ -215,7 +214,7 @@ draw_plot = function(trigger_type, bounds) {
         height = 400 - margin.top - margin.bottom;
         xScale = d3.scale.linear()
         yScale = d3.scale.linear()
-        line_chart = scrolling_line_chart().xScale(xScale).yScale(yScale)
+        line_chart = dotted_line_chart().xScale(xScale).yScale(yScale)
 
         var xAxis = d3.svg.axis()
             .scale(xScale)
@@ -308,7 +307,7 @@ draw_plot = function(trigger_type, bounds) {
             .attr("d", navLine(data));
 
         redraw = function() {
-            d3.select('.scrolling_line_chart').remove();
+            d3.select('.dotted_line_chart').remove();
             plotArea.call(line_chart);
             g.select('.x.axis').call(xAxis)
         }
