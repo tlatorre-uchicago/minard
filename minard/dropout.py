@@ -25,11 +25,12 @@ def get_fits(trigger_type=0, run_range=None):
         if type(run_range) == int:
             clause = clause+ " LIMIT %s"
             args = (trigger_type, run_range)
-        elif type(run_range) == list and len(run_range) >= 2:
-            clause = " AND plots.run >= %s AND plots.run < %s" + clause
-            args = (trigger_type, run_range[0], run_range[1])
         else:
-           raise ValueError
+            try:
+                clause = " AND plots.run >= %s AND plots.run < %s" + clause
+                args = (trigger_type, run_range[0], run_range[1])
+            except Exception as e:
+                raise ValueError("Could not use given run_range, must be int or pair")
     command = ("SELECT plots.run, fit.rate FROM dropout_fits AS fit "
     "INNER JOIN dropout_plots AS plots ON "
     "fit.fit_plot=plots.key where trigger_type=%s")

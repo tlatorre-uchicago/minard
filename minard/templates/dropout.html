@@ -18,6 +18,13 @@
         fill: black;
         fill-opacity: 0.2;
     }
+    input[type="number"] {
+        border:none;
+        background: transparent;
+        border-bottom: 1px solid #000000;
+        text-align: middle;
+    }
+
 </style>
     {{ super() }}
 
@@ -27,13 +34,29 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h1 class="text-center"> {{ "N20" if trigger_type > 0 else "N100" }} </h1>
+            <h1 id="plot-title" class="text-center"> {{ "N20" if trigger_type > 0 else "N100" }} </h1>
         </div>
     </div>
     <div class="row">
         <div class="col-md-12">
             <div id="plot-container">
             </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <strong>Runs</strong>
+            <input type="number" class="text-center" id="run_min_text" placeholder="-" style="width:80px;">
+            <strong>to</strong>
+            <input type="number" class="text-center" id="run_max_text" placeholder="-" style="width:80px;">
+        </div>
+        <div class="col-md-12">
+            <strong>Trigger Type:</strong>
+            <label class="radio-inline"> <input type="radio" id="n100_radio" name="trig_radio" checked=true> N100</label>
+            <label class="radio-inline"> <input type="radio" id="n20_radio" name="trig_radio"> N20</label>
+        </div>
+        <div class="col-md-12">
+            <button type=button onclick="update_plot();">Update Plot</button>
         </div>
     </div>
 </div>
@@ -115,141 +138,195 @@ scrolling_line_chart = function() {
 
 }
 
-$.getJSON("_dropout_fits/"+{{trigger_type}}, function(data) {
-    if(data == null || data.length==0 || data==undefined) {
-        container= document.getElementById("plot-container");
-        error_msg = document.createElement("div");
-        error_msg.className="alert alert-danger";
-        error_msg.textContent = "Failed to retrieve dropout info :(";
-        container.append(error_msg);
-        return;
+$(document).ready(function() {
+    trigger_type = {{trigger_type}};
+    if(trigger_type == 1) {
+        d3.select("#n20_radio").attr("checked", true);
     }
-
-    xMin = d3.min(data, function(d) { return d[0];});
-    xMax = d3.max(data, function(d) { return d[0];});
-    yMin = d3.min(data, function(d) { return d[1];});
-    yMax = d3.max(data, function(d) { return d[1];});
-    // Add a bit of nice visual buffer
-    yPad = [yMin*0.9, yMax*1.1]
-
-    margin = {top:10, right:80, bottom:80, left:120};
-    width = $("#plot-container").width() - margin.left - margin.right;
-    height = 400 - margin.top - margin.bottom;
-    xScale = d3.scale.linear()
-    yScale = d3.scale.linear()
-    line_chart = scrolling_line_chart().xScale(xScale).yScale(yScale)
-
-    var xAxis = d3.svg.axis()
-        .scale(xScale)
-        .orient('bottom');
-
-    var yAxis = d3.svg.axis()
-        .scale(yScale)
-        .orient('left');
-
-
-    var navWidth = width,
-    navHeight = 200 - margin.top - margin.bottom;
-
-    navXscale = d3.scale.linear()
-        .domain([xMin, xMax])
-        .range([0,navWidth])
-     navYscale = d3.scale.linear()
-        .domain([yMin, yMax])
-        .range([navHeight, 0]);
-    var navXaxis = d3.svg.axis()
-    .scale(navXscale)
-    .orient("bottom");
-
-    var navData = d3.svg.area()
-        .x(function(d) { return navXscale(d[0]); })
-        .y0(navHeight)
-        .y1(function(d) { return navYscale(d[1]); });
-    var navLine = d3.svg.line()
-        .x(function(d) {return navXscale(d[0]);})
-        .y(function(d) {return navYscale(d[1]);});
-
-
-
-
-
-    svg = d3.select("#plot-container").append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom);
-    g = svg.append('g')
-        .attr("transform", "translate("+margin.left+", "+margin.top+")");
-
-    xScale.domain([xMin, xMax]).range([0,width]);
-    yScale.domain(yPad).range([height, 0]);
-    g.append("g")
-        .attr("class", "x axis")
-        .attr("transform","translate(0,"+height+")")
-        .call(xAxis)
-        .append("text")
-        .attr("class","label")
-        .attr("x", width)
-        .attr("y", 40)
-        .style("text-anchor","end")
-        .text("Run Number")
-        .style("font-size", "22px");
-
-    g.append("g")
-        .attr("class", "y axis")
-        .call(yAxis)
-        .append("text")
-        .attr("class","label")
-        .attr("transform", "rotate(-90), translate(0,-80)")
-        .attr("dy", "2.0em")
-        .style("text-anchor", "end")
-        .text("Average Dropout")
-        .style("font-size", "22px");
-
-
-    plotArea = g.append('g');
-    plotArea.append("clipPath")
-        .attr("id", "plotAreaClip")
-        .append("rect")
-        .attr({width:width, height:height})
-    plotArea.attr("clip-path", "url(#plotAreaClip)");
-    plotArea.datum(data).call(line_chart);
-
-    var navChart = d3.select("#plot-container")
-        .classed('chart', true)
-        .append('svg')
-    .classed('navigator', true)
-    .attr("width", navWidth+margin.left + margin.right)
-    .attr("height", navHeight + margin.top + margin.bottom)
-    .append('g')
-    .attr('transform', 'translate(' + margin.left + ',' + margin.top +')');
-    navChart.append("g")
-        .attr("class", "x axis")
-        .attr("transform", 'translate(0 ' + navHeight +')')
-        .call(navXaxis);
-
-    navChart.append('path')
-        .attr("class", "data")
-        .attr("d", navData(data));
-    navChart.append('path')
-        .attr("class", "line")
-        .attr("d", navLine(data));
-
-    redraw = function() {
-        d3.select('.scrolling_line_chart').remove();
-        plotArea.call(line_chart);
-        g.select('.x.axis').call(xAxis)
+    else {
+        d3.select("#n100_radio").attr("checked", true);
     }
-    var viewport = d3.svg.brush()
-        .x(navXscale)
-        .on("brush", function() {
-            xScale.domain(viewport.empty() ? navXscale.domain(): viewport.extent());
-            redraw();
-        });
-    navChart.append("g")
-        .attr("class", "viewport")
-        .call(viewport)
-        .selectAll('rect')
-        .attr("height", navHeight);
+    draw_plot(trigger_type, null);
 });
+
+update_plot = function() {
+    // 1. Remove existing error
+    // 2. GetValues from input
+    run_min = document.getElementById("run_min_text").value;
+    run_max = document.getElementById("run_max_text").value;
+    trigger_type = document.getElementById("n100_radio").checked ? 0 : 1;
+    // 3. Validate input and display error
+    run_min = Number(run_min);
+    run_max = Number(run_max);
+    if(run_min > run_max) {
+        var temp = run_max;
+        run_max = run_min;
+        run_min = temp;
+    }
+    // 4. if no errors destroy plot
+    d3.select("#plot-container").selectAll("*").remove()
+    // 5. call draw_plot()
+    draw_plot(trigger_type, [run_min, run_max]);
+    // 6. Change title
+    document.getElementById("plot-title").textContent =  trigger_type==0 ? "N100" : "N20";
+
+
+}
+draw_plot = function(trigger_type, bounds) {
+    xMin = null;
+    xMax = null;
+    var valid_bounds = (bounds!=null && bounds != undefined && bounds.constructor == Array && bounds.length >=2);
+    if(valid_bounds) {
+        xMin=bounds[0];
+        xMax=bounds[1];
+    }
+    valid_bounds = valid_bounds && (xMin == xMin && xMax == xMax);
+    var params = {}
+    if(valid_bounds) {
+            params.run_min = xMin;
+            params.run_max = xMax;
+    }
+    $.getJSON("_dropout_fits/"+trigger_type, params, function(data) {
+        if(data == null || data.length==0 || data==undefined) {
+            container= document.getElementById("plot-container");
+            error_msg = document.createElement("div");
+            error_msg.className="alert alert-danger";
+            error_msg.textContent = "Failed to retrieve dropout info :(";
+            container.append(error_msg);
+            return;
+        }
+
+
+        yMin = d3.min(data, function(d) { return d[1];});
+        yMax = d3.max(data, function(d) { return d[1];});
+
+        if(!valid_bounds) {
+            xMin = d3.min(data, function(d) { return d[0];});
+            xMax = d3.max(data, function(d) { return d[0];});
+            d3.select("#run_min_text").attr("value", xMin);
+            d3.select("#run_max_text").attr("value", xMax);
+        }
+
+        // Add a bit of nice visual buffer
+        yPad = [yMin*0.9, yMax*1.1]
+
+        margin = {top:10, right:80, bottom:80, left:120};
+        width = $("#plot-container").width() - margin.left - margin.right;
+        height = 400 - margin.top - margin.bottom;
+        xScale = d3.scale.linear()
+        yScale = d3.scale.linear()
+        line_chart = scrolling_line_chart().xScale(xScale).yScale(yScale)
+
+        var xAxis = d3.svg.axis()
+            .scale(xScale)
+            .orient('bottom');
+
+        var yAxis = d3.svg.axis()
+            .scale(yScale)
+            .orient('left');
+
+
+        var navWidth = width,
+            navHeight = 200 - margin.top - margin.bottom;
+
+        navXscale = d3.scale.linear()
+            .domain([xMin, xMax])
+            .range([0,navWidth])
+        navYscale = d3.scale.linear()
+            .domain([yMin, yMax])
+            .range([navHeight, 0]);
+        var navXaxis = d3.svg.axis()
+            .scale(navXscale)
+            .orient("bottom");
+
+        var navData = d3.svg.area()
+            .x(function(d) { return navXscale(d[0]); })
+            .y0(navHeight)
+            .y1(function(d) { return navYscale(d[1]); });
+        var navLine = d3.svg.line()
+            .x(function(d) {return navXscale(d[0]);})
+            .y(function(d) {return navYscale(d[1]);});
+
+        svg = d3.select("#plot-container").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom);
+        g = svg.append('g')
+            .attr("transform", "translate("+margin.left+", "+margin.top+")");
+
+        xScale.domain([xMin, xMax]).range([0,width]);
+        yScale.domain(yPad).range([height, 0]);
+        g.append("g")
+            .attr("class", "x axis")
+            .attr("transform","translate(0,"+height+")")
+            .call(xAxis)
+            .append("text")
+            .attr("class","label")
+            .attr("x", width)
+            .attr("y", 40)
+            .style("text-anchor","end")
+            .text("Run Number")
+            .style("font-size", "22px");
+
+        g.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+            .attr("class","label")
+            .attr("transform", "rotate(-90), translate(0,-80)")
+            .attr("dy", "2.0em")
+            .style("text-anchor", "end")
+            .text("Average Dropout")
+            .style("font-size", "22px");
+
+
+        plotArea = g.append('g');
+        plotArea.append("clipPath")
+            .attr("id", "plotAreaClip")
+            .append("rect")
+            .attr({width:width, height:height})
+        plotArea.attr("clip-path", "url(#plotAreaClip)");
+        plotArea.datum(data).call(line_chart);
+
+        var navChart = d3.select("#plot-container")
+            .classed('chart', true)
+            .append('svg')
+            .classed('navigator', true)
+            .attr("width", navWidth+margin.left + margin.right)
+            .attr("height", navHeight + margin.top + margin.bottom)
+            .append('g')
+            .attr('transform', 'translate(' + margin.left + ',' + margin.top +')');
+        navChart.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0 " + navHeight +")")
+            .call(navXaxis);
+
+        navChart.append('path')
+            .attr("class", "data")
+            .attr("d", navData(data));
+        navChart.append('path')
+            .attr("class", "line")
+            .attr("d", navLine(data));
+
+        redraw = function() {
+            d3.select('.scrolling_line_chart').remove();
+            plotArea.call(line_chart);
+            g.select('.x.axis').call(xAxis)
+        }
+        var viewport = d3.svg.brush()
+            .x(navXscale)
+            .on("brush", function() {
+                xScale.domain(viewport.empty() ? navXscale.domain(): viewport.extent());
+                redraw();
+            });
+        navChart.append("g")
+            .attr("class", "viewport")
+            .call(viewport)
+            .selectAll('rect')
+            .attr("height", navHeight);
+    });
+
+}
+
 
     </script>
     {% endblock %}
