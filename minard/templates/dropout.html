@@ -69,8 +69,8 @@ dotted_line_chart = function() {
         yScale = d3.scale.linear();
 
     var valueline = d3.svg.line()
-        .x(function(d) { return xScale(d[0]); })
-        .y(function(d) { return yScale(d[1]); })
+        .x(function(d, i) { return xScale(x_accessor(d,i)); })
+        .y(function(d, i) { return yScale(y_accessor(d,i)); })
 
     var tt_div = d3.select("#plot-container")
         .append("div")
@@ -78,6 +78,9 @@ dotted_line_chart = function() {
         .style("opacity", 0);
 
     var point_link_function = null;
+    var line_color = "steelblue";
+    var x_accessor = function(d) { return d[0]; };
+    var y_accessor = function(d) { return d[1]; };
 
     var dotted_line_chart = function(selection) {
         selection.each(function(data) {
@@ -85,12 +88,12 @@ dotted_line_chart = function() {
             line_graph.enter().append('g').classed("dotted_line_chart", true);
 
             dots = line_graph.selectAll("scatter-dots")
-                .data(data, function(d) { return d[0]; });
+                .data(data, x_accessor);
 
             line_graph.append("path")
                 .datum(data)
                 .attr('fill', "none")
-                .attr("stroke", "steelblue")
+                .attr("stroke", line_color)
                 .attr("d", valueline);
 
             dots_g = dots.enter()
@@ -101,14 +104,14 @@ dotted_line_chart = function() {
                     .attr("xlink:href", point_link_function);
             }
                 dots_g.append("svg:circle")
-                .attr("cx", function(d) { return xScale(d[0]); })
-                .attr("cy", function(d) { return yScale(d[1]); })
+                .attr("cx", function(d, i) { return xScale(x_accessor(d, i)); })
+                .attr("cy", function(d, i) { return yScale(y_accessor(d, i)); })
                 .attr("r", 4)
-                .on("mouseover", function(d) {
+                .on("mouseover", function(d, i) {
                     tt_div.transition()
                         .duration(200)
                         .style("opacity", 0.9);
-                    tt_div.html("(" + d[0] + ", " + d[1] +")")
+                    tt_div.html("(" + x_accessor(d, i) + ", " + y_accessor(d, i) +")")
                         .style("left", (d3.event.pageX)+"px")
                         .style("top", (d3.event.PageY)+"px");
                 })
@@ -130,6 +133,30 @@ dotted_line_chart = function() {
         return dotted_line_chart;
 
     }
+
+    dotted_line_chart.line_color = function(value) {
+        if(!arguments.length) {
+            return line_color;
+        }
+        line_color = value;
+        return line_color;
+    }
+    dotted_line_chart.x_accessor = function(value) {
+        if(!arguments.length) {
+            return x_accessor;
+        }
+        x_accessor = value;
+        return x_accessor;
+    }
+
+    dotted_line_chart.y_accessor = function(value) {
+        if(!arguments.length) {
+            return y_accessor;
+        }
+        y_accessor = value;
+        return y_accessor;
+    }
+
     dotted_line_chart.xScale = function(value) {
         if(!arguments.length) {
             return xScale;
