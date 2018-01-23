@@ -64,6 +64,7 @@
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
     <script>
+
 dotted_line_chart = function() {
     var xScale = d3.scale.linear(),
         yScale = d3.scale.linear();
@@ -154,6 +155,7 @@ dotted_line_chart = function() {
         line_color = value;
         return line_color;
     }
+
     dotted_line_chart.x_accessor = function(value) {
         if(!arguments.length) {
             return x_accessor;
@@ -224,7 +226,6 @@ draw_plot = function(trigger_type, bounds) {
             d3.select("#run_min_text").attr("value", xMin);
             d3.select("#run_max_text").attr("value", xMax);
         }
-
         // Add a bit of nice visual buffer
         yPad = [yMin*0.9, yMax*1.1]
 
@@ -233,8 +234,10 @@ draw_plot = function(trigger_type, bounds) {
         height = 400 - margin.top - margin.bottom;
         xScale = d3.scale.linear()
         yScale = d3.scale.linear()
-        line_chart = dotted_line_chart().xScale(xScale).yScale(yScale)
-        line_chart.point_link_function(function(d) { return "dropout/"+d[0];});
+        line_chart = dotted_line_chart()
+            .xScale(xScale)
+            .yScale(yScale)
+            .point_link_function(function(d) { return "dropout/"+d[0];});
 
         var xAxis = d3.svg.axis()
             .scale(xScale)
