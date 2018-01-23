@@ -1,6 +1,5 @@
 from .db import engine_nl
 import json
-import detector_state
 
 def get_details(run_number, trigger_type):
     conn = engine_nl.connect()
