@@ -81,6 +81,7 @@ dotted_line_chart = function() {
     var line_color = "steelblue";
     var x_accessor = function(d) { return d[0]; };
     var y_accessor = function(d) { return d[1]; };
+    var show_mouse_over_info = true;
 
     var dotted_line_chart = function(selection) {
         selection.each(function(data) {
@@ -96,18 +97,20 @@ dotted_line_chart = function() {
                 .attr("stroke", line_color)
                 .attr("d", valueline);
 
-            dots_g = dots.enter()
+            temp = dots.enter()
                 .append('g')
                 .classed('scatter-dots', true);
             if(point_link_function) {
-                dots_g = dots_g.append("svg:a")
+                temp = temp.append("svg:a")
                     .attr("xlink:href", point_link_function);
             }
-                dots_g.append("svg:circle")
+            temp = temp.append("svg:circle")
                 .attr("cx", function(d, i) { return xScale(x_accessor(d, i)); })
                 .attr("cy", function(d, i) { return yScale(y_accessor(d, i)); })
                 .attr("r", 4)
-                .on("mouseover", function(d, i) {
+
+            if(show_mouse_over_info) {
+                temp.on("mouseover", function(d, i) {
                     tt_div.transition()
                         .duration(200)
                         .style("opacity", 0.9);
@@ -115,11 +118,12 @@ dotted_line_chart = function() {
                         .style("left", (d3.event.pageX)+"px")
                         .style("top", (d3.event.PageY)+"px");
                 })
-                .on("mouseout", function(d) {
-                    tt_div.transition()
-                        .duration(200)
-                        .style("opacity", 0);
-                });
+                    .on("mouseout", function(d) {
+                        tt_div.transition()
+                            .duration(200)
+                            .style("opacity", 0);
+                    });
+            }
 
             dots.exit().remove();
         });
@@ -132,6 +136,14 @@ dotted_line_chart = function() {
         point_link_function = value;
         return dotted_line_chart;
 
+    }
+
+    dotted_line_chart.show_mouse_over_info = function(value) {
+        if(!arguments.length) {
+            return show_mouse_over_info;
+        }
+        show_mouse_over_info = value;
+        return show_mouse_over_info;
     }
 
     dotted_line_chart.line_color = function(value) {
