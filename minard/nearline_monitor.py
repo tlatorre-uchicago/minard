@@ -149,7 +149,6 @@ def channel_flags_run(run):
     except Exception as e:
         channel_flags_status[run] = -1
         return channel_flags_status
-    
     missed, sync16, sync24, _, _, _, _, _ = get_channel_flags_by_run(run)
     missed = len(missed)
     sync16 = len(sync16)

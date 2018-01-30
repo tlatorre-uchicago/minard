@@ -43,10 +43,11 @@ tr:nth-child(even) {
         <th> Limit: </th>
         <th> Select Run: </th>
         <th> Run Range: </th>
+        <th> Run Type: </th>
         <th> </th>
       </tr>
       <tr>
-        <th> <select id="limit" onchange="get_limit(this.value, 0, 0, 0, {{gold}});">
+        <th> <select id="limit" onchange="get_limit(this.value, 0, 0, 0, {{gold}}, rtype.value);">
                {% if selected_run != 0 or run_range_high != 0 %}
                  <option selected value="-">-</option>
                {% else %}
@@ -59,13 +60,21 @@ tr:nth-child(even) {
                {% endfor %}
              </select> </th>
 
-        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value, 0, 0, {{gold}});"></input> </th>
-        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="low" value={{run_range_low}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, this.value, high.value, {{gold}});"></input>
-             - <input style="margin-bottom: 30px; width: 80px;" type="text" id="high" value={{run_range_high}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, low.value, this.value, {{gold}});"></input> </th>
+        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(0, this.value, 0, 0, {{gold}}, rtype.value);"></input> </th>
+        <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="low" value={{run_range_low}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, this.value, high.value, {{gold}}, rtype.value);"></input>
+             - <input style="margin-bottom: 30px; width: 80px;" type="text" id="high" value={{run_range_high}} onKeyDown="if(event.keyCode==13) get_limit(0, 0, low.value, this.value, {{gold}}, rtype.value);"></input> </th>
+        <th> <select id="rtype" onchange="get_limit(limit.value, run.value, low.value, high.value, {{gold}}, this.value);">
+          <option selected value="{{runtype}}">{{selectedType}}</option>
+          {% for i in allrunTypes %}
+            {% if allrunTypes[i] != selectedType %}
+              <option value="{{i}}">{{allrunTypes[i]}}</option>
+            {% endif %}
+          {% endfor %}
+        </select> </th>
         {% if not gold %}
-          <th> <button type="submit" class="btn btn-success" onclick="get_limit(limit.value, run.value, low.value, high.value, 1)">Show Only Gold Runs</button> </th>
+          <th> <button type="submit" class="btn btn-success" onclick="get_limit(limit.value, run.value, low.value, high.value, 1, rtype.value)">Show Only Gold Runs</button> </th>
         {% else %}
-          <th> <button type="submit" class="btn btn-success" onclick="get_limit(limit.value, run.value, low.value, high.value, 0)">Show All Runs</button> </th>
+          <th> <button type="submit" class="btn btn-success" onclick="get_limit(limit.value, run.value, low.value, high.value, 0, rtype.value)">Show All Runs</button> </th>
         {% endif %}
       </tr>
     </table>
@@ -139,12 +148,13 @@ tr:nth-child(even) {
 {% endblock %}
 {% block script %}
   <script>
-    function get_limit(limit, run, low, high, gold){
+    function get_limit(limit, run, low, high, gold, rtype){
       params = {};
       params["limit"] = limit;
       params["run"] = run;
       params["run_range_low"] = low;
       params["run_range_high"] = high;
+      params["runtype"] = rtype;
       params["gold_runs"] = gold;
       window.location.replace($SCRIPT_ROOT + "/nearline_monitoring_summary?" + $.param(params));
     }

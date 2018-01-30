@@ -40,11 +40,10 @@ def job_types():
     rows = result.fetchall()
 
     names = []
+    names.append("All")
+    names.append("Critical")
     for name in rows:
         names.append(str(name[0]))
-
-    names.append("Critical")
-    names.append("All")
 
     return names
 

@@ -478,27 +478,30 @@ def nearline_failures():
     runTypes = nlrat.RUN_TYPES
     runTypes[-1] = "All"
 
+    # List of jobs considered "critical" for processing and nearline
     criticalJobs = nearline_settings.criticalJobs
-
-    # Allows sorting by run type
-    run_list = [x for x in range(run-limit, run)]
-    if runtype == -1:
-        selectedType = "All"
-    else:
-        selectedType = runTypes[runtype]
-        run_list = detector_state.get_runs_with_run_type(run - limit, (1<<runtype))
 
     failure_runs, failure_jobs = nearlinedb.get_failed_runs(run - limit, run_range_low, run_range_high)
 
+    # Allows sorting by run type
+    failure_runs_with_type = []
+    if runtype == -1:
+        selectedType = "All"
+        failure_runs_with_type = failure_runs
+    else:
+        selectedType = runTypes[runtype]
 
-    index = 0
-    # Apply the run type to the failure list
-    for run in failure_runs:
-        if run not in run_list:
-            del failure_runs[index]
-        index+=1
+        if not run_range_high:
+            run_list = detector_state.get_runs_with_run_type(run - limit, (1<<runtype))
+        else:
+            run_list = detector_state.get_runs_with_run_type(run_range_low, (1<<runtype), run_range_high)
 
-    return render_template('nearline_failures.html', run=run, failure_runs=failure_runs, failure_jobs=failure_jobs, jobs=jobs, jobtypes=jobtypes, criticalJobs=criticalJobs, limit=limit, runTypes=runTypes, selectedType=selectedType, runtype=runtype, run_range_low=run_range_low, run_range_high=run_range_high)
+        # Apply the run type to the failure list
+        for run in failure_runs:
+            if run in run_list:
+                failure_runs_with_type.append(run)
+
+    return render_template('nearline_failures.html', run=run, failure_runs=failure_runs_with_type, failure_jobs=failure_jobs, jobs=jobs, jobtypes=jobtypes, criticalJobs=criticalJobs, limit=limit, runTypes=runTypes, selectedType=selectedType, runtype=runtype, run_range_low=run_range_low, run_range_high=run_range_high)
 
 @app.route('/get_l2')
 def get_l2():
@@ -1158,17 +1161,46 @@ def nearline_monitoring_summary():
     selected_run = request.args.get("run", 0, type=int)
     run_range_low = request.args.get("run_range_low", 0, type=int)
     run_range_high = request.args.get("run_range_high", 0, type=int)
+    runtype = request.args.get("runtype", -1, type=int)
     gold = request.args.get("gold_runs", 0, type=int)
 
+    # Select only golden runs
     gold_runs = 0
     if gold:
         gold_runs = golden_run_list(selected_run, limit, run_range_low, run_range_high)
 
+    # Get the run type and run list from the nearline database
     runTypes, runs = nearline_monitor.get_run_types(limit, selected_run, run_range_low, run_range_high, gold_runs)
 
-    clock_jumps, ping_crates, channel_flags, occupancy, muons = nearline_monitor.get_run_list(limit, selected_run, run_range_low, run_range_high, runs, gold_runs)
+    # Get the data for each of the nearline tools
+    clock_jumps, ping_crates, channel_flags, occupancy, muons = \
+        nearline_monitor.get_run_list(limit, selected_run, run_range_low, run_range_high, runs, gold_runs)
 
-    return render_template('nearline_monitoring_summary.html', runs=runs, selected_run=selected_run, limit=limit, clock_jumps=clock_jumps, ping_crates=ping_crates, channel_flags=channel_flags, occupancy=occupancy, muons=muons, runTypes=runTypes, run_range_low=run_range_low, run_range_high=run_range_high, gold=gold)
+    # Allow sorting by run type
+    allrunTypes = nlrat.RUN_TYPES
+    allrunTypes[-1] = "All"
+
+    displayed_runs = []
+    if runtype == -1:
+        selectedType = "All"
+        displayed_runs = runs
+    else:
+        selectedType = allrunTypes[runtype]
+
+        if run_range_high:
+            run_list = detector_state.get_runs_with_run_type(run_range_low, (1<<runtype), run_range_high)
+        elif selected_run:
+            run_list = detector_state.get_runs_with_run_type(selected_run-1, (1<<runtype), selected_run+1)
+        else:
+            run = detector_state.get_latest_run()
+            run_list = detector_state.get_runs_with_run_type(run - limit, (1<<runtype))
+
+        # Apply the run type to the failure list
+        for run in runs:
+            if run in run_list:
+                displayed_runs.append(run)
+
+    return render_template('nearline_monitoring_summary.html', runs=displayed_runs, selected_run=selected_run, limit=limit, clock_jumps=clock_jumps, ping_crates=ping_crates, channel_flags=channel_flags, occupancy=occupancy, muons=muons, runTypes=runTypes, run_range_low=run_range_low, run_range_high=run_range_high, allrunTypes=allrunTypes, selectedType=selectedType, gold=gold)
 
 @app.route('/physicsdq')
 def physicsdq():
