@@ -14,14 +14,14 @@ def get_latest_run():
 
     return result.fetchone()[0]
 
-def get_runs_with_run_type(run, run_type):
+def get_runs_with_run_type(run, run_type, max_run=1e9):
     """
     Returns a list all runs with a certain run type with a given run limit
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT run from run_state where run > %s AND (run_type & %s) > 0 ", \
-                          (run, run_type))
+    result = conn.execute("SELECT run from run_state where run > %s and run < %s AND (run_type & %s) > 0 ", \
+                          (run, max_run, run_type))
 
     rows = result.fetchall()
     runs_with_runtype = []
