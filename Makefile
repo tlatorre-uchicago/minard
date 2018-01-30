@@ -46,5 +46,6 @@ install: /opt/minard/bin/activate
 	chkconfig data_consumer_cmos on
 	chkconfig data_consumer_base on
 	chkconfig baseline_monitor on
+	service gunicorn restart
 
 .PHONY: install build docs
