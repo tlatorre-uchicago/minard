@@ -6,7 +6,6 @@
 {% block body %}
     {{ super() }}
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/metricsgraphics.css') }}" media="screen">
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/mg_line_brushing.css') }}" media="screen">
 <div class="container">
     <div class="row">
         <div class="col-md-6">
@@ -61,7 +60,6 @@
 {% block script %}
     <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
     <script src="{{ url_for('static', filename='js/metricsgraphics.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
     <script>
         function new_dropout_plot(data, type) {
             mg_data = null
