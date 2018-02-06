@@ -6,12 +6,10 @@
 {% block body %}
 {{ super() }}
 
-<div>
-    <img src="{{ url_for('static', filename='pmtnoise/noise-rate_time-series.png') }}" alt="Noise time-series">
-    <img src="{{ url_for('static', filename='pmtnoise/qhs-hhp_time-series.png') }}" alt="HHS time-series">
-</div>
-
 <div class="container">
+    <img src="{{ url_for('static', filename='pmtnoise/noise-rate_time-series.png') }}" class="img-responsive" alt="Noise time-series">
+    <img src="{{ url_for('static', filename='pmtnoise/qhs-hhp_time-series.png') }}" class="img-responsive" alt="HHS time-series">
+
     <table class="table table-hover">
       <thead>
       <tr>
