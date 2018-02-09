@@ -393,10 +393,9 @@ def get_detector_state_check(run=0):
                 messages.append("vthr settings unknown for crate %i, slot %i" % (crate, slot))
                 continue
 
+            # Count consecutive maxed thresholds on each slot
             count_maxed_vthr = 0
             nmaxed = 0
-            if crate == 4 and slot == 9:
-                vthr = detector_state[crate][slot]['vthr'] 
 
             for channel in range(32):
                 hv_enabled = hv_relay_mask & (1 << (slot*4 + (3-channel//8))) and hv_on
@@ -444,8 +443,10 @@ def get_detector_state_check(run=0):
                     # FECD always fails the VTHR checks, so skip it
                     if crate == 17 and slot == 15:
                         continue
+                    # Only warn if more than 8 consecutive maxed thresholds at high voltage
                     if count_maxed_vthr >=8:
                         nmaxed = count_maxed_vthr
+                    # Assumption is anything above 250 DAC counts is 'maxed'
                     if vthr > 250:
                         count_maxed_vthr+=1
                     else:
