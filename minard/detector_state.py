@@ -380,20 +380,32 @@ def get_detector_state_check(run=0):
 
             hv_relay_mask = hv_relay_mask2 << 32 | hv_relay_mask1
 
+            if detector_state[crate][slot]['tr100_mask'] is None:
+                messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
+                continue
+            if detector_state[crate][slot]['tr20_mask'] is None:
+                messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
+                continue
+            if detector_state[crate][slot]['disable_mask'] is None:
+                messages.append("sequencer settings unknown for crate %i, slot %i" % (crate, slot))
+                continue
+            if detector_state[crate][slot]['vthr'] is None:
+                messages.append("vthr settings unknown for crate %i, slot %i" % (crate, slot))
+                continue
+
+            count_maxed_vthr = 0
+            nmaxed = 0
+            if crate == 4 and slot == 9:
+                vthr = detector_state[crate][slot]['vthr'] 
+
             for channel in range(32):
                 hv_enabled = hv_relay_mask & (1 << (slot*4 + (3-channel//8))) and hv_on
-                if detector_state[crate][slot]['tr100_mask'] is None:
-                    messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
-                    continue
-                if detector_state[crate][slot]['tr20_mask'] is None:
-                    messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
-                    continue
-                if detector_state[crate][slot]['disable_mask'] is None:
-                    messages.append("sequencer settings unknown for crate %i, slot %i" % (crate, slot))
-                    continue
                 n100 = bool(detector_state[crate][slot]['tr100_mask'][channel])
                 n20 = bool(detector_state[crate][slot]['tr20_mask'][channel])
                 sequencer = bool(~detector_state[crate][slot]['disable_mask'] & (1 << channel))
+                vthr = detector_state[crate][slot]['vthr'][channel]
+                if vthr is None:
+                    messages.append("vthr unknown for crate %i, slot %i" % (crate, slot))
                 try:
                     n100_nominal, n20_nominal, sequencer_nominal = nominal_settings[crate][slot][channel]
                 except KeyError:
@@ -425,6 +437,22 @@ def get_detector_state_check(run=0):
                         channels.append((crate, slot, channel, "sequencer is off, but channel is at HV! Potential blind flasher!"))
                     if readout_mask is not None and not (readout_mask & (1<<slot)) and xl3_mode == 2:
                         channels.append((crate, slot, channel, "not being read out, but is at HV! Potential blind flasher!"))
+                    if vthr > 250 and n100:
+                        channels.append((crate, slot, channel, "Maxed threshold but N100 trigger is on.")) 
+                    if vthr > 250 and n20:
+                        channels.append((crate, slot, channel, "Maxed threshold but N20 trigger is on."))
+                    # FECD always fails the VTHR checks, so skip it
+                    if crate == 17 and slot == 15:
+                        continue
+                    if count_maxed_vthr >=8:
+                        nmaxed = count_maxed_vthr
+                    if vthr > 250:
+                        count_maxed_vthr+=1
+                    else:
+                        count_maxed_vthr=0
+            if nmaxed > 8:
+                messages.append("Warning: crate %i slot %i at HV but has %i consectuive thresholds maxed" % (crate, slot, nmaxed))
+
 
     return messages, channels
 
