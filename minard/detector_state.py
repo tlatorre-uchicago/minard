@@ -444,15 +444,15 @@ def get_detector_state_check(run=0):
                     if crate == 17 and slot == 15:
                         continue
                     # Only warn if more than 8 consecutive maxed thresholds at high voltage
-                    if count_maxed_vthr >=8:
+                    if count_maxed_vthr >= 8:
                         nmaxed = count_maxed_vthr
                     # Assumption is anything above 250 DAC counts is 'maxed'
                     if vthr > 250:
-                        count_maxed_vthr+=1
+                        count_maxed_vthr += 1
                     else:
-                        count_maxed_vthr=0
-            if nmaxed > 8:
-                messages.append("Warning: crate %i slot %i at HV but has %i consectuive thresholds maxed" % (crate, slot, nmaxed))
+                        count_maxed_vthr = 0
+            if nmaxed >= 8:
+                messages.append("Warning: crate %i slot %i at HV but has %i consecutive thresholds maxed" % (crate, slot, nmaxed))
 
 
     return messages, channels
