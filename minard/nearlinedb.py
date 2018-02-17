@@ -72,9 +72,17 @@ def get_failed_runs(run, run_range_low=0, run_range_high=0):
     failed = [-1, 1, 2, 3, 97, 98]
     failed_map = {}
     for run, name, status in rows:
+        multiple_failure = False
         if job_status[(run, name)] in failed and status in failed:
             try:
-                failed_map[run].append((str(name), int(status)))
+                # Don't double count when the job has failed multiple
+                # times for the same run, which can happen when the job
+                # has been reprocessed
+                for i in range(len(failed_map[run])):
+                    if failed_map[run][i][0] == name:
+                        multiple_failure = True
+                if not multiple_failure:
+                    failed_map[run].append((str(name), int(status)))
             except KeyError:
                 failed_map[run] = [(str(name), int(status))]
 
