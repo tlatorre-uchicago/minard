@@ -90,3 +90,36 @@ def get_failed_runs(run, run_range_low=0, run_range_high=0):
     failed_runs = sorted(failed_runs, reverse=True)
 
     return failed_runs, failed_map
+
+def reprocessed_runs():
+    """
+    Get a list of runs that have been automatically reprocessed
+    """
+    conn = engine_nl.connect()
+
+    result = conn.execute("SELECT DISTINCT ON (run) run FROM reprocessed_run "
+                          "ORDER BY run DESC")
+
+    rows = result.fetchall()
+
+    reprocessed_runs = []
+    for run in rows:
+        reprocessed_runs.append(run[0])
+
+    return reprocessed_runs
+
+def reprocessed_run(run):
+    """
+    Return whether the run has been reprocessed
+    """
+    conn = engine_nl.connect()
+
+    result = conn.execute("SELECT run FROM reprocessed_run WHERE run = %s", (run,))
+
+    rows = result.fetchone()
+
+    if rows is None:
+        return False
+
+    return True 
+

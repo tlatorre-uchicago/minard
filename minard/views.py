@@ -460,9 +460,11 @@ def nearline(run=None):
     if run is None:
         run = nearlinedb.current_run()
 
+    reprocessed = nearlinedb.reprocessed_run(run)
+
     programs = nearlinedb.get_nearline_status(run)
 
-    return render_template('nearline.html', run=run, programs=programs)
+    return render_template('nearline.html', run=run, programs=programs, reprocessed=reprocessed)
 
 @app.route('/nearline_failures')
 def nearline_failures():

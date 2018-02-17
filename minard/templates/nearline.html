@@ -56,6 +56,13 @@
                         </th>
 		    </tr>
 		    {% endfor %}
+                    {% if reprocessed %}
+                    <th> - </th>
+                    <th> REPROCESSING JOB </th>
+                    <th>
+                        <a href="{{ "/monitoring/nearline/logs/%i/RELAUNCH.log" % (run) }}">RELAUNCH.log</a>
+                    </th>
+                    {% endif %}     
 		</table>
 	    </div>
 	</div>
