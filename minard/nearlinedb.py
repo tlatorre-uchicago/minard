@@ -54,35 +54,22 @@ def get_failed_runs(run, run_range_low=0, run_range_high=0):
     conn = engine_nl.connect()
 
     if run_range_high:
-        result = conn.execute("SELECT run, name, status FROM nearline WHERE "
-                              "run >= %s AND run <= %s ORDER BY run DESC, timestamp ASC ",
+        result = conn.execute("SELECT DISTONCT ON (run, name) run, name, status FROM nearline " 
+                              "WHERE run >= %s AND run <= %s ORDER BY run DESC, name DESC, timestamp DESC",
                               (run_range_low, run_range_high,))
     else:
-        result = conn.execute("SELECT run, name, status FROM nearline WHERE "
-                              "run >= %s ORDER BY run DESC, timestamp ASC ",
+        result = conn.execute("SELECT DISTINCT ON (run, name) run, name, status FROM "
+                              "nearline WHERE run >= %s ORDER BY run DESC, name DESC, timestamp DESC",
                               (run,))
     rows = result.fetchall()
-
-    # First create a map of most recent statuses
-    job_status = {}
-    for run, name, status in rows:
-        job_status[(run, name)] = status
 
     # Keep track of runs that returned a failure code
     failed = [-1, 1, 2, 3, 97, 98]
     failed_map = {}
     for run, name, status in rows:
-        multiple_failure = False
-        if job_status[(run, name)] in failed and status in failed:
+        if status in failed:
             try:
-                # Don't double count when the job has failed multiple
-                # times for the same run, which can happen when the job
-                # has been reprocessed
-                for i in range(len(failed_map[run])):
-                    if failed_map[run][i][0] == name:
-                        multiple_failure = True
-                if not multiple_failure:
-                    failed_map[run].append((str(name), int(status)))
+                failed_map[run].append((str(name), int(status)))
             except KeyError:
                 failed_map[run] = [(str(name), int(status))]
 
