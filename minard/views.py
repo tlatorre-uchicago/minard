@@ -105,6 +105,23 @@ PROGRAMS = [#Program('builder','builder1', description="event builder"),
 ]
 
 def nocache(view):
+    """
+    Flask decorator to hopefully prevent Firefox from caching responses which
+    are made very often.
+
+    Example:
+
+        @app.route('/foo')
+        @nocache
+        def foo():
+            # do stuff
+            return jsonify(*bar)
+
+    Basic idea from https://gist.github.com/arusahni/9434953.
+
+    Required Headers to prevent major browsers from caching content from
+    https://stackoverflow.com/questions/49547.
+    """
     @wraps(view)
     def no_cache(*args, **kwargs):
         response = make_response(view(*args, **kwargs))
@@ -541,6 +558,7 @@ def graph():
     return render_template('graph.html',name=name,start=start,stop=stop,step=step)
 
 @app.route('/get_status')
+@nocache
 def get_status():
     if 'name' not in request.args:
         return 'must specify name', 400
