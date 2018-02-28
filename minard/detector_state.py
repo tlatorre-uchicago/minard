@@ -244,10 +244,9 @@ def get_detector_state_check(run=0):
     shouldn't be. If there is no row in the database for the given run, returns
     (None, None).
     """
-    detector_state = get_detector_state(run)
     run_state = get_run_state(run)
 
-    if detector_state is None or run_state is None:
+    if run_state is None:
         return None, None
 
     nominal_settings = get_nominal_settings_for_run(run)
@@ -261,7 +260,6 @@ def get_detector_state_check(run=0):
         messages.append("mtc state unknown")
     else:
         mtc = get_mtc_state(mtc_key)
-
         gt_crate_mask = mtc['gt_crate_mask']
         if gt_crate_mask is None:
             messages.append("GT crate mask unknown")
@@ -333,6 +331,12 @@ def get_detector_state_check(run=0):
                 else:
                     messages.append("Warning: TUBII channels %s are in non-attentuating mode"\
                         % str(non_attenuated_channels)[1:-1])
+
+    detector_state = get_detector_state(run)
+
+    if detector_state is None:
+        messages.append("All crates are off")
+        return messages, channels
 
     for crate in range(19):
         if detector_state[crate] is None:
