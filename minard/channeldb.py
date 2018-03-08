@@ -85,7 +85,7 @@ def get_channels(kwargs, limit=100):
     query = "SELECT * FROM current_channel_status "
     if len(kwargs):
         query += "WHERE %s " % (" AND ".join(["%s = %%(%s)s" % (item[0], item[0]) for item in kwargs.items()]))
-    query += "ORDER BY crate, slot, channel LIMIT %i" % limit
+    query += "ORDER BY crate, slot, channel"
 
     result = conn.execute(query, kwargs)
 
@@ -96,6 +96,25 @@ def get_channels(kwargs, limit=100):
     rows = result.fetchall()
 
     return [dict(zip(keys,row)) for row in rows]
+
+def get_pmts_with_type(pmt_type):
+    """
+    Return a list of LCNs with type pmt_type
+    """
+    conn = engine.connect()
+
+    active_type = pmt_type + 1
+    result = conn.execute("SELECT crate, slot, channel FROM pmt_info "
+        "WHERE type = %s OR type = %s ORDER BY crate, slot, channel",\
+        (pmt_type, active_type))
+
+    rows = result.fetchall()
+
+    lcns_with_type = []
+    for crate, slot, channel in rows:
+        lcns_with_type.append((crate, slot, channel))
+
+    return lcns_with_type
 
 def get_channel_history(crate, slot, channel, limit=None):
     """
@@ -260,11 +279,10 @@ def get_most_recent_polling_info(crate, slot, channel):
 
     return polls
 
-def get_discriminator_threshold(crate, slot, channel):
+def get_discriminator_threshold(crate, slot):
     """
-    Get the current discriminator threshold for a specified crate, card, and
-    channel. Returns a dictionary of the discriminator threshold and zero
-    threshold.
+    Get the current discriminator threshold for a specified crate and card.
+    Returns a dictionary of the discriminator threshold and zero threshold.
     """
     conn = engine.connect()
 
@@ -295,7 +313,10 @@ def get_discriminator_threshold(crate, slot, channel):
     row = result.fetchone()
 
     if row is None:
-        return None
+        result = conn.execute("SELECT vthr FROM detector_state WHERE "
+            "crate = %s AND slot = %s ORDER BY run DESC LIMIT 1", (crate, slot))
+        keys = result.keys()
+        row = result.fetchone()
 
     vthr = dict(zip(keys,row))
 
@@ -303,6 +324,30 @@ def get_discriminator_threshold(crate, slot, channel):
     threshold.update(vthr)
 
     return threshold
+
+def get_gtvalid_lengths(crate, slot):
+    """
+    Get the gtvalid length for a specified crate and card. There are two
+    TACs per CMOS chip so there are two GTValid lengths per channel. Returns
+    a dictionary of the gtvalids lengths for each TAC
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT gtvalid0_length, gtvalid1_length FROM gtvalid "
+        "WHERE crate = %s AND slot = %s ORDER BY timestamp DESC LIMIT 1", (crate, slot))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    row = result.fetchall()
+
+    if row == []:
+        return None
+
+    gtvalid = dict(zip(keys,row[0]))
+
+    return gtvalid
 
 def get_all_thresholds(run):
     """

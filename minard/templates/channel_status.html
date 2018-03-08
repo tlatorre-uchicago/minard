@@ -239,6 +239,21 @@
                     </tr>
                 </table>
                 {% endif %}
+            </div>
+	    <div class="col-md-2">
+                <h3>GTValid</h3>
+                {% if gtvalid_lengths %}
+                <table class="table table-bordered">
+                    <tr>
+                        <th>GTValid 0 </th>
+                        <td>{{ gtvalid_lengths['gtvalid0_length'][channel] }}</td>
+                    </tr>
+                    <tr>
+                        <th>GTValid 1 </th>
+                        <td>{{ gtvalid_lengths['gtvalid1_length'][channel] }}</td>
+                    </tr>
+                </table>
+                {% endif %}
 	    </div>
 	</div>
     </div>

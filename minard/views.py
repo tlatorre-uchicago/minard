@@ -33,7 +33,7 @@ import channelflagsdb
 import dropout
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
-from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds
+from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds, get_gtvalid_lengths, get_pmts_with_type
 from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
@@ -185,8 +185,29 @@ def detector_state_check(run=None):
 @app.route('/channel-database')
 def channel_database():
     limit = request.args.get("limit", 100, type=int)
+    pmt_type = request.args.get("pmt_type", -1, type=int)
     results = get_channels(request.args, limit)
-    return render_template('channel_database.html', results=results, limit=limit)
+
+    # If PMT Type is "Any"
+    if pmt_type != -1:
+        pmt_list = get_pmts_with_type(pmt_type)
+
+    # Allow sorting by PMT Type and apply the limit
+    row_count = 0
+    new_results = []
+    for row in results:
+        if pmt_type == -1:
+            pass
+        elif (row['crate'], row['slot'], row['channel']) not in pmt_list:
+            continue
+        row_count+=1
+        status = filter_channel_status(row)
+        row['status'] = status
+        new_results.append(row)
+        if row_count >= limit:
+            break
+
+    return render_template('channel_database.html', new_results=new_results, limit=limit)
 
 @app.template_filter('channel_status')
 def filter_channel_status(row):
@@ -242,8 +263,9 @@ def channel_status():
     pmt_info = get_pmt_info(crate, slot, channel)
     nominal_settings = get_nominal_settings(crate, slot, channel)
     polling_info = get_most_recent_polling_info(crate, slot, channel)
-    discriminator_threshold = get_discriminator_threshold(crate, slot, channel)
-    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings, polling_info=polling_info, discriminator_threshold=discriminator_threshold)
+    discriminator_threshold = get_discriminator_threshold(crate, slot)
+    gtvalid_lengths = get_gtvalid_lengths(crate, slot)
+    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings, polling_info=polling_info, discriminator_threshold=discriminator_threshold, gtvalid_lengths=gtvalid_lengths)
 
 @app.route('/update-mtca-crate-mapping', methods=["GET", "POST"])
 def update_mtca_crate_mapping():
@@ -708,7 +730,7 @@ def check_rates_history():
     starting_run = request.args.get('starting_run',103214,type=int)
 
     data, stats = polling_history(crate, slot, channel, starting_run)
-    discriminator_threshold = get_discriminator_threshold(crate, slot, channel)
+    discriminator_threshold = get_discriminator_threshold(crate, slot)
     return render_template('check_rates_history.html', crate=crate, slot=slot, channel=channel, data=data, stats=stats, discriminator_threshold=discriminator_threshold)
 
 @app.route('/daq')

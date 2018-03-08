@@ -150,6 +150,24 @@
                 </select>
             </div>
         </div>
+	<div class="row">
+	    <div class="col-md-10" style="margin-bottom:20px">
+                <label for="pmt_type">PMT Type</label>
+                <select id="pmt_type">
+                    <option value=-1>Any PMT</option>
+                    <option value=2>Normal PMT</option>
+                    <option value=256>HQE PMT</option>
+                    <option value=8>Neck PMT</option>
+                    <option value=16>FECD PMT</option>
+                    <option value=32>Low Gain PMT</option>
+                    <option value=64>OWL PMT</option>
+                    <option value=128>BUTT PMT</option>
+                    <option value=4>Rope PMT</option>
+                    <option value=18>Petal-less PMT</option>
+                    <option value=0>No PMT</option>
+                </select>
+            </div>
+        </div>
         <div class="row">
         {% macro status(data) %}
             <td>
@@ -158,54 +176,26 @@
             {% endif %}
             </td>
         {% endmacro %}
-	    <div class="col-md-12">
-		<table class="table table-hover text-center table-condensed">
+	    <div class="col-md-10">
+		<table class="table table-hover table-condensed">
 		    <thead>
 			<tr>
+                            <th>Date</th>
 			    <th>Crate</th>
 			    <th>Card</th>
 			    <th>Channel</th>
-			    <th>PMT Removed</th>
-			    <th>PMT Reinstalled</th>
-			    <th>Low Occ.</th>
-			    <th>Zero Occ.</th>
-			    <th>Screamer</th>
-			    <th>Bad Disc.</th>
-			    <th>No N100</th>
-			    <th>No N20</th>
-			    <th>No ESUM</th>
-			    <th>Cable pulled</th>
-			    <th>Bad Cable</th>
-			    <th>Resistor pulled</th>
-                            <th>Disable N100</th>
-                            <th>Disable N20</th>
-			    <th>High Dropout</th>
-			    <th>Bad Base Current</th>
-                            <th>Bad Data</th>
+                            <th>Status</th>
+                            <th>Name</th>
 			</tr>
 		    </thead>
-		    {% for row in results %}
+		    {% for row in new_results %}
 		    <tr onclick="window.document.location = '{{ "channel-status?crate=%i&slot=%i&channel=%i" % (row['crate'], row['slot'], row['channel']) }}';">
+                        <td>{{ row['timestamp'].strftime("%Y-%m-%d") }}</td>
 			<td>{{ row['crate'] }}</td>
 			<td>{{ row['slot'] }}</td>
 			<td>{{ row['channel'] }}</td>
-			{{ status(row['pmt_removed']) }}
-			{{ status(row['pmt_reinstalled']) }}
-			{{ status(row['low_occupancy']) }}
-			{{ status(row['zero_occupancy']) }}
-			{{ status(row['screamer']) }}
-			{{ status(row['bad_discriminator']) }}
-			{{ status(row['no_n100']) }}
-			{{ status(row['no_n20']) }}
-			{{ status(row['no_esum']) }}
-			{{ status(row['cable_pulled']) }}
-			{{ status(row['bad_cable']) }}
-			{{ status(row['resistor_pulled']) }}
-			{{ status(row['disable_n100']) }}
-			{{ status(row['disable_n20']) }}
-			{{ status(row['high_dropout']) }}
-			{{ status(row['bad_base_current']) }}
-			{{ status(row['bad_data']) }}
+                        <td>{{ row | channel_status }}</td>
+                        <td>{{ row['name'] }}</td>
 		    </tr>
 		    {% endfor %}
 		</table>
@@ -218,7 +208,9 @@
         var setting = 0;
         for (var key in url_params) {
             if (url_params.hasOwnProperty(key)) {
-                if (key == 'crate') {
+                if (key == 'pmt_type'){
+                    document.getElementById("pmt_type").value = url_params.pmt_type;
+                } else if (key == 'crate') {
                     document.getElementById("crate").value = url_params.crate;
                 } else if (key == 'slot') {
                     document.getElementById("slot").value = url_params.slot;
@@ -238,6 +230,33 @@
                 }
             }
         }
+        $("#pmt_type").on("change", function() {
+            var params = {};
+            if (document.getElementById("crate").value != -1) {
+                params['crate'] = document.getElementById("crate").value;
+            }
+            if (document.getElementById("slot").value != -1) {
+                params['slot'] = document.getElementById("slot").value;
+            }
+            if (document.getElementById("channel").value != -1) {
+                params['channel'] = document.getElementById("channel").value;
+            }
+            if (document.getElementById("bool1").value != -1) {
+                params[document.getElementById("setting1").value] = document.getElementById("bool1").value;
+            }
+            if (document.getElementById("bool2").value != -1) {
+                params[document.getElementById("setting2").value] = document.getElementById("bool2").value;
+            }
+
+            params["pmt_type"] = document.getElementById("pmt_type").value;
+            params["limit"] = document.getElementById("limit").value;
+
+            if (Object.keys(params).length > 0) {
+                window.location.replace($SCRIPT_ROOT + "/channel-database?" + $.param(params));
+            } else {
+                window.location.replace($SCRIPT_ROOT + "/channel-database");
+            }
+        });
         $("#setting1").on("change", function() {
             if (document.getElementById("bool1").value == -1) return;
 
@@ -258,6 +277,7 @@
                 params[document.getElementById("setting2").value] = document.getElementById("bool2").value;
             }
 
+            params["pmt_type"] = document.getElementById("pmt_type").value;
             params["limit"] = document.getElementById("limit").value;
 
             if (Object.keys(params).length > 0) {
@@ -286,6 +306,7 @@
                 params[document.getElementById("setting2").value] = document.getElementById("bool2").value;
             }
 
+            params["pmt_type"] = document.getElementById("pmt_type").value;
             params["limit"] = document.getElementById("limit").value;
 
             if (Object.keys(params).length > 0) {
@@ -312,6 +333,7 @@
                 params[document.getElementById("setting2").value] = document.getElementById("bool2").value;
             }
 
+            params["pmt_type"] = document.getElementById("pmt_type").value;
             params["limit"] = document.getElementById("limit").value;
 
             if (Object.keys(params).length > 0) {
