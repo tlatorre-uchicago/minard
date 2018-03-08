@@ -54,9 +54,9 @@ def pmt_type_description(pmt_type):
     elif pmt_type == 0x40:
         return "OWL"
     elif pmt_type == 0x80:
-        return "Butt"
+        return "BUTT"
     elif pmt_type == 0x12:
-        return "Petal-less PMT"
+        return "Petalless PMT"
     elif pmt_type == 0x00:
         return "No PMT"
     elif pmt_type == 0x100:
@@ -96,25 +96,6 @@ def get_channels(kwargs, limit=100):
     rows = result.fetchall()
 
     return [dict(zip(keys,row)) for row in rows]
-
-def get_pmts_with_type(pmt_type):
-    """
-    Return a list of LCNs with type pmt_type
-    """
-    conn = engine.connect()
-
-    active_type = pmt_type + 1
-    result = conn.execute("SELECT crate, slot, channel FROM pmt_info "
-        "WHERE type = %s OR type = %s ORDER BY crate, slot, channel",\
-        (pmt_type, active_type))
-
-    rows = result.fetchall()
-
-    lcns_with_type = []
-    for crate, slot, channel in rows:
-        lcns_with_type.append((crate, slot, channel))
-
-    return lcns_with_type
 
 def get_channel_history(crate, slot, channel, limit=None):
     """

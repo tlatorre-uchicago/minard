@@ -154,17 +154,17 @@
 	    <div class="col-md-10" style="margin-bottom:20px">
                 <label for="pmt_type">PMT Type</label>
                 <select id="pmt_type">
-                    <option value=-1>Any PMT</option>
-                    <option value=2>Normal PMT</option>
-                    <option value=256>HQE PMT</option>
-                    <option value=8>Neck PMT</option>
-                    <option value=16>FECD PMT</option>
-                    <option value=32>Low Gain PMT</option>
-                    <option value=64>OWL PMT</option>
-                    <option value=128>BUTT PMT</option>
-                    <option value=4>Rope PMT</option>
-                    <option value=18>Petal-less PMT</option>
-                    <option value=0>No PMT</option>
+                    <option value=-1>Any</option>
+                    <option value=2>Normal</option>
+                    <option value=256>HQE</option>
+                    <option value=8>Neck</option>
+                    <option value=16>FECD</option>
+                    <option value=32>Low Gain</option>
+                    <option value=64>OWL</option>
+                    <option value=128>BUTT</option>
+                    <option value=4>Rope</option>
+                    <option value=18>Petalless</option>
+                    <option value=0>None</option>
                 </select>
             </div>
         </div>
@@ -184,6 +184,7 @@
 			    <th>Crate</th>
 			    <th>Card</th>
 			    <th>Channel</th>
+                            <th>Type</th>
                             <th>Status</th>
                             <th>Name</th>
 			</tr>
@@ -194,6 +195,7 @@
 			<td>{{ row['crate'] }}</td>
 			<td>{{ row['slot'] }}</td>
 			<td>{{ row['channel'] }}</td>
+                        <td>{{ row['pmt_type'] }}</td>
                         <td>{{ row | channel_status }}</td>
                         <td>{{ row['name'] }}</td>
 		    </tr>
