@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 from . import app
-from flask import render_template, jsonify, request, redirect, url_for, flash
+from flask import render_template, jsonify, request, redirect, url_for, flash, make_response
 from itertools import product
 import time
 from redis import Redis
@@ -37,6 +37,8 @@ from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, g
 from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
+from datetime import datetime
+from functools import wraps, update_wrapper
 
 TRIGGER_NAMES = \
 ['100L',
@@ -101,6 +103,35 @@ PROGRAMS = [#Program('builder','builder1', description="event builder"),
             Program('noel','buffer1', description="noel server",
 		    display_log=False)
 ]
+
+def nocache(view):
+    """
+    Flask decorator to hopefully prevent Firefox from caching responses which
+    are made very often.
+
+    Example:
+
+        @app.route('/foo')
+        @nocache
+        def foo():
+            # do stuff
+            return jsonify(*bar)
+
+    Basic idea from https://gist.github.com/arusahni/9434953.
+
+    Required Headers to prevent major browsers from caching content from
+    https://stackoverflow.com/questions/49547.
+    """
+    @wraps(view)
+    def no_cache(*args, **kwargs):
+        response = make_response(view(*args, **kwargs))
+        response.headers['Last-modified'] = datetime.now()
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+
+    return update_wrapper(no_cache, view)
 
 @app.template_filter('timefmt')
 def timefmt(timestamp):
@@ -549,6 +580,7 @@ def graph():
     return render_template('graph.html',name=name,start=start,stop=stop,step=step)
 
 @app.route('/get_status')
+@nocache
 def get_status():
     if 'name' not in request.args:
         return 'must specify name', 400
@@ -747,6 +779,7 @@ CHANNELS = [crate << 9 | card << 5 | channel \
 OWL_TUBES = [2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 7152, 7153, 7154, 7155, 7156, 7157, 7158, 7159, 7160, 7161, 7162, 7163, 7164, 7165, 7166, 7167, 9712, 9713, 9714, 9715, 9716, 9717, 9718, 9719, 9720, 9721, 9722, 9723, 9724, 9725, 9726, 9727]
 
 @app.route('/query_occupancy')
+@nocache
 def query_occupancy():
     trigger_type = request.args.get('type',0,type=int)
     run = request.args.get('run',0,type=int)
@@ -756,6 +789,7 @@ def query_occupancy():
     return jsonify(values=values)
 
 @app.route('/query_polling')
+@nocache
 def query_polling():
     polling_type = request.args.get('type','cmos',type=str)
     run = request.args.get('run',0,type=int)
@@ -764,6 +798,7 @@ def query_polling():
     return jsonify(values=values)
 
 @app.route('/query_polling_crate')
+@nocache
 def query_polling_crate():
     polling_type = request.args.get('type','cmos',type=str)
     run = request.args.get('run',0,type=int)
@@ -773,6 +808,7 @@ def query_polling_crate():
     return jsonify(values=values)
 
 @app.route('/query')
+@nocache
 def query():
     name = request.args.get('name','',type=str)
 
@@ -832,6 +868,7 @@ def query():
         return jsonify(values=values)
 
 @app.route('/get_alarm')
+@nocache
 def get_alarm():
     try:
         count = int(redis.get('alarms:count'))
@@ -856,6 +893,7 @@ def get_alarm():
     return jsonify(alarms=alarms,latest=count-1)
 
 @app.route('/owl_tubes')
+@nocache
 def owl_tubes():
     """Returns the time series for the sum of all upward facing OWL tubes."""
     name = request.args['name']
@@ -900,6 +938,7 @@ def owl_tubes():
     return jsonify(values=values)
 
 @app.route('/metric_hash')
+@nocache
 def metric_hash():
     """Returns the time series for argument `names` as a JSON list."""
     name = request.args['name']
@@ -979,6 +1018,7 @@ def get_metric(expr, start, stop, step):
     return values
 
 @app.route('/metric')
+@nocache
 def metric():
     """Returns the time series for argument `expr` as a JSON list."""
     args = request.args
