@@ -217,32 +217,14 @@ def detector_state_check(run=None):
 def channel_database():
     limit = request.args.get("limit", 100, type=int)
     pmt_type = request.args.get("pmt_type", -1, type=int)
-    results = get_channels(request.args, limit)
+    results = get_channels(request.args, pmt_type, limit)
 
-    active_type = pmt_type | 0x1
-    pmt_info = get_pmt_types()
+    # Add PMT type descriptor to results
+    pmt_type = pmt_type_description(pmt_type)
+    for i in range(len(results)):
+        results[i]['pmt_type'] = pmt_type
 
-    # Allow sorting by PMT Type and apply the limit
-    row_count = 0
-    new_results = []
-    for row in results:
-        crate = row['crate']
-        slot = row['slot']
-        channel = row['channel']
-        if pmt_type == -1:
-            pass
-        elif pmt_info[crate][slot][channel] != pmt_type and \
-             pmt_info[crate][slot][channel] != active_type:
-            continue
-        row_count+=1
-        status = filter_channel_status(row)
-        row['status'] = status
-        row['pmt_type'] = pmt_type_description(pmt_info[crate][slot][channel])
-        new_results.append(row)
-        if row_count >= limit:
-            break
-
-    return render_template('channel_database.html', new_results=new_results, limit=limit)
+    return render_template('channel_database.html', results=results, limit=limit)
 
 @app.template_filter('channel_status')
 def filter_channel_status(row):

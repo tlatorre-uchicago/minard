@@ -151,7 +151,7 @@
             </div>
         </div>
 	<div class="row">
-	    <div class="col-md-10" style="margin-bottom:20px">
+	    <div class="col-md-12" style="margin-bottom:20px">
                 <label for="pmt_type">PMT Type</label>
                 <select id="pmt_type">
                     <option value=-1>Any</option>
@@ -163,7 +163,7 @@
                     <option value=64>OWL</option>
                     <option value=128>BUTT</option>
                     <option value=4>Rope</option>
-                    <option value=18>Petalless</option>
+                    <option value=18>Petal-less</option>
                     <option value=0>None</option>
                 </select>
             </div>
@@ -176,7 +176,7 @@
             {% endif %}
             </td>
         {% endmacro %}
-	    <div class="col-md-10">
+	    <div class="col-md-12">
 		<table class="table table-hover table-condensed">
 		    <thead>
 			<tr>
@@ -189,7 +189,7 @@
                             <th>Name</th>
 			</tr>
 		    </thead>
-		    {% for row in new_results %}
+		    {% for row in results %}
 		    <tr onclick="window.document.location = '{{ "channel-status?crate=%i&slot=%i&channel=%i" % (row['crate'], row['slot'], row['channel']) }}';">
                         <td>{{ row['timestamp'].strftime("%Y-%m-%d") }}</td>
 			<td>{{ row['crate'] }}</td>
