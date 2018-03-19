@@ -217,8 +217,7 @@ def detector_state_check(run=None):
 def channel_database():
     limit = request.args.get("limit", 100, type=int)
     sort_by = request.args.get("sort-by", None)
-    order = request.args.get("order", "asc")
-    results = get_channels(request.args, limit, sort_by, order)
+    results = get_channels(request.args, limit, sort_by)
     return render_template('channel_database.html', results=results, limit=limit)
 
 @app.template_filter('channel_status')
