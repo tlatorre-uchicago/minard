@@ -196,7 +196,7 @@
 		    </thead>
 		    {% for row in results %}
 		    <tr onclick="window.document.location = '{{ "channel-status?crate=%i&slot=%i&channel=%i" % (row['crate'], row['slot'], row['channel']) }}';">
-                        <td class="timestamp">{{ row['timestamp'].strftime("%Y-%m-%d") }}</td>
+                        <td class="timestamp">{{ row['timestamp'].isoformat() }}</td>
 			<td>{{ row['crate'] }}</td>
 			<td>{{ row['slot'] }}</td>
 			<td>{{ row['channel'] }}</td>
@@ -212,6 +212,7 @@
 {% endblock %}
 {% block script %}
     <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
 
     <script>
     /* Format the last updated table column to a nice human readable form like
@@ -219,7 +220,8 @@
      * in flask as a template filter, but since moment already provides the
      * function we just do it in javascript. */
     $(".timestamp").text(function (index, text) {
-        return moment(text).fromNow();
+        console.log(text);
+        return moment.tz(text, 'America/Toronto').fromNow();
     });
     </script>
 
