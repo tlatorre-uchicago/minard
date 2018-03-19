@@ -166,6 +166,11 @@
                     <option value=18>Petal-less</option>
                     <option value=0>None</option>
                 </select>
+                <label for="sort-by">Sort by</label>
+                <select id="sort-by">
+                    <option value="ccc">C/C/C</option>
+                    <option value="timestamp">Timestamp</option>
+                </select>
             </div>
         </div>
         <div class="row">
@@ -180,7 +185,7 @@
 		<table class="table table-hover table-condensed">
 		    <thead>
 			<tr>
-                            <th>Date</th>
+                            <th>Last Updated</th>
 			    <th>Crate</th>
 			    <th>Card</th>
 			    <th>Channel</th>
@@ -191,11 +196,11 @@
 		    </thead>
 		    {% for row in results %}
 		    <tr onclick="window.document.location = '{{ "channel-status?crate=%i&slot=%i&channel=%i" % (row['crate'], row['slot'], row['channel']) }}';">
-                        <td>{{ row['timestamp'].strftime("%Y-%m-%d") }}</td>
+                        <td class="timestamp">{{ row['timestamp'].strftime("%Y-%m-%d") }}</td>
 			<td>{{ row['crate'] }}</td>
 			<td>{{ row['slot'] }}</td>
 			<td>{{ row['channel'] }}</td>
-                        <td>{{ row['pmt_type'] }}</td>
+                        <td>{{ row['type'] | pmt_type_description }}</td>
                         <td>{{ row | channel_status }}</td>
                         <td>{{ row['name'] }}</td>
 		    </tr>
@@ -206,12 +211,26 @@
     </div>
 {% endblock %}
 {% block script %}
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+
+    <script>
+    /* Format the last updated table column to a nice human readable form like
+     * "10 months ago" instead of just a timestamp. Ideally, this would be done
+     * in flask as a template filter, but since moment already provides the
+     * function we just do it in javascript. */
+    $(".timestamp").text(function (index, text) {
+        return moment(text).fromNow();
+    });
+    </script>
+
     <script>
         var setting = 0;
         for (var key in url_params) {
             if (url_params.hasOwnProperty(key)) {
-                if (key == 'pmt_type'){
-                    document.getElementById("pmt_type").value = url_params.pmt_type;
+                if (key == 'sort-by'){
+                    document.getElementById("sort-by").value = url_params['sort-by'];
+                } else if (key == 'type'){
+                    document.getElementById("pmt_type").value = url_params.type;
                 } else if (key == 'crate') {
                     document.getElementById("crate").value = url_params.crate;
                 } else if (key == 'slot') {
@@ -232,33 +251,6 @@
                 }
             }
         }
-        $("#pmt_type").on("change", function() {
-            var params = {};
-            if (document.getElementById("crate").value != -1) {
-                params['crate'] = document.getElementById("crate").value;
-            }
-            if (document.getElementById("slot").value != -1) {
-                params['slot'] = document.getElementById("slot").value;
-            }
-            if (document.getElementById("channel").value != -1) {
-                params['channel'] = document.getElementById("channel").value;
-            }
-            if (document.getElementById("bool1").value != -1) {
-                params[document.getElementById("setting1").value] = document.getElementById("bool1").value;
-            }
-            if (document.getElementById("bool2").value != -1) {
-                params[document.getElementById("setting2").value] = document.getElementById("bool2").value;
-            }
-
-            params["pmt_type"] = document.getElementById("pmt_type").value;
-            params["limit"] = document.getElementById("limit").value;
-
-            if (Object.keys(params).length > 0) {
-                window.location.replace($SCRIPT_ROOT + "/channel-database?" + $.param(params));
-            } else {
-                window.location.replace($SCRIPT_ROOT + "/channel-database");
-            }
-        });
         $("#setting1").on("change", function() {
             if (document.getElementById("bool1").value == -1) return;
 
@@ -278,8 +270,13 @@
             if (document.getElementById("bool2").value != -1) {
                 params[document.getElementById("setting2").value] = document.getElementById("bool2").value;
             }
+            if (document.getElementById("pmt_type").value != -1) {
+                params["type"] = document.getElementById("pmt_type").value;
+            }
+            if (document.getElementById("sort-by").value != -1) {
+                params["sort-by"] = document.getElementById("sort-by").value;
+            }
 
-            params["pmt_type"] = document.getElementById("pmt_type").value;
             params["limit"] = document.getElementById("limit").value;
 
             if (Object.keys(params).length > 0) {
@@ -307,8 +304,13 @@
             if (document.getElementById("bool2").value != -1) {
                 params[document.getElementById("setting2").value] = document.getElementById("bool2").value;
             }
+            if (document.getElementById("pmt_type") != -1) {
+                params["type"] = document.getElementById("pmt_type").value;
+            }
+            if (document.getElementById("sort-by").value != -1) {
+                params["sort-by"] = document.getElementById("sort-by").value;
+            }
 
-            params["pmt_type"] = document.getElementById("pmt_type").value;
             params["limit"] = document.getElementById("limit").value;
 
             if (Object.keys(params).length > 0) {
@@ -317,7 +319,7 @@
                 window.location.replace($SCRIPT_ROOT + "/channel-database");
             }
         });
-        $("#crate, #slot, #channel, #bool1, #bool2, #limit").on("change", function() {
+        $("#crate, #slot, #channel, #bool1, #bool2, #limit, #pmt_type, #sort-by").on("change", function() {
             var params = {};
             if (document.getElementById("crate").value != -1) {
                 params['crate'] = document.getElementById("crate").value;
@@ -334,8 +336,13 @@
             if (document.getElementById("bool2").value != -1) {
                 params[document.getElementById("setting2").value] = document.getElementById("bool2").value;
             }
+            if (document.getElementById("pmt_type").value != -1) {
+                params["type"] = document.getElementById("pmt_type").value;
+            }
+            if (document.getElementById("sort-by").value != -1) {
+                params["sort-by"] = document.getElementById("sort-by").value;
+            }
 
-            params["pmt_type"] = document.getElementById("pmt_type").value;
             params["limit"] = document.getElementById("limit").value;
 
             if (Object.keys(params).length > 0) {

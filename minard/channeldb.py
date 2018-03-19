@@ -64,7 +64,7 @@ def pmt_type_description(pmt_type):
     else:
         return "Unknown type 0x%04x" % pmt_type
 
-def get_channels(kwargs, pmt_type, limit=100):
+def get_channels(kwargs, limit=100, sort_by=None):
     """
     Returns a list of the current channel statuses for multiple channels in the
     detector. `kwargs` should be a dictionary containing fields and their
@@ -79,22 +79,21 @@ def get_channels(kwargs, pmt_type, limit=100):
 
     fields = [field.name for field in ChannelStatusForm()]
 
-    # make sure all the values in kwargs are actual fields
-    kwargs = dict(item for item in kwargs.items() if item[0] in fields)
+    conditions = []
+    for key in kwargs:
+        if key == 'type':
+            conditions.append("type & 65534 = %(type)s")
+        elif key in fields:
+            conditions.append("%s = %%(%s)s" % (key, key))
 
-    query = "SELECT * FROM current_channel_status, pmt_info "
-    query += "WHERE current_channel_status.crate = pmt_info.crate AND "
-    query += "current_channel_status.slot = pmt_info.slot AND "
-    query += "current_channel_status.channel = pmt_info.channel "
-    if len(kwargs):
-        query += "AND %s " % (" AND ".join(["current_channel_status.%s = %%(%s)s" % (item[0], item[0]) for item in kwargs.items()]))
-    # query the PMT if type if the type isn't "All"
-    if pmt_type != -1:
-        active = pmt_type | 0x1
-        query += " AND (pmt_info.type = %i OR pmt_info.type = %i) " % (pmt_type, active)
-    query += "ORDER BY current_channel_status.crate, "
-    query += "current_channel_status.slot, current_channel_status.channel "
-    query += "LIMIT %i" % limit
+    query = "SELECT * FROM current_channel_status NATURAL JOIN pmt_info "
+    if len(conditions):
+        query += "WHERE %s " % (" AND ".join(conditions))
+
+    if sort_by == 'timestamp':
+        query += "ORDER BY timestamp DESC LIMIT %i" % limit
+    else:
+        query += "ORDER BY crate, slot, channel LIMIT %i" % limit
 
     result = conn.execute(query, kwargs)
 

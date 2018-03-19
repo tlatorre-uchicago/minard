@@ -17,12 +17,12 @@ def get_details(run_number, trigger_type):
 def get_fits(trigger_type=0, run_range=None):
     """
     """
-    trigger_type = 1 if trigger_type==0 else 2
+    trigger_type = 1 if trigger_type == 0 else 2
     args = (trigger_type,)
     clause = " ORDER BY plots.run DESC"
     if run_range is not None:
         if type(run_range) == int:
-            clause = clause+ " LIMIT %s"
+            clause = clause + " LIMIT %s"
             args = (trigger_type, run_range)
         else:
             try:

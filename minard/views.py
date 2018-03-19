@@ -216,14 +216,9 @@ def detector_state_check(run=None):
 @app.route('/channel-database')
 def channel_database():
     limit = request.args.get("limit", 100, type=int)
-    pmt_type = request.args.get("pmt_type", -1, type=int)
-    results = get_channels(request.args, pmt_type, limit)
-
-    # Add PMT type descriptor to results
-    pmt_type = pmt_type_description(pmt_type)
-    for i in range(len(results)):
-        results[i]['pmt_type'] = pmt_type
-
+    sort_by = request.args.get("sort-by", None)
+    order = request.args.get("order", "asc")
+    results = get_channels(request.args, limit, sort_by, order)
     return render_template('channel_database.html', results=results, limit=limit)
 
 @app.template_filter('channel_status')
@@ -1420,25 +1415,27 @@ def dropout_overview(run_number=None):
             trigger_type = int(trigger_type)
         else:
             trigger_type = 1 if trigger_type.upper() == "N20" else 0
-        trigger_type = 1 if trigger_type!=0 else 0
+        trigger_type = 1 if trigger_type != 0 else 0
         return render_template("dropout.html", trigger_type=trigger_type)
 
     return render_template("dropout_detail.html", run_number=run_number)
 
 @app.route("/_dropout_fits/<trigger_type>")
 def _dropout_fits(trigger_type=None):
-    if(trigger_type==None):
-        trigger_type=0
+    if trigger_type is None:
+        trigger_type = 0
+
     try:
         trigger_type = int(trigger_type)
     except ValueError:
-            trigger_type = 1 if trigger_type.upper() == "N20" else 0
+        trigger_type = 1 if trigger_type.upper() == "N20" else 0
 
-    trigger_type = 1 if trigger_type!=0 else 0
+    trigger_type = 1 if trigger_type != 0 else 0
     run_range = request.args.get("run_range", default=500, type=int)
     run_min = request.args.get("run_min", default=-1, type=int)
     run_max = request.args.get("run_max", default=-1, type=int)
-    if(run_min >0 and run_max > run_min):
+
+    if run_min > 0 and run_max > run_min:
         run_range = (run_min, run_max)
 
     try:
