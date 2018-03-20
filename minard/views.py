@@ -216,9 +216,9 @@ def detector_state_check(run=None):
 @app.route('/channel-database')
 def channel_database():
     limit = request.args.get("limit", 100, type=int)
-    sort_by = request.args.get("sort-by", None)
+    sort_by = request.args.get("sort-by", "timestamp")
     results = get_channels(request.args, limit, sort_by)
-    return render_template('channel_database.html', results=results, limit=limit)
+    return render_template('channel_database.html', results=results, limit=limit, sort_by=sort_by)
 
 @app.template_filter('channel_status')
 def filter_channel_status(row):

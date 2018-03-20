@@ -168,8 +168,8 @@
                 </select>
                 <label for="sort-by">Sort by</label>
                 <select id="sort-by">
-                    <option value="ccc">C/C/C</option>
-                    <option value="timestamp">Timestamp</option>
+                    <option {% if sort_by == 'ccc' %}selected="selected" {% endif %}value="ccc">C/C/C</option>
+                    <option {% if sort_by == 'timestamp' %}selected="selected" {% endif %}value="timestamp">Timestamp</option>
                 </select>
             </div>
         </div>
