@@ -33,7 +33,7 @@ import channelflagsdb
 import dropout
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
-from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds, get_gtvalid_lengths, get_pmt_types, pmt_type_description
+from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds, get_gtvalid_lengths, get_pmt_types, pmt_type_description, get_fec_db_history
 from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
@@ -276,7 +276,8 @@ def channel_status():
     polling_info = get_most_recent_polling_info(crate, slot, channel)
     discriminator_threshold = get_discriminator_threshold(crate, slot)
     gtvalid_lengths = get_gtvalid_lengths(crate, slot)
-    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings, polling_info=polling_info, discriminator_threshold=discriminator_threshold, gtvalid_lengths=gtvalid_lengths)
+    fec_db_history = get_fec_db_history(crate, slot, channel)
+    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings, polling_info=polling_info, discriminator_threshold=discriminator_threshold, gtvalid_lengths=gtvalid_lengths, fec_db_history=fec_db_history)
 
 @app.route('/update-mtca-crate-mapping', methods=["GET", "POST"])
 def update_mtca_crate_mapping():

@@ -255,6 +255,29 @@
                 </table>
                 {% endif %}
 	    </div>
+        </div>
+        <div class="row">
+	    <div class="col-md-6">
+                <h3>History of FEC and/or DB Swaps</h3>
+		<table class="table">
+		    <thead>
+			<tr>
+			    <th>Run</th>
+			    <!--<th>Date</th>-->
+			    <th>MBID</th>
+			    <th>DBID</th>
+			</tr>
+		    </thead>
+		    {% for row in fec_db_history | reverse %}
+		    <tr>
+			<td>{{ row['run'] }}</td>
+			<!--<td>{{ row['timestamp'].strftime("%Y-%m-%d") }}</td>-->
+			<td><a href="http://snopl.us/debugdb/board/{{ '%04x' % row['mbid'] }}">{{ '0x%04x' % row['mbid'] }}</a></td>
+			<td><a href="http://snopl.us/debugdb/board/{{ '%04x' % row['dbid'] }}">{{ '0x%04x' % row['dbid'] }}</a></td>
+		    </tr>
+		    {% endfor %}
+		</table>
+	    </div>
 	</div>
     </div>
 {% endblock %}

@@ -64,6 +64,30 @@ def pmt_type_description(pmt_type):
     else:
         return "Unknown type 0x%04x" % pmt_type
 
+def get_fec_db_history(crate, card, channel):
+    """
+    Returns a list of the FEC and/or DB swaps for a given channel.
+    """
+    conn = engine.connect()
+
+    query = ("SELECT run, timestamp, mbid, dbid FROM ("
+        "SELECT run, timestamp, mbid, dbid[%i] as dbid, "
+        "lag(mbid) OVER (ORDER BY run ASC) "
+            "IS DISTINCT FROM mbid AS fec_changed, "
+        "lag(dbid[%i]) OVER (ORDER BY run ASC) "
+            "IS DISTINCT FROM dbid[%i] AS db_changed "
+        "FROM detector_state WHERE crate = %%(crate)s AND "
+        "slot = %%(card)s AND mbid IS NOT NULL AND dbid IS NOT NULL AND "
+        "run > 0) sub WHERE fec_changed OR db_changed ORDER BY run" % \
+        (channel//8+1, channel//8+1, channel//8+1))
+
+    result = conn.execute(query, crate=crate, card=card)
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    return [dict(zip(keys,row)) for row in rows]
+
 def get_channels(kwargs, limit=100, sort_by=None):
     """
     Returns a list of the current channel statuses for multiple channels in the
