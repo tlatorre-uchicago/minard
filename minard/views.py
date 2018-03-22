@@ -265,6 +265,17 @@ def filter_channel_status(row):
 
     return ", ".join(status)
 
+@app.template_filter('format_cmos_rate')
+def format_cmos_rate(rate):
+    if rate < 1000:
+        return '%i' % int(rate)
+    elif rate < 10000:
+        return '%.1fk' % (rate/1000)
+    elif rate < 1e6:
+        return '%ik' % (rate//1000)
+    else:
+        return '%iM' % (rate//1e6)
+
 @app.route('/channel-status')
 def channel_status():
     crate = request.args.get("crate", 0, type=int)
