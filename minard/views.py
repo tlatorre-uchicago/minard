@@ -6,10 +6,9 @@ import time
 from redis import Redis
 from os.path import join
 import json
-import tools
 import HLDQTools
 import requests
-from .tools import parseiso
+from .tools import parseiso, total_seconds
 from collections import deque, namedtuple
 from .timeseries import get_timeseries, get_interval, get_hash_timeseries
 from .timeseries import get_timeseries_field, get_hash_interval
@@ -264,6 +263,39 @@ def filter_channel_status(row):
         return "Perfect!"
 
     return ", ".join(status)
+
+@app.template_filter('time_from_now')
+def time_from_now(dt):
+    """
+    Returns a human readable string representing the time duration between `dt`
+    and now. The output was copied from the moment javascript library.
+
+    See https://momentjs.com/docs/#/displaying/fromnow/
+    """
+    delta = total_seconds(datetime.now() - dt)
+
+    if delta < 45:
+        return "a few seconds ago"
+    elif delta < 90:
+        return "a minute ago"
+    elif delta <= 44*60:
+        return "%i minutes ago" % int(round(delta/60))
+    elif delta <= 89*60:
+        return "an hour ago"
+    elif delta <= 21*3600:
+        return "%i hours ago" % int(round(delta/3600))
+    elif delta <= 35*3600:
+        return "a day ago"
+    elif delta <= 25*24*3600:
+        return "%i days ago" % int(round(delta/(24*3600)))
+    elif delta <= 45*24*3600:
+        return "a month ago"
+    elif delta <= 319*24*3600:
+        return "%i months ago" % int(round(delta/(30*24*3600)))
+    elif delta <= 547*24*3600:
+        return "a year ago"
+    else:
+        return "%i years ago" % int(round(delta/(365.25*24*3600)))
 
 @app.template_filter('format_cmos_rate')
 def format_cmos_rate(rate):
