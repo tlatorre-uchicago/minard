@@ -1,7 +1,4 @@
-from __future__ import print_function
 from flask import Flask
-import sys
-from os.path import join, exists
 
 class ReverseProxied(object):
     '''Wrap the application in this middleware and configure the 
@@ -36,20 +33,10 @@ class ReverseProxied(object):
             environ['wsgi.url_scheme'] = scheme
         return self.app(environ, start_response)
 
-STATIC_FOLDER = join(sys.prefix,'www/static')
-TEMPLATE_FOLDER = join(sys.prefix,'www/templates')
-SECRET_KEY = "=S\t3w>zKIVy0n]b1h,<%|@EHBgfRJQ;A\rLC'[\x0blPF!` ai}/4W"
-PROJECT_NAME = 'minard'
+app = Flask(__name__)
 
-app = Flask(__name__, static_folder=STATIC_FOLDER, template_folder=TEMPLATE_FOLDER)
+app.config.from_envvar('MINARD_SETTINGS', silent=False)
+
 app.wsgi_app = ReverseProxied(app.wsgi_app)
-
-if exists('/etc/minard.conf'):
-    app.config.from_pyfile('/etc/minard.conf')
-
-app.debug=False
-if not app.debug:
-    import logging
-    app.logger.addHandler(logging.StreamHandler())
 
 import minard.views

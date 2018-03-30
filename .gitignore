@@ -1,5 +1,10 @@
 *.pyc
 *.swp
+*.swo
 *.zip
 *.tar.gz
-doc/_build
+docs/_build
+build
+dist
+minard.egg-info
+minard/static/docs

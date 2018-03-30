@@ -65,11 +65,7 @@ function update_metrics(timeseries) {
     timeseries.metrics = [];
 
     if (typeof timeseries.crate === 'undefined') {
-        for (var i=0; i < 20; i++) {
-            timeseries.metrics[i] = metric(timeseries, i, null, null);
-        }
-
-        timeseries.metrics[20] = timeseries.context.metric(function(start, stop, step, callback) {
+        timeseries.metrics[0] = timeseries.context.metric(function(start, stop, step, callback) {
             var params = {
                 name: SOURCE,
                 start: start.toISOString(),
@@ -88,6 +84,11 @@ function update_metrics(timeseries) {
                 }
             );
         }, 'UFOWL');
+
+        for (var i=0; i < 20; i++) {
+            timeseries.metrics[i+1] = metric(timeseries, i, null, null);
+        }
+
     } else if (typeof timeseries.card === 'undefined') {
         for (var i=0; i < 16; i++) {
             timeseries.metrics[i] = metric(timeseries, timeseries.crate, i, null);
@@ -102,7 +103,7 @@ function update_metrics(timeseries) {
 var default_thresholds = {
     cmos: [100,5e3],
     base: [10, 80],
-    occupancy: [0.001, 0.002]
+    occupancy: [0.001, 0.005]
 };
 
 function set_thresholds(lo, hi) {
@@ -144,8 +145,8 @@ horizon: null,
 metrics:null,
 format: my_si_format,
 click: function(d, i) {
-    if (i <= 19)
-        switch_to_crate(i);
+    if ((i > 0) && (i <= 20))
+        switch_to_crate(i-1);
     },
 state: NEEDS_UPDATE,
 slide: 0

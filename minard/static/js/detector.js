@@ -41,7 +41,7 @@ var chart = histogram()
     .on_scale_change(redraw)
     .color_scale(color_scale)
     .bins(50)
-    .domain([0,2e-3]);
+    .domain([0,0.01]);
 
 var crate = crate_view().caption(false).scale(color_scale);
 
@@ -210,7 +210,7 @@ function setup() {
     d3.select('#hist').datum([]).call(chart);
 
     // collapse histogram panel
-    $('.collapse').collapse();
+    $('#collapseOne').collapse();
 
     // set up crate view
     d3.select("#crate").datum([]).call(crate);

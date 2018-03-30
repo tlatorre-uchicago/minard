@@ -7,30 +7,38 @@
 {% block body %}
 {{ super() }}
 
-{% macro fiber_cell(fiber) -%}
+{% macro fiber_cell(fiber, query_good_runs) -%}
     {% if fiber["is_dead"] %}
         <div class="pca-fiber-dead pca-fiber-cell">
+        <div> {{ fiber["fiber_number"] }} </div>
     {% elif not fiber["is_installed"] %}
         <div class="pca-fiber-vacant pca-fiber-cell">
-    {% elif fiber["pca_run"] %}
-        {% if fiber["pca_result"] == "1" %}
+        <div> {{ fiber["fiber_number"] }} </div>
+    {% elif query_good_runs %}
+        {% if fiber["pca_run_good"]%}
+            <div class="pca-fiber-success pca-fiber-cell">
+            <div> {{ fiber["fiber_number"] }} </div>
+            <div><a href="{{ url_for('pca_run_detail',run_number=fiber["pca_run_good"]) }}">{{ fiber["pca_run_good"] }}</a></div>
+        {% else %}
+            <div class="pca-fiber-installed pca-fiber-cell">
+            <div> {{ fiber["fiber_number"] }} </div>
+        {% endif %}
+    {% elif fiber["pca_run"]%}
+        {% if (fiber["pca_result"] == "1") %}
             <div class="pca-fiber-fail pca-fiber-cell">
         {% else %}
             <div class="pca-fiber-success pca-fiber-cell">
-        {% endif %}   
+        {% endif %}
+        <div> {{ fiber["fiber_number"] }} </div>
+        <div><a href="{{ url_for('pca_run_detail',run_number=fiber["pca_run"]) }}">{{ fiber["pca_run"] }}</a></div>
     {% else %}
         <div class="pca-fiber-installed pca-fiber-cell">
+        <div> {{ fiber["fiber_number"] }} </div>
     {% endif %}
-        <div>
-            {{ fiber["fiber_number"] }} {{ fiber["ab"] }}
         </div>
-        <div>
-            {{ fiber["pca_run"] }}
-        </div>
-    </div>
-    {%- endmacro %}
-    
-    <div class="container">      
+{%- endmacro %}
+
+    <div class="container">
         <h2>PCA TELLIE Status </h2>
 
         <div class="row">
@@ -39,7 +47,7 @@
                     <h3 class="panel-title">Filters</h3>
                 </div>
                 <div class="panel-body">
-            
+
                     <form class="form-horizontal" role="form"
                      id="filter_controls">
                     <div class="form-group">
@@ -51,40 +59,20 @@
                              name="start_run"
                              id="start_run" placeholder="Run number"
                              {{ 'value=%s' % (start_run) if
-                                 start_run > 0 else "" }}> 
+                                 start_run > 0 else "" }}>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <div class="col-md-10">
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox"
-                                     name="installed_only"
-                                     value="1"
-                                     {{ "checked" if installed_only else ""}}
-                                     onchange="$('#filter_controls').submit();">
-                                    Show installed fibers only
-                                </label>
-                            </div>
-                        </div>
-                    </div>            
                     </form>
 
                 </div>
             </div>
 
-            
+
             <div class="panel panel-default pull-right">
                 <div class="panel-heading">
                     <h3 class="panel-title">Fiber status legend</h3>
                 </div>
-                <div class="panel-body">      
-                    <div class="pca-fiber-cell pca-fiber-dead">
-                        Dead
-                    </div>
-                    <div class="pca-fiber-cell pca-fiber-vacant">
-                        Not installed
-                    </div>      
+                <div class="panel-body">
                     <div class="pca-fiber-cell pca-fiber-installed">
                         No data
                     </div>
@@ -93,13 +81,20 @@
                     </div>
                     <div class="pca-fiber-cell pca-fiber-success">
                         Success
-                    </div>  
-                </div>   
+                    </div>
+                </div>
             </div>
-        
+
         </div>
-    
-        {% for fiber_type in ["BULK", "SPARE", "NECK"] %}
+
+        <ul class="nav nav-tabs">
+          <li class="active"><a data-toggle="tab" href="#fibers_allruns">All Runs</a></li>
+          <li><a data-toggle="tab" href="#fibers_goodruns">Good Runs</a></li>
+        </ul>
+
+        <div class="tab-content">
+        <div id="fibers_allruns" class="tab-pane in active">
+        {% for fiber_type in ["BULK", "NECK"] %}
         <div class="row">
             <div class="panel panel-default">
               <div class="panel-heading">
@@ -107,14 +102,33 @@
               </div>
               <div class="panel-body">
                 {% for fiber in fibers if fiber["fiber_type"] == fiber_type and not ( installed_only and not fiber["is_installed"]) %}
-                    {{ fiber_cell(fiber) }}
+                    {{ fiber_cell(fiber, False) }}
                 {% endfor %}
               </div>
             </div>
-        </div>  
+        </div>
         {% endfor %}
+        </div>
 
-        
+        {% for fiber_type in ["BULK", "NECK"] %}
+        <div id="fibers_goodruns" class="tab-pane in">
+        <div class="row">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h3 class="panel-title">{{ fiber_type.capitalize() }} fibers</h3>
+              </div>
+              <div class="panel-body">
+                {% for fiber in fibers if fiber["fiber_type"] == fiber_type and not ( installed_only and not fiber["is_installed"]) %}
+                    {{ fiber_cell(fiber, True) }}
+                {% endfor %}
+              </div>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+
+        </div>
+
         <h3>Details</h3>
         <table class="table table-bordered table-condensed table-striped">
             <thead>
@@ -134,17 +148,17 @@
                 {% for run in runs %}
                 <tr class="{{ boolclass(run["pca_status"]) }}">
                     <td><a href="{{ url_for('pca_run_detail',run_number=run["run_number"]) }}">{{ run["run_number"] }}</a></td>
-                    <td>{{ timefmt(run["run_time"]) }}</td>
-                    <td>{{ timefmt(run["analyze_time"]) }}</td>
+                    <td>{{ run["run_time"]|timefmt }}</td>
+                    <td>{{ run["analyze_time"]|timefmt }}</td>
                     <td>{{ run["channel"] }}</td>
                     <td>{{ run["fiber_number"] }}</td>
-                    <td>{{ run["number_events"]|int() }}</td>
-                    <td>{{ '%.2f' % run["nhit"]|float() }}</td>
-                    <td>{{ '%.2f' % run["av_hit"]|float() }}</td>
+                    <td>{{ run["number_events"]|int }}</td>
+                    <td>{{ '%.2f' % run["nhit"]|float }}</td>
+                    <td>{{ '%.2f' % run["av_hit"]|float }}</td>
                     <td>{{  boolfmt(run["pca_status"]) }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-    </div> 
+    </div>
 {% endblock %}

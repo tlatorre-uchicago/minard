@@ -7,6 +7,15 @@
     {{ super() }}
     <div class="container">
         <div class="row">
+            <div class="col-md-2 col-md-offset-10 text-right">
+                <select id="trigger-menu">
+                    {% for trigger in ['all', '100L', '100M', '100H', '20', '20LB', 'ESUML', 'ESUMH', 'OWLN', 'OWLEL', 'OWLEH', 'PULGT', 'PRESCL', 'PED', 'PONG', 'SYNC', 'EXTA', 'EXT2', 'EXT3', 'EXT4', 'EXT5', 'EXT6', 'EXT7', 'EXT8', 'SRAW', 'NCD', 'SOFGT', 'MISS'] %}
+                        <option {% if trigger == name %}selected="selected" {% endif %}value="{{ trigger }}">{{ trigger }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-md-6" id="nhit10">
                 <h2>NHit (10 seconds)</h2>
             </div>
@@ -32,5 +41,9 @@
     <script>
         update_chart('#nhit10', 10, 2);
         update_chart('#nhit60', 60, 10);
+
+        $("#trigger-menu").on("change", function() {
+            window.location.replace($SCRIPT_ROOT + "/nhit?name=" + this.value);
+        });
     </script>
 {% endblock %}
