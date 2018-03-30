@@ -14,6 +14,8 @@ def base_consumer(host, port):
 		      timeout=0.1)
     data.connect()
 
+    log.notice("connected to data server at '%s'" % host)
+
     base_currents = {}
 
     then = None
@@ -23,9 +25,11 @@ def base_consumer(host, port):
             id, rec = data.recv_record()
         except socket.timeout as e:
             # timeout
+            log.debug("timeout")
             id = None
 
         if now > then and len(base_currents) > 0:
+            log.debug("flush to redis")
             flush_to_redis(base_currents, 'base', then)
             then = None
             base_currents.clear()
@@ -43,6 +47,8 @@ def base_consumer(host, port):
         crate, slotmask, channelmask, error_flags, counts, busy, timestamp = \
             parse_base(rec)
 
+        log.debug("got data from crate %i" % crate)
+
         for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
             for j, value in enumerate(map(int,counts[slot])):
                 if not channelmask[slot] & (1 << j) or value >> 31:
@@ -58,8 +64,9 @@ def daemonize():
 
     os.setsid()
 
-    with open('/dev/null', 'w') as f:
-        fd = f.fileno()
+    f = open('/dev/null', 'w')
+
+    fd = f.fileno()
 
     os.dup2(fd, 0)
     os.dup2(fd, 1)
@@ -93,8 +100,8 @@ if __name__ == '__main__':
 	try:
 	    base_consumer(args.host,args.port)
 	except socket.error as e:
-	    print('failed to connect to data: %s' % str(e), file=sys.stderr)
+	    log.warn('failed to connect to data: %s' % str(e))
 	    time.sleep(60)
 	except Exception as e:
-	    print('unhandled exception: %s' % str(e), file=sys.stderr)
+	    log.warn('unhandled exception: %s' % str(e))
 	    time.sleep(60)

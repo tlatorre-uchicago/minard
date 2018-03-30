@@ -15,7 +15,7 @@ def cmos_consumer(host, port):
 		      timeout=0.1)
     data.connect()
 
-    print("connected to data server at '%s'" % host)
+    log.notice("connected to data server at '%s'" % host)
 
     cmos_count = {}
     cmos_rates = {}
@@ -26,12 +26,14 @@ def cmos_consumer(host, port):
             id, rec = data.recv_record()
         except socket.timeout as e:
             # timeout
+            log.debug("timeout")
             id = None
 
         now = int(time.time())
 
         if now > then and len(cmos_rates) > 0:
             # flush results to database once a second
+            log.debug("flush to redis")
             flush_to_redis(cmos_rates, 'cmos', then)
             then = None
             cmos_rates.clear()
@@ -48,6 +50,8 @@ def cmos_consumer(host, port):
 
         crate, slotmask, channelmask, error_flags, counts, timestamp = \
             parse_cmos(rec)
+
+        log.debug("got data from crate %i" % crate)
 
 	if slotmask == 0:
 	    continue
@@ -84,8 +88,9 @@ def daemonize():
 
     os.setsid()
 
-    with open('/dev/null', 'w') as f:
-        fd = f.fileno()
+    f = open('/dev/null', 'w')
+
+    fd = f.fileno()
 
     os.dup2(fd, 0)
     os.dup2(fd, 1)
@@ -119,8 +124,8 @@ if __name__ == '__main__':
 	try:
 	    cmos_consumer(args.host,args.port)
 	except socket.error as e:
-	    print('failed to connect to data: %s' % str(e), file=sys.stderr)
+	    log.warn('failed to connect to data: %s' % str(e))
 	    time.sleep(60)
 	except Exception as e:
-	    print('unhandled exception: %s' % str(e), file=sys.stderr)
+	    log.warn('unhandled exception: %s' % str(e))
 	    time.sleep(60)
