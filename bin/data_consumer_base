@@ -1,5 +1,68 @@
 #!/usr/bin/env python
-from minard.data import cmos_consumer, base_consumer
+from __future__ import print_function, division
+from snotdaq import DataStream
+from minard.data import flush_to_redis, parse_cmos, unpack_index
+import socket
+import time
+
+def base_consumer(host, port):
+    data = DataStream(host, port=port, subscriptions=['BASE'],
+		      timeout=0.1)
+    data.connect()
+
+    base_currents = {}
+
+    then = None
+    while True:
+        now = int(time.time())
+        try:
+            id, rec = data.recv_record()
+        except socket.timeout as e:
+            # timeout
+            id = None
+
+        if now > then and len(base_currents) > 0:
+            flush_to_redis(base_currents, 'base', then)
+            then = None
+            base_currents.clear()
+
+        if id is None:
+            time.sleep(0.1)
+            continue
+
+        if id != 'BASE':
+            raise ValueError("Expected base current record got id %i" % id)
+
+        if then is None:
+            then = now
+
+        crate, slotmask, channelmask, error_flags, counts, busy, timestamp = \
+            parse_base(rec)
+
+        for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
+            for j, value in enumerate(map(int,counts[slot])):
+                if not channelmask[slot] & (1 << j) or value >> 31:
+                    continue
+
+                index = crate << 9 | slot << 5 | j
+
+                base_currents[index] = value - 127
 
 if __name__ == '__main__':
-    base_consumer(5558)
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser('Script to parse BASE records and push them to redis')
+    parser.add_argument('--host',default='buffer1.sp.snolab.ca')
+    parser.add_argument('--port',default=4000,type=int)
+    args = parser.parse_args()
+
+    while True:
+	try:
+	    base_consumer(args.host,args.port)
+	except socket.error as e:
+	    print('failed to connect to data: %s' % str(e), file=sys.stderr)
+	    time.sleep(60)
+	except Exception as e:
+	    print('unhandled exception: %s' % str(e), file=sys.stderr)
+	    time.sleep(60)
