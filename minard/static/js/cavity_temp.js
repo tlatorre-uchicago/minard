@@ -62,12 +62,13 @@ function metric(name) {
     }, display);
 }
 
-function add_horizon(expressions, format, colors, extent) {
+function add_horizon(expressions, format, colors, extent, offset) {
     var horizon = context.horizon().height(Number(height));
 
     if (typeof format != "undefined") horizon = horizon.format(format);
     if (typeof colors != "undefined" && colors) horizon = horizon.colors(colors);
     if (typeof extent != "undefined") horizon = horizon.extent(extent);
+    if (typeof offset != "undefined") horizon = horizon.offset(offset);
 
     d3.select('#main').selectAll('.horizon')
         .data(expressions.map(metric), String)
@@ -89,7 +90,8 @@ function add_horizon(expressions, format, colors, extent) {
 add_horizon(CAVITY_TEMP_SENSORS.map(function(x) { return "temp-" + x; }),
             format_rate,
             null,
-            [10,20]);
+            [-5,5],
+            -15);
 
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i === null ? null : context.size() - i + "px");
