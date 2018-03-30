@@ -1,7 +1,6 @@
 from __future__ import division
 from itertools import repeat
 import struct
-import zmq
 import numpy as np
 from redis import Redis
 import time
